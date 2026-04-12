@@ -537,6 +537,8 @@ window.confirmarEnvio = function confirmarEnvio(){
   addDoc(collection(db,'checklists'), docData)
     .then(()=>{
       fecharModal();
+      // Dispara WhatsApp se houver reparos (sem bloquear o fluxo)
+      if (rep > 0) enviarWhatsApp(docData);
       document.getElementById('success-info').innerHTML=`
         <div class="success-row"><span>Motorista</span><span>${driver}</span></div>
         <div class="success-row"><span>Placa</span><span>${placa.toUpperCase()}</span></div>
@@ -698,6 +700,50 @@ function itemBloqueado(catName, itemText) {
   return reparosPendentes.some(r =>
     r.categoria === catName && r.item === itemText
   );
+}
+
+// ══ NOTIFICAÇÃO WHATSAPP Z-API ══
+const ZAPI_INSTANCE = '3F18E37A7D82E24A663CB20DE66F3711';
+const ZAPI_TOKEN    = '5E4ACC650F8E7BC60C993D19';
+const GESTOR_NUMERO = '5512982144012';
+
+async function enviarWhatsApp(checklist) {
+  if (!checklist.reparosDetalhes || checklist.reparosDetalhes.length === 0) return;
+
+  // Monta mensagem
+  const linhasReparos = checklist.reparosDetalhes.map((r, i) =>
+    `  ${i+1}. [${r.categoria}] ${r.item}${r.obs ? '\n     📝 ' + r.obs : ''}`
+  ).join('\n');
+
+  const msg =
+`🚛 *REPARO APONTADO — FleetCheck*
+━━━━━━━━━━━━━━━━━━━
+👤 *Motorista:* ${checklist.motorista}
+🚗 *Placa:* ${checklist.placa}
+🕐 *Horário:* ${checklist.horaFormatada} de ${checklist.dataFormatada}
+━━━━━━━━━━━━━━━━━━━
+⚠️ *${checklist.reparos} item(ns) com inconformidade:*
+
+${linhasReparos}
+━━━━━━━━━━━━━━━━━━━
+✅ Conformes: ${checklist.conformes} | ❌ Reparos: ${checklist.reparos}
+
+Acesse o painel para marcar como resolvido.`;
+
+  const url = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'client-token': ZAPI_TOKEN },
+      body: JSON.stringify({ phone: GESTOR_NUMERO, message: msg })
+    });
+    const data = await res.json();
+    console.log('WhatsApp enviado:', data);
+  } catch(err) {
+    console.warn('Erro ao enviar WhatsApp:', err);
+    // Não bloqueia o fluxo — erro silencioso
+  }
 }
 
 function mostrarToast(msg){
