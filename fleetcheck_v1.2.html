@@ -383,7 +383,7 @@ function setVal(key,val,clickedBtn){
   updateDashboard();
 }
 
-function tentarFinalizar(){
+window.tentarFinalizar = function tentarFinalizar(){
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{const ta=document.getElementById('txt-'+`${ci}-${ii}`);if(ta)obs[`${ci}-${ii}`]=ta.value;}));
   const placa=document.getElementById('placa-input').value.trim();
   const hodo=document.getElementById('hodo-input').value.trim();
@@ -424,9 +424,9 @@ function abrirModal(){
   document.getElementById('modal-overlay').classList.add('show');
 }
 
-function fecharModal(){document.getElementById('modal-overlay').classList.remove('show');}
+window.fecharModal = function fecharModal(){document.getElementById('modal-overlay').classList.remove('show');}
 
-function confirmarEnvio(){
+window.confirmarEnvio = function confirmarEnvio(){
   fecharModal();
   const{ok,rep}=countState();
   const placa=document.getElementById('placa-input').value||'—';
@@ -485,7 +485,7 @@ function confirmarEnvio(){
     });
 }
 
-function novoChecklist(){
+window.novoChecklist = function novoChecklist(){
   CATS.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{state[`${ci}-${ii}`]=null;delete obs[`${ci}-${ii}`];}));
   document.getElementById('placa-input').value='';
   document.getElementById('hodo-input').value='';
@@ -493,7 +493,7 @@ function novoChecklist(){
   updateDashboard();show('view-dash');
 }
 
-function limparErroCampo(campo){
+window.limparErroCampo = function limparErroCampo(campo){
   document.getElementById('card-'+campo).classList.remove('error','filled');
   document.getElementById('err-'+campo).classList.remove('show');
 }
@@ -506,7 +506,7 @@ function mostrarToast(msg){
 }
 
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function doLogin(){
+window.doLogin = function doLogin(){
   const email=document.getElementById('login-user').value.trim();
   const senha=document.getElementById('login-pass').value;
   if(!email||!senha){mostrarToast('⚠ Informe e-mail e senha.');return;}
@@ -527,10 +527,10 @@ function doLogin(){
     })
     .finally(()=>{btnLogin.textContent='Entrar';btnLogin.disabled=false;});
 }
-function doLogout(){
+window.doLogout = function doLogout(){
   signOut(auth).then(()=>{currentUser=null;show('view-login');});
 }
-function closeDetail(){updateDashboard();show('view-dash');}
+window.closeDetail = function closeDetail(){updateDashboard();show('view-dash');}
 
 updateDashboard();
 </script>
