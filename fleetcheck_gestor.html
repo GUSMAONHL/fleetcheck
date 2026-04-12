@@ -805,9 +805,9 @@ function init() {
 
   // Listener em tempo real no Firestore
   mostrarLoading(true);
-  const q = query(collection(db, 'checklists'), orderBy('timestamp', 'desc'), limit(200));
+  const q = query(collection(db, 'checklists'), limit(200));
   onSnapshot(q, (snapshot) => {
-    CHECKLISTS = snapshot.docs.map((docSnap, idx) => {
+    const docs = snapshot.docs.map((docSnap, idx) => {
       const d = docSnap.data();
       // Reconstrói resolvedMap a partir dos dados do Firestore
       if (d.reparosDetalhes) {
@@ -828,15 +828,17 @@ function init() {
         _rep: d.reparos || 0,
       };
     });
+    // Ordena por timestamp decrescente no cliente
+    CHECKLISTS = docs.sort((a,b) => new Date(b.horario) - new Date(a.horario));
     mostrarLoading(false);
     atualizarKPIs();
     renderDashTable();
     renderListTable();
     renderFrotaTable();
   }, (err) => {
-    console.error('Firestore error:', err);
+    console.error('Firestore error:', err.code, err.message);
     mostrarLoading(false);
-    showToast('⚠ Erro ao carregar dados. Verifique a conexão.');
+    showToast('⚠ Erro: ' + (err.message || 'Verifique a conexão.'));
   });
 }
 
