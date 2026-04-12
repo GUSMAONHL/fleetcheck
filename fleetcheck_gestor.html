@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FleetCheck — Painel do Gestor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #1c2330;
+  --bg4: #212830;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --text3: #484f58;
+  --green: #2ea043;
+  --green-bg: rgba(46,160,67,0.12);
+  --green-border: rgba(46,160,67,0.3);
+  --red: #da3633;
+  --red-bg: rgba(218,54,51,0.12);
+  --red-border: rgba(218,54,51,0.3);
+  --yellow: #d29922;
+  --yellow-bg: rgba(210,153,34,0.12);
+  --yellow-border: rgba(210,153,34,0.3);
+  --blue: #388bfd;
+  --blue-bg: rgba(56,139,253,0.12);
+  --blue-border: rgba(56,139,253,0.3);
+  --accent: #f78166;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 10;
+}
+.sidebar-logo {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-mark {
+  width: 32px; height: 32px; background: var(--accent);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 18px; height: 18px; }
+.logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+
+.sidebar-nav { flex: 1; padding: 12px 10px; }
+.nav-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text2);
+  transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg4); color: var(--text); font-weight: 500; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+
+.sidebar-user {
+  padding: 14px 16px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #388bfd, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.user-role { font-size: 11px; color: var(--text3); }
+
+/* ── MAIN ── */
+.main { margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── TOPBAR ── */
+.topbar {
+  height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; position: sticky; top: 0; z-index: 9;
+}
+.topbar-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-date { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: #3fb950; }
+.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-outline:hover { background: var(--bg3); color: var(--text); }
+.btn svg { width: 14px; height: 14px; }
+
+/* ── CONTENT ── */
+.content { padding: 28px; flex: 1; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; position: relative; overflow: hidden;
+}
+.kpi-card::before { content:''; position:absolute; top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:0.06;transform:translate(20px,-20px); }
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-card.yellow::before { background: var(--yellow); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.kpi-value { font-size: 32px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 8px; }
+.kpi-card.green .kpi-value { color: #3fb950; }
+.kpi-card.red .kpi-value { color: #f85149; }
+.kpi-card.yellow .kpi-value { color: var(--yellow); }
+.kpi-card.blue .kpi-value { color: var(--blue); }
+.kpi-sub { font-size: 11px; color: var(--text3); }
+.kpi-icon { position: absolute; top: 18px; right: 18px; opacity: 0.4; }
+.kpi-icon svg { width: 22px; height: 22px; }
+
+/* ── FILTERS ── */
+.filters-bar {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 18px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.filter-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+.filter-input {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 7px 12px; color: var(--text); font-size: 13px; outline: none;
+  font-family: 'DM Sans', sans-serif; min-width: 150px;
+  transition: border-color 0.15s;
+}
+.filter-input:focus { border-color: var(--blue); }
+.filter-input::placeholder { color: var(--text3); }
+.filter-sep { width: 1px; height: 24px; background: var(--border); }
+.filter-tag {
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+  border: 1px solid var(--border2); background: transparent; color: var(--text2);
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.filter-tag.active { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
+.filter-tag.red { }
+.filter-tag.red.active { background: var(--red-bg); border-color: var(--red-border); color: #f85149; }
+.filter-tag.green.active { background: var(--green-bg); border-color: var(--green-border); color: #3fb950; }
+.ml-auto { margin-left: auto; }
+
+/* ── TABLE ── */
+.table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.table-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.table-count { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+table { width: 100%; border-collapse: collapse; }
+thead th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+tbody td { padding: 13px 20px; font-size: 13px; color: var(--text2); }
+tbody td.text-primary { color: var(--text); font-weight: 500; }
+.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+/* STATUS BADGES */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-green { background: var(--green-bg); color: #3fb950; border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-bg); color: #f85149; border: 1px solid var(--red-border); }
+.badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* ── DETAIL PANEL ── */
+.detail-overlay {
+  display: none; position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.6);
+}
+.detail-overlay.open { display: flex; justify-content: flex-end; }
+.detail-panel {
+  width: 520px; height: 100vh; background: var(--bg2);
+  border-left: 1px solid var(--border); display: flex; flex-direction: column;
+  animation: slideIn 0.2s ease-out;
+}
+@keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.panel-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-shrink: 0;
+}
+.panel-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.panel-meta { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.panel-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; line-height: 1; font-size: 20px; }
+.panel-close:hover { color: var(--text); }
+.panel-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.panel-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+
+.panel-kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.panel-kpi { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+.panel-kpi-num { font-size: 22px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.panel-kpi-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.panel-kpi.ok .panel-kpi-num { color: #3fb950; }
+.panel-kpi.rep .panel-kpi-num { color: #f85149; }
+.panel-kpi.tot .panel-kpi-num { color: var(--blue); }
+
+.panel-info { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+.panel-info-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+.panel-info-row:last-child { border-bottom: none; }
+.panel-info-row span:first-child { color: var(--text3); }
+.panel-info-row span:last-child { color: var(--text); font-weight: 500; font-family: 'DM Mono', monospace; font-size: 12px; }
+
+.repair-section-title {
+  font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px;
+  font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.repair-item {
+  background: var(--bg3); border: 1px solid var(--red-border);
+  border-radius: 10px; padding: 13px 15px; margin-bottom: 8px;
+}
+.repair-item.resolved { border-color: var(--green-border); opacity: 0.7; }
+.repair-cat { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.repair-q { font-size: 13px; color: #f0c0b0; margin-bottom: 6px; line-height: 1.4; }
+.repair-item.resolved .repair-q { color: var(--text2); }
+.repair-obs { font-size: 12px; color: var(--text3); font-style: italic; padding: 6px 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; }
+.repair-actions { display: flex; align-items: center; justify-content: space-between; }
+.resolve-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  border-radius: 7px; color: #3fb950; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.resolve-btn:hover { background: rgba(46,160,67,0.2); }
+.resolve-btn.done { background: transparent; border-color: var(--border); color: var(--text3); cursor: default; }
+.resolve-btn svg { width: 13px; height: 13px; }
+.resolved-tag { font-size: 11px; color: #3fb950; display: flex; align-items: center; gap: 4px; }
+
+.ok-section-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; margin: 18px 0 10px; }
+.ok-list { display: flex; flex-direction: column; gap: 4px; }
+.ok-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--text2); }
+.ok-dot { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; flex-shrink: 0; }
+.ok-cat { font-size: 10px; color: var(--text3); margin-right: 4px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--bg4); border: 1px solid var(--green-border);
+  border-radius: 10px; padding: 12px 18px; font-size: 13px; color: #3fb950;
+  display: flex; align-items: center; gap: 8px;
+  animation: toastIn 0.2s ease-out;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+@keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── EMPTY ── */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M1 17l3-9h16l3 9"/><path d="M5 17h14"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M10 8v4M14 8v4"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">FleetCheck</div>
+      <div class="logo-sub">Gestor</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Menu</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('checklists')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
+      Checklists
+      <span class="nav-badge" id="badge-reparos">3</span>
+    </button>
+    <button class="nav-item" onclick="showPage('frotas')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+      Frota
+    </button>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">GR</div>
+    <div>
+      <div class="user-name">Geraldo R.</div>
+      <div class="user-role">Gestor de Frota</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbar-date"></span>
+      <button class="btn btn-outline" onclick="exportarPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
+        Exportar PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">Checklists Hoje</div>
+          <div class="kpi-value" id="kpi-total">0</div>
+          <div class="kpi-sub">registros enviados</div>
+          <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2ea043" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg></div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Reparos Abertos</div>
+          <div class="kpi-value" id="kpi-reparos">0</div>
+          <div class="kpi-sub">itens com inconformidade</div>
+          <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#da3633" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Reparos Resolvidos</div>
+          <div class="kpi-value" id="kpi-resolvidos">0</div>
+          <div class="kpi-sub">marcados hoje</div>
+          <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Veículos Vistoriados</div>
+          <div class="kpi-value" id="kpi-veiculos">0</div>
+          <div class="kpi-sub">placas distintas</div>
+          <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#388bfd" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Últimos checklists no dashboard -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Últimos Checklists Recebidos</div>
+          <div class="table-count" id="dash-count">0 registros</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Motorista</th>
+              <th>Placa</th>
+              <th>Hodômetro</th>
+              <th>Horário</th>
+              <th>Conformes</th>
+              <th>Reparos</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="dash-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: CHECKLISTS -->
+    <div class="page" id="page-checklists">
+      <div class="filters-bar">
+        <span class="filter-label">Filtrar:</span>
+        <input class="filter-input" type="text" id="filter-motorista" placeholder="Motorista..." oninput="filtrarTabela()"/>
+        <input class="filter-input" type="text" id="filter-placa" placeholder="Placa..." oninput="filtrarTabela()"/>
+        <input class="filter-input" type="date" id="filter-data" oninput="filtrarTabela()"/>
+        <div class="filter-sep"></div>
+        <button class="filter-tag active" onclick="setFiltroStatus('todos', this)">Todos</button>
+        <button class="filter-tag red" onclick="setFiltroStatus('reparo', this)">Com Reparo</button>
+        <button class="filter-tag green" onclick="setFiltroStatus('ok', this)">Tudo OK</button>
+        <button class="btn btn-outline ml-auto" onclick="limparFiltros()">Limpar</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Todos os Checklists</div>
+          <div class="table-count" id="list-count">0 registros</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Data / Hora</th>
+              <th>Motorista</th>
+              <th>Placa</th>
+              <th>Hodômetro</th>
+              <th>Conformes</th>
+              <th>Reparos</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="list-table-body"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <p>Nenhum checklist encontrado com os filtros aplicados.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: FROTAS -->
+    <div class="page" id="page-frotas">
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Veículos Vistoriados</div>
+          <div class="table-count" id="frota-count">0 veículos</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Último Checklist</th>
+              <th>Motorista</th>
+              <th>Hodômetro</th>
+              <th>Total Vistoriados</th>
+              <th>Reparos Abertos</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="frota-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detail-overlay" onclick="fecharPainel(event)">
+  <div class="detail-panel" id="detail-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="panel-title">Checklist</div>
+        <div class="panel-meta" id="panel-meta"></div>
+      </div>
+      <button class="panel-close" onclick="fecharPainelForce()">&#x2715;</button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+    <div class="panel-footer">
+      <button class="btn btn-outline" onclick="fecharPainelForce()">Fechar</button>
+      <button class="btn btn-primary" onclick="exportarPDFChecklist()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DADOS SIMULADOS
+// ══════════════════════════════════════
+const CATS = [
+  {name:"Fluidos e Motor",items:["O nível do líquido de arrefecimento está acima do mínimo?","O nível de óleo do motor está acima do mínimo?"]},
+  {name:"Direção",items:["Durante o trabalho é notada folga na direção?"]},
+  {name:"Caçamba e Hidráulico",items:["Existe desgaste excessivo na trava das tampas?","Existe vazamentos no cilindro de elevação da caçamba?","Há desgaste na borracha das mangueiras hidráulicas?","Há malhas aparecendo nas mangueiras hidráulicas?","A caçamba possui lona rasgada ou braço do enlonador danificado?"]},
+  {name:"Freios",items:["Freio de serviço funcionando?","Freio de estacionamento funcionando?"]},
+  {name:"Segurança e Cabine",items:["Cintos de segurança funcionam normalmente?","Os retrovisores estão em perfeito estado de uso?","As placas do veículo estão em boa condição?","As faixas refletivas de para-choque e laterais estão em condição de uso?","O parabrisa está quebrado?","A cabine se encontra limpa e em boas condições de trabalho?"]},
+  {name:"Sonoros e Sinalizações",items:["Buzina funciona corretamente?","Sirene de marcha ré funciona corretamente?","Luz que indica se a caçamba está erguida funciona corretamente?"]},
+  {name:"Iluminação e Elétrico",items:["Faróis e luzes externas estão em boas condições e funcionam corretamente?","Limpador e lavador do para-brisa estão em boas condições e funcionam corretamente?","Luz do suspensor do eixo funciona corretamente?","O acionamento dos vidros funciona corretamente?"]},
+  {name:"Pneus e Rodas",items:["Os pneus estão em boas condições de uso?","O(s) equipamento(s) possui(em) pneu(s) estepe?","Todas as setas nos parafusos de roda estão instaladas?","Para-lamas e para-barro estão em ordem?"]},
+  {name:"Equipamentos e Docs",items:["Cones de sinalização e calços de roda constam no caminhão?","Tacógrafo funciona corretamente?"]}
+];
+
+function gerarItens(reparoIdxs, obsMap) {
+  const itens = [];
+  CATS.forEach((cat, ci) => {
+    cat.items.forEach((q, ii) => {
+      const key = `${ci}-${ii}`;
+      const isRep = reparoIdxs.includes(key);
+      itens.push({ cat: cat.name, q, status: isRep ? 'rep' : 'ok', obs: obsMap[key] || '', resolved: false });
+    });
+  });
+  return itens;
+}
+
+const hoje = new Date();
+function dt(h, m) { const d = new Date(hoje); d.setHours(h, m, 0); return d; }
+
+const CHECKLISTS = [
+  { id:1, motorista:'Carlos Silva',    placa:'MHZ-4892', hodo:'158.340', horario: dt(6,14), itens: gerarItens(['2-1','3-0','6-2'], {'2-1':'Vazamento visível na mangueira do cilindro.','3-0':'Pedal com curso longo, freio fraco.','6-2':'Luz apagada, lâmpada queimada.'}) },
+  { id:2, motorista:'Marcos Pereira',  placa:'QRT-2201', hodo:'204.810', horario: dt(6,38), itens: gerarItens([], {}) },
+  { id:3, motorista:'João Ferreira',   placa:'BZK-7734', hodo:'91.230',  horario: dt(7,2),  itens: gerarItens(['4-4','7-0'], {'4-4':'Parabrisa com rachadura no canto inferior direito.','7-0':'Pneu traseiro direito com desgaste excessivo.'}) },
+  { id:4, motorista:'Ricardo Alves',   placa:'MHZ-4892', hodo:'158.952', horario: dt(7,45), itens: gerarItens(['8-0'], {'8-0':'Cones não encontrados na cabine.'}) },
+  { id:5, motorista:'Paulo Rodrigues', placa:'LPN-5531', hodo:'312.440', horario: dt(8,10), itens: gerarItens([], {}) },
+  { id:6, motorista:'André Santos',    placa:'TRX-9901', hodo:'47.120',  horario: dt(8,55), itens: gerarItens(['1-0','3-1'], {'1-0':'Folga perceptível ao virar à esquerda.','3-1':'Freio de mão não trava completamente.'}) },
+];
+
+// Estado de reparos resolvidos (persistência em memória)
+const resolvedMap = {}; // id_checklist + idx_item -> true
+
+let filtroStatus = 'todos';
+let checklistAtivo = null;
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function formatHora(d) { return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }); }
+function formatData(d) { return d.toLocaleDateString('pt-BR'); }
+function formatDataHora(d) { return formatData(d) + ' ' + formatHora(d); }
+
+function getReparos(cl) {
+  return cl.itens.filter(i => i.status === 'rep');
+}
+function getReparosAbertos(cl) {
+  return getReparos(cl).filter((_, idx) => {
+    const key = `${cl.id}-${idx}`;
+    return !resolvedMap[key];
+  });
+}
+function getConformes(cl) {
+  return cl.itens.filter(i => i.status === 'ok').length;
+}
+
+function statusBadge(cl) {
+  const abertos = getReparosAbertos(cl).length;
+  const total = getReparos(cl).length;
+  if (total === 0) return `<span class="badge badge-green"><span class="badge-dot"></span>Tudo OK</span>`;
+  if (abertos === 0) return `<span class="badge badge-blue"><span class="badge-dot"></span>Resolvido</span>`;
+  return `<span class="badge badge-red"><span class="badge-dot"></span>${abertos} reparo${abertos>1?'s':''}</span>`;
+}
+
+// ══════════════════════════════════════
+// KPIs
+// ══════════════════════════════════════
+function atualizarKPIs() {
+  const total = CHECKLISTS.length;
+  let reparosAbertos = 0, resolvidos = 0;
+  const placas = new Set();
+  CHECKLISTS.forEach(cl => {
+    placas.add(cl.placa);
+    getReparos(cl).forEach((_, idx) => {
+      const key = `${cl.id}-${idx}`;
+      if (resolvedMap[key]) resolvidos++; else reparosAbertos++;
+    });
+  });
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-reparos').textContent = reparosAbertos;
+  document.getElementById('kpi-resolvidos').textContent = resolvidos;
+  document.getElementById('kpi-veiculos').textContent = placas.size;
+  document.getElementById('dash-count').textContent = `${total} registros`;
+
+  // Badge nav
+  document.getElementById('badge-reparos').textContent = reparosAbertos;
+  document.getElementById('badge-reparos').style.display = reparosAbertos > 0 ? '' : 'none';
+}
+
+// ══════════════════════════════════════
+// TABELAS
+// ══════════════════════════════════════
+function renderRow(cl, tbody_id) {
+  const rAb = getReparosAbertos(cl).length;
+  const rTot = getReparos(cl).length;
+  const ok = getConformes(cl);
+  return `<tr onclick="abrirPainel(${cl.id})">
+    <td class="text-primary mono">${tbody_id === 'dash-table-body' ? formatHora(cl.horario) : formatDataHora(cl.horario)}</td>
+    <td class="text-primary">${cl.motorista}</td>
+    <td class="mono">${cl.placa}</td>
+    <td class="mono">${cl.hodo} km</td>
+    <td style="color:#3fb950;font-family:'DM Mono',monospace;">${ok}</td>
+    <td style="color:${rTot>0?'#f85149':'#3fb950'};font-family:'DM Mono',monospace;">${rTot}</td>
+    <td>${statusBadge(cl)}</td>
+    <td><span style="color:var(--text3);font-size:18px;">›</span></td>
+  </tr>`;
+}
+
+function renderDashTable() {
+  const body = document.getElementById('dash-table-body');
+  body.innerHTML = CHECKLISTS.slice().reverse().map(cl => renderRow(cl, 'dash-table-body')).join('');
+}
+
+function getChecklistsFiltrados() {
+  const mot = document.getElementById('filter-motorista').value.toLowerCase();
+  const placa = document.getElementById('filter-placa').value.toLowerCase();
+  const data = document.getElementById('filter-data').value;
+  return CHECKLISTS.filter(cl => {
+    if (mot && !cl.motorista.toLowerCase().includes(mot)) return false;
+    if (placa && !cl.placa.toLowerCase().includes(placa)) return false;
+    if (data && formatData(cl.horario) !== new Date(data+'T12:00:00').toLocaleDateString('pt-BR')) return false;
+    if (filtroStatus === 'reparo' && getReparosAbertos(cl).length === 0) return false;
+    if (filtroStatus === 'ok' && getReparos(cl).length > 0) return false;
+    return true;
+  });
+}
+
+function renderListTable() {
+  const filtrados = getChecklistsFiltrados();
+  const body = document.getElementById('list-table-body');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('list-count').textContent = `${filtrados.length} registros`;
+  if (filtrados.length === 0) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  body.innerHTML = filtrados.slice().reverse().map(cl => renderRow(cl, 'list-table-body')).join('');
+}
+
+function renderFrotaTable() {
+  const placaMap = {};
+  CHECKLISTS.forEach(cl => {
+    if (!placaMap[cl.placa]) placaMap[cl.placa] = { placa: cl.placa, checklists: [], motoristas: new Set() };
+    placaMap[cl.placa].checklists.push(cl);
+    placaMap[cl.placa].motoristas.add(cl.motorista);
+  });
+  const veiculos = Object.values(placaMap);
+  document.getElementById('frota-count').textContent = `${veiculos.length} veículos`;
+  document.getElementById('frota-table-body').innerHTML = veiculos.map(v => {
+    const ultimo = v.checklists[v.checklists.length - 1];
+    const rAb = v.checklists.reduce((s, cl) => s + getReparosAbertos(cl).length, 0);
+    return `<tr onclick="abrirPainel(${ultimo.id})">
+      <td class="text-primary mono" style="font-size:14px;letter-spacing:1px;">${v.placa}</td>
+      <td class="mono">${formatDataHora(ultimo.horario)}</td>
+      <td>${[...v.motoristas].join(', ')}</td>
+      <td class="mono">${ultimo.hodo} km</td>
+      <td class="mono" style="color:#3fb950;">${v.checklists.length}</td>
+      <td class="mono" style="color:${rAb>0?'#f85149':'#3fb950'};">${rAb}</td>
+      <td>${rAb > 0 ? `<span class="badge badge-red"><span class="badge-dot"></span>${rAb} aberto${rAb>1?'s':''}</span>` : '<span class="badge badge-green"><span class="badge-dot"></span>OK</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// FILTROS
+// ══════════════════════════════════════
+function filtrarTabela() { renderListTable(); }
+function setFiltroStatus(status, el) {
+  filtroStatus = status;
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderListTable();
+}
+function limparFiltros() {
+  document.getElementById('filter-motorista').value = '';
+  document.getElementById('filter-placa').value = '';
+  document.getElementById('filter-data').value = '';
+  filtroStatus = 'todos';
+  document.querySelectorAll('.filter-tag').forEach((t,i) => { t.classList.toggle('active', i===0); });
+  renderListTable();
+}
+
+// ══════════════════════════════════════
+// PAINEL DE DETALHE
+// ══════════════════════════════════════
+function abrirPainel(id) {
+  checklistAtivo = CHECKLISTS.find(c => c.id === id);
+  if (!checklistAtivo) return;
+  renderPainel();
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function renderPainel() {
+  const cl = checklistAtivo;
+  const reparos = getReparos(cl);
+  const ok = getConformes(cl);
+
+  document.getElementById('panel-title').textContent = `${cl.placa} — ${cl.motorista}`;
+  document.getElementById('panel-meta').textContent = `${formatDataHora(cl.horario)} · Hodômetro: ${cl.hodo} km`;
+
+  let html = `<div class="panel-kpis">
+    <div class="panel-kpi ok"><div class="panel-kpi-num">${ok}</div><div class="panel-kpi-lbl">Conformes</div></div>
+    <div class="panel-kpi rep"><div class="panel-kpi-num">${reparos.length}</div><div class="panel-kpi-lbl">Reparos</div></div>
+    <div class="panel-kpi tot"><div class="panel-kpi-num">${cl.itens.length}</div><div class="panel-kpi-lbl">Total</div></div>
+  </div>`;
+
+  html += `<div class="panel-info">
+    <div class="panel-info-row"><span>Motorista</span><span>${cl.motorista}</span></div>
+    <div class="panel-info-row"><span>Placa</span><span>${cl.placa}</span></div>
+    <div class="panel-info-row"><span>Hodômetro</span><span>${cl.hodo} km</span></div>
+    <div class="panel-info-row"><span>Data/Hora</span><span>${formatDataHora(cl.horario)}</span></div>
+  </div>`;
+
+  if (reparos.length > 0) {
+    html += `<div class="repair-section-title">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Itens com Inconformidade (${reparos.length})
+    </div>`;
+    reparos.forEach((item, idx) => {
+      const key = `${cl.id}-${idx}`;
+      const resolved = !!resolvedMap[key];
+      html += `<div class="repair-item ${resolved ? 'resolved' : ''}" id="repair-${key}">
+        <div class="repair-cat">${item.cat}</div>
+        <div class="repair-q">${item.q}</div>
+        ${item.obs ? `<div class="repair-obs">&#128221; ${item.obs}</div>` : ''}
+        <div class="repair-actions">
+          ${resolved
+            ? `<span class="resolved-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Resolvido</span>`
+            : `<button class="resolve-btn" onclick="marcarResolvido('${key}', ${cl.id}, ${idx})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+                Marcar como resolvido
+              </button>`
+          }
+        </div>
+      </div>`;
+    });
+  }
+
+  // Itens OK (colapsados)
+  html += `<div class="ok-section-title">Itens Conformes (${ok})</div>
+  <div class="ok-list">`;
+  cl.itens.filter(i => i.status === 'ok').forEach(item => {
+    html += `<div class="ok-item"><div class="ok-dot"></div><span class="ok-cat">${item.cat}:</span>${item.q}</div>`;
+  });
+  html += `</div>`;
+
+  document.getElementById('panel-body').innerHTML = html;
+}
+
+function marcarResolvido(key, clId, repIdx) {
+  resolvedMap[key] = true;
+  atualizarKPIs();
+  renderDashTable();
+  renderListTable();
+  renderFrotaTable();
+  renderPainel();
+  showToast('✔ Reparo marcado como resolvido');
+}
+
+function fecharPainel(e) {
+  if (e.target === document.getElementById('detail-overlay')) fecharPainelForce();
+}
+function fecharPainelForce() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  checklistAtivo = null;
+}
+
+// ══════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos' };
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id];
+  if (id === 'checklists') renderListTable();
+  if (id === 'frotas') renderFrotaTable();
+}
+
+// ══════════════════════════════════════
+// EXPORT PDF (simulado)
+// ══════════════════════════════════════
+function exportarPDF() {
+  showToast('&#x1F4C4; Gerando relatório PDF... (integração com backend necessária)');
+}
+function exportarPDFChecklist() {
+  if (!checklistAtivo) return;
+  showToast(`&#x1F4C4; PDF do checklist ${checklistAtivo.placa} sendo gerado...`);
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast'; t.innerHTML = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.transition = 'opacity 0.4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2800);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function init() {
+  const now = new Date();
+  document.getElementById('topbar-date').textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  atualizarKPIs();
+  renderDashTable();
+}
+
+init();
+</script>
+</body>
+</html>
