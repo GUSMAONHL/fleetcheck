@@ -712,8 +712,8 @@ function renderPainel() {
       const key = `${cl.id}-${idx}`;
       const resolved = !!resolvedMap[key];
       html += `<div class="repair-item ${resolved ? 'resolved' : ''}" id="repair-${key}">
-        <div class="repair-cat">${item.cat}</div>
-        <div class="repair-q">${item.q}</div>
+        <div class="repair-cat">${item.categoria || item.cat || "—"}</div>
+        <div class="repair-q">${item.item || item.q || "—"}</div>
         ${item.obs ? `<div class="repair-obs">&#128221; ${item.obs}</div>` : ''}
         <div class="repair-actions">
           ${resolved
@@ -732,7 +732,7 @@ function renderPainel() {
   html += `<div class="ok-section-title">Itens Conformes (${ok})</div>
   <div class="ok-list">`;
   cl.itens.filter(i => i.status === 'ok').forEach(item => {
-    html += `<div class="ok-item"><div class="ok-dot"></div><span class="ok-cat">${item.cat}:</span>${item.q}</div>`;
+    html += `<div class="ok-item"><div class="ok-dot"></div><span class="ok-cat">${item.categoria || item.cat || ''}:</span>${item.item || item.q || '—'}</div>`;
   });
   html += `</div>`;
 
