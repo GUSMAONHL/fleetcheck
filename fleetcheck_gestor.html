@@ -577,7 +577,7 @@ function renderRow(cl, tbody_id) {
   const rTot = getReparos(cl).length;
   const ok = getConformes(cl);
   if (tbody_id === 'dash-table-body') {
-    return `<tr onclick="abrirPainel(${cl.id})">
+    return `<tr onclick="abrirPainel('${cl.id}')" style="cursor:pointer;">
       <td class="text-primary">${cl.motorista}</td>
       <td class="mono">${cl.placa}</td>
       <td class="mono">${cl.hodo} km</td>
@@ -588,7 +588,7 @@ function renderRow(cl, tbody_id) {
       <td><span style="color:var(--text3);font-size:18px;">›</span></td>
     </tr>`;
   }
-  return `<tr onclick="abrirPainel(${cl.id})">
+  return `<tr onclick="abrirPainel('${cl.id}')" style="cursor:pointer;">
     <td class="mono">${formatDataHora(cl.horario)}</td>
     <td class="text-primary">${cl.motorista}</td>
     <td class="mono">${cl.placa}</td>
@@ -641,7 +641,7 @@ function renderFrotaTable() {
   document.getElementById('frota-table-body').innerHTML = veiculos.map(v => {
     const ultimo = v.checklists[v.checklists.length - 1];
     const rAb = v.checklists.reduce((s, cl) => s + getReparosAbertos(cl).length, 0);
-    return `<tr onclick="abrirPainel(${ultimo.id})">
+    return `<tr onclick="abrirPainel('${ultimo.id}')" style="cursor:pointer;">
       <td class="text-primary mono" style="font-size:14px;letter-spacing:1px;">${v.placa}</td>
       <td class="mono">${formatDataHora(ultimo.horario)}</td>
       <td>${[...v.motoristas].join(', ')}</td>
@@ -718,7 +718,7 @@ function renderPainel() {
         <div class="repair-actions">
           ${resolved
             ? `<span class="resolved-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Resolvido</span>`
-            : `<button class="resolve-btn" onclick="marcarResolvido('${key}', ${cl.id}, ${idx})">
+            : `<button class="resolve-btn" onclick="marcarResolvido('${key}', '${cl.id}', ${idx})">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
                 Marcar como resolvido
               </button>`
@@ -740,6 +740,7 @@ function renderPainel() {
 }
 
 window.marcarResolvido = function marcarResolvido(key, clId, repIdx) {
+  clId = String(clId);
   resolvedMap[key] = true;
   // Persiste no Firestore: atualiza o campo reparosDetalhes[repIdx].resolved
   const cl = CHECKLISTS.find(c => c.id === clId);
