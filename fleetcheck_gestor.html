@@ -254,6 +254,36 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 }
 @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
+/* ── PAINEL DE FARÓIS ── */
+.farois-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; }
+.farois-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.farois-subtitle { font-size: 11px; color: var(--text3); font-weight: 400; }
+.farois-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.farol-card { border-radius: 10px; padding: 14px 12px; text-align: center; border: 1px solid; position: relative; overflow: hidden; transition: transform 0.15s; cursor: default; }
+.farol-card:hover { transform: translateY(-2px); }
+.farol-num { font-size: 28px; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 6px; }
+.farol-lbl { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+.farol-sub { font-size: 10px; opacity: 0.7; }
+.farol-icon { font-size: 20px; margin-bottom: 6px; }
+.farol-hoje { background: rgba(56,139,253,0.1); border-color: rgba(56,139,253,0.3); }
+.farol-hoje .farol-num { color: #388bfd; }
+.farol-hoje .farol-lbl { color: #388bfd; }
+.farol-baixa { background: rgba(210,153,34,0.1); border-color: rgba(210,153,34,0.3); }
+.farol-baixa .farol-num { color: #d29922; }
+.farol-baixa .farol-lbl { color: #d29922; }
+.farol-media { background: rgba(219,109,40,0.1); border-color: rgba(219,109,40,0.3); }
+.farol-media .farol-num { color: #db6d28; }
+.farol-media .farol-lbl { color: #db6d28; }
+.farol-alta { background: rgba(218,54,51,0.12); border-color: rgba(218,54,51,0.4); }
+.farol-alta .farol-num { color: #f85149; }
+.farol-alta .farol-lbl { color: #f85149; }
+.farol-critico { background: rgba(139,28,28,0.18); border-color: rgba(180,40,40,0.5); }
+.farol-critico .farol-num { color: #ff6b6b; }
+.farol-critico .farol-lbl { color: #ff6b6b; }
+.farol-critico::after { content:''; position:absolute; inset:0; background:rgba(255,50,50,0.04); animation: pulso-critico 1.8s ease-in-out infinite; }
+@keyframes pulso-critico { 0%,100%{opacity:0} 50%{opacity:1} }
+.farois-zero { text-align:center; padding: 20px; color: var(--text3); font-size: 13px; }
+
 /* ── EMPTY ── */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
 .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
@@ -338,6 +368,21 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <div class="kpi-value" id="kpi-veiculos">0</div>
           <div class="kpi-sub">placas distintas</div>
           <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#388bfd" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Painel de Faróis -->
+      <div class="farois-panel">
+        <div class="farois-title">
+          Situação dos Reparos por Urgência
+          <span class="farois-subtitle" id="farois-updated"></span>
+        </div>
+        <div class="farois-grid" id="farois-grid">
+          <div class="farol-card farol-hoje"><div class="farol-icon">🔵</div><div class="farol-num" id="f-hoje">0</div><div class="farol-lbl">Hoje</div><div class="farol-sub">Registrado hoje</div></div>
+          <div class="farol-card farol-baixa"><div class="farol-icon">🟡</div><div class="farol-num" id="f-baixa">0</div><div class="farol-lbl">1 dia</div><div class="farol-sub">Urgência baixa</div></div>
+          <div class="farol-card farol-media"><div class="farol-icon">🟠</div><div class="farol-num" id="f-media">0</div><div class="farol-lbl">2–3 dias</div><div class="farol-sub">Urgência média</div></div>
+          <div class="farol-card farol-alta"><div class="farol-icon">🔴</div><div class="farol-num" id="f-alta">0</div><div class="farol-lbl">4–7 dias</div><div class="farol-sub">Urgência alta</div></div>
+          <div class="farol-card farol-critico"><div class="farol-icon">⬛</div><div class="farol-num" id="f-critico">0</div><div class="farol-lbl">+7 dias</div><div class="farol-sub">Crítico</div></div>
         </div>
       </div>
 
@@ -548,6 +593,53 @@ function statusBadge(cl) {
 // ══════════════════════════════════════
 // KPIs
 // ══════════════════════════════════════
+function diasDesde(timestamp) {
+  if (!timestamp) return 0;
+  const inicio = new Date(timestamp);
+  const hoje = new Date();
+  return Math.floor((hoje - inicio) / (1000 * 60 * 60 * 24));
+}
+
+function calcularFarois() {
+  const contadores = { hoje: 0, baixa: 0, media: 0, alta: 0, critico: 0 };
+  let total = 0;
+
+  CHECKLISTS.forEach(cl => {
+    const reparos = getReparos(cl);
+    reparos.forEach((r, idx) => {
+      const key = `${cl.id}-${idx}`;
+      if (resolvedMap[key] || r.resolved) return; // ignora resolvidos
+
+      // Tenta pegar timestamp do checklist
+      const ts = cl.horario instanceof Date ? cl.horario.toISOString() : cl.horario;
+      const dias = diasDesde(ts);
+
+      if (dias === 0) contadores.hoje++;
+      else if (dias === 1) contadores.baixa++;
+      else if (dias <= 3) contadores.media++;
+      else if (dias <= 7) contadores.alta++;
+      else contadores.critico++;
+      total++;
+    });
+  });
+
+  document.getElementById('f-hoje').textContent = contadores.hoje;
+  document.getElementById('f-baixa').textContent = contadores.baixa;
+  document.getElementById('f-media').textContent = contadores.media;
+  document.getElementById('f-alta').textContent = contadores.alta;
+  document.getElementById('f-critico').textContent = contadores.critico;
+
+  // Destaca críticos com animação apenas se houver
+  const cardCritico = document.querySelector('.farol-critico');
+  if (cardCritico) {
+    cardCritico.style.animation = contadores.critico > 0 ? '' : 'none';
+  }
+
+  // Atualiza horário
+  const upd = document.getElementById('farois-updated');
+  if (upd) upd.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
 function atualizarKPIs() {
   const total = CHECKLISTS.length;
   let reparosAbertos = 0, resolvidos = 0;
@@ -564,6 +656,9 @@ function atualizarKPIs() {
   document.getElementById('kpi-resolvidos').textContent = resolvidos;
   document.getElementById('kpi-veiculos').textContent = placas.size;
   document.getElementById('dash-count').textContent = `${total} registros`;
+
+  // Painel de faróis
+  calcularFarois();
 
   // Badge nav
   document.getElementById('badge-reparos').textContent = reparosAbertos;
