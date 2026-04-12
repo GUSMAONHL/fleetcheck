@@ -96,6 +96,30 @@
   .obs-input::placeholder { color:#2a4a6a; }
   .btn-finish { width:calc(100% - 28px); margin:14px 14px 0; padding:14px; background:#0d5c38; border:2px solid #16a050; border-radius:12px; color:#fff; font-size:15px; font-weight:600; cursor:pointer; display:block; }
 
+  /* Histórico de reparos */
+  .hist-section { font-size:10px; color:#3a6090; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:10px; font-family:sans-serif; }
+  .hist-empty { text-align:center; padding:30px 20px; color:#3a5270; font-size:13px; font-family:sans-serif; line-height:1.6; }
+  .hist-empty svg { opacity:0.3; margin-bottom:10px; }
+  .reparo-card { background:#1a0e0e; border:1px solid #4a1515; border-radius:12px; padding:13px 15px; margin-bottom:10px; }
+  .reparo-card-cat { font-size:10px; color:#7a3030; text-transform:uppercase; letter-spacing:0.6px; font-family:sans-serif; margin-bottom:4px; }
+  .reparo-card-q { font-size:13px; color:#e0a0a0; font-family:sans-serif; line-height:1.4; margin-bottom:6px; }
+  .reparo-card-obs { font-size:11px; color:#8a5050; font-style:italic; font-family:sans-serif; padding:5px 8px; background:rgba(0,0,0,0.2); border-radius:6px; }
+  .reparo-card-placa { font-size:10px; color:#5a3030; font-family:sans-serif; margin-top:6px; display:flex; align-items:center; gap:4px; }
+  .btn-novo-checklist { width:100%; padding:16px; background:#1e4d8c; border:none; border-radius:12px; color:#e0f0ff; font-size:16px; font-weight:600; cursor:pointer; font-family:sans-serif; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px; }
+  .btn-novo-checklist:hover { background:#2870be; }
+  .hist-kpis { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  .hist-kpi { background:#112233; border:1px solid #1a3050; border-radius:12px; padding:14px; text-align:center; }
+  .hist-kpi-num { font-size:26px; font-weight:600; font-family:sans-serif; }
+  .hist-kpi-lbl { font-size:10px; color:#3a6090; text-transform:uppercase; font-family:sans-serif; margin-top:3px; }
+  .hist-kpi.rep .hist-kpi-num { color:#e05050; }
+  .hist-kpi.ok .hist-kpi-num { color:#2ed47a; }
+
+  /* Item bloqueado no checklist */
+  .check-item.bloqueado { background:#1a1010; border-color:#4a1515; opacity:0.85; }
+  .check-item.bloqueado .check-q { color:#7a4040; }
+  .lock-msg { font-size:11px; color:#8a3030; font-family:sans-serif; margin-top:8px; display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(200,40,40,0.08); border-radius:7px; border:1px solid #4a1515; }
+  .lock-msg svg { flex-shrink:0; }
+
   /* MODAL */
   .modal-overlay { display:none; position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(5,10,20,0.88); z-index:100; align-items:flex-end; }
   .modal-overlay.show { display:flex; }
@@ -168,6 +192,17 @@
     </div>
 
     <!-- DASHBOARD -->
+    <!-- HISTÓRICO DE REPAROS -->
+    <div class="view" id="view-historico">
+      <div class="dash-header">
+        <div class="dash-driver">Olá, <strong id="hist-driver-name">Motorista</strong></div>
+        <button class="logout-btn" onclick="doLogout()">Sair</button>
+      </div>
+      <div class="dash-content" id="hist-content">
+        <!-- preenchido dinamicamente -->
+      </div>
+    </div>
+
     <div class="view" id="view-dash">
       <div class="dash-header">
         <div class="dash-driver">Bom dia, <strong id="driver-name">Motorista</strong></div>
@@ -255,7 +290,7 @@
 // ══ FIREBASE SDK ══
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
@@ -270,6 +305,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 let currentUser = null;
+let reparosPendentes = []; // {categoria, item, obs, placa} — itens com reparo sem resolução
 
 const CATS = [
   { name:"Fluidos e Motor", color:"#2a6abf", items:["O nível do líquido de arrefecimento está acima do mínimo?","O nível de óleo do motor está acima do mínimo?"]},
@@ -304,7 +340,7 @@ function makeBtn(type,key,active){
   return btn;
 }
 
-function countState(){let ok=0,rep=0,pend=0;Object.values(state).forEach(v=>{if(v==='ok')ok++;else if(v==='rep')rep++;else pend++;});return{ok,rep,pend};}
+function countState(){let ok=0,rep=0,pend=0;Object.values(state).forEach(v=>{if(v==='ok')ok++;else if(v==='rep')rep++;else if(v==='blocked'){}else pend++;});return{ok,rep,pend};}
 
 function updateDashboard(){
   const{ok,rep,pend}=countState();
@@ -355,15 +391,36 @@ function renderDetail(){
     cat.items.forEach((q,ii)=>{
       const key=`${ci}-${ii}`;const val=state[key];
       const item=document.createElement('div');item.className='check-item';item.id='item-'+key;
+      const bloqueado = itemBloqueado(cat.name, q);
+      if (bloqueado) item.classList.add('bloqueado');
+
       const top=document.createElement('div');top.className='check-top';
       const qDiv=document.createElement('div');qDiv.className='check-q';qDiv.textContent=q;
-      const group=document.createElement('div');group.className='icon-group';
-      group.appendChild(makeBtn('ok',key,val==='ok'));
-      group.appendChild(makeBtn('nok',key,val==='rep'));
-      top.appendChild(qDiv);top.appendChild(group);item.appendChild(top);
-      const obsBox=document.createElement('div');obsBox.className='obs-box'+(val==='rep'?' show':'');obsBox.id='obs-'+key;
-      const ta=document.createElement('textarea');ta.className='obs-input';ta.id='txt-'+key;ta.rows=2;ta.placeholder='Descreva o problema...';ta.value=obs[key]||'';
-      obsBox.appendChild(ta);item.appendChild(obsBox);sec.appendChild(item);
+      top.appendChild(qDiv);
+
+      if (bloqueado) {
+        // Botão cadeado — item bloqueado aguardando resolução
+        const lockBtn=document.createElement('div');
+        lockBtn.style.cssText='display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:12px;border:2px solid #4a1515;background:#1a0808;flex-shrink:0;';
+        lockBtn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7a3030" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+        top.appendChild(lockBtn);
+        item.appendChild(top);
+        const lockMsg=document.createElement('div');lockMsg.className='lock-msg';
+        lockMsg.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cc4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Reparo anterior pendente — aguardando resolução do gestor';
+        item.appendChild(lockMsg);
+        // Marca como bloqueado no state
+        state[key]='blocked';
+      } else {
+        const group=document.createElement('div');group.className='icon-group';
+        group.appendChild(makeBtn('ok',key,val==='ok'));
+        group.appendChild(makeBtn('nok',key,val==='rep'));
+        top.appendChild(group);
+        item.appendChild(top);
+        const obsBox=document.createElement('div');obsBox.className='obs-box'+(val==='rep'?' show':'');obsBox.id='obs-'+key;
+        const ta=document.createElement('textarea');ta.className='obs-input';ta.id='txt-'+key;ta.rows=2;ta.placeholder='Descreva o problema...';ta.value=obs[key]||'';
+        obsBox.appendChild(ta);item.appendChild(obsBox);
+      }
+      sec.appendChild(item);
     });
     content.appendChild(sec);
     if(ci<CATS.length-1){const sep=document.createElement('div');sep.className='sep';content.appendChild(sep);}
@@ -388,7 +445,7 @@ window.tentarFinalizar = function tentarFinalizar(){
   const placa=document.getElementById('placa-input').value.trim();
   const hodo=document.getElementById('hodo-input').value.trim();
   const erros=[];if(!placa)erros.push('placa');if(!hodo)erros.push('hodo');
-  const pendentes=[];CATS.forEach((cat,ci)=>cat.items.forEach((q,ii)=>{if(state[`${ci}-${ii}`]===null)pendentes.push({cat:cat.name,q,ci,ii});}));
+  const pendentes=[];CATS.forEach((cat,ci)=>cat.items.forEach((q,ii)=>{const v=state[`${ci}-${ii}`];if(v===null)pendentes.push({cat:cat.name,q,ci,ii});}));
   if(erros.length>0){
     closeDetail();
     setTimeout(()=>{
@@ -506,6 +563,112 @@ window.limparErroCampo = function limparErroCampo(campo){
   document.getElementById('err-'+campo).classList.remove('show');
 }
 
+// ══ HISTÓRICO E REPAROS PENDENTES ══
+async function carregarHistorico() {
+  const histContent = document.getElementById('hist-content');
+  histContent.innerHTML = '<div class="hist-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><br/>Carregando...</div>';
+  show('view-historico');
+
+  try {
+    // Busca os últimos checklists do motorista logado
+    const q = query(
+      collection(db, 'checklists'),
+      where('uid', '==', currentUser.uid)
+    );
+    const snapshot = await getDocs(q);
+    const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+
+    // Encontra reparos pendentes por veículo
+    // Para cada placa, pega o checklist mais recente e verifica reparos não resolvidos
+    const placaMap = {};
+    docs.forEach(doc => {
+      const placa = doc.placa || '';
+      if (!placaMap[placa] || new Date(doc.timestamp) > new Date(placaMap[placa].timestamp)) {
+        placaMap[placa] = doc;
+      }
+    });
+
+    // Coleta todos os reparos pendentes (não resolvidos) por placa
+    reparosPendentes = [];
+    Object.values(placaMap).forEach(doc => {
+      if (doc.reparosDetalhes && doc.reparosDetalhes.length > 0) {
+        doc.reparosDetalhes.forEach(r => {
+          if (!r.resolved) {
+            reparosPendentes.push({
+              categoria: r.categoria || r.cat || '',
+              item: r.item || r.q || '',
+              obs: r.obs || '',
+              placa: doc.placa || '',
+              data: doc.dataFormatada || ''
+            });
+          }
+        });
+      }
+    });
+
+    renderHistorico(docs, reparosPendentes);
+  } catch(err) {
+    console.error('Erro ao carregar histórico:', err);
+    histContent.innerHTML = '<div class="hist-empty">Erro ao carregar. Tente novamente.</div>';
+  }
+}
+
+function renderHistorico(docs, pendentes) {
+  const histContent = document.getElementById('hist-content');
+  const totalChecklists = docs.length;
+  const totalReparos = pendentes.length;
+
+  let html = '';
+
+  // KPIs
+  html += `<div class="hist-kpis">
+    <div class="hist-kpi ok"><div class="hist-kpi-num">${totalChecklists}</div><div class="hist-kpi-lbl">Checklists enviados</div></div>
+    <div class="hist-kpi rep"><div class="hist-kpi-num">${totalReparos}</div><div class="hist-kpi-lbl">Reparos pendentes</div></div>
+  </div>`;
+
+  // Reparos pendentes
+  if (pendentes.length > 0) {
+    html += `<div class="hist-section">⚠ Reparos pendentes (${pendentes.length})</div>`;
+    pendentes.forEach(r => {
+      html += `<div class="reparo-card">
+        <div class="reparo-card-cat">${r.categoria}</div>
+        <div class="reparo-card-q">${r.item}</div>
+        ${r.obs ? `<div class="reparo-card-obs">📝 ${r.obs}</div>` : ''}
+        <div class="reparo-card-placa">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          Placa ${r.placa} · ${r.data}
+        </div>
+      </div>`;
+    });
+  } else {
+    html += `<div class="hist-empty" style="padding:16px 0 20px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2ed47a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><br/>
+      Nenhum reparo pendente.<br/>Tudo em ordem!
+    </div>`;
+  }
+
+  // Botão iniciar checklist
+  html += `<div class="section-label" style="margin-top:8px;">Novo checklist</div>
+  <button class="btn-novo-checklist" onclick="irParaDash()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Iniciar Novo Checklist
+  </button>`;
+
+  histContent.innerHTML = html;
+}
+
+window.irParaDash = function irParaDash() {
+  updateDashboard();
+  show('view-dash');
+}
+
+// Verifica se um item está bloqueado (tem reparo pendente não resolvido)
+function itemBloqueado(catName, itemText) {
+  return reparosPendentes.some(r =>
+    r.categoria === catName && r.item === itemText
+  );
+}
+
 function mostrarToast(msg){
   let t=document.getElementById('toast-msg');
   if(!t){t=document.createElement('div');t.id='toast-msg';t.style.cssText='position:absolute;bottom:90px;left:14px;right:14px;background:#cc2222;color:#fff;font-family:sans-serif;font-size:12px;font-weight:600;padding:12px 16px;border-radius:12px;z-index:200;text-align:center;line-height:1.4;';document.getElementById('main-screen').appendChild(t);}
@@ -525,7 +688,9 @@ window.doLogin = function doLogin(){
       const nome=uc.user.email.split('@')[0].replace('.',' ');
       currentUser={uid:uc.user.uid,email:uc.user.email,nome:nome.charAt(0).toUpperCase()+nome.slice(1)};
       document.getElementById('driver-name').textContent=currentUser.nome;
-      updateDashboard();show('view-dash');
+      document.getElementById('hist-driver-name').textContent=currentUser.nome;
+      updateDashboard();
+      carregarHistorico();
     })
     .catch(err=>{
       let msg='Erro ao entrar. Verifique suas credenciais.';
@@ -539,6 +704,7 @@ window.doLogout = function doLogout(){
   signOut(auth).then(()=>{currentUser=null;show('view-login');});
 }
 window.closeDetail = function closeDetail(){updateDashboard();show('view-dash');}
+window.irParaChecklist = function irParaChecklist(){show('view-dash');}
 
 updateDashboard();
 </script>
