@@ -406,7 +406,11 @@ function renderDetail(){
         top.appendChild(lockBtn);
         item.appendChild(top);
         const lockMsg=document.createElement('div');lockMsg.className='lock-msg';
-        lockMsg.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cc4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Reparo anterior pendente — aguardando resolução do gestor';
+        // Encontra o reparo pendente para mostrar quantos dias
+        const rp = reparosPendentes.find(r => r.categoria === cat.name && r.item === q);
+        const dias = rp ? diasPendente(rp.timestamp) : null;
+        const diasStr = dias !== null ? ` (${dias === 0 ? 'hoje' : dias + (dias === 1 ? ' dia' : ' dias')})` : '';
+        lockMsg.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cc4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Reparo pendente há${diasStr} — aguardando resolução do gestor`;
         item.appendChild(lockMsg);
         // Marca como bloqueado no state
         state[key]='blocked';
@@ -599,7 +603,8 @@ async function carregarHistorico() {
               item: r.item || r.q || '',
               obs: r.obs || '',
               placa: doc.placa || '',
-              data: doc.dataFormatada || ''
+              data: doc.dataFormatada || '',
+              timestamp: doc.timestamp || ''
             });
           }
         });
@@ -611,6 +616,29 @@ async function carregarHistorico() {
     console.error('Erro ao carregar histórico:', err);
     histContent.innerHTML = '<div class="hist-empty">Erro ao carregar. Tente novamente.</div>';
   }
+}
+
+function diasPendente(timestamp) {
+  if (!timestamp) return null;
+  const inicio = new Date(timestamp);
+  const hoje = new Date();
+  const diff = Math.floor((hoje - inicio) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+function badgeDias(timestamp) {
+  const dias = diasPendente(timestamp);
+  if (dias === null) return '';
+  let cor, txt;
+  if (dias === 0) { cor = '#1e4d8c'; txt = 'Hoje'; }
+  else if (dias === 1) { cor = '#8b5e10'; txt = '1 dia'; }
+  else if (dias <= 3) { cor = '#8b4010'; txt = `${dias} dias`; }
+  else if (dias <= 7) { cor = '#8b1a10'; txt = `${dias} dias`; }
+  else { cor = '#6a0a0a'; txt = `${dias} dias`; }
+  return `<span style="display:inline-flex;align-items:center;gap:4px;background:${cor};color:#fff;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;font-family:sans-serif;">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l3 3"/></svg>
+    ${txt} pendente${dias > 1 ? 's' : ''}
+  </span>`;
 }
 
 function renderHistorico(docs, pendentes) {
@@ -631,7 +659,10 @@ function renderHistorico(docs, pendentes) {
     html += `<div class="hist-section">⚠ Reparos pendentes (${pendentes.length})</div>`;
     pendentes.forEach(r => {
       html += `<div class="reparo-card">
-        <div class="reparo-card-cat">${r.categoria}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
+          <div class="reparo-card-cat">${r.categoria}</div>
+          ${badgeDias(r.timestamp)}
+        </div>
         <div class="reparo-card-q">${r.item}</div>
         ${r.obs ? `<div class="reparo-card-obs">📝 ${r.obs}</div>` : ''}
         <div class="reparo-card-placa">
