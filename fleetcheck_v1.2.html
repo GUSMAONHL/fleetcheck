@@ -427,12 +427,15 @@ function abrirModal(){
 window.fecharModal = function fecharModal(){document.getElementById('modal-overlay').classList.remove('show');}
 
 window.confirmarEnvio = function confirmarEnvio(){
-  fecharModal();
   const{ok,rep}=countState();
   const placa=document.getElementById('placa-input').value||'—';
   const hodo=document.getElementById('hodo-input').value||'—';
   const driver=currentUser?currentUser.nome:document.getElementById('driver-name').textContent;
   const now=new Date();
+
+  // Bloqueia botão ANTES de fechar modal
+  const btnEnviar=document.querySelector('.mbtn-send');
+  if(btnEnviar){btnEnviar.textContent='Salvando...';btnEnviar.disabled=true;}
 
   // Monta documento para Firestore
   const reparos=[];
@@ -440,12 +443,10 @@ window.confirmarEnvio = function confirmarEnvio(){
     const key=`${ci}-${ii}`;
     if(state[key]==='rep') reparos.push({categoria:cat.name,item:q,obs:obs[key]||'',resolved:false});
   }));
-
   const itens=[];
   CATS.forEach((cat,ci)=>cat.items.forEach((q,ii)=>{
     itens.push({categoria:cat.name,item:q,status:state[`${ci}-${ii}`]||'pend',obs:obs[`${ci}-${ii}`]||''});
   }));
-
   const docData={
     motorista:driver,
     email:currentUser?currentUser.email:'',
@@ -462,12 +463,19 @@ window.confirmarEnvio = function confirmarEnvio(){
     enviado:true
   };
 
-  // Salva no Firestore
-  const btnEnviar=document.querySelector('.mbtn-send');
-  if(btnEnviar){btnEnviar.textContent='Salvando...';btnEnviar.disabled=true;}
+  // Garante que o usuário está autenticado antes de salvar
+  const user = auth.currentUser;
+  if(!user){
+    mostrarToast('⚠ Sessão expirada. Faça login novamente.');
+    if(btnEnviar){btnEnviar.textContent='✔ Confirmar e Enviar';btnEnviar.disabled=false;}
+    fecharModal();
+    show('view-login');
+    return;
+  }
 
   addDoc(collection(db,'checklists'), docData)
     .then(()=>{
+      fecharModal();
       document.getElementById('success-info').innerHTML=`
         <div class="success-row"><span>Motorista</span><span>${driver}</span></div>
         <div class="success-row"><span>Placa</span><span>${placa.toUpperCase()}</span></div>
@@ -479,9 +487,9 @@ window.confirmarEnvio = function confirmarEnvio(){
       show('view-success');
     })
     .catch(err=>{
-      console.error(err);
-      mostrarToast('⚠ Erro ao salvar. Verifique a conexão e tente novamente.');
-      if(btnEnviar){btnEnviar.textContent='✔ Confirmar e Enviar';btnEnviar.disabled=false;}
+      console.error('Erro ao salvar:', err.code, err.message);
+      fecharModal();
+      mostrarToast('⚠ Erro ao salvar: ' + (err.message||'Verifique a conexão.'));
     });
 }
 
