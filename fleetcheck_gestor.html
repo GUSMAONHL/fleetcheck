@@ -378,11 +378,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <span class="farois-subtitle" id="farois-updated"></span>
         </div>
         <div class="farois-grid" id="farois-grid">
-          <div class="farol-card farol-hoje"><div class="farol-icon">🔵</div><div class="farol-num" id="f-hoje">0</div><div class="farol-lbl">Hoje</div><div class="farol-sub">Registrado hoje</div></div>
-          <div class="farol-card farol-baixa"><div class="farol-icon">🟡</div><div class="farol-num" id="f-baixa">0</div><div class="farol-lbl">1 dia</div><div class="farol-sub">Urgência baixa</div></div>
-          <div class="farol-card farol-media"><div class="farol-icon">🟠</div><div class="farol-num" id="f-media">0</div><div class="farol-lbl">2–3 dias</div><div class="farol-sub">Urgência média</div></div>
-          <div class="farol-card farol-alta"><div class="farol-icon">🔴</div><div class="farol-num" id="f-alta">0</div><div class="farol-lbl">4–7 dias</div><div class="farol-sub">Urgência alta</div></div>
-          <div class="farol-card farol-critico"><div class="farol-icon">⬛</div><div class="farol-num" id="f-critico">0</div><div class="farol-lbl">+7 dias</div><div class="farol-sub">Crítico</div></div>
+          <div class="farol-card farol-hoje" style="cursor:pointer;" onclick="abrirModalFarol('hoje','🔵 Hoje','Reparos registrados hoje')"><div class="farol-icon">🔵</div><div class="farol-num" id="f-hoje">0</div><div class="farol-lbl">Hoje</div><div class="farol-sub">Clique para ver</div></div>
+          <div class="farol-card farol-baixa" style="cursor:pointer;" onclick="abrirModalFarol('baixa','🟡 1 dia','Urgência baixa')"><div class="farol-icon">🟡</div><div class="farol-num" id="f-baixa">0</div><div class="farol-lbl">1 dia</div><div class="farol-sub">Clique para ver</div></div>
+          <div class="farol-card farol-media" style="cursor:pointer;" onclick="abrirModalFarol('media','🟠 2–3 dias','Urgência média')"><div class="farol-icon">🟠</div><div class="farol-num" id="f-media">0</div><div class="farol-lbl">2–3 dias</div><div class="farol-sub">Clique para ver</div></div>
+          <div class="farol-card farol-alta" style="cursor:pointer;" onclick="abrirModalFarol('alta','🔴 4–7 dias','Urgência alta')"><div class="farol-icon">🔴</div><div class="farol-num" id="f-alta">0</div><div class="farol-lbl">4–7 dias</div><div class="farol-sub">Clique para ver</div></div>
+          <div class="farol-card farol-critico" style="cursor:pointer;" onclick="abrirModalFarol('critico','⬛ +7 dias','Crítico — ação imediata')"><div class="farol-icon">⬛</div><div class="farol-num" id="f-critico">0</div><div class="farol-lbl">+7 dias</div><div class="farol-sub">Clique para ver</div></div>
         </div>
       </div>
 
@@ -476,6 +476,20 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
   </div>
 </main>
+
+<!-- MODAL FAROL -->
+<div class="detail-overlay" id="farol-overlay" onclick="fecharModalFarol(event)" style="display:none;">
+  <div class="detail-panel" style="width:480px;">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="farol-modal-title">Reparos</div>
+        <div class="panel-meta" id="farol-modal-sub"></div>
+      </div>
+      <button class="panel-close" onclick="document.getElementById('farol-overlay').style.display='none'">&#x2715;</button>
+    </div>
+    <div class="panel-body" id="farol-modal-body"></div>
+  </div>
+</div>
 
 <!-- DETAIL PANEL -->
 <div class="detail-overlay" id="detail-overlay" onclick="fecharPainel(event)">
@@ -597,29 +611,43 @@ function diasDesde(timestamp) {
   if (!timestamp) return 0;
   const inicio = new Date(timestamp);
   const hoje = new Date();
-  return Math.floor((hoje - inicio) / (1000 * 60 * 60 * 24));
+  // Compara por dia de calendário (zera horas)
+  const ini0 = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+  const hoj0 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  return Math.floor((hoj0 - ini0) / (1000 * 60 * 60 * 24));
 }
+
+// Guarda reparos agrupados por categoria de urgência para o modal
+const faroisData = { hoje: [], baixa: [], media: [], alta: [], critico: [] };
 
 function calcularFarois() {
   const contadores = { hoje: 0, baixa: 0, media: 0, alta: 0, critico: 0 };
-  let total = 0;
+  faroisData.hoje = []; faroisData.baixa = []; faroisData.media = [];
+  faroisData.alta = []; faroisData.critico = [];
 
   CHECKLISTS.forEach(cl => {
     const reparos = getReparos(cl);
     reparos.forEach((r, idx) => {
       const key = `${cl.id}-${idx}`;
-      if (resolvedMap[key] || r.resolved) return; // ignora resolvidos
+      if (resolvedMap[key] || r.resolved) return;
 
-      // Tenta pegar timestamp do checklist
       const ts = cl.horario instanceof Date ? cl.horario.toISOString() : cl.horario;
       const dias = diasDesde(ts);
+      const item = {
+        motorista: cl.motorista,
+        placa: cl.placa,
+        categoria: r.categoria || r.cat || '—',
+        item: r.item || r.q || '—',
+        obs: r.obs || '',
+        dias,
+        data: formatData(cl.horario)
+      };
 
-      if (dias === 0) contadores.hoje++;
-      else if (dias === 1) contadores.baixa++;
-      else if (dias <= 3) contadores.media++;
-      else if (dias <= 7) contadores.alta++;
-      else contadores.critico++;
-      total++;
+      if (dias === 0)      { contadores.hoje++;    faroisData.hoje.push(item); }
+      else if (dias === 1) { contadores.baixa++;   faroisData.baixa.push(item); }
+      else if (dias <= 3)  { contadores.media++;   faroisData.media.push(item); }
+      else if (dias <= 7)  { contadores.alta++;    faroisData.alta.push(item); }
+      else                 { contadores.critico++; faroisData.critico.push(item); }
     });
   });
 
@@ -629,13 +657,9 @@ function calcularFarois() {
   document.getElementById('f-alta').textContent = contadores.alta;
   document.getElementById('f-critico').textContent = contadores.critico;
 
-  // Destaca críticos com animação apenas se houver
   const cardCritico = document.querySelector('.farol-critico');
-  if (cardCritico) {
-    cardCritico.style.animation = contadores.critico > 0 ? '' : 'none';
-  }
+  if (cardCritico) cardCritico.style.animationPlayState = contadores.critico > 0 ? 'running' : 'paused';
 
-  // Atualiza horário
   const upd = document.getElementById('farois-updated');
   if (upd) upd.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 }
@@ -898,6 +922,43 @@ window.exportarPDFChecklist = function exportarPDFChecklist() {
 // ══════════════════════════════════════
 // TOAST
 // ══════════════════════════════════════
+window.abrirModalFarol = function abrirModalFarol(cat, titulo, subtitulo) {
+  const items = faroisData[cat] || [];
+  document.getElementById('farol-modal-title').textContent = titulo;
+  document.getElementById('farol-modal-sub').textContent = subtitulo + ' — ' + items.length + ' reparo(s) pendente(s)';
+
+  const body = document.getElementById('farol-modal-body');
+
+  if (items.length === 0) {
+    body.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.4;"><polyline points="20 6 9 17 4 12"/></svg>
+      <p style="font-size:14px;">Nenhum reparo nesta categoria.</p>
+    </div>`;
+  } else {
+    body.innerHTML = items.map(r => `
+      <div class="repair-item" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <div class="repair-cat">${r.categoria}</div>
+          <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${r.dias === 0 ? 'Hoje' : r.dias + ' dia(s)'} · ${r.data}</span>
+        </div>
+        <div class="repair-q">${r.item}</div>
+        ${r.obs ? `<div class="inconf-item-obs">📝 ${r.obs}</div>` : ''}
+        <div style="margin-top:8px;font-size:12px;color:var(--text2);display:flex;gap:12px;">
+          <span>👤 ${r.motorista}</span>
+          <span>🚗 ${r.placa}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('farol-overlay').style.display = 'flex';
+}
+
+window.fecharModalFarol = function fecharModalFarol(e) {
+  if (e.target === document.getElementById('farol-overlay')) {
+    document.getElementById('farol-overlay').style.display = 'none';
+  }
+}
+
 function showToast(msg) {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
