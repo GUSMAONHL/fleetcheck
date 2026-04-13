@@ -640,7 +640,16 @@ function calcularFarois() {
   if (upd) upd.textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 }
 
+function ehHoje(horario) {
+  const d = horario instanceof Date ? horario : new Date(horario);
+  const hoje = new Date();
+  return d.getDate() === hoje.getDate() &&
+         d.getMonth() === hoje.getMonth() &&
+         d.getFullYear() === hoje.getFullYear();
+}
+
 function atualizarKPIs() {
+  const hoje = CHECKLISTS.filter(cl => ehHoje(cl.horario)).length;
   const total = CHECKLISTS.length;
   let reparosAbertos = 0, resolvidos = 0;
   const placas = new Set();
@@ -651,7 +660,7 @@ function atualizarKPIs() {
       if (resolvedMap[key]) resolvidos++; else reparosAbertos++;
     });
   });
-  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-total').textContent = hoje;
   document.getElementById('kpi-reparos').textContent = reparosAbertos;
   document.getElementById('kpi-resolvidos').textContent = resolvidos;
   document.getElementById('kpi-veiculos').textContent = placas.size;
