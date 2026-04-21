@@ -843,7 +843,7 @@ window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   // Botões de período
   const botoesHtml = periodos.slice(0, 4).map((p, i) => {
     const ativo = i === idxPeriodo;
-    return `<button onclick="window._renderDesemp(${i})" style="
+    return `<button data-periodo="${i}" style="
       padding:8px 12px; border-radius:10px; font-size:12px; font-weight:600;
       cursor:pointer; font-family:sans-serif; transition:all 0.15s;
       border: 1px solid ${ativo?'#2a6abf':'#1a3050'};
@@ -897,13 +897,21 @@ window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   }
 
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+    <div id="periodo-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
       ${botoesHtml}
     </div>
     ${conteudoHtml}
     <div style="font-size:10px;color:#2a4060;text-align:center;margin-top:12px;font-family:sans-serif;">
       Base importada em: ${importadoEm}
     </div>`;
+
+  // Adiciona event listeners nos botões após inserir no DOM
+  document.querySelectorAll('#periodo-btns button[data-periodo]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-periodo'));
+      renderDesempenho(idx);
+    });
+  });
 }
 
 // ══ NOTIFICAÇÃO WHATSAPP Z-API ══
