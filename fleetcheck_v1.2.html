@@ -215,7 +215,7 @@
             <div class="info-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a9fd4" stroke-width="2"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
             <div class="info-text">
               <label>Placa do Cavalo <span style="color:#cc2222;">*</span></label>
-              <input type="text" id="placa-input" placeholder="ABC-1234" style="text-transform:uppercase;letter-spacing:2px;" oninput="limparErroCampo('placa')"/>
+              <input type="text" id="placa-input" placeholder="ABC1234" maxlength="7" style="text-transform:uppercase;letter-spacing:2px;" oninput="limparErroCampo('placa');this.value=this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,7);"/>
             </div>
           </div>
           <div class="field-error-msg" id="err-placa">⚠ Informe a placa do cavalo para continuar.</div>
