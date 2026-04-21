@@ -831,6 +831,7 @@ window.abrirDesempenho = async function abrirDesempenho() {
   }
 }
 
+window._renderDesemp = function(idx) { window.renderDesempenho(idx); };
 window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   const el = document.getElementById('desemp-content');
   if (!desempDados) return;
@@ -840,17 +841,19 @@ window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   importadoEm = importadoEm || (desempDados.importadoEm ? new Date(desempDados.importadoEm).toLocaleString('pt-BR') : '—');
 
   // Botões de período
-  const botoesHtml = periodos.slice(0, 4).map((p, i) => `
-    <button onclick="renderDesempenho(${i})" style="
+  const botoesHtml = periodos.slice(0, 4).map((p, i) => {
+    const ativo = i === idxPeriodo;
+    return `<button onclick="window._renderDesemp(${i})" style="
       padding:8px 12px; border-radius:10px; font-size:12px; font-weight:600;
       cursor:pointer; font-family:sans-serif; transition:all 0.15s;
-      border: 1px solid ${i===idxPeriodo?'#2a6abf':'#1a3050'};
-      background: ${i===idxPeriodo?'#1e4d8c':'#112233'};
-      color: ${i===idxPeriodo?'#e0f0ff':'#5a8abf'};
+      border: 1px solid ${ativo?'#2a6abf':'#1a3050'};
+      background: ${ativo?'#1e4d8c':'#112233'};
+      color: ${ativo?'#e0f0ff':'#5a8abf'};
     ">
       <div style="font-size:13px;font-weight:700;">${p.label}</div>
       <div style="font-size:10px;opacity:0.7;margin-top:2px;">${p.inicio.slice(0,5)} a ${p.fim.slice(0,5)}</div>
-    </button>`).join('');
+    </button>`;
+  }).join('');
 
   // Dados do período selecionado
   const periodo = periodos[idxPeriodo];
