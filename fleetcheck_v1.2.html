@@ -915,9 +915,7 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
   const totalKm = linhasFiltradas.reduce((s,l) => s + (l.kmcg||0), 0);
 
   const rows = linhasFiltradas.map(l => {
-    const oriDest = l.origem && l.destino
-      ? `${l.origem.replace(/-[A-Z]{2}$/,'')} × ${l.destino.replace(/-[A-Z]{2}$/,'')}`
-      : (l.origem || l.destino || '—');
+    const oriDest = l.origem ? l.origem.replace(/-[A-Z]{2}$/,'') : '—';
     const kmColor = l.kmcg >= 500 ? '#2ed47a' : l.kmcg >= 300 ? '#f0883e' : '#8ab0d0';
     return `<tr>
       <td class="td-data">${l.data.slice(0,8)}</td>
@@ -936,7 +934,7 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
     <div style="overflow-x:auto;">
       <table class="hist-table">
         <thead><tr>
-          <th>DATA</th><th>DIA</th><th>ORIG. × DEST.</th><th>FATURAMENTO</th><th style="text-align:right;">KM CG</th>
+          <th>DATA</th><th>DIA</th><th>ORIGEM</th><th>FATURAMENTO</th><th style="text-align:right;">KM CG</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
