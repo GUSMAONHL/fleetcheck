@@ -860,6 +860,13 @@ window.abrirDesempenho = async function abrirDesempenho() {
 }
 
 window._renderDesemp = function(idx) { window.renderDesempenho(idx); };
+
+function corKmCard(km) {
+  if (km <= 6500)       return { bg:'#2a0a0a', border:'#8b1a1a', cor:'#f85149', label:'Abaixo da meta' };
+  if (km <= 7500)       return { bg:'#2a1a0a', border:'#8b4a10', cor:'#f0883e', label:'Próximo da meta' };
+  if (km <= 8500)       return { bg:'#0a1a3a', border:'#1a4a8a', cor:'#4fa3f7', label:'Na meta' };
+  return                       { bg:'#0a2a1a', border:'#1a6a3a', cor:'#2ed47a', label:'Acima da meta' };
+}
 window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   const el = document.getElementById('desemp-content');
   if (!desempDados) return;
@@ -901,12 +908,14 @@ window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   } else {
     const kmCg = dadosMot.kmCgTotal || 0;
     const placa = dadosMot.placa || '—';
+    const cores = corKmCard(kmCg);
     conteudoHtml = `
-      <div class="desemp-km-card">
-        <div class="desemp-km-label">KM Carregado</div>
-        <div class="desemp-km-valor">${kmCg.toLocaleString('pt-BR')}</div>
-        <div class="desemp-km-unit">km</div>
-        <div class="desemp-km-sub">Veículo: ${placa}</div>
+      <div class="desemp-km-card" style="background:${cores.bg};border-color:${cores.border};">
+        <div class="desemp-km-label" style="color:${cores.cor};opacity:0.8;">KM CARREGADO</div>
+        <div class="desemp-km-valor" style="color:${cores.cor};">${kmCg.toLocaleString('pt-BR')}</div>
+        <div class="desemp-km-unit" style="color:${cores.cor};opacity:0.7;">km</div>
+        <div style="margin-top:8px;display:inline-block;background:${cores.border};color:${cores.cor};font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;font-family:sans-serif;">${cores.label}</div>
+        <div class="desemp-km-sub" style="color:${cores.cor};opacity:0.6;margin-top:6px;">Veículo: ${placa}</div>
       </div>
       <div class="desemp-info-card">
         <div class="desemp-info-row">
