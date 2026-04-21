@@ -463,10 +463,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
               <th>Placa</th>
               <th>Último Checklist</th>
               <th>Motorista</th>
-              <th>Hodômetro</th>
-              <th>Total Vistoriados</th>
-              <th>Reparos Abertos</th>
-              <th>Status</th>
+              <th>Total Checklists</th>
+              <th>Total Reparos</th>
+              <th>Resolvidos</th>
+              <th>Status (Em aberto)</th>
             </tr>
           </thead>
           <tbody id="frota-table-body"></tbody>
@@ -800,24 +800,81 @@ function renderListTable() {
 
 function renderFrotaTable() {
   const placaMap = {};
+
   CHECKLISTS.forEach(cl => {
-    if (!placaMap[cl.placa]) placaMap[cl.placa] = { placa: cl.placa, checklists: [], motoristas: new Set() };
+    if (!placaMap[cl.placa]) {
+      placaMap[cl.placa] = {
+        placa: cl.placa,
+        checklists: [],
+        motorista: cl.motorista,
+        ultimoHorario: cl.horario,
+        ultimoId: cl.id,
+        ultimoHodo: cl.hodo,
+      };
+    }
     placaMap[cl.placa].checklists.push(cl);
-    placaMap[cl.placa].motoristas.add(cl.motorista);
+    // Mantém sempre o mais recente
+    const d = cl.horario instanceof Date ? cl.horario : new Date(cl.horario);
+    const dAtual = placaMap[cl.placa].ultimoHorario instanceof Date
+      ? placaMap[cl.placa].ultimoHorario
+      : new Date(placaMap[cl.placa].ultimoHorario);
+    if (d > dAtual) {
+      placaMap[cl.placa].ultimoHorario = cl.horario;
+      placaMap[cl.placa].ultimoId = cl.id;
+      placaMap[cl.placa].ultimoHodo = cl.hodo;
+      placaMap[cl.placa].motorista = cl.motorista;
+    }
   });
-  const veiculos = Object.values(placaMap);
-  document.getElementById('frota-count').textContent = `${veiculos.length} veículos`;
+
+  // Ordena por último checklist (mais recente primeiro)
+  const veiculos = Object.values(placaMap).sort((a, b) => {
+    const da = a.ultimoHorario instanceof Date ? a.ultimoHorario : new Date(a.ultimoHorario);
+    const db = b.ultimoHorario instanceof Date ? b.ultimoHorario : new Date(b.ultimoHorario);
+    return db - da;
+  });
+
+  document.getElementById('frota-count').textContent = `${veiculos.length} veículo${veiculos.length !== 1 ? 's' : ''}`;
+
+  if (veiculos.length === 0) {
+    document.getElementById('frota-table-body').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Nenhum veículo vistoriado ainda.</td></tr>`;
+    return;
+  }
+
   document.getElementById('frota-table-body').innerHTML = veiculos.map(v => {
-    const ultimo = v.checklists[v.checklists.length - 1];
-    const rAb = v.checklists.reduce((s, cl) => s + getReparosAbertos(cl).length, 0);
-    return `<tr onclick="abrirPainel('${ultimo.id}')" style="cursor:pointer;">
-      <td class="text-primary mono" style="font-size:14px;letter-spacing:1px;">${v.placa}</td>
-      <td class="mono">${formatDataHora(ultimo.horario)}</td>
-      <td>${[...v.motoristas].join(', ')}</td>
-      <td class="mono">${ultimo.hodo} km</td>
-      <td class="mono" style="color:#3fb950;">${v.checklists.length}</td>
-      <td class="mono" style="color:${rAb>0?'#f85149':'#3fb950'};">${rAb}</td>
-      <td>${rAb > 0 ? `<span class="badge badge-red"><span class="badge-dot"></span>${rAb} aberto${rAb>1?'s':''}</span>` : '<span class="badge badge-green"><span class="badge-dot"></span>OK</span>'}</td>
+    const totalChecklists = v.checklists.length;
+
+    // Total de reparos apontados no histórico (todos, incluindo resolvidos)
+    const totalReparos = v.checklists.reduce((s, cl) => s + getReparos(cl).length, 0);
+
+    // Total de reparos resolvidos
+    const totalResolvidos = v.checklists.reduce((s, cl) => {
+      return s + getReparos(cl).filter((_, idx) => {
+        const key = `${cl.id}-${idx}`;
+        return resolvedMap[key] || _.resolved;
+      }).length;
+    }, 0);
+
+    // Reparos ainda em aberto
+    const emAberto = v.checklists.reduce((s, cl) => s + getReparosAbertos(cl).length, 0);
+
+    let statusBadge;
+    if (emAberto === 0 && totalReparos === 0) {
+      statusBadge = `<span class="badge badge-green"><span class="badge-dot"></span>Sem reparos</span>`;
+    } else if (emAberto === 0) {
+      statusBadge = `<span class="badge badge-blue"><span class="badge-dot"></span>Todos resolvidos</span>`;
+    } else {
+      statusBadge = `<span class="badge badge-red"><span class="badge-dot"></span>${emAberto} em aberto</span>`;
+    }
+
+    return `<tr onclick="abrirPainel('${v.ultimoId}')" style="cursor:pointer;">
+      <td class="text-primary mono" style="font-size:14px;letter-spacing:1px;font-weight:600;">${v.placa}</td>
+      <td class="mono">${formatDataHora(v.ultimoHorario)}</td>
+      <td>${v.motorista}</td>
+      <td class="mono" style="color:#3fb950;font-weight:500;">${totalChecklists}</td>
+      <td class="mono" style="color:${totalReparos>0?'#f85149':'#3fb950'};">${totalReparos}</td>
+      <td class="mono" style="color:#388bfd;">${totalResolvidos}</td>
+      <td>${statusBadge}</td>
     </tr>`;
   }).join('');
 }
