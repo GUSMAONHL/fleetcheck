@@ -584,33 +584,32 @@ async function carregarHistorico() {
     const snapshot = await getDocs(q);
     const docs = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
 
-    // Encontra reparos pendentes por veículo
-    // Para cada placa, pega o checklist mais recente e verifica reparos não resolvidos
-    const placaMap = {};
-    docs.forEach(doc => {
-      const placa = doc.placa || '';
-      if (!placaMap[placa] || new Date(doc.timestamp) > new Date(placaMap[placa].timestamp)) {
-        placaMap[placa] = doc;
-      }
-    });
-
-    // Coleta todos os reparos pendentes (não resolvidos) por placa
+    // Coleta reparos pendentes de TODOS os checklists do motorista (não só o último por placa)
+    // Usa um Set para evitar duplicatas do mesmo item+placa já pendente
     reparosPendentes = [];
-    Object.values(placaMap).forEach(doc => {
-      if (doc.reparosDetalhes && doc.reparosDetalhes.length > 0) {
-        doc.reparosDetalhes.forEach(r => {
-          if (!r.resolved) {
-            reparosPendentes.push({
-              categoria: r.categoria || r.cat || '',
-              item: r.item || r.q || '',
-              obs: r.obs || '',
-              placa: doc.placa || '',
-              data: doc.dataFormatada || '',
-              timestamp: doc.timestamp || ''
-            });
-          }
+    const itensVistos = new Set(); // controla duplicatas: "placa|categoria|item"
+
+    // Ordena docs do mais recente para o mais antigo
+    docs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    docs.forEach(doc => {
+      if (!doc.reparosDetalhes || doc.reparosDetalhes.length === 0) return;
+      doc.reparosDetalhes.forEach(r => {
+        if (r.resolved) return; // ignora resolvidos
+        const cat = r.categoria || r.cat || '';
+        const item = r.item || r.q || '';
+        const chave = `${doc.placa}|${cat}|${item}`;
+        if (itensVistos.has(chave)) return; // evita duplicata do mesmo item
+        itensVistos.add(chave);
+        reparosPendentes.push({
+          categoria: cat,
+          item: item,
+          obs: r.obs || '',
+          placa: doc.placa || '',
+          data: doc.dataFormatada || '',
+          timestamp: doc.timestamp || ''
         });
-      }
+      });
     });
 
     renderHistorico(docs, reparosPendentes);
