@@ -114,6 +114,23 @@
   .hist-kpi.rep .hist-kpi-num { color:#e05050; }
   .hist-kpi.ok .hist-kpi-num { color:#2ed47a; }
 
+  /* Acordeão de reparos pendentes */
+  .acordeao-header {
+    display:flex; align-items:center; justify-content:space-between;
+    background:#1a1010; border:1px solid #4a1515; border-radius:12px;
+    padding:12px 16px; cursor:pointer; margin-bottom:8px;
+    transition: background 0.2s;
+    user-select: none;
+  }
+  .acordeao-header:hover { background:#221212; }
+  .acordeao-header-left { display:flex; align-items:center; gap:10px; }
+  .acordeao-header-title { font-size:12px; color:#e07070; font-family:sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; }
+  .acordeao-header-badge { background:#5a1010; color:#e05050; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; font-family:sans-serif; }
+  .acordeao-arrow { transition: transform 0.3s; flex-shrink:0; }
+  .acordeao-arrow.aberto { transform: rotate(180deg); }
+  .acordeao-body { overflow:hidden; transition: max-height 0.35s ease, opacity 0.3s; max-height:0; opacity:0; }
+  .acordeao-body.aberto { max-height:2000px; opacity:1; }
+
   /* Item bloqueado no checklist */
   .check-item.bloqueado { background:#1a1010; border-color:#4a1515; opacity:0.85; }
   .check-item.bloqueado .check-q { color:#7a4040; }
@@ -655,11 +672,10 @@ function renderHistorico(docs, pendentes) {
     <div class="hist-kpi rep"><div class="hist-kpi-num">${totalReparos}</div><div class="hist-kpi-lbl">Reparos pendentes</div></div>
   </div>`;
 
-  // Reparos pendentes
+  // Reparos pendentes com acordeão
   if (pendentes.length > 0) {
-    html += `<div class="hist-section">⚠ Reparos pendentes (${pendentes.length})</div>`;
-    pendentes.forEach(r => {
-      html += `<div class="reparo-card">
+    const itensHtml = pendentes.map(r => `
+      <div class="reparo-card">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
           <div class="reparo-card-cat">${r.categoria}</div>
           ${badgeDias(r.timestamp)}
@@ -670,8 +686,20 @@ function renderHistorico(docs, pendentes) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
           Placa ${r.placa} · ${r.data}
         </div>
-      </div>`;
-    });
+      </div>`).join('');
+
+    html += `
+    <div class="acordeao-header" onclick="toggleAcordeao(this)">
+      <div class="acordeao-header-left">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e07070" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span class="acordeao-header-title">Reparos Pendentes</span>
+        <span class="acordeao-header-badge">${pendentes.length}</span>
+      </div>
+      <svg class="acordeao-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e07070" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="acordeao-body">
+      ${itensHtml}
+    </div>`;
   } else {
     html += `<div class="hist-empty" style="padding:16px 0 20px;">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2ed47a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><br/>
@@ -687,6 +715,19 @@ function renderHistorico(docs, pendentes) {
   </button>`;
 
   histContent.innerHTML = html;
+}
+
+window.toggleAcordeao = function toggleAcordeao(header) {
+  const arrow = header.querySelector('.acordeao-arrow');
+  const body = header.nextElementSibling;
+  const aberto = body.classList.contains('aberto');
+  if (aberto) {
+    body.classList.remove('aberto');
+    arrow.classList.remove('aberto');
+  } else {
+    body.classList.add('aberto');
+    arrow.classList.add('aberto');
+  }
 }
 
 window.irParaDash = function irParaDash() {
