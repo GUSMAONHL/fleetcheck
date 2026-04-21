@@ -785,21 +785,49 @@ let desempDados = null; // cache dos dados
 // Busca motorista nos dados do período usando comparação flexível
 function buscarMotorista(motoristas, nomeUsuario) {
   if (!motoristas || !nomeUsuario) return null;
-  const nomNorm = nomeUsuario.trim().toUpperCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+  function norm(s) {
+    return s.trim().toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^A-Z0-9 ]/g,'');
+  }
+
+  // Extrai palavras do nome do usuário
+  // "josemauro" → tenta dividir em partes de 3+ letras
+  // "jose mauro" → ["JOSE","MAURO"]
+  const nomNorm = norm(nomeUsuario);
+
+  // Se o nome não tem espaço (ex: JOSEMAURO), tenta dividir pelo e-mail
+  // ou usa o nome completo como sequência para busca substring
   const nomPalavras = nomNorm.split(' ').filter(p => p.length > 2);
 
   let melhor = null;
   let melhorScore = 0;
 
   for (const [key, val] of Object.entries(motoristas)) {
-    const keyNorm = key.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
-    // Score por palavras em comum
-    const palavrasVal = val.nomePalavras || keyNorm.split(' ').filter(p=>p.length>2);
-    const score = nomPalavras.filter(p => palavrasVal.includes(p) || keyNorm.includes(p)).length;
-    if (score > melhorScore) { melhorScore = score; melhor = val; }
-    // Match exato
+    const keyNorm = norm(key);
+    const palavrasKey = keyNorm.split(' ').filter(p => p.length > 2);
+
+    // 1. Match exato ou substring
+    if (keyNorm === nomNorm) return val;
     if (keyNorm.includes(nomNorm) || nomNorm.includes(keyNorm)) return val;
+
+    // 2. Score por palavras em comum
+    let score = 0;
+    nomPalavras.forEach(p => {
+      if (palavrasKey.some(pk => pk === p || pk.startsWith(p) || p.startsWith(pk))) score++;
+    });
+
+    // 3. Se nome sem espaço (josemauro), testa se é substring de qualquer palavra ou combinação
+    if (nomPalavras.length === 1 && nomNorm.length >= 4) {
+      // Testa "JOSEMAURO" dentro de "JOSE MAURO..." concatenado sem espaços
+      const keySemEspaco = keyNorm.replace(/ /g,'');
+      if (keySemEspaco.includes(nomNorm) || nomNorm.includes(keySemEspaco.slice(0,6))) score += 2;
+      // Testa primeiros 4 chars de cada palavra
+      if (palavrasKey.some(pk => nomNorm.startsWith(pk.slice(0,4)) || pk.startsWith(nomNorm.slice(0,4)))) score++;
+    }
+
+    if (score > melhorScore) { melhorScore = score; melhor = val; }
   }
   return melhorScore >= 1 ? melhor : null;
 }
