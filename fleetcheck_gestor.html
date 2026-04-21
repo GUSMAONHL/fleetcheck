@@ -730,7 +730,48 @@ function renderRow(cl, tbody_id) {
 
 function renderDashTable() {
   const body = document.getElementById('dash-table-body');
-  body.innerHTML = CHECKLISTS.slice().reverse().map(cl => renderRow(cl, 'dash-table-body')).join('');
+  const countEl = document.getElementById('dash-count');
+
+  // Filtra apenas hoje (D0) e ontem (D-1)
+  const hoje = new Date();
+  const ontem = new Date();
+  ontem.setDate(ontem.getDate() - 1);
+
+  function mesmoDia(horario, ref) {
+    const d = horario instanceof Date ? horario : new Date(horario);
+    return d.getDate() === ref.getDate() &&
+           d.getMonth() === ref.getMonth() &&
+           d.getFullYear() === ref.getFullYear();
+  }
+
+  const filtrados = CHECKLISTS.filter(cl =>
+    mesmoDia(cl.horario, hoje) || mesmoDia(cl.horario, ontem)
+  ).slice().reverse();
+
+  if (filtrados.length === 0) {
+    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Nenhum checklist registrado hoje ou ontem.</td></tr>`;
+    countEl.textContent = '0 registros';
+    return;
+  }
+
+  // Separador visual entre hoje e ontem
+  const hojeItems = filtrados.filter(cl => mesmoDia(cl.horario, hoje));
+  const ontemItems = filtrados.filter(cl => mesmoDia(cl.horario, ontem));
+
+  let html = '';
+
+  if (hojeItems.length > 0) {
+    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Hoje — ${hoje.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
+    html += hojeItems.map(cl => renderRow(cl, 'dash-table-body')).join('');
+  }
+
+  if (ontemItems.length > 0) {
+    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Ontem — ${ontem.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
+    html += ontemItems.map(cl => renderRow(cl, 'dash-table-body')).join('');
+  }
+
+  body.innerHTML = html;
+  countEl.textContent = `${filtrados.length} registro${filtrados.length !== 1 ? 's' : ''} (hoje + ontem)`;
 }
 
 function getChecklistsFiltrados() {
