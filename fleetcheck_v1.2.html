@@ -945,10 +945,10 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
 window._renderDesemp = function(idx) { window.renderDesempenho(idx); };
 
 function corKmCard(km) {
-  if (km <= 6500)       return { bg:'#2a0a0a', border:'#8b1a1a', cor:'#f85149', label:'Abaixo da meta' };
-  if (km <= 7500)       return { bg:'#2a1a0a', border:'#8b4a10', cor:'#f0883e', label:'Próximo da meta' };
-  if (km <= 8500)       return { bg:'#0a1a3a', border:'#1a4a8a', cor:'#4fa3f7', label:'Na meta' };
-  return                       { bg:'#0a2a1a', border:'#1a6a3a', cor:'#2ed47a', label:'Acima da meta' };
+  if (km <= 6500)  return { bg:'#2a0a0a', border:'#8b1a1a', cor:'#f85149', label:'Abaixo da meta' };
+  if (km <= 7500)  return { bg:'#2a1a0a', border:'#8b4a10', cor:'#f0883e', label:'Faixa 03' };
+  if (km <= 8500)  return { bg:'#0a1a3a', border:'#1a4a8a', cor:'#4fa3f7', label:'Faixa 02' };
+  return                  { bg:'#0a2a1a', border:'#1a6a3a', cor:'#2ed47a', label:'Faixa 01' };
 }
 window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
   const el = document.getElementById('desemp-content');
