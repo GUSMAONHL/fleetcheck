@@ -1200,8 +1200,13 @@ window.importarBase = async function importarBase(input) {
 
     Object.entries(kmCgMap).forEach(([motNorm, dados]) => {
       const ult = ultimaJornada[motNorm];
+      // Salva também palavras do nome para busca flexível
+      const palavras = dados.nome.trim().toUpperCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g,'')
+        .split(' ').filter(p => p.length > 2);
       resumo.motoristas[motNorm] = {
         nome: dados.nome,
+        nomePalavras: palavras,
         placa: dados.placa,
         kmCgTotal: Math.round(dados.total),
         ultimaData: ult ? ult.data.toLocaleDateString('pt-BR') : '',
@@ -1212,6 +1217,52 @@ window.importarBase = async function importarBase(input) {
         ultimaProg: ult ? ult.prog : '',
       };
     });
+
+    // Salva período atual e também histórico dos 3 períodos anteriores
+    const periodos = [];
+    for (let i = 0; i <= 3; i++) {
+      let ini, fim;
+      const ref = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+      if (hoje.getDate() >= 21 && i === 0) {
+        ini = new Date(hoje.getFullYear(), hoje.getMonth(), 21);
+        fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 20, 23,59,59);
+      } else {
+        const m = hoje.getDate() >= 21 ? hoje.getMonth() - i + 1 : hoje.getMonth() - i;
+        ini = new Date(hoje.getFullYear(), m - 1, 21);
+        fim = new Date(hoje.getFullYear(), m, 20, 23,59,59);
+      }
+      // Calcula KM CG por motorista nesse período
+      const kmPeriodo = {};
+      rows.slice(1).forEach(row => {
+        const mot = row[COL_MOT];
+        if (!mot || typeof mot !== 'string') return;
+        const motNorm2 = mot.trim().toUpperCase();
+        let data2 = row[0];
+        if (typeof data2 === 'number') data2 = new Date(Math.round((data2-25569)*86400*1000));
+        if (!(data2 instanceof Date) || isNaN(data2)) return;
+        const kmcg2 = parseFloat(row[COL_KMCG]) || 0;
+        if (data2 >= ini && data2 <= fim && kmcg2 > 0) {
+          if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
+          kmPeriodo[motNorm2].total += kmcg2;
+        }
+      });
+      const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+      const label = `${meses[fim.getMonth()]} ${String(fim.getFullYear()).slice(2)}`;
+      periodos.push({
+        label,
+        inicio: ini.toLocaleDateString('pt-BR'),
+        fim: fim.toLocaleDateString('pt-BR'),
+        inicioISO: ini.toISOString(),
+        fimISO: fim.toISOString(),
+        motoristas: Object.fromEntries(
+          Object.entries(kmPeriodo).map(([k,v]) => [k, {
+            nome: v.nome, placa: v.placa, kmCgTotal: Math.round(v.total),
+            nomePalavras: v.nome.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(' ').filter(p=>p.length>2)
+          }])
+        )
+      });
+    }
+    resumo.periodos = periodos;
 
     await setDoc(doc(db, 'base_jornada', 'desempenho'), resumo);
 

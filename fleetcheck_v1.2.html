@@ -780,106 +780,127 @@ function itemBloqueado(catName, itemText) {
 }
 
 // ══ TELA DE DESEMPENHO ══
+let desempDados = null; // cache dos dados
+
+// Busca motorista nos dados do período usando comparação flexível
+function buscarMotorista(motoristas, nomeUsuario) {
+  if (!motoristas || !nomeUsuario) return null;
+  const nomNorm = nomeUsuario.trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const nomPalavras = nomNorm.split(' ').filter(p => p.length > 2);
+
+  let melhor = null;
+  let melhorScore = 0;
+
+  for (const [key, val] of Object.entries(motoristas)) {
+    const keyNorm = key.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+    // Score por palavras em comum
+    const palavrasVal = val.nomePalavras || keyNorm.split(' ').filter(p=>p.length>2);
+    const score = nomPalavras.filter(p => palavrasVal.includes(p) || keyNorm.includes(p)).length;
+    if (score > melhorScore) { melhorScore = score; melhor = val; }
+    // Match exato
+    if (keyNorm.includes(nomNorm) || nomNorm.includes(keyNorm)) return val;
+  }
+  return melhorScore >= 1 ? melhor : null;
+}
+
 window.abrirDesempenho = async function abrirDesempenho() {
   show('view-desemp');
-  const content = document.getElementById('desemp-content');
-  content.innerHTML = '<div class="desemp-loading">Buscando seus dados...</div>';
+  const el = document.getElementById('desemp-content');
+  el.innerHTML = '<div class="desemp-loading">Buscando seus dados...</div>';
 
   try {
-    // Busca o documento de desempenho no Firestore
     const snap = await getDoc(doc(db, 'base_jornada', 'desempenho'));
-
     if (!snap.exists()) {
-      content.innerHTML = `<div class="desemp-empty">
+      el.innerHTML = `<div class="desemp-empty">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3a5270" stroke-width="1.5" style="margin-bottom:12px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><br/>
         Nenhuma base importada ainda.<br/>Aguarde o gestor importar a planilha.
       </div>`;
       return;
     }
+    desempDados = snap.data();
+    const importadoEm = desempDados.importadoEm ? new Date(desempDados.importadoEm).toLocaleString('pt-BR') : '—';
+    document.getElementById('desemp-sub').textContent = 'KM Carregado por Período';
 
-    const dados = snap.data();
-    const periodo = dados.periodo || '—';
-    const importadoEm = dados.importadoEm ? new Date(dados.importadoEm).toLocaleString('pt-BR') : '—';
+    // Renderiza período atual (periodos[0]) e botões dos 3 anteriores
+    renderDesempenho(0, importadoEm);
 
-    // Busca os dados do motorista logado — normaliza o nome para comparar
-    const nomeMotorista = currentUser ? currentUser.nome.toUpperCase() : '';
-    const motoristas = dados.motoristas || {};
+  } catch(err) {
+    console.error('Erro:', err);
+    el.innerHTML = '<div class="desemp-empty">Erro ao carregar. Tente novamente.</div>';
+  }
+}
 
-    // Tenta encontrar o motorista pelo nome (comparação flexível)
-    let dadosMot = null;
-    let nomeEncontrado = '';
-    for (const [key, val] of Object.entries(motoristas)) {
-      // Compara ignorando acentos e espaços extras
-      const keyNorm = key.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
-      const nomNorm = nomeMotorista.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
-      // Verifica se o nome do login está contido no nome da planilha ou vice-versa
-      if (keyNorm.includes(nomNorm) || nomNorm.includes(keyNorm) ||
-          keyNorm.split(' ')[0] === nomNorm.split(' ')[0]) {
-        dadosMot = val;
-        nomeEncontrado = val.nome;
-        break;
-      }
-    }
+window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
+  const el = document.getElementById('desemp-content');
+  if (!desempDados) return;
 
-    document.getElementById('desemp-sub').textContent = `Período: ${periodo}`;
+  const periodos = desempDados.periodos || [];
+  const nomeUsuario = currentUser ? currentUser.nome : '';
+  importadoEm = importadoEm || (desempDados.importadoEm ? new Date(desempDados.importadoEm).toLocaleString('pt-BR') : '—');
 
-    if (!dadosMot) {
-      content.innerHTML = `<div class="desemp-empty">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3a5270" stroke-width="1.5" style="margin-bottom:12px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><br/>
-        Dados não encontrados para o seu nome na planilha.<br/>
-        <span style="font-size:11px;color:#2a4060;margin-top:6px;display:block;">Usuário: ${nomeMotorista}</span>
-      </div>`;
-      return;
-    }
+  // Botões de período
+  const botoesHtml = periodos.slice(0, 4).map((p, i) => `
+    <button onclick="renderDesempenho(${i})" style="
+      padding:8px 12px; border-radius:10px; font-size:12px; font-weight:600;
+      cursor:pointer; font-family:sans-serif; transition:all 0.15s;
+      border: 1px solid ${i===idxPeriodo?'#2a6abf':'#1a3050'};
+      background: ${i===idxPeriodo?'#1e4d8c':'#112233'};
+      color: ${i===idxPeriodo?'#e0f0ff':'#5a8abf'};
+    ">
+      <div style="font-size:13px;font-weight:700;">${p.label}</div>
+      <div style="font-size:10px;opacity:0.7;margin-top:2px;">${p.inicio.slice(0,5)} a ${p.fim.slice(0,5)}</div>
+    </button>`).join('');
 
+  // Dados do período selecionado
+  const periodo = periodos[idxPeriodo];
+  if (!periodo) {
+    el.innerHTML = '<div class="desemp-empty">Período não disponível.</div>';
+    return;
+  }
+
+  const dadosMot = buscarMotorista(periodo.motoristas, nomeUsuario);
+
+  let conteudoHtml = '';
+  if (!dadosMot) {
+    conteudoHtml = `<div class="desemp-empty" style="padding:24px 0;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3a5270" stroke-width="1.5" style="margin-bottom:8px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><br/>
+      Sem registros neste período.
+    </div>`;
+  } else {
     const kmCg = dadosMot.kmCgTotal || 0;
     const placa = dadosMot.placa || '—';
-
-    content.innerHTML = `
-      <div class="desemp-periodo">📅 Período: ${periodo}</div>
-
+    conteudoHtml = `
       <div class="desemp-km-card">
-        <div class="desemp-km-label">KM Carregado no Período</div>
+        <div class="desemp-km-label">KM Carregado</div>
         <div class="desemp-km-valor">${kmCg.toLocaleString('pt-BR')}</div>
         <div class="desemp-km-unit">km</div>
         <div class="desemp-km-sub">Veículo: ${placa}</div>
       </div>
-
       <div class="desemp-info-card">
         <div class="desemp-info-row">
           <span class="desemp-info-label">Motorista</span>
-          <span class="desemp-info-value">${nomeEncontrado}</span>
+          <span class="desemp-info-value" style="font-size:12px;">${dadosMot.nome}</span>
         </div>
         <div class="desemp-info-row">
           <span class="desemp-info-label">Placa</span>
           <span class="desemp-info-value" style="letter-spacing:1px;">${placa}</span>
         </div>
         <div class="desemp-info-row">
-          <span class="desemp-info-label">Último registro</span>
-          <span class="desemp-info-value">${dadosMot.ultimaData || '—'}</span>
+          <span class="desemp-info-label">Período</span>
+          <span class="desemp-info-value" style="font-size:11px;">${periodo.inicio} a ${periodo.fim}</span>
         </div>
-        <div class="desemp-info-row">
-          <span class="desemp-info-label">Status</span>
-          <span class="desemp-info-value">${dadosMot.ultimoStatus || '—'}</span>
-        </div>
-        ${dadosMot.ultimaSituacao ? `<div class="desemp-info-row">
-          <span class="desemp-info-label">Situação</span>
-          <span class="desemp-info-value">${dadosMot.ultimaSituacao}</span>
-        </div>` : ''}
-        ${dadosMot.ultimaProg ? `<div class="desemp-info-row">
-          <span class="desemp-info-label">Programação</span>
-          <span class="desemp-info-value" style="font-size:12px;">${dadosMot.ultimaProg}</span>
-        </div>` : ''}
-      </div>
-
-      <div style="font-size:10px;color:#2a4060;text-align:center;margin-top:8px;font-family:sans-serif;">
-        Base importada em: ${importadoEm}
       </div>`;
-
-  } catch(err) {
-    console.error('Erro ao carregar desempenho:', err);
-    content.innerHTML = '<div class="desemp-empty">Erro ao carregar dados. Tente novamente.</div>';
   }
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      ${botoesHtml}
+    </div>
+    ${conteudoHtml}
+    <div style="font-size:10px;color:#2a4060;text-align:center;margin-top:12px;font-family:sans-serif;">
+      Base importada em: ${importadoEm}
+    </div>`;
 }
 
 // ══ NOTIFICAÇÃO WHATSAPP Z-API ══
