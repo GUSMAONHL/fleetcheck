@@ -114,6 +114,22 @@
   .hist-kpi.rep .hist-kpi-num { color:#e05050; }
   .hist-kpi.ok .hist-kpi-num { color:#2ed47a; }
 
+  /* Tabela histórico diário */
+  .hist-table-card { background:#112233; border:1px solid #1a3050; border-radius:12px; overflow:hidden; margin-top:12px; margin-bottom:16px; }
+  .hist-table-header { padding:10px 14px; border-bottom:1px solid #1a3050; display:flex; align-items:center; justify-content:space-between; }
+  .hist-table-title { font-size:11px; color:#5a8abf; text-transform:uppercase; letter-spacing:0.8px; font-family:sans-serif; font-weight:500; }
+  .hist-table-total { font-size:11px; color:#3a6090; font-family:sans-serif; }
+  .hist-table { width:100%; border-collapse:collapse; font-family:sans-serif; }
+  .hist-table thead th { padding:7px 10px; font-size:9px; color:#3a6090; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid #1a3050; text-align:left; background:#0d1823; white-space:nowrap; }
+  .hist-table tbody tr { border-bottom:1px solid #0d1828; }
+  .hist-table tbody tr:last-child { border-bottom:none; }
+  .hist-table tbody td { padding:8px 10px; font-size:11px; color:#8ab0d0; vertical-align:middle; }
+  .hist-table tbody td.td-data { color:#5a8abf; white-space:nowrap; font-size:10px; }
+  .hist-table tbody td.td-dsem { color:#3a6090; font-size:10px; }
+  .hist-table tbody td.td-rota { color:#a8c8e8; font-size:10px; max-width:110px; line-height:1.3; }
+  .hist-table tbody td.td-fat { color:#7a9abf; font-size:10px; }
+  .hist-table tbody td.td-km { text-align:right; font-weight:600; font-size:12px; white-space:nowrap; }
+
   /* Tela de desempenho */
   .desemp-header { background:#112233; padding:14px 18px; border-bottom:1px solid #1a3050; display:flex; align-items:center; gap:10px; }
   .desemp-content { flex:1; overflow-y:auto; padding:16px 20px; }
@@ -859,6 +875,75 @@ window.abrirDesempenho = async function abrirDesempenho() {
   }
 }
 
+function renderTabelaHistorico(dados, dadosMot, periodo) {
+  if (!dados || !dados.historico) return '';
+
+  // Busca o histórico do motorista
+  const nomNorm = (dadosMot.nome || '').trim().toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9 ]/g,'');
+  
+  let linhas = null;
+  for (const [key, val] of Object.entries(dados.historico)) {
+    const keyNorm = key.normalize ? key.normalize('NFD').replace(/[̀-ͯ]/g,'') : key;
+    if (keyNorm === nomNorm || keyNorm.includes(nomNorm.split(' ')[0])) {
+      linhas = val; break;
+    }
+  }
+
+  if (!linhas || linhas.length === 0) return '';
+
+  // Filtra pelo período selecionado
+  function parseDataBR(s) {
+    if (!s) return null;
+    const p = s.split('/');
+    if (p.length < 3) return null;
+    const ano = p[2].length === 2 ? '20'+p[2] : p[2];
+    return new Date(ano, p[1]-1, p[0]);
+  }
+  const ini = parseDataBR(periodo.inicio);
+  const fim = parseDataBR(periodo.fim);
+  const linhasFiltradas = linhas.filter(l => {
+    const d = parseDataBR(l.data);
+    return d && ini && fim && d >= ini && d <= fim;
+  }).sort((a,b) => {
+    const da = parseDataBR(a.data), db = parseDataBR(b.data);
+    return da - db;
+  });
+
+  if (linhasFiltradas.length === 0) return '';
+
+  const totalKm = linhasFiltradas.reduce((s,l) => s + (l.kmcg||0), 0);
+
+  const rows = linhasFiltradas.map(l => {
+    const oriDest = l.origem && l.destino
+      ? `${l.origem.replace(/-[A-Z]{2}$/,'')} × ${l.destino.replace(/-[A-Z]{2}$/,'')}`
+      : (l.origem || l.destino || '—');
+    const kmColor = l.kmcg >= 500 ? '#2ed47a' : l.kmcg >= 300 ? '#f0883e' : '#8ab0d0';
+    return `<tr>
+      <td class="td-data">${l.data.slice(0,8)}</td>
+      <td class="td-dsem">${l.dsem}</td>
+      <td class="td-rota">${oriDest}</td>
+      <td class="td-fat">${l.faturamento||'—'}</td>
+      <td class="td-km" style="color:${kmColor};">${(l.kmcg||0).toLocaleString('pt-BR')}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="hist-table-card">
+    <div class="hist-table-header">
+      <span class="hist-table-title">Histórico Diário</span>
+      <span class="hist-table-total">${linhasFiltradas.length} dias · ${totalKm.toLocaleString('pt-BR')} km</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="hist-table">
+        <thead><tr>
+          <th>DATA</th><th>DIA</th><th>ORIG. × DEST.</th><th>FATURAMENTO</th><th style="text-align:right;">KM CG</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 window._renderDesemp = function(idx) { window.renderDesempenho(idx); };
 
 function corKmCard(km) {
@@ -930,7 +1015,8 @@ window.renderDesempenho = function renderDesempenho(idxPeriodo, importadoEm) {
           <span class="desemp-info-label">Período</span>
           <span class="desemp-info-value" style="font-size:11px;">${periodo.inicio} a ${periodo.fim}</span>
         </div>
-      </div>`;
+      </div>
+      ${renderTabelaHistorico(desempDados, dadosMot, periodo)}`;
   }
 
   el.innerHTML = `

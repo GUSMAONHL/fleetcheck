@@ -1121,6 +1121,7 @@ window.importarBase = async function importarBase(input) {
     const COL_PLACA = 3;  // PLACA
     const COL_KMCG = COL['KM CG'] ?? 34;
     const COL_STATUS = COL['STATUS'] ?? 7;
+    const COL_FATURAMENTO = COL['FATURAMENTO'] ?? 32;
     const COL_SITUACAO = COL['SITUAÇÃO'] ?? 9;
     const COL_ORIGEM = COL['ORIGEM'] ?? 11;
     const COL_DESTINO = COL['DESTINO'] ?? 12;
@@ -1263,6 +1264,38 @@ window.importarBase = async function importarBase(input) {
       });
     }
     resumo.periodos = periodos;
+
+    // Salva histórico diário por motorista (para exibir na tabela)
+    const historico = {}; // motNorm -> [{data, dsem, placa, origem, destino, faturamento, kmcg}]
+    const DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
+    rows.slice(1).forEach(row => {
+      const mot = row[COL_MOT];
+      if (!mot || typeof mot !== 'string') return;
+      const motNorm2 = mot.trim().toUpperCase();
+      let data2 = row[0];
+      if (typeof data2 === 'number') data2 = new Date(Math.round((data2-25569)*86400*1000));
+      if (!(data2 instanceof Date) || isNaN(data2)) return;
+      const kmcg2 = parseFloat(row[COL_KMCG]) || 0;
+      if (kmcg2 <= 0) return;
+      // Inclui todos os períodos dos últimos 4 ciclos
+      const periodoMaisAntigo = periodos[periodos.length-1];
+      const iniGeral = periodoMaisAntigo ? new Date(periodoMaisAntigo.inicioISO) : new Date(2026,0,1);
+      if (data2 < iniGeral) return;
+      if (!historico[motNorm2]) historico[motNorm2] = [];
+      historico[motNorm2].push({
+        data: data2.toLocaleDateString('pt-BR'),
+        dsem: DIAS[data2.getDay()],
+        placa: (row[COL_PLACA]||'').trim(),
+        origem: (row[COL_ORIGEM]||'').trim(),
+        destino: (row[COL_DESTINO]||'').trim(),
+        faturamento: (row[COL_FATURAMENTO !== undefined ? COL_FATURAMENTO : 32]||'').toString().trim(),
+        kmcg: Math.round(kmcg2)
+      });
+    });
+
+    // Adiciona coluna faturamento ao mapeamento
+    const COL_FATURAMENTO2 = COL['FATURAMENTO'] ?? 32;
+    resumo.historico = historico;
 
     await setDoc(doc(db, 'base_jornada', 'desempenho'), resumo);
 
