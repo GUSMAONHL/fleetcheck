@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Novo Horizonte Logística — Painel do Gestor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --bg: #0d1117;
@@ -284,6 +285,16 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 @keyframes pulso-critico { 0%,100%{opacity:0} 50%{opacity:1} }
 .farois-zero { text-align:center; padding: 20px; color: var(--text3); font-size: 13px; }
 
+/* ── IMPORTAR BASE ── */
+.import-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--green-border); background:var(--green-bg); color:#3fb950; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+.import-btn:hover { background:rgba(46,160,67,0.2); }
+.import-btn svg { width:14px; height:14px; }
+.import-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.import-progress { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--bg4); border:1px solid var(--border2); border-radius:12px; padding:14px 20px; font-size:13px; color:var(--text); z-index:999; min-width:280px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+.import-progress.show { display:block; }
+.import-progress-bar { height:4px; background:var(--bg3); border-radius:2px; margin-top:10px; overflow:hidden; }
+.import-progress-fill { height:100%; background:#3fb950; border-radius:2px; transition:width 0.3s; }
+
 /* ── EMPTY ── */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
 .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
@@ -335,6 +346,15 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
         Exportar PDF
       </button>
+      <label class="import-btn" id="import-btn-label" title="Importar JORNADA_NH.xlsx">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importar Base
+        <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarBase(this)" id="import-file-input"/>
+      </label>
+      <div class="import-progress" id="import-progress">
+        <span id="import-progress-text">Lendo arquivo...</span>
+        <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-fill" style="width:0%"></div></div>
+      </div>
     </div>
   </header>
   <div id="loading-bar" style="display:none;height:3px;background:linear-gradient(90deg,#388bfd 0%,#2ea043 50%,#388bfd 100%);background-size:200% 100%;animation:loadingAnim 1.2s linear infinite;position:sticky;top:58px;z-index:8;"></div>
@@ -516,7 +536,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 // ══ FIREBASE SDK ══
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc, setDoc, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
@@ -1054,6 +1074,166 @@ window.abrirModalFarol = function abrirModalFarol(cat, titulo, subtitulo) {
 window.fecharModalFarol = function fecharModalFarol(e) {
   if (e.target === document.getElementById('farol-overlay')) {
     document.getElementById('farol-overlay').style.display = 'none';
+  }
+}
+
+// ══ IMPORTAR BASE EXCEL ══
+window.importarBase = async function importarBase(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const label = document.getElementById('import-btn-label');
+  const progress = document.getElementById('import-progress');
+  const progressText = document.getElementById('import-progress-text');
+  const progressFill = document.getElementById('import-progress-fill');
+
+  label.style.pointerEvents = 'none';
+  label.style.opacity = '0.6';
+  progress.classList.add('show');
+
+  try {
+    // Lê o arquivo Excel
+    progressText.textContent = 'Lendo arquivo Excel...';
+    progressFill.style.width = '20%';
+
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type: 'array', cellDates: true });
+
+    // Verifica se a aba existe
+    if (!wb.SheetNames.includes('JORNADA MOVIMENTO')) {
+      throw new Error('Aba "JORNADA MOVIMENTO" não encontrada no arquivo.');
+    }
+
+    progressText.textContent = 'Processando dados...';
+    progressFill.style.width = '40%';
+
+    const ws = wb.Sheets['JORNADA MOVIMENTO'];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+
+    if (rows.length < 2) throw new Error('Planilha vazia ou sem dados.');
+
+    // Mapeia colunas pelo cabeçalho
+    const header = rows[0];
+    const COL = {};
+    header.forEach((h, i) => { if (h) COL[String(h).trim()] = i; });
+
+    const COL_DATA = COL['COD'] !== undefined ? 0 : null; // col A = data
+    const COL_MOT  = 1;   // MOTORISTA
+    const COL_PLACA = 3;  // PLACA
+    const COL_KMCG = COL['KM CG'] ?? 34;
+    const COL_STATUS = COL['STATUS'] ?? 7;
+    const COL_SITUACAO = COL['SITUAÇÃO'] ?? 9;
+    const COL_ORIGEM = COL['ORIGEM'] ?? 11;
+    const COL_DESTINO = COL['DESTINO'] ?? 12;
+    const COL_PROG = COL['PROGRAMAÇÃO'] ?? 14;
+
+    progressText.textContent = 'Calculando KM CG por motorista...';
+    progressFill.style.width = '60%';
+
+    // Calcula período 21 a 20 do ciclo vigente
+    const hoje = new Date();
+    let inicioPeríodo, fimPeríodo;
+    if (hoje.getDate() >= 21) {
+      inicioPeríodo = new Date(hoje.getFullYear(), hoje.getMonth(), 21);
+      fimPeríodo    = new Date(hoje.getFullYear(), hoje.getMonth()+1, 20, 23, 59, 59);
+    } else {
+      inicioPeríodo = new Date(hoje.getFullYear(), hoje.getMonth()-1, 21);
+      fimPeríodo    = new Date(hoje.getFullYear(), hoje.getMonth(), 20, 23, 59, 59);
+    }
+
+    // Agrega KM CG por motorista no período
+    const kmCgMap = {}; // motorista -> { total, placa, dias: {data: km} }
+    const jornadas = []; // todos os registros para análise
+
+    rows.slice(1).forEach(row => {
+      const mot = row[COL_MOT];
+      if (!mot || typeof mot !== 'string') return;
+      const motNorm = mot.trim().toUpperCase();
+
+      // Data pode ser Date ou número serial Excel
+      let data = row[0];
+      if (typeof data === 'number') {
+        // Serial Excel → Date
+        data = new Date(Math.round((data - 25569) * 86400 * 1000));
+      }
+      if (!(data instanceof Date) || isNaN(data)) return;
+
+      const kmcg = parseFloat(row[COL_KMCG]) || 0;
+      const placa = row[COL_PLACA] || '';
+      const status = row[COL_STATUS] || '';
+      const situacao = row[COL_SITUACAO] || '';
+      const origem = row[COL_ORIGEM] || '';
+      const destino = row[COL_DESTINO] || '';
+      const prog = row[COL_PROG] || '';
+
+      // Acumula KM CG no período
+      if (data >= inicioPeríodo && data <= fimPeríodo && kmcg > 0) {
+        if (!kmCgMap[motNorm]) kmCgMap[motNorm] = { total: 0, placa, nome: mot.trim() };
+        kmCgMap[motNorm].total += kmcg;
+        kmCgMap[motNorm].placa = placa || kmCgMap[motNorm].placa;
+      }
+
+      // Guarda última jornada de cada motorista
+      jornadas.push({ mot: motNorm, nome: mot.trim(), data, placa, status, situacao, origem, destino, prog, kmcg });
+    });
+
+    // Última jornada por motorista
+    const ultimaJornada = {};
+    jornadas.sort((a, b) => a.data - b.data).forEach(j => {
+      ultimaJornada[j.mot] = j;
+    });
+
+    progressText.textContent = 'Salvando no Firebase...';
+    progressFill.style.width = '80%';
+
+    // Monta documento de desempenho para salvar no Firestore
+    const periodoLabel = `${inicioPeríodo.toLocaleDateString('pt-BR')} a ${fimPeríodo.toLocaleDateString('pt-BR')}`;
+    const importadoEm = new Date().toISOString();
+
+    // Salva resumo geral
+    const resumo = {
+      importadoEm,
+      periodo: periodoLabel,
+      inicioPeriodo: inicioPeríodo.toISOString(),
+      fimPeriodo: fimPeríodo.toISOString(),
+      motoristas: {}
+    };
+
+    Object.entries(kmCgMap).forEach(([motNorm, dados]) => {
+      const ult = ultimaJornada[motNorm];
+      resumo.motoristas[motNorm] = {
+        nome: dados.nome,
+        placa: dados.placa,
+        kmCgTotal: Math.round(dados.total),
+        ultimaData: ult ? ult.data.toLocaleDateString('pt-BR') : '',
+        ultimoStatus: ult ? ult.status : '',
+        ultimaSituacao: ult ? ult.situacao : '',
+        ultimaOrigem: ult ? ult.origem : '',
+        ultimoDestino: ult ? ult.destino : '',
+        ultimaProg: ult ? ult.prog : '',
+      };
+    });
+
+    await setDoc(doc(db, 'base_jornada', 'desempenho'), resumo);
+
+    progressFill.style.width = '100%';
+    progressText.textContent = '✔ Importado com sucesso!';
+
+    setTimeout(() => {
+      progress.classList.remove('show');
+      progressFill.style.width = '0%';
+    }, 2500);
+
+    const total = Object.keys(kmCgMap).length;
+    showToast(`✔ Base importada! ${total} motoristas processados · Período: ${periodoLabel}`);
+
+  } catch(err) {
+    console.error('Erro na importação:', err);
+    progress.classList.remove('show');
+    showToast('⚠ Erro ao importar: ' + err.message);
+  } finally {
+    label.style.pointerEvents = '';
+    label.style.opacity = '';
+    input.value = ''; // permite reimportar o mesmo arquivo
   }
 }
 
