@@ -918,7 +918,7 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
     const oriDest = l.origem ? l.origem.replace(/-[A-Z]{2}$/,'') : '—';
     const kmColor = l.kmcg >= 500 ? '#2ed47a' : l.kmcg >= 300 ? '#f0883e' : '#8ab0d0';
     return `<tr>
-      <td class="td-data">${l.data.slice(0,8)}</td>
+      <td class="td-data">${l.data.slice(0,5)}</td>
       <td class="td-dsem">${l.dsem}</td>
       <td class="td-rota">${oriDest}</td>
       <td class="td-fat">${l.faturamento||'—'}</td>
