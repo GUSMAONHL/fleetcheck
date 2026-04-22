@@ -678,6 +678,12 @@ async function carregarHistorico() {
       });
     });
 
+    // Carrega dados de desempenho em paralelo para exibir o card de KM
+    try {
+      const snapDesemp = await getDoc(doc(db, 'base_jornada', 'desempenho'));
+      if (snapDesemp.exists()) desempDados = snapDesemp.data();
+    } catch(e) { /* silencioso — desempenho é opcional */ }
+
     renderHistorico(docs, reparosPendentes);
   } catch(err) {
     console.error('Erro ao carregar histórico:', err);
@@ -708,6 +714,26 @@ function badgeDias(timestamp) {
   </span>`;
 }
 
+function renderCardKmHistorico() {
+  if (!desempDados || !desempDados.periodos || desempDados.periodos.length === 0) return '';
+  const nomeUsuario = currentUser ? currentUser.nome : '';
+  const periodo = desempDados.periodos[0]; // período atual
+  const dadosMot = buscarMotorista(periodo.motoristas, nomeUsuario);
+  if (!dadosMot) return '';
+
+  const kmCg = dadosMot.kmCgTotal || 0;
+  const placa = dadosMot.placa || '—';
+  const cores = corKmCard(kmCg);
+
+  return `<div style="background:${cores.bg};border:2px solid ${cores.border};border-radius:14px;padding:18px 16px;text-align:center;margin-bottom:16px;cursor:pointer;" onclick="abrirDesempenho()">
+    <div style="font-size:10px;color:${cores.cor};opacity:0.8;text-transform:uppercase;letter-spacing:1px;font-family:sans-serif;margin-bottom:6px;">KM CARREGADO · ${periodo.label}</div>
+    <div style="font-size:42px;font-weight:700;color:${cores.cor};font-family:sans-serif;line-height:1;margin-bottom:4px;">${kmCg.toLocaleString('pt-BR')}</div>
+    <div style="font-size:14px;color:${cores.cor};opacity:0.7;font-family:sans-serif;margin-bottom:10px;">km</div>
+    <div style="display:inline-block;background:${cores.border};color:${cores.cor};font-size:11px;font-weight:600;padding:3px 14px;border-radius:20px;font-family:sans-serif;">${cores.label}</div>
+    <div style="font-size:11px;color:${cores.cor};opacity:0.5;font-family:sans-serif;margin-top:8px;">Veículo: ${placa} · Toque para ver detalhes</div>
+  </div>`;
+}
+
 function renderHistorico(docs, pendentes) {
   const histContent = document.getElementById('hist-content');
   const totalChecklists = docs.length;
@@ -720,6 +746,9 @@ function renderHistorico(docs, pendentes) {
     <div class="hist-kpi ok"><div class="hist-kpi-num">${totalChecklists}</div><div class="hist-kpi-lbl">Checklists enviados</div></div>
     <div class="hist-kpi rep"><div class="hist-kpi-num">${totalReparos}</div><div class="hist-kpi-lbl">Reparos pendentes</div></div>
   </div>`;
+
+  // Card de desempenho KM CG do mês vigente
+  html += renderCardKmHistorico();
 
   // Reparos pendentes com acordeão
   if (pendentes.length > 0) {
