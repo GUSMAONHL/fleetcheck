@@ -321,7 +321,7 @@
     <!-- DESEMPENHO -->
     <div class="view" id="view-desemp">
       <div class="desemp-header">
-        <button class="back-btn" onclick="show('view-historico')">&#8249;</button>
+        <button class="back-btn" id="btn-back-desemp">&#8249;</button>
         <div>
           <div class="detail-title">Meu Desempenho</div>
           <div class="detail-sub" id="desemp-sub">KM Carregado do Período</div>
@@ -1116,6 +1116,7 @@ function mostrarToast(msg){
 }
 
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+window.show = show;
 window.doLogin = function doLogin(){
   const email=document.getElementById('login-user').value.trim();
   const senha=document.getElementById('login-pass').value;
@@ -1143,6 +1144,10 @@ window.doLogout = function doLogout(){
   signOut(auth).then(()=>{currentUser=null;show('view-login');});
 }
 window.closeDetail = function closeDetail(){updateDashboard();show('view-dash');}
+
+// Listener do botão voltar da tela de desempenho
+const btnBackDesemp = document.getElementById('btn-back-desemp');
+if (btnBackDesemp) btnBackDesemp.addEventListener('click', () => show('view-historico'));
 window.irParaChecklist = function irParaChecklist(){show('view-dash');}
 
 updateDashboard();
