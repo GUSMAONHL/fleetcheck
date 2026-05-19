@@ -1137,6 +1137,10 @@ async function renderDesempenhoKm() {
           <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
           <div style="font-size:11px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
         </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${cores.border};display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:10px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
+          <div style="font-size:13px;font-weight:600;color:${cores.cor};font-family:'DM Mono',monospace;">R$ ${(m.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        </div>
         <div class="km-card-bar" style="color:${cores.cor};margin-top:10px;">
           <div class="km-card-bar-fill" style="width:${pct}%;"></div>
         </div>
@@ -1245,6 +1249,7 @@ window.importarBase = async function importarBase(input) {
     const COL_KMCG = COL['KM CG'] ?? 34;
     const COL_STATUS = COL['STATUS'] ?? 7;
     const COL_FATURAMENTO = COL['FATURAMENTO'] ?? 32;
+    const COL_VALOR = COL['VALOR'] ?? 33;
     const COL_SITUACAO = COL['SITUAÇÃO'] ?? 9;
     const COL_ORIGEM = COL['ORIGEM'] ?? 11;
     const COL_DESTINO = COL['DESTINO'] ?? 12;
@@ -1366,9 +1371,10 @@ window.importarBase = async function importarBase(input) {
         if (!(data2 instanceof Date) || isNaN(data2)) return;
         const kmcg2 = parseFloat(row[COL_KMCG]) || 0;
         if (data2 >= ini && data2 <= fim && kmcg2 > 0) {
-          if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, viagens: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
+          if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, viagens: 0, faturamento: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
           kmPeriodo[motNorm2].total += kmcg2;
           kmPeriodo[motNorm2].viagens += 1;
+          kmPeriodo[motNorm2].faturamento += parseFloat(row[COL_VALOR]) || 0;
         }
       });
       const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
@@ -1383,6 +1389,7 @@ window.importarBase = async function importarBase(input) {
           Object.entries(kmPeriodo).map(([k,v]) => [k, {
             nome: v.nome, placa: v.placa, kmCgTotal: Math.round(v.total),
             viagens: v.viagens || 0,
+            faturamento: Math.round((v.faturamento || 0) * 100) / 100,
             nomePalavras: v.nome.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(' ').filter(p=>p.length>2)
           }])
         )
