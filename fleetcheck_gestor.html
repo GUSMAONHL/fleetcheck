@@ -1067,7 +1067,7 @@ window.showPage = function showPage(id) {
   document.getElementById('page-title').textContent = pageTitles[id];
   if (id === 'checklists') renderListTable();
   if (id === 'frotas') renderFrotaTable();
-  if (id === 'desempenho') renderDesempenhoKm();
+  if (id === 'desempenho') window.renderDesempenhoKm();
 }
 
 // ══════════════════════════════════════
@@ -1083,7 +1083,7 @@ function corKmGestor(km) {
 let kmDadosCache = null;
 let kmPeriodoAtivo = 0;
 
-async function renderDesempenhoKm(idxPeriodo) {
+window.renderDesempenhoKm = async function renderDesempenhoKm(idxPeriodo) {
   idxPeriodo = idxPeriodo ?? kmPeriodoAtivo;
   kmPeriodoAtivo = idxPeriodo;
 
@@ -1124,7 +1124,7 @@ async function renderDesempenhoKm(idxPeriodo) {
   btnsCont.querySelectorAll('.km-periodo-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       kmDadosCache = dados; // mantém cache
-      renderDesempenhoKm(parseInt(this.getAttribute('data-idx')));
+      window.renderDesempenhoKm(parseInt(this.getAttribute('data-idx')));
     });
   });
 
