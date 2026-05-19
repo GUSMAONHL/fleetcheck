@@ -1133,8 +1133,11 @@ async function renderDesempenhoKm() {
         <div class="km-card-placa" style="color:${cores.cor};">${m.placa || '—'}</div>
         <div class="km-card-valor" style="color:${cores.cor};">${km.toLocaleString('pt-BR')}</div>
         <div class="km-card-unit" style="color:${cores.cor};">km carregado</div>
-        <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
-        <div class="km-card-bar" style="color:${cores.cor};">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+          <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
+          <div style="font-size:11px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
+        </div>
+        <div class="km-card-bar" style="color:${cores.cor};margin-top:10px;">
           <div class="km-card-bar-fill" style="width:${pct}%;"></div>
         </div>
       </div>`;
@@ -1363,8 +1366,9 @@ window.importarBase = async function importarBase(input) {
         if (!(data2 instanceof Date) || isNaN(data2)) return;
         const kmcg2 = parseFloat(row[COL_KMCG]) || 0;
         if (data2 >= ini && data2 <= fim && kmcg2 > 0) {
-          if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
+          if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, viagens: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
           kmPeriodo[motNorm2].total += kmcg2;
+          kmPeriodo[motNorm2].viagens += 1;
         }
       });
       const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
@@ -1378,6 +1382,7 @@ window.importarBase = async function importarBase(input) {
         motoristas: Object.fromEntries(
           Object.entries(kmPeriodo).map(([k,v]) => [k, {
             nome: v.nome, placa: v.placa, kmCgTotal: Math.round(v.total),
+            viagens: v.viagens || 0,
             nomePalavras: v.nome.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(' ').filter(p=>p.length>2)
           }])
         )
