@@ -310,6 +310,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 .km-card-bar { height:4px; border-radius:2px; margin-top:14px; opacity:0.3; background:currentColor; }
 .km-card-bar-fill { height:100%; border-radius:2px; background:currentColor; transition:width 0.6s; }
 .km-empty { text-align:center; padding:60px 20px; color:var(--text3); }
+.km-periodo-btn { padding:8px 18px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); }
+.km-periodo-btn:hover { background:var(--bg4); color:var(--text); }
+.km-periodo-btn.ativo { background:var(--blue-bg); border-color:var(--blue-border); color:var(--blue); }
+.km-periodo-btn .btn-periodo-sub { font-size:10px; font-weight:400; opacity:0.7; display:block; margin-top:2px; font-family:'DM Mono',monospace; }
 .km-resumo { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
 .km-resumo-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
 .km-resumo-num { font-size:20px; font-weight:600; font-family:'DM Mono',monospace; }
@@ -520,12 +524,12 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: DESEMPENHO KM -->
     <div class="page" id="page-desempenho">
-      <div class="km-page-header">
-        <div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:4px;">Período vigente</div>
-          <span class="km-periodo-badge" id="km-periodo-label">Carregando...</span>
+      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <div style="font-size:13px;color:var(--text3);">Selecione o período:</div>
+          <div id="km-ultima-import" style="font-size:11px;color:var(--text3);"></div>
         </div>
-        <div id="km-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+        <div id="km-periodo-btns" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
       <div class="km-resumo" id="km-resumo"></div>
       <div class="km-grid" id="km-grid">
@@ -1076,28 +1080,55 @@ function corKmGestor(km) {
   return           { bg:'rgba(46,160,67,0.10)',  border:'rgba(46,160,67,0.35)',  cor:'#2ea043', label:'Faixa 01' };
 }
 
-async function renderDesempenhoKm() {
+let kmDadosCache = null;
+let kmPeriodoAtivo = 0;
+
+async function renderDesempenhoKm(idxPeriodo) {
+  idxPeriodo = idxPeriodo ?? kmPeriodoAtivo;
+  kmPeriodoAtivo = idxPeriodo;
+
   const grid = document.getElementById('km-grid');
   const resumoEl = document.getElementById('km-resumo');
-  const periodoLabel = document.getElementById('km-periodo-label');
+  const btnsCont = document.getElementById('km-periodo-btns');
   const ultimaImport = document.getElementById('km-ultima-import');
 
-  grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Carregando...</div>';
-
-  try {
-    const snap = await getDoc(doc(db, 'base_jornada', 'desempenho'));
-    if (!snap.exists()) {
-      grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhuma base importada.<br/>Use o botão "Importar Base" para carregar os dados.</div>';
+  if (!kmDadosCache) {
+    grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Carregando...</div>';
+    try {
+      const snap = await getDoc(doc(db, 'base_jornada', 'desempenho'));
+      if (!snap.exists()) {
+        grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhuma base importada.<br/>Use o botão "Importar Base" para carregar os dados.</div>';
+        return;
+      }
+      kmDadosCache = snap.data();
+    } catch(err) {
+      grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Erro ao carregar dados.</div>';
       return;
     }
+  }
 
-    const dados = snap.data();
-    const periodos = dados.periodos || [];
-    if (periodos.length === 0) { grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Sem dados de período.</div>'; return; }
+  const dados = kmDadosCache;
+  const periodos = dados.periodos || [];
+  if (periodos.length === 0) { grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Sem dados de período.</div>'; return; }
 
-    const periodo = periodos[0]; // vigente
-    periodoLabel.textContent = `${periodo.label} · ${periodo.inicio} a ${periodo.fim}`;
-    ultimaImport.textContent = dados.importadoEm ? 'Importado em: ' + new Date(dados.importadoEm).toLocaleString('pt-BR') : '';
+  ultimaImport.textContent = dados.importadoEm ? 'Importado em: ' + new Date(dados.importadoEm).toLocaleString('pt-BR') : '';
+
+  // Renderiza botões de período
+  btnsCont.innerHTML = periodos.slice(0,4).map((p, i) => `
+    <button class="km-periodo-btn ${i===idxPeriodo?'ativo':''}" data-idx="${i}">
+      ${p.label}
+      <span class="btn-periodo-sub">${p.inicio.slice(0,5)} a ${p.fim.slice(0,5)}</span>
+    </button>`).join('');
+
+  // Listeners nos botões
+  btnsCont.querySelectorAll('.km-periodo-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      kmDadosCache = dados; // mantém cache
+      renderDesempenhoKm(parseInt(this.getAttribute('data-idx')));
+    });
+  });
+
+  const periodo = periodos[idxPeriodo];
 
     const motoristas = Object.values(periodo.motoristas || {})
       .sort((a, b) => (b.kmCgTotal || 0) - (a.kmCgTotal || 0));
@@ -1440,6 +1471,7 @@ window.importarBase = async function importarBase(input) {
     }, 2500);
 
     const total = Object.keys(kmCgMap).length;
+    kmDadosCache = null; // limpa cache para recarregar
     showToast(`✔ Base importada! ${total} motoristas processados · Período: ${periodoLabel}`);
 
   } catch(err) {
