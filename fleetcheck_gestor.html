@@ -310,6 +310,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 .km-card-bar { height:4px; border-radius:2px; margin-top:14px; opacity:0.3; background:currentColor; }
 .km-card-bar-fill { height:100%; border-radius:2px; background:currentColor; transition:width 0.6s; }
 .km-empty { text-align:center; padding:60px 20px; color:var(--text3); }
+.km-periodo-btn { padding:8px 18px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); }
+.km-periodo-btn:hover { background:var(--bg4); color:var(--text); }
+.km-periodo-btn.ativo { background:var(--blue-bg); border-color:var(--blue-border); color:var(--blue); }
+.km-periodo-btn .btn-periodo-sub { font-size:10px; font-weight:400; opacity:0.7; display:block; margin-top:2px; font-family:'DM Mono',monospace; }
 .km-resumo { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
 .km-resumo-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
 .km-resumo-num { font-size:20px; font-weight:600; font-family:'DM Mono',monospace; }
@@ -520,12 +524,12 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: DESEMPENHO KM -->
     <div class="page" id="page-desempenho">
-      <div class="km-page-header">
-        <div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:4px;">Período vigente</div>
-          <span class="km-periodo-badge" id="km-periodo-label">Carregando...</span>
+      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <div style="font-size:13px;color:var(--text3);">Selecione o período:</div>
+          <div id="km-ultima-import" style="font-size:11px;color:var(--text3);"></div>
         </div>
-        <div id="km-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+        <div id="km-periodo-btns" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
       <div class="km-resumo" id="km-resumo"></div>
       <div class="km-grid" id="km-grid">
@@ -1063,7 +1067,7 @@ window.showPage = function showPage(id) {
   document.getElementById('page-title').textContent = pageTitles[id];
   if (id === 'checklists') renderListTable();
   if (id === 'frotas') renderFrotaTable();
-  if (id === 'desempenho') renderDesempenhoKm();
+  if (id === 'desempenho') window.renderDesempenhoKm();
 }
 
 // ══════════════════════════════════════
@@ -1076,76 +1080,92 @@ function corKmGestor(km) {
   return           { bg:'rgba(46,160,67,0.10)',  border:'rgba(46,160,67,0.35)',  cor:'#2ea043', label:'Faixa 01' };
 }
 
-async function renderDesempenhoKm() {
+let _kmDados = null;
+let _kmIdx = 0;
+
+function _renderKmCards(dados, idxPeriodo) {
   const grid = document.getElementById('km-grid');
   const resumoEl = document.getElementById('km-resumo');
-  const periodoLabel = document.getElementById('km-periodo-label');
+  const btnsCont = document.getElementById('km-periodo-btns');
   const ultimaImport = document.getElementById('km-ultima-import');
 
-  grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Carregando...</div>';
+  _kmIdx = idxPeriodo;
+  const periodos = dados.periodos || [];
 
+  ultimaImport.textContent = dados.importadoEm ? 'Importado em: ' + new Date(dados.importadoEm).toLocaleString('pt-BR') : '';
+
+  // Botões de período
+  btnsCont.innerHTML = '';
+  periodos.slice(0,4).forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'km-periodo-btn' + (i === idxPeriodo ? ' ativo' : '');
+    btn.innerHTML = `${p.label}<span class="btn-periodo-sub">${p.inicio.slice(0,5)} a ${p.fim.slice(0,5)}</span>`;
+    btn.addEventListener('click', () => _renderKmCards(dados, i));
+    btnsCont.appendChild(btn);
+  });
+
+  const periodo = periodos[idxPeriodo];
+  if (!periodo) { grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Período não disponível.</div>'; return; }
+
+  const motoristas = Object.values(periodo.motoristas || {}).sort((a,b) => (b.kmCgTotal||0) - (a.kmCgTotal||0));
+  if (motoristas.length === 0) { grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhum motorista com KM neste período.</div>'; return; }
+
+  const maxKm = motoristas[0].kmCgTotal || 1;
+  const f1 = motoristas.filter(m => m.kmCgTotal > 8500).length;
+  const f2 = motoristas.filter(m => m.kmCgTotal > 7500 && m.kmCgTotal <= 8500).length;
+  const f3 = motoristas.filter(m => m.kmCgTotal > 6500 && m.kmCgTotal <= 7500).length;
+  const fb = motoristas.filter(m => m.kmCgTotal <= 6500).length;
+
+  resumoEl.innerHTML = `
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#2ea043;">${f1}</div><div class="km-resumo-lbl">Faixa 01</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#388bfd;">${f2}</div><div class="km-resumo-lbl">Faixa 02</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#d29922;">${f3}</div><div class="km-resumo-lbl">Faixa 03</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${fb}</div><div class="km-resumo-lbl">Abaixo</div></div>`;
+
+  grid.innerHTML = motoristas.map((m, i) => {
+    const km = m.kmCgTotal || 0;
+    const cores = corKmGestor(km);
+    const pct = Math.round((km / maxKm) * 100);
+    const nomeFormatado = (m.nome || '').split(' ').slice(0,2).join(' ');
+    return `<div class="km-card" style="background:${cores.bg};border-color:${cores.border};">
+      <div class="km-card-rank" style="color:${cores.cor};">#${i+1}</div>
+      <div class="km-card-nome" title="${m.nome||''}">${nomeFormatado}</div>
+      <div class="km-card-placa" style="color:${cores.cor};">${m.placa||'—'}</div>
+      <div class="km-card-valor" style="color:${cores.cor};">${km.toLocaleString('pt-BR')}</div>
+      <div class="km-card-unit" style="color:${cores.cor};">km carregado</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+        <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
+        <div style="font-size:11px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${cores.border};display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:10px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
+        <div style="font-size:13px;font-weight:600;color:${cores.cor};font-family:'DM Mono',monospace;">R$ ${(m.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      </div>
+      <div class="km-card-bar" style="color:${cores.cor};margin-top:10px;">
+        <div class="km-card-bar-fill" style="width:${pct}%;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.renderDesempenhoKm = async function renderDesempenhoKm(idxPeriodo) {
+  idxPeriodo = idxPeriodo ?? _kmIdx;
+  const grid = document.getElementById('km-grid');
+  grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Carregando...</div>';
   try {
     const snap = await getDoc(doc(db, 'base_jornada', 'desempenho'));
     if (!snap.exists()) {
       grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhuma base importada.<br/>Use o botão "Importar Base" para carregar os dados.</div>';
       return;
     }
+    _kmDados = snap.data();
+    _renderKmCards(_kmDados, idxPeriodo);
+  } catch(err) {
+    console.error('Erro desempenho:', err);
+    grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Erro ao carregar dados.</div>';
+  }
+}
 
-    const dados = snap.data();
-    const periodos = dados.periodos || [];
-    if (periodos.length === 0) { grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Sem dados de período.</div>'; return; }
-
-    const periodo = periodos[0]; // vigente
-    periodoLabel.textContent = `${periodo.label} · ${periodo.inicio} a ${periodo.fim}`;
-    ultimaImport.textContent = dados.importadoEm ? 'Importado em: ' + new Date(dados.importadoEm).toLocaleString('pt-BR') : '';
-
-    const motoristas = Object.values(periodo.motoristas || {})
-      .sort((a, b) => (b.kmCgTotal || 0) - (a.kmCgTotal || 0));
-
-    if (motoristas.length === 0) {
-      grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhum motorista com KM registrado neste período.</div>';
-      return;
-    }
-
-    const maxKm = motoristas[0].kmCgTotal || 1;
-    const totalKm = motoristas.reduce((s, m) => s + (m.kmCgTotal || 0), 0);
-    const f1 = motoristas.filter(m => m.kmCgTotal > 8500).length;
-    const f2 = motoristas.filter(m => m.kmCgTotal > 7500 && m.kmCgTotal <= 8500).length;
-    const f3 = motoristas.filter(m => m.kmCgTotal > 6500 && m.kmCgTotal <= 7500).length;
-    const fb = motoristas.filter(m => m.kmCgTotal <= 6500).length;
-
-    // Resumo geral
-    resumoEl.innerHTML = `
-      <div class="km-resumo-card"><div class="km-resumo-num" style="color:#2ea043;">${f1}</div><div class="km-resumo-lbl">Faixa 01</div></div>
-      <div class="km-resumo-card"><div class="km-resumo-num" style="color:#388bfd;">${f2}</div><div class="km-resumo-lbl">Faixa 02</div></div>
-      <div class="km-resumo-card"><div class="km-resumo-num" style="color:#d29922;">${f3}</div><div class="km-resumo-lbl">Faixa 03</div></div>
-      <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${fb}</div><div class="km-resumo-lbl">Abaixo</div></div>`;
-
-    // Cards individuais
-    grid.innerHTML = motoristas.map((m, i) => {
-      const km = m.kmCgTotal || 0;
-      const cores = corKmGestor(km);
-      const pct = Math.round((km / maxKm) * 100);
-      const nomeFormatado = (m.nome || '').split(' ').slice(0,2).join(' ');
-      return `<div class="km-card" style="background:${cores.bg};border-color:${cores.border};">
-        <div class="km-card-rank" style="color:${cores.cor};">#${i+1}</div>
-        <div class="km-card-nome" title="${m.nome || ''}">${nomeFormatado}</div>
-        <div class="km-card-placa" style="color:${cores.cor};">${m.placa || '—'}</div>
-        <div class="km-card-valor" style="color:${cores.cor};">${km.toLocaleString('pt-BR')}</div>
-        <div class="km-card-unit" style="color:${cores.cor};">km carregado</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-          <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
-          <div style="font-size:11px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
-        </div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${cores.border};display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-size:10px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
-          <div style="font-size:13px;font-weight:600;color:${cores.cor};font-family:'DM Mono',monospace;">R$ ${(m.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-        </div>
-        <div class="km-card-bar" style="color:${cores.cor};margin-top:10px;">
-          <div class="km-card-bar-fill" style="width:${pct}%;"></div>
-        </div>
-      </div>`;
-    }).join('');
 
   } catch(err) {
     console.error('Erro ao carregar desempenho:', err);
@@ -1440,6 +1460,7 @@ window.importarBase = async function importarBase(input) {
     }, 2500);
 
     const total = Object.keys(kmCgMap).length;
+    kmDadosCache = null; // limpa cache para recarregar
     showToast(`✔ Base importada! ${total} motoristas processados · Período: ${periodoLabel}`);
 
   } catch(err) {
