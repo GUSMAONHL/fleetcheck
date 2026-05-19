@@ -1059,17 +1059,6 @@ window.fecharPainelForce = function fecharPainelForce() {
 // NAVEGAÇÃO
 // ══════════════════════════════════════
 const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas' };
-window.showPage = function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('page-title').textContent = pageTitles[id];
-  if (id === 'checklists') renderListTable();
-  if (id === 'frotas') renderFrotaTable();
-  if (id === 'desempenho') window.renderDesempenhoKm();
-}
-
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -1171,6 +1160,18 @@ window.renderDesempenhoKm = async function renderDesempenhoKm(idxPeriodo) {
     console.error('Erro ao carregar desempenho:', err);
     grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Erro ao carregar dados.</div>';
   }
+}
+
+
+window.showPage = function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id];
+  if (id === 'checklists') renderListTable();
+  if (id === 'frotas') renderFrotaTable();
+  if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
 }
 
 // ══════════════════════════════════════
