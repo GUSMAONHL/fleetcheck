@@ -1582,7 +1582,7 @@ window.importarBase = async function importarBase(input) {
     }, 2500);
 
     const total = Object.keys(kmCgMap).length;
-    kmDadosCache = null; // limpa cache para recarregar
+    _kmDados = null; // limpa cache para recarregar
     showToast(`✔ Base importada! ${total} motoristas processados · Período: ${periodoLabel}`);
 
   } catch(err) {
