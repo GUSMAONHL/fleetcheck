@@ -1288,14 +1288,14 @@ function abrirViagensMotorista(motKey, periodo, dados) {
             <td class="td-orig">${v.origem || '—'}</td>
             <td class="td-dest">${v.destino || '—'}</td>
             <td class="td-km">${(v.kmcg||0).toLocaleString('pt-BR')}</td>
-            <td class="td-fat" style="color:#388bfd;">R$ ${parseFloat(v.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+            <td class="td-fat" style="color:${parseFloat(v.faturamento||0)>0?'#388bfd':'var(--text3)'}">${parseFloat(v.faturamento||0)>0 ? 'R$ '+parseFloat(v.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
           </tr>`).join('')}
         </tbody>
         <tfoot>
           <tr>
             <td colspan="3" style="color:var(--text3);font-size:11px;">TOTAL</td>
             <td class="td-km">${totalKm.toLocaleString('pt-BR')}</td>
-            <td class="td-fat" style="color:#388bfd;">R$ ${totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+            <td class="td-fat" style="color:${totalFat>0?'#388bfd':'var(--text3)'};">${totalFat>0 ? 'R$ '+totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
           </tr>
         </tfoot>
       </table>
