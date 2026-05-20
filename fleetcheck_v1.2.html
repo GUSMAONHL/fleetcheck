@@ -950,7 +950,6 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
       <td class="td-data">${l.data.slice(0,5)}</td>
       <td class="td-dsem">${l.dsem}</td>
       <td class="td-rota">${oriDest}</td>
-      <td class="td-fat">${l.faturamento||'—'}</td>
       <td class="td-km" style="color:${kmColor};">${(l.kmcg||0).toLocaleString('pt-BR')}</td>
     </tr>`;
   }).join('');
@@ -963,7 +962,7 @@ function renderTabelaHistorico(dados, dadosMot, periodo) {
     <div style="overflow-x:auto;">
       <table class="hist-table">
         <thead><tr>
-          <th>DATA</th><th>DIA</th><th>ORIGEM</th><th>FATURAMENTO</th><th style="text-align:right;">KM CG</th>
+          <th>DATA</th><th>DIA</th><th>ORIGEM</th><th style="text-align:right;">KM CG</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
