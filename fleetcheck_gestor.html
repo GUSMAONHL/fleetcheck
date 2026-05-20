@@ -1573,7 +1573,7 @@ window.importarBase = async function importarBase(input) {
         placa: (row[COL_PLACA]||'').trim(),
         origem: (row[COL_ORIGEM]||'').trim(),
         destino: (row[COL_DESTINO]||'').trim(),
-        faturamento: (row[COL_FATURAMENTO !== undefined ? COL_FATURAMENTO : 32]||'').toString().trim(),
+        faturamento: parseFloat(row[COL_FATURAMENTO !== undefined ? COL_FATURAMENTO : 32]) || 0,
         kmcg: Math.round(kmcg2)
       });
     });
