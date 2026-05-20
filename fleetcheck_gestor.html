@@ -1172,6 +1172,17 @@ function _renderKmCards(dados, idxPeriodo) {
   }).join('');
 }
 
+// Delegação de eventos no grid de KM — funciona mesmo após re-render
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('.km-card[data-mot]');
+  if (!card) return;
+  const motKey = card.getAttribute('data-mot');
+  if (!_kmDados || !_kmDados.periodos) return;
+  const periodo = _kmDados.periodos[_kmIdx] || _kmDados.periodos[0];
+  if (!periodo) return;
+  abrirViagensMotorista(motKey, periodo, _kmDados);
+});
+
 window.renderDesempenhoKm = async function renderDesempenhoKm(idxPeriodo) {
   idxPeriodo = idxPeriodo ?? _kmIdx;
   const grid = document.getElementById('km-grid');
