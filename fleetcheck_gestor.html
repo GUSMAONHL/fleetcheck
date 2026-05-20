@@ -309,6 +309,26 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 .km-card-badge { display:inline-block; font-size:11px; font-weight:600; padding:3px 12px; border-radius:20px; font-family:'DM Sans',sans-serif; }
 .km-card-bar { height:4px; border-radius:2px; margin-top:14px; opacity:0.3; background:currentColor; }
 .km-card-bar-fill { height:100%; border-radius:2px; background:currentColor; transition:width 0.6s; }
+.km-card { cursor:pointer; }
+.viagens-table { width:100%; border-collapse:collapse; font-family:'DM Sans',sans-serif; margin-top:4px; }
+.viagens-table thead th { padding:8px 12px; font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.6px; border-bottom:1px solid var(--border); background:var(--bg3); text-align:left; white-space:nowrap; }
+.viagens-table thead th:last-child { text-align:right; }
+.viagens-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
+.viagens-table tbody tr:last-child { border-bottom:none; }
+.viagens-table tbody tr:hover { background:var(--bg3); }
+.viagens-table tbody td { padding:9px 12px; font-size:12px; color:var(--text2); }
+.viagens-table tbody td.td-orig { color:var(--text); font-weight:500; max-width:160px; }
+.viagens-table tbody td.td-dest { color:var(--text2); max-width:160px; }
+.viagens-table tbody td.td-km { text-align:right; color:#3fb950; font-family:'DM Mono',monospace; font-weight:600; white-space:nowrap; }
+.viagens-table tbody td.td-fat { text-align:right; font-family:'DM Mono',monospace; font-size:11px; white-space:nowrap; }
+.viagens-table tfoot td { padding:9px 12px; font-size:12px; font-weight:600; border-top:2px solid var(--border2); }
+.viagens-table tfoot td.td-km { text-align:right; color:#3fb950; font-family:'DM Mono',monospace; }
+.viagens-table tfoot td.td-fat { text-align:right; font-family:'DM Mono',monospace; font-size:11px; }
+.viagens-panel-header { margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.viagens-kpis { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+.viagens-kpi { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
+.viagens-kpi-num { font-size:18px; font-weight:600; font-family:'DM Mono',monospace; }
+.viagens-kpi-lbl { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
 .km-empty { text-align:center; padding:60px 20px; color:var(--text3); }
 .km-periodo-btn { padding:8px 18px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); }
 .km-periodo-btn:hover { background:var(--bg4); color:var(--text); }
@@ -551,6 +571,20 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button class="panel-close" onclick="document.getElementById('farol-overlay').style.display='none'">&#x2715;</button>
     </div>
     <div class="panel-body" id="farol-modal-body"></div>
+  </div>
+</div>
+
+<!-- PAINEL VIAGENS MOTORISTA -->
+<div class="detail-overlay" id="viagens-overlay" onclick="fecharViagens(event)" style="display:none;">
+  <div class="detail-panel" style="width:560px;">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="viagens-title">Viagens</div>
+        <div class="panel-meta" id="viagens-meta"></div>
+      </div>
+      <button class="panel-close" onclick="document.getElementById('viagens-overlay').style.display='none'">&#x2715;</button>
+    </div>
+    <div class="panel-body" id="viagens-body"></div>
   </div>
 </div>
 
@@ -1116,7 +1150,8 @@ function _renderKmCards(dados, idxPeriodo) {
     const cores = corKmGestor(km);
     const pct = Math.round((km / maxKm) * 100);
     const nomeFormatado = (m.nome || '').split(' ').slice(0,2).join(' ');
-    return `<div class="km-card" style="background:${cores.bg};border-color:${cores.border};">
+    const motKey = Object.keys(periodo.motoristas || {}).find(k => periodo.motoristas[k] === m) || '';
+    return `<div class="km-card" data-mot="${motKey}" style="background:${cores.bg};border-color:${cores.border};">
       <div class="km-card-rank" style="color:${cores.cor};">#${i+1}</div>
       <div class="km-card-nome" title="${m.nome||''}">${nomeFormatado}</div>
       <div class="km-card-placa" style="color:${cores.cor};">${m.placa||'—'}</div>
@@ -1165,6 +1200,99 @@ window.showPage = function showPage(id) {
   if (id === 'checklists') renderListTable();
   if (id === 'frotas') renderFrotaTable();
   if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
+}
+
+// ══════════════════════════════════════
+// PAINEL DE VIAGENS DO MOTORISTA
+// ══════════════════════════════════════
+window.fecharViagens = function fecharViagens(e) {
+  if (e.target === document.getElementById('viagens-overlay'))
+    document.getElementById('viagens-overlay').style.display = 'none';
+}
+
+function abrirViagensMotorista(motKey, periodo, dados) {
+  const mot = (periodo.motoristas || {})[motKey];
+  if (!mot) return;
+
+  // Busca histórico do motorista
+  const historico = (dados.historico || {})[motKey] || [];
+
+  // Filtra pelo período
+  function parseDataBR(s) {
+    if (!s) return null;
+    const p = s.split('/');
+    if (p.length < 3) return null;
+    const ano = p[2].length === 2 ? '20'+p[2] : p[2];
+    return new Date(ano, p[1]-1, p[0]);
+  }
+  const ini = parseDataBR(periodo.inicio);
+  const fim = parseDataBR(periodo.fim);
+  const viagens = historico.filter(l => {
+    const d = parseDataBR(l.data);
+    return d && ini && fim && d >= ini && d <= fim;
+  }).sort((a,b) => parseDataBR(a.data) - parseDataBR(b.data));
+
+  const totalKm = viagens.reduce((s,v) => s + (v.kmcg||0), 0);
+  const totalFat = viagens.reduce((s,v) => s + (parseFloat(v.faturamento)||0), 0);
+  const cores = corKmGestor(mot.kmCgTotal || 0);
+
+  document.getElementById('viagens-title').textContent = mot.nome || motKey;
+  document.getElementById('viagens-meta').textContent = `${mot.placa || '—'} · Período: ${periodo.inicio} a ${periodo.fim}`;
+
+  const body = document.getElementById('viagens-body');
+
+  // KPIs
+  let html = `<div class="viagens-kpis">
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:${cores.cor};">${viagens.length}</div>
+      <div class="viagens-kpi-lbl">Viagens</div>
+    </div>
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:#3fb950;">${totalKm.toLocaleString('pt-BR')}</div>
+      <div class="viagens-kpi-lbl">KM Carregado</div>
+    </div>
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:#388bfd;font-size:14px;">R$ ${totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="viagens-kpi-lbl">Faturamento</div>
+    </div>
+  </div>`;
+
+  if (viagens.length === 0) {
+    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhuma viagem encontrada neste período.</div>`;
+  } else {
+    html += `<div style="overflow-x:auto;">
+      <table class="viagens-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Origem</th>
+            <th>Destino</th>
+            <th style="text-align:right;">KM CG</th>
+            <th style="text-align:right;">Faturamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${viagens.map(v => `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${v.data ? v.data.slice(0,5) : '—'} <span style="color:var(--text3);">${v.dsem||''}</span></td>
+            <td class="td-orig">${v.origem || '—'}</td>
+            <td class="td-dest">${v.destino || '—'}</td>
+            <td class="td-km">${(v.kmcg||0).toLocaleString('pt-BR')}</td>
+            <td class="td-fat" style="color:#388bfd;">R$ ${parseFloat(v.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td class="td-km">${totalKm.toLocaleString('pt-BR')}</td>
+            <td class="td-fat" style="color:#388bfd;">R$ ${totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+  document.getElementById('viagens-overlay').style.display = 'flex';
 }
 
 // ══════════════════════════════════════
