@@ -1527,7 +1527,7 @@ window.importarBase = async function importarBase(input) {
           if (!kmPeriodo[motNorm2]) kmPeriodo[motNorm2] = { total: 0, viagens: 0, faturamento: 0, nome: mot.trim(), placa: row[COL_PLACA]||'' };
           kmPeriodo[motNorm2].total += kmcg2;
           kmPeriodo[motNorm2].viagens += 1;
-          kmPeriodo[motNorm2].faturamento += parseFloat(row[COL_VALOR]) || 0;
+          kmPeriodo[motNorm2].faturamento += parseFloat(row[COL_VALOR !== undefined ? COL_VALOR : 33]) || 0;
         }
       });
       const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
@@ -1573,7 +1573,7 @@ window.importarBase = async function importarBase(input) {
         placa: (row[COL_PLACA]||'').trim(),
         origem: (row[COL_ORIGEM]||'').trim(),
         destino: (row[COL_DESTINO]||'').trim(),
-        faturamento: parseFloat(row[COL_FATURAMENTO !== undefined ? COL_FATURAMENTO : 32]) || 0,
+        faturamento: parseFloat(row[COL_VALOR !== undefined ? COL_VALOR : 33]) || 0,
         kmcg: Math.round(kmcg2)
       });
     });
