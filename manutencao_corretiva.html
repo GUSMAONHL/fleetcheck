@@ -270,7 +270,7 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
 // ══ FIREBASE ══
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
@@ -283,7 +283,11 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
-signInAnonymously(auth).catch(console.error);
+// Aguarda autenticação antes de permitir envio
+let authReady = false;
+signInAnonymously(auth)
+  .then(() => { authReady = true; })
+  .catch(err => { console.error('Auth error:', err); authReady = true; });
 
 // ══ ESTRUTURA DOS ITENS ══
 const ESTRUTURA = {
@@ -411,9 +415,10 @@ const ESTRUTURA = {
 const state = {};   // id -> 'ok'|'at'|'sub'|null
 const obsMap = {};  // id -> string
 const numMap = {};  // id -> {fogo, tdi, estrutura}
-let secoesAtivas = ['freios','pneus','transmissao'];
+let secoesAtivas = ['freios','pneus'];
 let tipoVeiculo = 'Cavalo';
 let totalItens = 0;
+let moduloAtual = 0; // índice do módulo sendo inspecionado agora
 
 function contarItens() {
   let t = 0;
@@ -509,13 +514,17 @@ window.iniciarChecklist = function() {
 
   // Inicializa state
   Object.keys(state).forEach(k=>delete state[k]);
+  Object.keys(obsMap).forEach(k=>delete obsMap[k]);
+  Object.keys(numMap).forEach(k=>delete numMap[k]);
+  moduloAtual = 0;
   secoesAtivas.forEach(sec => {
     ESTRUTURA[sec].eixos.forEach(e => e.itens.forEach(item => { state[item.id]=null; }));
   });
   totalItens = contarItens();
 
+  const primeiroModulo = ESTRUTURA[secoesAtivas[0]];
   document.getElementById('check-title').textContent = placa.toUpperCase();
-  document.getElementById('check-sub').textContent = new Date(data+'T12:00').toLocaleDateString('pt-BR') + ' · ' + tipoVeiculo;
+  document.getElementById('check-sub').textContent = primeiroModulo.label + ' · ' + tipoVeiculo;
 
   renderChecklist();
   show('view-checklist');
@@ -526,19 +535,22 @@ function renderChecklist() {
   const cont = document.getElementById('checklist-content');
   cont.innerHTML = '';
 
-  secoesAtivas.forEach((secKey,si) => {
+  const secKey = secoesAtivas[moduloAtual];
+  const secAtual = ESTRUTURA[secKey];
+
+  // Header do módulo atual
+  const secLabel = document.createElement('div');
+  secLabel.style.cssText = 'padding:14px 16px 4px;font-size:10px;font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:'+secAtual.cor+';';
+  secLabel.textContent = '— ' + secAtual.label.toUpperCase() + ' —';
+  cont.appendChild(secLabel);
+
+  // Renderiza apenas a seção atual
+  const secoesParaRender = [secKey];
+  secoesParaRender.forEach((secKey,si) => {
     const sec = ESTRUTURA[secKey];
     sec.eixos.forEach((eixo, ei) => {
       const secDiv = document.createElement('div');
       secDiv.className = 'eixo-section';
-
-      // Header da seção (apenas na primeira aba ou quando muda)
-      if(ei===0) {
-        const secLabel = document.createElement('div');
-        secLabel.style.cssText = 'padding:14px 16px 4px;font-size:10px;font-family:"Barlow Condensed",sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:'+sec.cor+';';
-        secLabel.textContent = '— ' + sec.label.toUpperCase() + ' —';
-        cont.appendChild(secLabel);
-      }
 
       const hdr = document.createElement('div');
       hdr.className = 'eixo-header';
@@ -614,11 +626,21 @@ function renderChecklist() {
     }
   });
 
-  // Botão finalizar
+  // Botão de ação — Seguir ou Finalizar
+  const isUltimo = moduloAtual >= secoesAtivas.length - 1;
+  const proximoLabel = isUltimo ? null : ESTRUTURA[secoesAtivas[moduloAtual+1]]?.label;
   const btn = document.createElement('button');
   btn.className = 'btn-finalizar';
-  btn.innerHTML = '✔ Finalizar Inspeção';
-  btn.addEventListener('click', tentarFinalizar);
+  if(isUltimo) {
+    btn.innerHTML = '✔ Revisar e Enviar';
+    btn.style.background = '#0d5c38';
+    btn.style.borderColor = 'var(--ok)';
+  } else {
+    btn.innerHTML = `Seguir para ${proximoLabel} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`;
+    btn.style.background = '#1e3a6e';
+    btn.style.borderColor = 'var(--accent)';
+  }
+  btn.addEventListener('click', () => isUltimo ? tentarFinalizar() : irProximoModulo());
   cont.appendChild(btn);
   updateProgress();
 }
@@ -644,12 +666,47 @@ window.salvarNum = function(id, campo, val) {
 };
 
 function updateProgress() {
-  const done = Object.values(state).filter(v=>v!==null).length;
-  const pct = totalItens > 0 ? Math.round(done/totalItens*100) : 0;
+  const secKey = secoesAtivas[moduloAtual] || secoesAtivas[0];
+  const itensMod = ESTRUTURA[secKey]?.eixos.flatMap(e=>e.itens) || [];
+  const done = itensMod.filter(i=>state[i.id]!==null).length;
+  const pct = itensMod.length > 0 ? Math.round(done/itensMod.length*100) : 0;
   document.getElementById('prog-fill').style.width = pct+'%';
 }
 
 // ══ VALIDAÇÃO E MODAL ══
+function irProximoModulo() {
+  // Salva obs em aberto do módulo atual
+  const secKey = secoesAtivas[moduloAtual];
+  ESTRUTURA[secKey].eixos.forEach(e => e.itens.forEach(item => {
+    const ta = document.getElementById('txt-'+item.id);
+    if(ta) obsMap[item.id] = ta.value;
+  }));
+
+  // Verifica se todos os itens do módulo atual foram preenchidos
+  const pendentes = ESTRUTURA[secKey].eixos.flatMap(e => e.itens).filter(i => state[i.id]===null);
+  if(pendentes.length > 0) {
+    pendentes.forEach(item => {
+      const el = document.getElementById('item-'+item.id);
+      if(el) {
+        el.style.borderColor='#cc2222';
+        el.style.background='#1a1010';
+        setTimeout(()=>{el.style.borderColor='';el.style.background='';},2500);
+      }
+    });
+    document.getElementById('item-'+pendentes[0].id)?.scrollIntoView({behavior:'smooth',block:'center'});
+    mostrarToast(`⚠ ${pendentes.length} item(ns) sem resposta.`);
+    return;
+  }
+
+  // Avança para o próximo módulo
+  moduloAtual++;
+  const proxSec = ESTRUTURA[secoesAtivas[moduloAtual]];
+  document.getElementById('check-title').textContent = document.getElementById('placa-input').value.toUpperCase();
+  document.getElementById('check-sub').textContent = proxSec.label + ' · ' + tipoVeiculo;
+  renderChecklist();
+  document.getElementById('checklist-content').scrollTop = 0;
+}
+
 function tentarFinalizar() {
   // Salva obs em aberto
   secoesAtivas.forEach(sec => {
@@ -659,24 +716,16 @@ function tentarFinalizar() {
     }));
   });
 
-  const pend = Object.values(state).filter(v=>v===null).length;
-  if(pend > 0) {
-    // Destaca pendentes
-    secoesAtivas.forEach(sec => {
-      ESTRUTURA[sec].eixos.forEach(e => e.itens.forEach(item => {
-        if(state[item.id]===null) {
-          const el = document.getElementById('item-'+item.id);
-          if(el) {
-            el.style.borderColor='#cc2222';
-            el.style.background='#1a1010';
-            setTimeout(()=>{el.style.borderColor='';el.style.background='';},2500);
-          }
-        }
-      }));
+  // Verifica apenas o último módulo (os anteriores já foram validados)
+  const secAtual = secoesAtivas[moduloAtual];
+  const pendentes = ESTRUTURA[secAtual].eixos.flatMap(e=>e.itens).filter(i=>state[i.id]===null);
+  if(pendentes.length > 0) {
+    pendentes.forEach(item => {
+      const el = document.getElementById('item-'+item.id);
+      if(el) { el.style.borderColor='#cc2222'; el.style.background='#1a1010'; setTimeout(()=>{el.style.borderColor='';el.style.background='';},2500); }
     });
-    const primeiro = secoesAtivas.flatMap(sec => ESTRUTURA[sec].eixos.flatMap(e=>e.itens)).find(i=>state[i.id]===null);
-    if(primeiro) document.getElementById('item-'+primeiro.id)?.scrollIntoView({behavior:'smooth',block:'center'});
-    mostrarToast(`⚠ ${pend} item(ns) sem resposta.`);
+    document.getElementById('item-'+pendentes[0].id)?.scrollIntoView({behavior:'smooth',block:'center'});
+    mostrarToast(`⚠ ${pendentes.length} item(ns) sem resposta.`);
     return;
   }
   abrirModal();
@@ -767,6 +816,10 @@ async function confirmarEnvio() {
   };
 
   try {
+    // Garante que está autenticado antes de salvar
+    if (!auth.currentUser) {
+      await signInAnonymously(auth);
+    }
     await addDoc(collection(db,'manutencao_corretiva'), docData);
     document.getElementById('success-info').innerHTML = `
       <div class="success-row"><span>Placa</span><span>${placa}</span></div>
@@ -778,8 +831,8 @@ async function confirmarEnvio() {
       <div class="success-row"><span>Enviado em</span><span>${now.toLocaleString('pt-BR')}</span></div>`;
     show('view-sucesso');
   } catch(err) {
-    console.error(err);
-    mostrarToast('⚠ Erro ao salvar. Tente novamente.');
+    console.error('Erro ao salvar:', err.code, err.message);
+    mostrarToast('⚠ ' + (err.message || 'Erro ao salvar. Tente novamente.'));
   }
 }
 
@@ -796,8 +849,7 @@ document.getElementById('btn-iniciar').addEventListener('click', () => iniciarCh
 document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
 document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal());
 document.getElementById('btn-nova-inspecao').addEventListener('click', () => novaInspecao());
-document.getElementById('btn-confirmar').removeEventListener('click', confirmarEnvio);
-document.getElementById('btn-confirmar').addEventListener('click', () => confirmarEnvio());
+// btn-confirmar já tem listener acima
 
 function mostrarToast(msg) {
   let t = document.getElementById('toast-manut');
