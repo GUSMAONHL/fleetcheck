@@ -438,7 +438,7 @@ function show(id) {
 }
 window.show = show;
 
-document.getElementById('btn-back-checklist').addEventListener('click', () => show('view-home'));
+// back movido
 
 // ══ HOME ══
 window.selecionarTipo = function(btn) {
@@ -485,10 +485,7 @@ document.querySelectorAll('.section-tab').forEach(btn => {
     secoesAtivas = [...document.querySelectorAll('.section-tab.active')].map(b=>b.getAttribute('data-sec'));
   });
 });
-document.getElementById('btn-iniciar').addEventListener('click', iniciarChecklist);
-document.getElementById('btn-rever').addEventListener('click', fecharModal);
-document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
-document.getElementById('btn-nova-inspecao').addEventListener('click', novaInspecao);
+// listeners movidos para o fim
 
 window.iniciarChecklist = function() {
   const placa = document.getElementById('placa-input').value.trim();
@@ -781,6 +778,15 @@ window.novaInspecao = function() {
   Object.keys(numMap).forEach(k=>delete numMap[k]);
   show('view-home');
 };
+
+// ══ LISTENERS PRINCIPAIS (após definição de todas as funções) ══
+document.getElementById('btn-back-checklist').addEventListener('click', () => show('view-home'));
+document.getElementById('btn-iniciar').addEventListener('click', () => iniciarChecklist());
+document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
+document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal());
+document.getElementById('btn-nova-inspecao').addEventListener('click', () => novaInspecao());
+document.getElementById('btn-confirmar').removeEventListener('click', confirmarEnvio);
+document.getElementById('btn-confirmar').addEventListener('click', () => confirmarEnvio());
 
 function mostrarToast(msg) {
   let t = document.getElementById('toast-manut');
