@@ -63,7 +63,7 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
 .tipo-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
 .section-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; }
-.section-tab { padding:7px 14px; border-radius:20px; border:1px solid var(--border2); background:transparent; color:var(--text2); font-size:12px; font-family:'Barlow',sans-serif; font-weight:500; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all 0.15s; }
+.section-tab { padding:12px 18px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-size:14px; font-family:'Barlow Condensed',sans-serif; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; width:100%; }
 .section-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
 .btn-iniciar { width:100%; padding:16px; background:var(--accent); border:none; border-radius:14px; color:#fff; font-size:16px; font-weight:600; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:4px; transition:background 0.2s; }
@@ -203,10 +203,13 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
 
       <div class="home-form-card">
         <div class="form-label">Módulos a inspecionar</div>
-        <div class="section-tabs">
-          <button class="section-tab active" data-sec="freios">🔧 Freios</button>
-          <button class="section-tab active" data-sec="pneus">⚫ Pneus</button>
-          <button class="section-tab active" data-sec="transmissao">⚙️ Transm./Susp.</button>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="section-tab" id="mod-freio-pneu" data-mods="freios,pneus">
+            🔧 Freio / Pneu
+          </button>
+          <button class="section-tab" id="mod-freio-trans" data-mods="freios,transmissao">
+            ⚙️ Freio / Susp-Trans
+          </button>
         </div>
       </div>
 
@@ -479,12 +482,20 @@ document.querySelectorAll('.tipo-btn').forEach(btn => {
     tipoVeiculo = this.getAttribute('data-tipo');
   });
 });
-document.querySelectorAll('.section-tab').forEach(btn => {
+document.querySelectorAll('.section-tab[data-mods]').forEach(btn => {
   btn.addEventListener('click', function() {
-    this.classList.toggle('active');
-    secoesAtivas = [...document.querySelectorAll('.section-tab.active')].map(b=>b.getAttribute('data-sec'));
+    // Desativa todos, ativa só o clicado
+    document.querySelectorAll('.section-tab[data-mods]').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    secoesAtivas = this.getAttribute('data-mods').split(',');
   });
 });
+// Seleciona o primeiro por padrão
+const primeiroMod = document.querySelector('.section-tab[data-mods]');
+if(primeiroMod) {
+  primeiroMod.classList.add('active');
+  secoesAtivas = primeiroMod.getAttribute('data-mods').split(',');
+}
 // listeners movidos para o fim
 
 window.iniciarChecklist = function() {
