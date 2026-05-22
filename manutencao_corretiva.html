@@ -181,11 +181,16 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
         <div class="err-msg" id="err-placa">⚠ Informe a placa do veículo.</div>
       </div>
 
-      <div class="home-form-card">
-        <div class="form-label">Data da Inspeção <span>*</span></div>
-        <input class="form-input" type="date" id="data-input"/>
-        <div class="err-msg" id="err-data">⚠ Informe a data da inspeção.</div>
+      <div class="home-form-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+        <div>
+          <div class="form-label" style="margin-bottom:2px;">Data da Inspeção</div>
+          <div id="data-display" style="font-size:16px;font-weight:600;color:var(--text);font-family:'Barlow',sans-serif;letter-spacing:0.5px;"></div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;text-align:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
       </div>
+      <input type="hidden" id="data-input"/>
 
       <div class="home-form-card">
         <div class="form-label">Tipo de Veículo <span>*</span></div>
@@ -201,7 +206,7 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
         <div class="section-tabs">
           <button class="section-tab active" data-sec="freios">🔧 Freios</button>
           <button class="section-tab active" data-sec="pneus">⚫ Pneus</button>
-          <button class="section-tab active" data-sec="transmissao">⚙️ Transmissão</button>
+          <button class="section-tab active" data-sec="transmissao">⚙️ Transm./Susp.</button>
         </div>
       </div>
 
@@ -360,7 +365,7 @@ const ESTRUTURA = {
     ]
   },
   transmissao: {
-    label: 'Transmissão / Suspensão',
+    label: 'Transm./Susp.',
     cor: '#bf8b2a',
     eixos: [
       {
@@ -454,7 +459,11 @@ window.limparErro = function(campo) {
 };
 
 // Define data padrão = hoje
-document.getElementById('data-input').value = new Date().toISOString().slice(0,10);
+const _hoje = new Date();
+document.getElementById('data-input').value = _hoje.toISOString().slice(0,10);
+document.getElementById('data-display').textContent = _hoje.toLocaleDateString('pt-BR', {
+  weekday:'long', day:'2-digit', month:'long', year:'numeric'
+}).replace(/^\w/, c => c.toUpperCase());
 
 // Event listeners — evita problema de escopo em módulos ES
 document.getElementById('placa-input').addEventListener('input', function() {
@@ -462,10 +471,7 @@ document.getElementById('placa-input').addEventListener('input', function() {
   document.getElementById('err-placa').classList.remove('show');
   this.classList.remove('error');
 });
-document.getElementById('data-input').addEventListener('input', function() {
-  document.getElementById('err-data').classList.remove('show');
-  this.classList.remove('error');
-});
+
 document.querySelectorAll('.tipo-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
