@@ -93,6 +93,8 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
 .trio-at.active  { background:var(--atenc); border-color:var(--atenc); color:#fff; }
 .trio-sub { border-color:rgba(204,34,34,0.4); color:#c03030; }
 .trio-sub.active { background:var(--sub); border-color:var(--sub); color:#fff; }
+.trio-na  { border-color:rgba(100,100,120,0.4); color:#5a6070; }
+.trio-na.active  { background:#2a2f3a; border-color:#5a6070; color:#a0aab8; }
 
 .obs-box { margin-top:8px; background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:8px 12px; display:none; }
 .obs-box.show { display:block; }
@@ -421,14 +423,15 @@ function contarItens() {
 }
 
 function countState() {
-  let ok=0, at=0, sub=0, pend=0;
+  let ok=0, at=0, sub=0, na=0, pend=0;
   Object.values(state).forEach(v => {
     if(v==='ok') ok++;
     else if(v==='at') at++;
     else if(v==='sub') sub++;
+    else if(v==='na') na++;
     else pend++;
   });
-  return {ok,at,sub,pend};
+  return {ok,at,sub,na,pend};
 }
 
 // ══ NAVEGAÇÃO ══
@@ -579,6 +582,7 @@ function renderChecklist() {
                 <button class="trio-btn trio-ok" data-id="${item.id}" data-val="ok" style="flex:1;" onclick="setVal('${item.id}','ok',this)">OK</button>
                 <button class="trio-btn trio-at" data-id="${item.id}" data-val="at" style="flex:1;" onclick="setVal('${item.id}','at',this)">Atenção</button>
                 <button class="trio-btn trio-sub" data-id="${item.id}" data-val="sub" style="flex:1;" onclick="setVal('${item.id}','sub',this)">Substituir</button>
+                <button class="trio-btn trio-na" data-id="${item.id}" data-val="na" onclick="setVal('${item.id}','na',this)">N/A</button>
               </div>
             </div>
             <div class="obs-box" id="obs-${item.id}">
@@ -649,6 +653,18 @@ window.setVal = function(id, val, btn) {
 
   const obs = document.getElementById('obs-'+id);
   if(obs) (val==='at'||val==='sub') ? obs.classList.add('show') : obs.classList.remove('show');
+  // N/A: desabilita campos de pneu visualmente
+  if(val==='na') {
+    const fogo = document.getElementById('fogo-'+id);
+    const tdi  = document.getElementById('tdi-'+id);
+    if(fogo) { fogo.value=''; fogo.disabled=true; fogo.style.opacity='0.3'; }
+    if(tdi)  { tdi.value='';  tdi.disabled=true;  tdi.style.opacity='0.3'; }
+  } else {
+    const fogo = document.getElementById('fogo-'+id);
+    const tdi  = document.getElementById('tdi-'+id);
+    if(fogo) { fogo.disabled=false; fogo.style.opacity=''; }
+    if(tdi)  { tdi.disabled=false;  tdi.style.opacity=''; }
+  }
   updateProgress();
 };
 
@@ -803,7 +819,7 @@ async function confirmarEnvio() {
     dataFormatada: now.toLocaleDateString('pt-BR'),
     horaFormatada: now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
     secoesInspecionadas: secoesAtivas.map(s=>ESTRUTURA[s].label),
-    totalOk: ok, totalAtencao: at, totalSubstituir: sub,
+    totalOk: ok, totalAtencao: at, totalSubstituir: sub, totalNA: na,
     itens, enviado: true
   };
 
