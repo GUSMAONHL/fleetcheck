@@ -468,35 +468,7 @@ document.getElementById('data-display').textContent = _hoje.toLocaleDateString('
   weekday:'long', day:'2-digit', month:'long', year:'numeric'
 }).replace(/^\w/, c => c.toUpperCase());
 
-// Event listeners — evita problema de escopo em módulos ES
-document.getElementById('placa-input').addEventListener('input', function() {
-  this.value = this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
-  document.getElementById('err-placa').classList.remove('show');
-  this.classList.remove('error');
-});
-
-document.querySelectorAll('.tipo-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
-    this.classList.add('active');
-    tipoVeiculo = this.getAttribute('data-tipo');
-  });
-});
-document.querySelectorAll('.section-tab[data-mods]').forEach(btn => {
-  btn.addEventListener('click', function() {
-    // Desativa todos, ativa só o clicado
-    document.querySelectorAll('.section-tab[data-mods]').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    secoesAtivas = this.getAttribute('data-mods').split(',');
-  });
-});
-// Seleciona o primeiro por padrão
-const primeiroMod = document.querySelector('.section-tab[data-mods]');
-if(primeiroMod) {
-  primeiroMod.classList.add('active');
-  secoesAtivas = primeiroMod.getAttribute('data-mods').split(',');
-}
-// listeners movidos para o fim
+// listeners adicionados no fim do script
 
 window.iniciarChecklist = function() {
   const placa = document.getElementById('placa-input').value.trim();
@@ -852,6 +824,38 @@ window.novaInspecao = function() {
 };
 
 // ══ LISTENERS PRINCIPAIS (após definição de todas as funções) ══
+
+// Placa
+document.getElementById('placa-input').addEventListener('input', function() {
+  this.value = this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  document.getElementById('err-placa').classList.remove('show');
+  this.classList.remove('error');
+});
+
+// Tipo de veículo
+document.querySelectorAll('.tipo-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    tipoVeiculo = this.getAttribute('data-tipo');
+  });
+});
+
+// Módulos — Freio/Pneu e Freio/Susp-Trans
+document.querySelectorAll('.section-tab[data-mods]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.section-tab[data-mods]').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    secoesAtivas = this.getAttribute('data-mods').split(',');
+  });
+});
+
+// Seleciona o primeiro módulo por padrão
+const _primeiroMod = document.querySelector('.section-tab[data-mods]');
+if(_primeiroMod) {
+  _primeiroMod.classList.add('active');
+  secoesAtivas = _primeiroMod.getAttribute('data-mods').split(',');
+}
 document.getElementById('btn-back-checklist').addEventListener('click', () => show('view-home'));
 document.getElementById('btn-iniciar').addEventListener('click', () => iniciarChecklist());
 document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
