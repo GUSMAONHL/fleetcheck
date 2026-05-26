@@ -712,7 +712,7 @@ function tentarFinalizar() {
 }
 
 function abrirModal() {
-  const {ok,at,sub} = countState();
+  const {ok,at,sub,na} = countState();
   const placa = document.getElementById('placa-input').value.toUpperCase();
   const data  = document.getElementById('data-input').value;
   document.getElementById('modal-sub').textContent = placa+' · '+new Date(data+'T12:00').toLocaleDateString('pt-BR');
@@ -763,7 +763,7 @@ async function confirmarEnvio() {
   fecharModal();
   const placa = document.getElementById('placa-input').value.toUpperCase();
   const data  = document.getElementById('data-input').value;
-  const {ok,at,sub} = countState();
+  const {ok,at,sub,na} = countState();
   const now = new Date();
 
   // Monta itens detalhados
