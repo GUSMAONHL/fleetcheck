@@ -33,9 +33,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
 .topbar-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
-.btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
 .btn-sm:hover{background:var(--bg4);color:var(--text);}
-
 .content{padding:20px 24px;overflow-y:auto;flex:1;}
 
 /* KPI */
@@ -48,62 +47,76 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .bloco{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
 .bloco-header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;}
 .bloco-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
-.bloco-meta{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:16px;}
 .legend{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--text3);}
 .leg{display:flex;align-items:center;gap:4px;}
 .leg-dot{width:7px;height:7px;border-radius:50%;}
 
-/* DUAS COLUNAS */
-.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;}
-.two-cols > div:first-child{border-right:1px solid var(--border);}
+/* CABEÇALHO DA GRADE */
+.vgrid-header{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg4);border-bottom:1px solid var(--border);}
+.vh-cell{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:500;}
+.vh-id{width:140px;flex-shrink:0;}
+.vh-tipo{width:90px;flex-shrink:0;}
+.vh-check{flex:1;text-align:center;}
 
-/* TABELA */
-.vtable{width:100%;border-collapse:collapse;font-size:12px;}
-.vtable thead tr{background:var(--bg4);}
-.vtable thead th{padding:8px 10px;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
-.vtable tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
-.vtable tbody tr:last-child{border-bottom:none;}
-.vtable tbody tr:hover{background:var(--bg3);}
-.vtable td{padding:8px 10px;vertical-align:middle;}
-.col-nfr{width:40px;color:var(--text3);font-family:'DM Mono',monospace;font-size:11px;}
-.col-placa{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--text);}
-.col-tipo{font-size:10px;color:var(--text3);}
-.col-check{width:72px;}
+/* LINHA DO VEÍCULO */
+.vrow{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.vrow:last-child{border-bottom:none;}
+.vrow:hover{background:var(--bg3);}
 
-/* DOT STATUS */
-.dot-cell{display:flex;align-items:center;gap:5px;}
-.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+/* MINI CARDS — células */
+.vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
+.vcell-id{width:140px;flex-shrink:0;align-items:center;text-align:center;}
+.vcell-tipo{width:90px;flex-shrink:0;align-items:center;justify-content:center;text-align:center;}
+.vcell-check{flex:1;align-items:center;}
+
+/* Conteúdo dos mini cards */
+.v-nfr{font-size:16px;font-weight:600;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:3px;text-align:center;}
+.v-placa{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;color:var(--text);line-height:1;text-align:center;}
+.v-tipo{font-size:11px;color:var(--text2);font-weight:500;text-align:center;width:100%;}
+.v-check-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;}
+.v-check-status{display:flex;align-items:center;gap:5px;}
+
+/* DOT */
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .dot.pending{background:var(--text3);}
 .dot.ok{background:var(--ok);box-shadow:0 0 5px rgba(46,160,67,0.5);}
-.dot.atencao{background:var(--warn);}
-.dot.substituir{background:var(--err);box-shadow:0 0 5px rgba(204,34,34,0.4);}
-.dot-lbl{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+.dot.atencao{background:var(--warn);box-shadow:0 0 5px rgba(210,153,34,0.4);}
+.dot.substituir{background:var(--err);box-shadow:0 0 5px rgba(204,34,34,0.5);}
+.dot-txt{font-size:10px;font-family:'DM Mono',monospace;}
+.dot-txt.pending{color:var(--text3);}
+.dot-txt.ok{color:var(--ok);}
+.dot-txt.atencao{color:var(--warn);}
+.dot-txt.substituir{color:var(--err);}
+
+/* Status borda esquerda da linha */
+.vrow.s-ok{border-left:3px solid var(--ok);}
+.vrow.s-atencao{border-left:3px solid var(--warn);}
+.vrow.s-substituir{border-left:3px solid var(--err);}
+.vrow.s-parcial{border-left:3px solid var(--blue);}
 
 /* SUBGRUPO */
-.subgrupo-row td{background:var(--bg4);padding:5px 10px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.subgrupo{padding:6px 14px;background:var(--bg4);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:500;}
 
 /* LOADING */
-.loading-bar{height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);background-size:200%;animation:shimmer 1.5s infinite;display:none;}
+.loading-bar{height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);background-size:200%;animation:shimmer 1.5s infinite;display:none;overflow:hidden;}
 .loading-bar.show{display:block;}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
 
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
 .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:500px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
 .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
-.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;flex-shrink:0;padding:0 0 0 12px;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
 .modal-body{overflow-y:auto;padding:16px 20px;}
-.msec-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.msec-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
 .mitem{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;background:var(--bg3);margin-bottom:4px;font-size:12px;}
 .mitem-obs{font-size:11px;color:var(--text3);padding:2px 8px 6px 26px;font-style:italic;}
 .empty-msg{text-align:center;padding:18px;color:var(--text3);font-size:12px;}
 
-/* Toast */
 .toast{position:fixed;bottom:18px;right:18px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
 .toast.show{display:block;}
-
-.page{display:none;} .page.active{display:block;}
+.page{display:none;}.page.active{display:block;}
 </style>
 </head>
 <body>
@@ -149,7 +162,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-val">47</div><div class="kpi-lbl">Total Veículos</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><div class="kpi-lbl">Completos Hoje</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--warn)" id="kpi-parcial">0</div><div class="kpi-lbl">Parciais</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)" id="kpi-parcial">0</div><div class="kpi-lbl">Parciais</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--text3)" id="kpi-pend">47</div><div class="kpi-lbl">Pendentes</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--err)" id="kpi-atencao">0</div><div class="kpi-lbl">C/ Atenção/Sub.</div></div>
       </div>
@@ -163,227 +176,480 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           </div>
           <div class="legend">
             <div class="leg"><div class="leg-dot" style="background:var(--ok)"></div>OK</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Parcial</div>
             <div class="leg"><div class="leg-dot" style="background:var(--warn)"></div>Atenção</div>
             <div class="leg"><div class="leg-dot" style="background:var(--err)"></div>Substituir</div>
             <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>Pendente</div>
           </div>
         </div>
-        <div class="two-cols">
-          <div>    <table class="vtable">
-      <thead>
-        <tr>
-          <th class="col-nfr">N°</th>
-          <th class="col-placa">PLACA</th>
-          <th class="col-tipo">TIPO</th>
-          <th class="col-check">F/PNEU</th>
-          <th class="col-check">F/SUSP</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-frota-1">
-        <tr class="vrow" data-placa="GHJ6G65">
-          <td class="col-nfr">1</td>
-          <td class="col-placa">GHJ6G65</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-GHJ6G65"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GHJ6G65"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="RNV9E31">
-          <td class="col-nfr">2</td>
-          <td class="col-placa">RNV9E31</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-RNV9E31"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-RNV9E31"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="RNV9E29">
-          <td class="col-nfr">3</td>
-          <td class="col-placa">RNV9E29</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-RNV9E29"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-RNV9E29"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="RNW2E97">
-          <td class="col-nfr">4</td>
-          <td class="col-placa">RNW2E97</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-RNW2E97"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-RNW2E97"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="RNX3A94">
-          <td class="col-nfr">5</td>
-          <td class="col-placa">RNX3A94</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-RNX3A94"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-RNX3A94"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="DCU4I05">
-          <td class="col-nfr">9</td>
-          <td class="col-placa">DCU4I05</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-DCU4I05"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-DCU4I05"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FRF4H17">
-          <td class="col-nfr">10</td>
-          <td class="col-placa">FRF4H17</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-FRF4H17"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FRF4H17"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="BZA5G73">
-          <td class="col-nfr">11</td>
-          <td class="col-placa">BZA5G73</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-BZA5G73"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-BZA5G73"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FIM4D42">
-          <td class="col-nfr">12</td>
-          <td class="col-placa">FIM4D42</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-FIM4D42"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FIM4D42"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="ESP4G25">
-          <td class="col-nfr">72</td>
-          <td class="col-placa">ESP4G25</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-ESP4G25"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-ESP4G25"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GFA7C06">
-          <td class="col-nfr">73</td>
-          <td class="col-placa">GFA7C06</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-GFA7C06"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GFA7C06"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GGL0D24">
-          <td class="col-nfr">74</td>
-          <td class="col-placa">GGL0D24</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-GGL0D24"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GGL0D24"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GBO1J82">
-          <td class="col-nfr">75</td>
-          <td class="col-placa">GBO1J82</td>
-          <td class="col-tipo">BITRUCK</td>
-          <td class="col-check" id="fp-GBO1J82"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GBO1J82"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FKH1B56">
-          <td class="col-nfr">80</td>
-          <td class="col-placa">FKH1B56</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-FKH1B56"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FKH1B56"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-      </tbody>
-    </table></div>
-          <div>    <table class="vtable">
-      <thead>
-        <tr>
-          <th class="col-nfr">N°</th>
-          <th class="col-placa">PLACA</th>
-          <th class="col-tipo">TIPO</th>
-          <th class="col-check">F/PNEU</th>
-          <th class="col-check">F/SUSP</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-frota-2">
-        <tr class="vrow" data-placa="QRIIG41">
-          <td class="col-nfr">81</td>
-          <td class="col-placa">QRIIG41</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-QRIIG41"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-QRIIG41"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="QXZ8F44">
-          <td class="col-nfr">82</td>
-          <td class="col-placa">QXZ8F44</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-QXZ8F44"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-QXZ8F44"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="QXZ8F46">
-          <td class="col-nfr">83</td>
-          <td class="col-placa">QXZ8F46</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-QXZ8F46"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-QXZ8F46"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FUL3D81">
-          <td class="col-nfr">84</td>
-          <td class="col-placa">FUL3D81</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-FUL3D81"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FUL3D81"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="EXO0324">
-          <td class="col-nfr">85</td>
-          <td class="col-placa">EXO0324</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-EXO0324"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-EXO0324"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GJH9D85">
-          <td class="col-nfr">86</td>
-          <td class="col-placa">GJH9D85</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-GJH9D85"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GJH9D85"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GCX8D57">
-          <td class="col-nfr">87</td>
-          <td class="col-placa">GCX8D57</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-GCX8D57"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GCX8D57"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="QXZ8F43">
-          <td class="col-nfr">88</td>
-          <td class="col-placa">QXZ8F43</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-QXZ8F43"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-QXZ8F43"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="EYH2G86">
-          <td class="col-nfr">89</td>
-          <td class="col-placa">EYH2G86</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-EYH2G86"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-EYH2G86"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GFN6H24">
-          <td class="col-nfr">90</td>
-          <td class="col-placa">GFN6H24</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-GFN6H24"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GFN6H24"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FMT5D04">
-          <td class="col-nfr">91</td>
-          <td class="col-placa">FMT5D04</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-FMT5D04"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FMT5D04"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="CUJ4G66">
-          <td class="col-nfr">95</td>
-          <td class="col-placa">CUJ4G66</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-CUJ4G66"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-CUJ4G66"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GEH8D54">
-          <td class="col-nfr">96</td>
-          <td class="col-placa">GEH8D54</td>
-          <td class="col-tipo">CAVALO</td>
-          <td class="col-check" id="fp-GEH8D54"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GEH8D54"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-      </tbody>
-    </table></div>
+        <!-- Cabeçalho -->
+        <div class="vgrid-header">
+          <div class="vh-cell vh-tipo" style="text-align:center;">Tipo</div>
+          <div class="vh-cell vh-id" style="text-align:center;">N° / Placa</div>
+          <div class="vh-cell vh-check">Freio / Pneu</div>
+          <div class="vh-cell vh-check">Freio / Susp-Trans</div>
+        </div>
+        <!-- Linhas -->
+        <div id="grid-frota">
+<div class="vrow" data-placa="GHJ6G65">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">1</div>
+    <div class="v-placa">GHJ6G65</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GHJ6G65">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GHJ6G65">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="RNV9E31">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">2</div>
+    <div class="v-placa">RNV9E31</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-RNV9E31">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-RNV9E31">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="RNV9E29">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">3</div>
+    <div class="v-placa">RNV9E29</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-RNV9E29">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-RNV9E29">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="RNW2E97">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">4</div>
+    <div class="v-placa">RNW2E97</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-RNW2E97">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-RNW2E97">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="RNX3A94">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">5</div>
+    <div class="v-placa">RNX3A94</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-RNX3A94">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-RNX3A94">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="DCU4I05">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">9</div>
+    <div class="v-placa">DCU4I05</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-DCU4I05">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-DCU4I05">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FRF4H17">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">10</div>
+    <div class="v-placa">FRF4H17</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FRF4H17">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FRF4H17">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="BZA5G73">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">11</div>
+    <div class="v-placa">BZA5G73</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-BZA5G73">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-BZA5G73">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FIM4D42">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">12</div>
+    <div class="v-placa">FIM4D42</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FIM4D42">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FIM4D42">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="ESP4G25">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">72</div>
+    <div class="v-placa">ESP4G25</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-ESP4G25">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-ESP4G25">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GFA7C06">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">73</div>
+    <div class="v-placa">GFA7C06</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GFA7C06">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GFA7C06">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GGL0D24">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">74</div>
+    <div class="v-placa">GGL0D24</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GGL0D24">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GGL0D24">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GBO1J82">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">BITRUCK</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">75</div>
+    <div class="v-placa">GBO1J82</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GBO1J82">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GBO1J82">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FKH1B56">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">80</div>
+    <div class="v-placa">FKH1B56</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FKH1B56">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FKH1B56">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="QRIIG41">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">81</div>
+    <div class="v-placa">QRIIG41</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-QRIIG41">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-QRIIG41">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="QXZ8F44">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">82</div>
+    <div class="v-placa">QXZ8F44</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-QXZ8F44">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-QXZ8F44">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="QXZ8F46">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">83</div>
+    <div class="v-placa">QXZ8F46</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-QXZ8F46">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-QXZ8F46">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FUL3D81">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">84</div>
+    <div class="v-placa">FUL3D81</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FUL3D81">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FUL3D81">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="EXO0324">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">85</div>
+    <div class="v-placa">EXO0324</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-EXO0324">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-EXO0324">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GJH9D85">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">86</div>
+    <div class="v-placa">GJH9D85</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GJH9D85">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GJH9D85">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GCX8D57">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">87</div>
+    <div class="v-placa">GCX8D57</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GCX8D57">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GCX8D57">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="QXZ8F43">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">88</div>
+    <div class="v-placa">QXZ8F43</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-QXZ8F43">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-QXZ8F43">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="EYH2G86">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">89</div>
+    <div class="v-placa">EYH2G86</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-EYH2G86">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-EYH2G86">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GFN6H24">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">90</div>
+    <div class="v-placa">GFN6H24</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GFN6H24">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GFN6H24">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FMT5D04">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">91</div>
+    <div class="v-placa">FMT5D04</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FMT5D04">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FMT5D04">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="CUJ4G66">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">95</div>
+    <div class="v-placa">CUJ4G66</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-CUJ4G66">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-CUJ4G66">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GEH8D54">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">CAVALO</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">96</div>
+    <div class="v-placa">GEH8D54</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GEH8D54">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GEH8D54">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
         </div>
       </div>
 
@@ -396,178 +662,359 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           </div>
           <div class="legend">
             <div class="leg"><div class="leg-dot" style="background:var(--ok)"></div>OK</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Parcial</div>
             <div class="leg"><div class="leg-dot" style="background:var(--warn)"></div>Atenção</div>
             <div class="leg"><div class="leg-dot" style="background:var(--err)"></div>Substituir</div>
             <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>Pendente</div>
           </div>
         </div>
-        <div class="two-cols">
-          <div>    <table class="vtable">
-      <thead>
-        <tr>
-          <th class="col-nfr">N°</th>
-          <th class="col-placa">PLACA</th>
-          <th class="col-tipo">TIPO</th>
-          <th class="col-check">F/PNEU</th>
-          <th class="col-check">F/SUSP</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-terc-1">
-        <tr class="vrow" data-placa="DWS3948">
-          <td class="col-nfr">15</td>
-          <td class="col-placa">DWS3948</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-DWS3948"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-DWS3948"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GZG7847">
-          <td class="col-nfr">16</td>
-          <td class="col-placa">GZG7847</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-GZG7847"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GZG7847"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="HLQ1359">
-          <td class="col-nfr">19</td>
-          <td class="col-placa">HLQ1359</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-HLQ1359"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-HLQ1359"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="MEL6553">
-          <td class="col-nfr">21</td>
-          <td class="col-placa">MEL6553</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-MEL6553"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-MEL6553"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="EZU0931">
-          <td class="col-nfr">26</td>
-          <td class="col-placa">EZU0931</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-EZU0931"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-EZU0931"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="GXH8030">
-          <td class="col-nfr">28</td>
-          <td class="col-placa">GXH8030</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-GXH8030"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-GXH8030"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="KOX6J02">
-          <td class="col-nfr">32</td>
-          <td class="col-placa">KOX6J02</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-KOX6J02"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-KOX6J02"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="CNI5508">
-          <td class="col-nfr">33</td>
-          <td class="col-placa">CNI5508</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-CNI5508"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-CNI5508"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="CLH9516">
-          <td class="col-nfr">37</td>
-          <td class="col-placa">CLH9516</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-CLH9516"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-CLH9516"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="HNG2858">
-          <td class="col-nfr">39</td>
-          <td class="col-placa">HNG2858</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-HNG2858"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-HNG2858"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-      </tbody>
-    </table></div>
-          <div>    <table class="vtable">
-      <thead>
-        <tr>
-          <th class="col-nfr">N°</th>
-          <th class="col-placa">PLACA</th>
-          <th class="col-tipo">TIPO</th>
-          <th class="col-check">F/PNEU</th>
-          <th class="col-check">F/SUSP</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-terc-2">
-        <tr class="vrow" data-placa="OLY9961">
-          <td class="col-nfr">40</td>
-          <td class="col-placa">OLY9961</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-OLY9961"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-OLY9961"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="HLQ1251">
-          <td class="col-nfr">50</td>
-          <td class="col-placa">HLQ1251</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-HLQ1251"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-HLQ1251"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="HLL2425">
-          <td class="col-nfr">51</td>
-          <td class="col-placa">HLL2425</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-HLL2425"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-HLL2425"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="FTX0B19">
-          <td class="col-nfr">60</td>
-          <td class="col-placa">FTX0B19</td>
-          <td class="col-tipo">8X4</td>
-          <td class="col-check" id="fp-FTX0B19"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-FTX0B19"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="ETQ6J42">
-          <td class="col-nfr">63</td>
-          <td class="col-placa">ETQ6J42</td>
-          <td class="col-tipo">8X2</td>
-          <td class="col-check" id="fp-ETQ6J42"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-ETQ6J42"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="HLQ1261">
-          <td class="col-nfr">66</td>
-          <td class="col-placa">HLQ1261</td>
-          <td class="col-tipo">6X2</td>
-          <td class="col-check" id="fp-HLQ1261"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-HLQ1261"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="KWE8424">
-          <td class="col-nfr">67</td>
-          <td class="col-placa">KWE8424</td>
-          <td class="col-tipo">8X4</td>
-          <td class="col-check" id="fp-KWE8424"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-KWE8424"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="LQY9B93">
-          <td class="col-nfr">68</td>
-          <td class="col-placa">LQY9B93</td>
-          <td class="col-tipo">8X4</td>
-          <td class="col-check" id="fp-LQY9B93"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-LQY9B93"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="LQY9B95">
-          <td class="col-nfr">69</td>
-          <td class="col-placa">LQY9B95</td>
-          <td class="col-tipo">8X4</td>
-          <td class="col-check" id="fp-LQY9B95"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-LQY9B95"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-        <tr class="vrow" data-placa="DPC4J43">
-          <td class="col-nfr">78</td>
-          <td class="col-placa">DPC4J43</td>
-          <td class="col-tipo">6X4</td>
-          <td class="col-check" id="fp-DPC4J43"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-          <td class="col-check" id="fs-DPC4J43"><span class="dot pending"></span><span class="dot-lbl">—</span></td>
-        </tr>
-      </tbody>
-    </table></div>
+        <div class="vgrid-header">
+          <div class="vh-cell vh-tipo" style="text-align:center;">Tipo</div>
+          <div class="vh-cell vh-id" style="text-align:center;">N° / Placa</div>
+          <div class="vh-cell vh-check">Freio / Pneu</div>
+          <div class="vh-cell vh-check">Freio / Susp-Trans</div>
+        </div>
+        <div id="grid-terceiro">
+<div class="vrow" data-placa="DWS3948">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">15</div>
+    <div class="v-placa">DWS3948</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-DWS3948">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-DWS3948">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GZG7847">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">16</div>
+    <div class="v-placa">GZG7847</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GZG7847">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GZG7847">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="HLQ1359">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">19</div>
+    <div class="v-placa">HLQ1359</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-HLQ1359">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-HLQ1359">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="MEL6553">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">21</div>
+    <div class="v-placa">MEL6553</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-MEL6553">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-MEL6553">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="EZU0931">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">26</div>
+    <div class="v-placa">EZU0931</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-EZU0931">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-EZU0931">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="GXH8030">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">28</div>
+    <div class="v-placa">GXH8030</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-GXH8030">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-GXH8030">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="KOX6J02">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">32</div>
+    <div class="v-placa">KOX6J02</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-KOX6J02">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-KOX6J02">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="CNI5508">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">33</div>
+    <div class="v-placa">CNI5508</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-CNI5508">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-CNI5508">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="CLH9516">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">37</div>
+    <div class="v-placa">CLH9516</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-CLH9516">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-CLH9516">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="HNG2858">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">39</div>
+    <div class="v-placa">HNG2858</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-HNG2858">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-HNG2858">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="OLY9961">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">40</div>
+    <div class="v-placa">OLY9961</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-OLY9961">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-OLY9961">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="HLQ1251">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">50</div>
+    <div class="v-placa">HLQ1251</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-HLQ1251">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-HLQ1251">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="HLL2425">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">51</div>
+    <div class="v-placa">HLL2425</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-HLL2425">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-HLL2425">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="FTX0B19">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">8X4</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">60</div>
+    <div class="v-placa">FTX0B19</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-FTX0B19">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-FTX0B19">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="ETQ6J42">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">8X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">63</div>
+    <div class="v-placa">ETQ6J42</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-ETQ6J42">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-ETQ6J42">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="HLQ1261">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X2</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">66</div>
+    <div class="v-placa">HLQ1261</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-HLQ1261">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-HLQ1261">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="KWE8424">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">8X4</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">67</div>
+    <div class="v-placa">KWE8424</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-KWE8424">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-KWE8424">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="LQY9B93">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">8X4</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">68</div>
+    <div class="v-placa">LQY9B93</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-LQY9B93">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-LQY9B93">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="LQY9B95">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">8X4</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">69</div>
+    <div class="v-placa">LQY9B95</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-LQY9B95">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-LQY9B95">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
+<div class="vrow" data-placa="DPC4J43">
+  <div class="vcell vcell-tipo" style="align-items:center;text-align:center;">
+    <div class="v-tipo">6X4</div>
+  </div>
+  <div class="vcell vcell-id" style="align-items:center;text-align:center;">
+    <div class="v-nfr">78</div>
+    <div class="v-placa">DPC4J43</div>
+  </div>
+  <div class="vcell vcell-check" id="fp-DPC4J43">
+    <div class="v-check-label">F/PNEU</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+  <div class="vcell vcell-check" id="fs-DPC4J43">
+    <div class="v-check-label">F/SUSP</div>
+    <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt">Pendente</span></div>
+  </div>
+</div>
         </div>
       </div>
 
@@ -583,7 +1030,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
   <div class="modal-box">
     <div class="modal-hdr">
       <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1.5px;" id="modal-placa">—</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1.5px;" id="modal-placa">—</div>
         <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="modal-meta">—</div>
       </div>
       <button class="modal-close" onclick="document.getElementById('modal-ov').classList.remove('show')">✕</button>
@@ -591,7 +1038,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -601,8 +1047,7 @@ import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/1
 
 const app = initializeApp({
   apiKey:"AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
-  authDomain:"fleetcheck-nh.firebaseapp.com",
-  projectId:"fleetcheck-nh",
+  authDomain:"fleetcheck-nh.firebaseapp.com",projectId:"fleetcheck-nh",
   storageBucket:"fleetcheck-nh.firebasestorage.app",
   messagingSenderId:"767660468574",
   appId:"1:767660468574:web:940c5cf1164bcd9be707cf"
@@ -610,28 +1055,23 @@ const app = initializeApp({
 const db = getFirestore(app);
 signInAnonymously(getAuth(app)).catch(console.error);
 
-const FROTA   = [{"nfr": 1, "placa": "GHJ6G65", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 2, "placa": "RNV9E31", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 3, "placa": "RNV9E29", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 4, "placa": "RNW2E97", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 5, "placa": "RNX3A94", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 9, "placa": "DCU4I05", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 10, "placa": "FRF4H17", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 11, "placa": "BZA5G73", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 12, "placa": "FIM4D42", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 72, "placa": "ESP4G25", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 73, "placa": "GFA7C06", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 74, "placa": "GGL0D24", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 75, "placa": "GBO1J82", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 80, "placa": "FKH1B56", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 81, "placa": "QRIIG41", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 82, "placa": "QXZ8F44", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 83, "placa": "QXZ8F46", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 84, "placa": "FUL3D81", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 85, "placa": "EXO0324", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 86, "placa": "GJH9D85", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 87, "placa": "GCX8D57", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 88, "placa": "QXZ8F43", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 89, "placa": "EYH2G86", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 90, "placa": "GFN6H24", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 91, "placa": "FMT5D04", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 95, "placa": "CUJ4G66", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 96, "placa": "GEH8D54", "tipo": "CAVALO", "bloco": "FROTA"}];
+const FROTA    = [{"nfr": 1, "placa": "GHJ6G65", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 2, "placa": "RNV9E31", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 3, "placa": "RNV9E29", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 4, "placa": "RNW2E97", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 5, "placa": "RNX3A94", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 9, "placa": "DCU4I05", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 10, "placa": "FRF4H17", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 11, "placa": "BZA5G73", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 12, "placa": "FIM4D42", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 72, "placa": "ESP4G25", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 73, "placa": "GFA7C06", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 74, "placa": "GGL0D24", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 75, "placa": "GBO1J82", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 80, "placa": "FKH1B56", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 81, "placa": "QRIIG41", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 82, "placa": "QXZ8F44", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 83, "placa": "QXZ8F46", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 84, "placa": "FUL3D81", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 85, "placa": "EXO0324", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 86, "placa": "GJH9D85", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 87, "placa": "GCX8D57", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 88, "placa": "QXZ8F43", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 89, "placa": "EYH2G86", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 90, "placa": "GFN6H24", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 91, "placa": "FMT5D04", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 95, "placa": "CUJ4G66", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 96, "placa": "GEH8D54", "tipo": "CAVALO", "bloco": "FROTA"}];
 const TERCEIRO = [{"nfr": 15, "placa": "DWS3948", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 16, "placa": "GZG7847", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 19, "placa": "HLQ1359", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 21, "placa": "MEL6553", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 26, "placa": "EZU0931", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 28, "placa": "GXH8030", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 32, "placa": "KOX6J02", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 33, "placa": "CNI5508", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 37, "placa": "CLH9516", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 39, "placa": "HNG2858", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 40, "placa": "OLY9961", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 50, "placa": "HLQ1251", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 51, "placa": "HLL2425", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 60, "placa": "FTX0B19", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 63, "placa": "ETQ6J42", "tipo": "8X2", "bloco": "TERCEIRO"}, {"nfr": 66, "placa": "HLQ1261", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 67, "placa": "KWE8424", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 68, "placa": "LQY9B93", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 69, "placa": "LQY9B95", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 78, "placa": "DPC4J43", "tipo": "6X4", "bloco": "TERCEIRO"}];
-const TODOS = [...FROTA, ...TERCEIRO];
-
+const TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
 
 function hoje() { return new Date().toLocaleDateString('pt-BR'); }
-
 function tipoMod(secoes) {
   if (!secoes) return 'fp';
-  const s = secoes.join(',').toLowerCase();
-  return s.includes('pneu') ? 'fp' : 'fs';
+  return secoes.join(',').toLowerCase().includes('pneu') ? 'fp' : 'fs';
 }
-
 function statusDoc(doc) {
   if (!doc) return 'pending';
-  if ((doc.totalSubstituir||0) > 0) return 'substituir';
-  if ((doc.totalAtencao||0) > 0) return 'atencao';
+  if ((doc.totalSubstituir||0)>0) return 'substituir';
+  if ((doc.totalAtencao||0)>0) return 'atencao';
   return 'ok';
 }
 
-// Atualiza relógio
 function tick() {
   const now = new Date();
   document.getElementById('topbar-date').textContent =
@@ -643,7 +1083,7 @@ tick(); setInterval(tick,30000);
 window.carregarDados = async function() {
   document.getElementById('loading-bar').classList.add('show');
   try {
-    TODOS.forEach(v => checkState[v.placa] = {fp:null,fs:null});
+    TODOS.forEach(v => checkState[v.placa]={fp:null,fs:null});
     const snap = await getDocs(query(collection(db,'manutencao_corretiva'),where('dataFormatada','==',hoje())));
     snap.docs.forEach(d => {
       const doc = d.data();
@@ -661,41 +1101,44 @@ window.carregarDados = async function() {
   }
 };
 
+const STATUS_LABEL = {pending:'Pendente',ok:'OK',atencao:'Atenção',substituir:'Substituir'};
+
 function atualizarLinha(placa) {
   const st = checkState[placa];
   const fpCell = document.getElementById('fp-'+placa);
   const fsCell = document.getElementById('fs-'+placa);
-  if (!fpCell || !fsCell) return;
+  const row    = fpCell?.closest('.vrow');
+  if (!fpCell||!fsCell||!row) return;
 
-  function renderCell(doc) {
+  function renderCell(doc, el) {
     const s = statusDoc(doc);
     const cores = {pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
-    const labels = {pending:'—',ok:'OK',atencao:'AT',substituir:'SUB'};
-    return `<div class="dot-cell"><span class="dot ${s}"></span><span class="dot-lbl" style="color:${cores[s]}">${labels[s]}</span></div>`;
+    const hora = doc ? ' · '+doc.horaFormatada : '';
+    el.querySelector('.v-check-status').innerHTML =
+      `<span class="dot ${s}"></span><span class="dot-txt ${s}" style="color:${cores[s]}">${STATUS_LABEL[s]}${hora}</span>`;
   }
 
-  fpCell.innerHTML = renderCell(st?.fp);
-  fsCell.innerHTML = renderCell(st?.fs);
+  renderCell(st?.fp, fpCell);
+  renderCell(st?.fs, fsCell);
 
-  // Cor da linha
-  const row = fpCell.closest('tr');
-  if (!row) return;
-  const fpS = statusDoc(st?.fp), fsS = statusDoc(st?.fs);
-  row.style.borderLeft = '3px solid transparent';
-  if (fpS==='substituir'||fsS==='substituir') row.style.borderLeft='3px solid var(--err)';
-  else if (fpS==='atencao'||fsS==='atencao') row.style.borderLeft='3px solid var(--warn)';
-  else if (fpS==='ok'&&fsS==='ok') row.style.borderLeft='3px solid var(--ok)';
+  // Borda lateral da linha
+  row.className = row.className.replace(/s-\w+/g,'').trim();
+  const fp = statusDoc(st?.fp), fs = statusDoc(st?.fs);
+  if (fp==='substituir'||fs==='substituir') row.classList.add('s-substituir');
+  else if (fp==='atencao'||fs==='atencao')  row.classList.add('s-atencao');
+  else if (fp==='ok'&&fs==='ok')            row.classList.add('s-ok');
+  else if (st?.fp||st?.fs)                  row.classList.add('s-parcial');
 }
 
 function atualizarKPIs() {
   let ok=0,parc=0,pend=0,atenc=0;
   TODOS.forEach(v => {
-    const s = checkState[v.placa];
-    const fp = statusDoc(s?.fp), fs = statusDoc(s?.fs);
-    if (fp==='ok'&&fs==='ok') ok++;
-    else if (s?.fp||s?.fs) parc++;
+    const s=checkState[v.placa];
+    const fp=statusDoc(s?.fp),fs=statusDoc(s?.fs);
+    if(fp==='ok'&&fs==='ok') ok++;
+    else if(s?.fp||s?.fs) parc++;
     else pend++;
-    if (fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
+    if(fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
   });
   document.getElementById('kpi-ok').textContent=ok;
   document.getElementById('kpi-parcial').textContent=parc;
@@ -703,65 +1146,53 @@ function atualizarKPIs() {
   document.getElementById('kpi-atencao').textContent=atenc;
 }
 
-// Clique na linha
 document.addEventListener('click', e => {
-  const row = e.target.closest('tr.vrow[data-placa]');
+  const row = e.target.closest('.vrow[data-placa]');
   if (!row) return;
   abrirModal(row.getAttribute('data-placa'));
 });
 
 function abrirModal(placa) {
-  const v = TODOS.find(x=>x.placa===placa);
+  const v  = TODOS.find(x=>x.placa===placa);
   const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
-  document.getElementById('modal-meta').textContent = (v?.bloco||'') + ' · ' + (v?.tipo||'') + ' · N° ' + (v?.nfr||'');
-
+  document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
   let html='';
   [['fp','🔧 Freio / Pneu'],['fs','⚙️ Freio / Susp-Trans']].forEach(([mod,label])=>{
-    const doc = st[mod];
-    const s = statusDoc(doc);
-    const corS = {pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'}[s];
-    html += `<div class="check-section" style="margin-bottom:16px;">
+    const doc=st[mod], s=statusDoc(doc);
+    const cores={pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
+    html+=`<div style="margin-bottom:16px;">
       <div class="msec-title">
         <span>${label}</span>
-        <span style="color:${corS}">${doc ? doc.horaFormatada+' · OK:'+doc.totalOk+' At:'+(doc.totalAtencao||0)+' Sub:'+(doc.totalSubstituir||0) : 'Pendente'}</span>
+        <span style="color:${cores[s]};font-size:11px;">${doc?doc.horaFormatada+' · OK:'+doc.totalOk+' At:'+(doc.totalAtencao||0)+' Sub:'+(doc.totalSubstituir||0):'Pendente'}</span>
       </div>`;
-    if (!doc) {
-      html += `<div class="empty-msg">Checklist não realizado hoje.</div>`;
-    } else {
-      const criticos = (doc.itens||[]).filter(i=>i.status==='at'||i.status==='sub');
-      if (criticos.length===0) {
-        html += `<div class="mitem"><span class="dot ok"></span><span style="color:var(--text2)">Todos os itens OK</span></div>`;
-      } else {
-        criticos.forEach(i=>{
-          const cor = i.status==='sub'?'var(--err)':'var(--warn)';
-          html += `<div class="mitem"><span class="dot ${i.status==='sub'?'substituir':'atencao'}"></span>
-            <span style="color:var(--text2);flex:1">${i.secao||''} · ${i.eixo||''} — ${i.item||''} ${i.posicao?'('+i.posicao+')':''}</span>
-            <span style="font-size:10px;font-weight:600;color:${cor}">${i.status==='sub'?'SUB':'AT'}</span></div>`;
-          if (i.obs) html += `<div class="mitem-obs">📝 ${i.obs}</div>`;
-        });
-      }
+    if(!doc){html+=`<div class="empty-msg">Checklist não realizado hoje.</div>`;}
+    else{
+      const crit=(doc.itens||[]).filter(i=>i.status==='at'||i.status==='sub');
+      if(crit.length===0) html+=`<div class="mitem"><span class="dot ok"></span><span style="color:var(--text2)">Todos os itens OK</span></div>`;
+      else crit.forEach(i=>{
+        const cor=i.status==='sub'?'var(--err)':'var(--warn)';
+        html+=`<div class="mitem"><span class="dot ${i.status==='sub'?'substituir':'atencao'}"></span>
+          <span style="color:var(--text2);flex:1">${i.secao||''} · ${i.eixo||''} — ${i.item||''} ${i.posicao?'('+i.posicao+')':''}</span>
+          <span style="font-size:10px;font-weight:600;color:${cor}">${i.status==='sub'?'SUB':'AT'}</span></div>`;
+        if(i.obs) html+=`<div class="mitem-obs">📝 ${i.obs}</div>`;
+      });
     }
-    html += `</div>`;
+    html+=`</div>`;
   });
-  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-ov').classList.add('show');
 }
 
-window.showPage = function(page, btn) {
+window.showPage = function(page,btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   btn.classList.add('active');
-  const titles={quadro:'Quadro Geral — Manutenção',historico:'Histórico'};
-  document.getElementById('page-title').textContent=titles[page]||page;
+  document.getElementById('page-title').textContent = page==='quadro'?'Quadro Geral — Manutenção':'Histórico';
 };
 
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
 carregarDados();
 setInterval(carregarDados,120000);
