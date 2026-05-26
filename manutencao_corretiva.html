@@ -52,15 +52,14 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
 .form-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; display:flex; align-items:center; gap:4px; }
 .form-label span { color:#cc4444; }
 .form-input { width:100%; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:12px 14px; color:var(--text); font-size:16px; font-family:'Barlow',sans-serif; outline:none; transition:border-color 0.2s; }
+select.form-input option { background:var(--bg3); color:var(--text); }
 .form-input:focus { border-color:var(--accent); }
 .form-input::placeholder { color:var(--text3); font-size:14px; }
 .form-input.error { border-color:#cc2222; background:#1a1010; }
 .err-msg { font-size:10px; color:#e05050; margin-top:5px; display:none; }
 .err-msg.show { display:block; }
 
-.tipo-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; }
-.tipo-btn { padding:10px 6px; border-radius:10px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-size:11px; font-family:'Barlow',sans-serif; font-weight:500; cursor:pointer; text-align:center; transition:all 0.15s; }
-.tipo-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
 
 .section-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; }
 .section-tab { padding:12px 18px; border-radius:12px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); font-size:14px; font-family:'Barlow Condensed',sans-serif; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; width:100%; }
@@ -176,32 +175,67 @@ body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--text);
     <div class="home-content">
 
       <div class="home-form-card">
-        <div class="form-label">Placa do Veículo <span>*</span></div>
-        <input class="form-input" type="text" id="placa-input" placeholder="ABC1234" maxlength="7"
-          style="text-transform:uppercase;letter-spacing:2px;"
-          id="placa-input" style="text-transform:uppercase;letter-spacing:2px;"/>
-        <div class="err-msg" id="err-placa">⚠ Informe a placa do veículo.</div>
+        <div class="form-label">Veículo <span>*</span></div>
+        <select class="form-input" id="placa-input" style="cursor:pointer;">
+          <option value="">Selecione o veículo...</option>
+          <option value="GHJ6G65" data-tipo="BITRUCK">N° 01 — GHJ6G65 (BITRUCK)</option>
+          <option value="RNV9E31" data-tipo="BITRUCK">N° 02 — RNV9E31 (BITRUCK)</option>
+          <option value="RNV9E29" data-tipo="BITRUCK">N° 03 — RNV9E29 (BITRUCK)</option>
+          <option value="RNW2E97" data-tipo="BITRUCK">N° 04 — RNW2E97 (BITRUCK)</option>
+          <option value="RNX3A94" data-tipo="BITRUCK">N° 05 — RNX3A94 (BITRUCK)</option>
+          <option value="DCU4I05" data-tipo="BITRUCK">N° 09 — DCU4I05 (BITRUCK)</option>
+          <option value="FRF4H17" data-tipo="BITRUCK">N° 10 — FRF4H17 (BITRUCK)</option>
+          <option value="BZA5G73" data-tipo="BITRUCK">N° 11 — BZA5G73 (BITRUCK)</option>
+          <option value="FIM4D42" data-tipo="BITRUCK">N° 12 — FIM4D42 (BITRUCK)</option>
+          <option value="DWS3948" data-tipo="6X2">N° 15 — DWS3948 (6X2)</option>
+          <option value="GZG7847" data-tipo="6X2">N° 16 — GZG7847 (6X2)</option>
+          <option value="HLQ1359" data-tipo="6X2">N° 19 — HLQ1359 (6X2)</option>
+          <option value="MEL6553" data-tipo="6X2">N° 21 — MEL6553 (6X2)</option>
+          <option value="EZU0931" data-tipo="6X2">N° 26 — EZU0931 (6X2)</option>
+          <option value="GXH8030" data-tipo="6X2">N° 28 — GXH8030 (6X2)</option>
+          <option value="KOX6J02" data-tipo="6X2">N° 32 — KOX6J02 (6X2)</option>
+          <option value="CNI5508" data-tipo="6X2">N° 33 — CNI5508 (6X2)</option>
+          <option value="CLH9516" data-tipo="6X2">N° 37 — CLH9516 (6X2)</option>
+          <option value="HNG2858" data-tipo="6X2">N° 39 — HNG2858 (6X2)</option>
+          <option value="OLY9961" data-tipo="6X2">N° 40 — OLY9961 (6X2)</option>
+          <option value="HLQ1251" data-tipo="6X2">N° 50 — HLQ1251 (6X2)</option>
+          <option value="HLL2425" data-tipo="6X2">N° 51 — HLL2425 (6X2)</option>
+          <option value="FTX0B19" data-tipo="8X4">N° 60 — FTX0B19 (8X4)</option>
+          <option value="ETQ6J42" data-tipo="8X2">N° 63 — ETQ6J42 (8X2)</option>
+          <option value="HLQ1261" data-tipo="6X2">N° 66 — HLQ1261 (6X2)</option>
+          <option value="KWE8424" data-tipo="8X4">N° 67 — KWE8424 (8X4)</option>
+          <option value="LQY9B93" data-tipo="8X4">N° 68 — LQY9B93 (8X4)</option>
+          <option value="LQY9B95" data-tipo="8X4">N° 69 — LQY9B95 (8X4)</option>
+          <option value="ESP4G25" data-tipo="BITRUCK">N° 72 — ESP4G25 (BITRUCK)</option>
+          <option value="GFA7C06" data-tipo="BITRUCK">N° 73 — GFA7C06 (BITRUCK)</option>
+          <option value="GGL0D24" data-tipo="BITRUCK">N° 74 — GGL0D24 (BITRUCK)</option>
+          <option value="GBO1J82" data-tipo="BITRUCK">N° 75 — GBO1J82 (BITRUCK)</option>
+          <option value="DPC4J43" data-tipo="6X4">N° 78 — DPC4J43 (6X4)</option>
+          <option value="FKH1B56" data-tipo="CAVALO">N° 80 — FKH1B56 (CAVALO)</option>
+          <option value="QRIIG41" data-tipo="CAVALO">N° 81 — QRIIG41 (CAVALO)</option>
+          <option value="QXZ8F44" data-tipo="CAVALO">N° 82 — QXZ8F44 (CAVALO)</option>
+          <option value="QXZ8F46" data-tipo="CAVALO">N° 83 — QXZ8F46 (CAVALO)</option>
+          <option value="FUL3D81" data-tipo="CAVALO">N° 84 — FUL3D81 (CAVALO)</option>
+          <option value="EXO0324" data-tipo="CAVALO">N° 85 — EXO0324 (CAVALO)</option>
+          <option value="GJH9D85" data-tipo="CAVALO">N° 86 — GJH9D85 (CAVALO)</option>
+          <option value="GCX8D57" data-tipo="CAVALO">N° 87 — GCX8D57 (CAVALO)</option>
+          <option value="QXZ8F43" data-tipo="CAVALO">N° 88 — QXZ8F43 (CAVALO)</option>
+          <option value="EYH2G86" data-tipo="CAVALO">N° 89 — EYH2G86 (CAVALO)</option>
+          <option value="GFN6H24" data-tipo="CAVALO">N° 90 — GFN6H24 (CAVALO)</option>
+          <option value="FMT5D04" data-tipo="CAVALO">N° 91 — FMT5D04 (CAVALO)</option>
+          <option value="CUJ4G66" data-tipo="CAVALO">N° 95 — CUJ4G66 (CAVALO)</option>
+          <option value="GEH8D54" data-tipo="CAVALO">N° 96 — GEH8D54 (CAVALO)</option>
+        </select>
+        <div class="err-msg" id="err-placa">⚠ Selecione o veículo.</div>
       </div>
-
-      <div class="home-form-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
-        <div>
-          <div class="form-label" style="margin-bottom:2px;">Data da Inspeção</div>
-          <div id="data-display" style="font-size:16px;font-weight:600;color:var(--text);font-family:'Barlow',sans-serif;letter-spacing:0.5px;"></div>
-        </div>
-        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;text-align:center;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-      </div>
-      <input type="hidden" id="data-input"/>
 
       <div class="home-form-card">
-        <div class="form-label">Tipo de Veículo <span>*</span></div>
-        <div class="tipo-grid">
-          <button class="tipo-btn active" data-tipo="Cavalo">Cavalo</button>
-          <button class="tipo-btn" data-tipo="Truck">Truck</button>
-          <button class="tipo-btn" data-tipo="Carreta">Carreta</button>
-        </div>
+        <div class="form-label">Data da Inspeção <span>*</span></div>
+        <input class="form-input" type="date" id="data-input"/>
+        <div class="err-msg" id="err-data">⚠ Informe a data da inspeção.</div>
       </div>
+
+
 
       <div class="home-form-card">
         <div class="form-label">Módulos a inspecionar</div>
@@ -445,7 +479,6 @@ window.show = show;
 
 // ══ HOME ══
 window.selecionarTipo = function(btn) {
-  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   tipoVeiculo = btn.getAttribute('data-tipo');
 };
@@ -462,11 +495,7 @@ window.limparErro = function(campo) {
 };
 
 // Define data padrão = hoje
-const _hoje = new Date();
-document.getElementById('data-input').value = _hoje.toISOString().slice(0,10);
-document.getElementById('data-display').textContent = _hoje.toLocaleDateString('pt-BR', {
-  weekday:'long', day:'2-digit', month:'long', year:'numeric'
-}).replace(/^\w/, c => c.toUpperCase());
+document.getElementById('data-input').value = new Date().toISOString().slice(0,10);
 
 // listeners adicionados no fim do script
 
@@ -475,6 +504,7 @@ window.iniciarChecklist = function() {
   const data  = document.getElementById('data-input').value;
   let erros = false;
   if(!placa) { document.getElementById('err-placa').classList.add('show'); document.getElementById('placa-input').classList.add('error'); erros=true; }
+  if(!data)  { document.getElementById('err-data').classList.add('show');  document.getElementById('data-input').classList.add('error');  erros=true; }
   if(!data)  { document.getElementById('err-data').classList.add('show');  document.getElementById('data-input').classList.add('error');  erros=true; }
   if(secoesAtivas.length===0) { mostrarToast('Selecione ao menos um módulo.'); erros=true; }
   if(erros) return;
@@ -826,20 +856,15 @@ window.novaInspecao = function() {
 // ══ LISTENERS PRINCIPAIS (após definição de todas as funções) ══
 
 // Placa
-document.getElementById('placa-input').addEventListener('input', function() {
-  this.value = this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+document.getElementById('placa-input').addEventListener('change', function() {
   document.getElementById('err-placa').classList.remove('show');
   this.classList.remove('error');
+  // Captura tipo do veículo pelo data-tipo do select
+  const opt = this.options[this.selectedIndex];
+  tipoVeiculo = opt ? opt.getAttribute('data-tipo') : '';
 });
 
-// Tipo de veículo
-document.querySelectorAll('.tipo-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
-    this.classList.add('active');
-    tipoVeiculo = this.getAttribute('data-tipo');
-  });
-});
+
 
 // Módulos — Freio/Pneu e Freio/Susp-Trans
 document.querySelectorAll('.section-tab[data-mods]').forEach(btn => {
@@ -857,6 +882,10 @@ if(_primeiroMod) {
   secoesAtivas = _primeiroMod.getAttribute('data-mods').split(',');
 }
 document.getElementById('btn-back-checklist').addEventListener('click', () => show('view-home'));
+document.getElementById('data-input').addEventListener('input', function() {
+  document.getElementById('err-data').classList.remove('show');
+  this.classList.remove('error');
+});
 document.getElementById('btn-iniciar').addEventListener('click', () => iniciarChecklist());
 document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
 document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal());
