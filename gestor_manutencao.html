@@ -187,7 +187,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <!-- KPIs -->
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-val">47</div><div class="kpi-lbl">Total Veículos</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><div class="kpi-lbl">Completos Hoje</div></div>
+        <div class="kpi-card"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><div class="kpi-lbl">2 Inspeções OK</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)" id="kpi-parcial">0</div><div class="kpi-lbl">Parciais</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--text3)" id="kpi-pend">47</div><div class="kpi-lbl">Pendentes</div></div>
         <div class="kpi-card"><div class="kpi-val" style="color:var(--err)" id="kpi-atencao">0</div><div class="kpi-lbl">C/ Atenção/Sub.</div></div>
@@ -1243,19 +1243,24 @@ function atualizarLinha(placa) {
 }
 
 function atualizarKPIs() {
-  let ok=0,parc=0,pend=0,atenc=0;
+  let completos=0, parciais=0, pend=0, atenc=0;
   TODOS.forEach(v => {
-    const s=checkState[v.placa];
-    const fp=statusDoc(s?.fp),fs=statusDoc(s?.fs);
-    if(fp==='ok'&&fs==='ok') ok++;
-    else if(s?.fp||s?.fs) parc++;
-    else pend++;
-    if(fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
+    const s = checkState[v.placa];
+    const temFP = s?.fp != null;  // fez F/Pneu na semana
+    const temFS = s?.fs != null;  // fez F/Susp na semana
+    const fp = statusDoc(s?.fp);
+    const fs = statusDoc(s?.fs);
+
+    if (temFP && temFS) completos++;       // fez as duas
+    else if (temFP || temFS) parciais++;   // fez apenas uma
+    else pend++;                           // não fez nenhuma
+
+    if (fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
   });
-  document.getElementById('kpi-ok').textContent=ok;
-  document.getElementById('kpi-parcial').textContent=parc;
-  document.getElementById('kpi-pend').textContent=pend;
-  document.getElementById('kpi-atencao').textContent=atenc;
+  document.getElementById('kpi-ok').textContent = completos;
+  document.getElementById('kpi-parcial').textContent = parciais;
+  document.getElementById('kpi-pend').textContent = pend;
+  document.getElementById('kpi-atencao').textContent = atenc;
 }
 
 document.addEventListener('click', e => {
