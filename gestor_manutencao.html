@@ -70,10 +70,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-id{width:140px;flex-shrink:0;align-items:center;text-align:center;}
 .vcell-tipo{width:90px;flex-shrink:0;align-items:center;justify-content:center;text-align:center;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;}
-.vcell-check.s-ok{background:rgba(26,122,54,0.10);border-color:rgba(26,122,54,0.35);}
-.vcell-check.s-atencao{background:rgba(176,122,16,0.10);border-color:rgba(176,122,16,0.35);}
-.vcell-check.s-substituir{background:rgba(176,32,32,0.12);border-color:rgba(176,32,32,0.4);}
-.vcell-check.s-pending{background:var(--bg3);border-color:var(--border);}
+.vcell-check.s-ok{background:#97C459;border-color:#3B6D11;color:#27500A;}
+.vcell-check.s-atencao{background:#FAC775;border-color:#854F0B;color:#633806;}
+.vcell-check.s-substituir{background:#F09595;border-color:#A32D2D;color:#791F1F;}
+.vcell-check.s-pending{background:var(--bg3);border-color:var(--border);color:var(--text3);}
 
 /* Conteúdo dos mini cards */
 .v-nfr{font-size:16px;font-weight:600;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:3px;text-align:center;}
@@ -206,21 +206,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <!-- KPIs -->
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-val">47</div><div class="kpi-lbl">Total Veículos</div></div>
-        <div class="kpi-card" onclick="abrirModalKpi('completos')">
-  <div class="kpi-header"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><span class="kpi-pct" id="kpi-ok-pct"></span></div>
-  <div class="kpi-lbl">2 Inspeções OK</div>
+        <div class="kpi-card" id="kpi-card-ok" onclick="abrirModalKpi('completos')" style="background:#97C459;border-color:#3B6D11;">
+  <div class="kpi-header"><div class="kpi-val" style="color:#27500A;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#3B6D11;" id="kpi-ok-pct"></span></div>
+  <div class="kpi-lbl" style="color:#3B6D11;">2 Inspeções OK</div>
 </div>
-        <div class="kpi-card" onclick="abrirModalKpi('parciais')">
-  <div class="kpi-header"><div class="kpi-val" style="color:var(--blue)" id="kpi-parcial">0</div><span class="kpi-pct" id="kpi-parc-pct"></span></div>
-  <div class="kpi-lbl">Parciais</div>
+        <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#FAC775;border-color:#854F0B;">
+  <div class="kpi-header"><div class="kpi-val" style="color:#633806;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#854F0B;" id="kpi-parc-pct"></span></div>
+  <div class="kpi-lbl" style="color:#854F0B;">Parciais</div>
 </div>
-        <div class="kpi-card" onclick="abrirModalKpi('pendentes')">
-  <div class="kpi-header"><div class="kpi-val" style="color:var(--text3)" id="kpi-pend">47</div><span class="kpi-pct" id="kpi-pend-pct"></span></div>
-  <div class="kpi-lbl">Pendentes</div>
+        <div class="kpi-card" onclick="abrirModalKpi('pendentes')" style="background:#D3D1C7;border-color:#5F5E5A;">
+  <div class="kpi-header"><div class="kpi-val" style="color:#444441;" id="kpi-pend">47</div><span class="kpi-pct" style="color:#5F5E5A;" id="kpi-pend-pct"></span></div>
+  <div class="kpi-lbl" style="color:#5F5E5A;">Pendentes</div>
 </div>
-        <div class="kpi-card" onclick="abrirModalKpi('atencao')">
-  <div class="kpi-header"><div class="kpi-val" style="color:var(--err)" id="kpi-atencao">0</div><span class="kpi-pct" id="kpi-atenc-pct"></span></div>
-  <div class="kpi-lbl">C/ Atenção/Sub.</div>
+        <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background:#F09595;border-color:#A32D2D;">
+  <div class="kpi-header"><div class="kpi-val" style="color:#791F1F;" id="kpi-atencao">0</div><span class="kpi-pct" style="color:#A32D2D;" id="kpi-atenc-pct"></span></div>
+  <div class="kpi-lbl" style="color:#A32D2D;">C/ Atenção/Sub.</div>
 </div>
       </div>
 
@@ -1263,11 +1263,12 @@ function atualizarLinha(placa) {
 
   function renderCell(doc, el) {
     const s = statusDoc(doc);
-    const cores = {pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
+    const dotCores  = {pending:'#B4B2A9', ok:'#27500A', atencao:'#633806', substituir:'#791F1F'};
+    const txtCores  = {pending:'var(--text3)', ok:'#27500A', atencao:'#633806', substituir:'#791F1F'};
     const hora = doc ? ' · '+doc.dataFormatada : '';
     el.querySelector('.v-check-status').innerHTML =
-      `<span class="dot ${s}"></span><span class="dot-txt ${s}" style="color:${cores[s]}">${STATUS_LABEL[s]}${hora}</span>`;
-    // Aplica cor de fundo no card
+      `<span class="dot ${s}" style="background:${dotCores[s]};box-shadow:none;"></span><span class="dot-txt" style="color:${txtCores[s]};font-size:10px;">${STATUS_LABEL[s]}${hora}</span>`;
+    el.querySelector('.v-check-label').style.color = txtCores[s];
     el.className = el.className.replace(/s-\w+/g,'').trim();
     el.classList.add('s-'+s);
   }
