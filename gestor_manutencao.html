@@ -42,6 +42,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;}
 .kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;}
 .kpi-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;}
+.kpi-pct{font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;}
+.kpi-header{display:flex;align-items:baseline;gap:8px;}
 
 /* BLOCO */
 .bloco{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
@@ -118,6 +120,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .mitem-obs{font-size:11px;color:var(--text3);padding:2px 8px 6px 26px;font-style:italic;}
 .empty-msg{text-align:center;padding:18px;color:var(--text3);font-size:12px;}
 
+/* Modal KPI */
+.kpi-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
+.kpi-modal-ov.show{display:flex;}
+.kpi-modal-box{background:#fff;border:1px solid var(--border);border-radius:14px;width:420px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+.kpi-modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.kpi-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:0.5px;}
+.kpi-modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0;}
+.kpi-modal-body{overflow-y:auto;padding:14px 18px;}
+.kpi-placa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.kpi-placa-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+.kpi-placa-nfr{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.kpi-placa-txt{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--text);}
+.kpi-placa-tipo{font-size:10px;color:var(--text3);margin-top:2px;}
+.kpi-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
+.kpi-card{cursor:pointer;transition:all 0.15s;}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+
 .toast{position:fixed;bottom:18px;right:18px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
 .toast.show{display:block;}
 .page{display:none;}.page.active{display:block;}
@@ -187,10 +206,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <!-- KPIs -->
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-val">47</div><div class="kpi-lbl">Total Veículos</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><div class="kpi-lbl">2 Inspeções OK</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--blue)" id="kpi-parcial">0</div><div class="kpi-lbl">Parciais</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--text3)" id="kpi-pend">47</div><div class="kpi-lbl">Pendentes</div></div>
-        <div class="kpi-card"><div class="kpi-val" style="color:var(--err)" id="kpi-atencao">0</div><div class="kpi-lbl">C/ Atenção/Sub.</div></div>
+        <div class="kpi-card" onclick="abrirModalKpi('completos')">
+  <div class="kpi-header"><div class="kpi-val" style="color:var(--ok)" id="kpi-ok">0</div><span class="kpi-pct" id="kpi-ok-pct"></span></div>
+  <div class="kpi-lbl">2 Inspeções OK</div>
+</div>
+        <div class="kpi-card" onclick="abrirModalKpi('parciais')">
+  <div class="kpi-header"><div class="kpi-val" style="color:var(--blue)" id="kpi-parcial">0</div><span class="kpi-pct" id="kpi-parc-pct"></span></div>
+  <div class="kpi-lbl">Parciais</div>
+</div>
+        <div class="kpi-card" onclick="abrirModalKpi('pendentes')">
+  <div class="kpi-header"><div class="kpi-val" style="color:var(--text3)" id="kpi-pend">47</div><span class="kpi-pct" id="kpi-pend-pct"></span></div>
+  <div class="kpi-lbl">Pendentes</div>
+</div>
+        <div class="kpi-card" onclick="abrirModalKpi('atencao')">
+  <div class="kpi-header"><div class="kpi-val" style="color:var(--err)" id="kpi-atencao">0</div><span class="kpi-pct" id="kpi-atenc-pct"></span></div>
+  <div class="kpi-lbl">C/ Atenção/Sub.</div>
+</div>
       </div>
 
       <!-- BLOCO FROTA -->
@@ -1066,6 +1097,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 </main>
 
 <!-- MODAL -->
+<!-- MODAL KPI -->
+<div class="kpi-modal-ov" id="kpi-modal-ov" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="kpi-modal-box">
+    <div class="kpi-modal-hdr">
+      <div class="kpi-modal-title" id="kpi-modal-title">—</div>
+      <button class="kpi-modal-close" onclick="document.getElementById('kpi-modal-ov').classList.remove('show')">✕</button>
+    </div>
+    <div class="kpi-modal-body" id="kpi-modal-body"></div>
+  </div>
+</div>
+
 <div class="modal-ov" id="modal-ov" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal-box">
     <div class="modal-hdr">
@@ -1257,10 +1299,18 @@ function atualizarKPIs() {
 
     if (fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
   });
+  const total = TODOS.length;
+  const pct = n => total > 0 ? Math.round(n/total*100)+'%' : '0%';
+
   document.getElementById('kpi-ok').textContent = completos;
   document.getElementById('kpi-parcial').textContent = parciais;
   document.getElementById('kpi-pend').textContent = pend;
   document.getElementById('kpi-atencao').textContent = atenc;
+
+  document.getElementById('kpi-ok-pct').textContent    = pct(completos) + ' de ' + total;
+  document.getElementById('kpi-parc-pct').textContent  = pct(parciais)  + ' de ' + total;
+  document.getElementById('kpi-pend-pct').textContent  = pct(pend)      + ' de ' + total;
+  document.getElementById('kpi-atenc-pct').textContent = pct(atenc)     + ' de ' + total;
 }
 
 document.addEventListener('click', e => {
@@ -1307,6 +1357,47 @@ window.showPage = function(page,btn) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('page-title').textContent = page==='quadro'?'Quadro Geral — Manutenção':'Histórico';
+};
+
+window.abrirModalKpi = function(tipo) {
+  const titulos = {
+    completos: '✅ 2 Inspeções Realizadas',
+    parciais:  '🔵 Inspeção Parcial',
+    pendentes: '⚫ Pendentes',
+    atencao:   '⚠️ Com Atenção / Substituir'
+  };
+
+  const veiculos = TODOS.filter(v => {
+    const s  = checkState[v.placa];
+    const temFP = s?.fp != null;
+    const temFS = s?.fs != null;
+    const fp = statusDoc(s?.fp);
+    const fs = statusDoc(s?.fs);
+
+    if (tipo === 'completos') return temFP && temFS;
+    if (tipo === 'parciais')  return (temFP || temFS) && !(temFP && temFS);
+    if (tipo === 'pendentes') return !temFP && !temFS;
+    if (tipo === 'atencao')   return fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir';
+    return false;
+  });
+
+  document.getElementById('kpi-modal-title').textContent = titulos[tipo] + ' (' + veiculos.length + ')';
+
+  const body = document.getElementById('kpi-modal-body');
+  if (veiculos.length === 0) {
+    body.innerHTML = '<div class="kpi-empty">Nenhum veículo nesta condição.</div>';
+  } else {
+    body.innerHTML = '<div class="kpi-placa-grid">' +
+      veiculos.map(v => `
+        <div class="kpi-placa-item" onclick="document.getElementById('kpi-modal-ov').classList.remove('show');abrirModal('${v.placa}')">
+          <div class="kpi-placa-nfr">N° ${v.nfr}</div>
+          <div class="kpi-placa-txt">${v.placa}</div>
+          <div class="kpi-placa-tipo">${v.tipo} · ${v.bloco}</div>
+        </div>`).join('') +
+    '</div>';
+  }
+
+  document.getElementById('kpi-modal-ov').classList.add('show');
 };
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
