@@ -97,7 +97,7 @@ select.form-input option { background:var(--bg3); color:var(--text); }
 
 .obs-box { margin-top:8px; background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:8px 12px; display:none; }
 .obs-box.show { display:block; }
-.obs-input { width:100%; background:transparent; border:none; outline:none; color:var(--text2); font-size:12px; font-family:'Barlow',sans-serif; resize:none; line-height:1.5; }
+.obs-input { width:100%; background:transparent; border:none; outline:none; color:var(--text2); font-size:12px; font-family:'Barlow',sans-serif; resize:none; line-height:1.5; text-transform:uppercase; }
 .obs-input::placeholder { color:var(--text3); }
 
 /* Campo numérico especial (TDI) */
@@ -588,7 +588,7 @@ function renderChecklist() {
               </div>
             </div>
             <div class="obs-box" id="obs-${item.id}">
-              <textarea class="obs-input" rows="2" placeholder="Observação..." id="txt-${item.id}"></textarea>
+              <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
             </div>`;
         } else {
           // Layout padrão
@@ -605,7 +605,7 @@ function renderChecklist() {
               </div>
             </div>
             <div class="obs-box" id="obs-${item.id}">
-              <textarea class="obs-input" rows="2" placeholder="Observação..." id="txt-${item.id}"></textarea>
+              <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
             </div>`;
         }
 
