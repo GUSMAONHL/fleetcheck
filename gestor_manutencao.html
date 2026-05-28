@@ -67,7 +67,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
 .vcell-id{width:140px;flex-shrink:0;align-items:center;text-align:center;}
 .vcell-tipo{width:90px;flex-shrink:0;align-items:center;justify-content:center;text-align:center;}
-.vcell-check{flex:1;align-items:center;}
+.vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;}
+.vcell-check.s-ok{background:rgba(26,122,54,0.10);border-color:rgba(26,122,54,0.35);}
+.vcell-check.s-atencao{background:rgba(176,122,16,0.10);border-color:rgba(176,122,16,0.35);}
+.vcell-check.s-substituir{background:rgba(176,32,32,0.12);border-color:rgba(176,32,32,0.4);}
+.vcell-check.s-pending{background:var(--bg3);border-color:var(--border);}
 
 /* Conteúdo dos mini cards */
 .v-nfr{font-size:16px;font-weight:600;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:3px;text-align:center;}
@@ -1231,9 +1235,12 @@ function atualizarLinha(placa) {
   function renderCell(doc, el) {
     const s = statusDoc(doc);
     const cores = {pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
-    const hora = doc ? ' · '+doc.horaFormatada : '';
+    const hora = doc ? ' · '+doc.dataFormatada : '';
     el.querySelector('.v-check-status').innerHTML =
       `<span class="dot ${s}"></span><span class="dot-txt ${s}" style="color:${cores[s]}">${STATUS_LABEL[s]}${hora}</span>`;
+    // Aplica cor de fundo no card
+    el.className = el.className.replace(/s-\w+/g,'').trim();
+    el.classList.add('s-'+s);
   }
 
   renderCell(st?.fp, fpCell);
@@ -1282,7 +1289,7 @@ function abrirModal(placa) {
     html+=`<div style="margin-bottom:16px;">
       <div class="msec-title">
         <span>${label}</span>
-        <span style="color:${cores[s]};font-size:11px;">${doc?doc.horaFormatada+' · OK:'+doc.totalOk+' At:'+(doc.totalAtencao||0)+' Sub:'+(doc.totalSubstituir||0):'Pendente'}</span>
+        <span style="color:${cores[s]};font-size:11px;">${doc?doc.dataFormatada+' · OK:'+doc.totalOk+' At:'+(doc.totalAtencao||0)+' Sub:'+(doc.totalSubstituir||0):'Pendente'}</span>
       </div>`;
     if(!doc){html+=`<div class="empty-msg">Checklist não realizado hoje.</div>`;}
     else{
