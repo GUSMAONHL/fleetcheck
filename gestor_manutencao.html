@@ -1180,28 +1180,15 @@ window.carregarDados = async function() {
     TODOS.forEach(v => checkState[v.placa]={fp:null,fs:null});
 
     // Busca todos os checklists da semana vigente (seg a sex)
-    const datasSemanaa = rangeSemanaBR();
-    
-    // Firebase não suporta IN com array grande facilmente — buscamos por timestamp
-    // Calculamos o início da semana (segunda-feira 00:00)
-    const hoje2 = new Date();
-    const diaSemana2 = hoje2.getDay();
-    const diasAteSeg2 = diaSemana2 === 0 ? 6 : diaSemana2 - 1;
-    const seg2 = new Date(hoje2);
-    seg2.setDate(hoje2.getDate() - diasAteSeg2);
-    seg2.setHours(0,0,0,0);
-    const sex2 = new Date(seg2);
-    sex2.setDate(seg2.getDate() + 4);
-    sex2.setHours(23,59,59,999);
-
-    const snap = await getDocs(query(
-      collection(db,'manutencao_corretiva'),
-      where('timestamp','>=', seg2.toISOString()),
-      where('timestamp','<=', sex2.toISOString())
-    ));
+    const datasSemanaBR = rangeSemanaBR();
+    const promises = datasSemanaBR.map(data =>
+      getDocs(query(collection(db,'manutencao_corretiva'), where('dataFormatada','==',data)))
+    );
+    const snaps = await Promise.all(promises);
+    const allDocs = snaps.flatMap(s => s.docs);
 
     // Para cada placa, guarda o checklist mais recente de cada módulo
-    snap.docs.forEach(d => {
+    allDocs.forEach(d => {
       const doc = d.data();
       const placa = (doc.placa||'').toUpperCase();
       if (!checkState[placa]) return;
