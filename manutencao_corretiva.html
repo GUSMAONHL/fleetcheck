@@ -716,12 +716,6 @@ window.setVal = function(id, val, btn) {
     if(val==='sub') subdate.classList.add('show');
     else { subdate.classList.remove('show'); const dt=document.getElementById('subdt-'+id); if(dt) dt.value=''; }
   }
-  // Campo de data só aparece quando SUBSTITUIR
-  const subdate = document.getElementById('subdate-'+id);
-  if(subdate) {
-    if(val==='sub') subdate.classList.add('show');
-    else { subdate.classList.remove('show'); const dt=document.getElementById('subdt-'+id); if(dt) dt.value=''; }
-  }
   // N/A: desabilita campos de pneu visualmente
   if(val==='na') {
     const fogo = document.getElementById('fogo-'+id);
