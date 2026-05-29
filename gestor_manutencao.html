@@ -493,20 +493,27 @@ window.carregarDados = async function() {
       docs.sort((a,b) => (a.timestamp||'') < (b.timestamp||'') ? -1 : 1);
       docs.forEach(doc => {
         // secoesInspecionadas salvo como: ['Freios'], ['Pneus'], ['Transmissão / Suspensão'] ou ['FREIOS'], ['PNEUS'], ['SUSPENSÃO']
+        // Usa campo 'modulo' explícito se disponível, senão fallback para secoesInspecionadas
+        const mod = doc.modulo || '';
         const s = (doc.secoesInspecionadas||[]).join(',').toLowerCase()
-          .normalize('NFD').replace(/[̀-ͯ]/g,''); // remove acentos
-        console.log('[DEBUG]', placa, '| secoesInspecionadas:', doc.secoesInspecionadas, '| s:', s);
-        if (s.includes('pneu')) {
+          .normalize('NFD').replace(/[̀-ͯ]/g,'');
+        const temPneu  = mod==='pneus'       || s.includes('pneu');
+        const temSusp  = mod==='transmissao' || s.includes('susp') || s.includes('trans');
+        const temFreio = mod==='freios'      || s.includes('freio') || s.includes('freis');
+
+        if (temPneu) {
           if (!checkState[placa].pn || doc.timestamp > checkState[placa].pn.timestamp)
             checkState[placa].pn = doc;
-        } else if (s.includes('susp') || s.includes('trans')) {
+        }
+        if (temSusp) {
           if (!checkState[placa].su || doc.timestamp > checkState[placa].su.timestamp)
             checkState[placa].su = doc;
-        } else if (s.includes('freio') || s.includes('freis')) {
+        }
+        if (temFreio) {
           // Freios: primeiro registro = f1, segundo = f2
           if (!checkState[placa].f1) checkState[placa].f1 = doc;
-          else if (!checkState[placa].f2) checkState[placa].f2 = doc;
-          else if (doc.timestamp > checkState[placa].f2.timestamp) checkState[placa].f2 = doc;
+          else if (!checkState[placa].f2 && doc.timestamp !== checkState[placa].f1.timestamp)
+            checkState[placa].f2 = doc;
         }
       });
     });
