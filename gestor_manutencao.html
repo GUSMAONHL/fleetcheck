@@ -43,7 +43,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 .kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;}
 .kpi-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;}
-.kpi-pct{font-size:36px;font-weight:700;font-family:'DM Mono',monospace;color:var(--border2);line-height:1;}
+.kpi-pct{font-size:48px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
 .kpi-header{display:flex;align-items:center;justify-content:space-between;}
 
 /* BLOCO */
@@ -208,7 +208,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="kpi-card"><div class="kpi-val">62</div><div class="kpi-lbl">Total Veículos</div></div>
         <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background:#97C459;border-color:#3B6D11;">
           <div class="kpi-header"><div class="kpi-val" style="color:#27500A;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#3B6D11;" id="kpi-ok-pct"></span></div>
-          <div class="kpi-lbl" style="color:#3B6D11;">2 Inspeções OK</div>
+          <div class="kpi-lbl" style="color:#3B6D11;">Inspeções OK</div>
         </div>
         <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#FAC775;border-color:#854F0B;">
           <div class="kpi-header"><div class="kpi-val" style="color:#633806;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#854F0B;" id="kpi-parc-pct"></span></div>
@@ -1318,10 +1318,22 @@ function atualizarKPIs() {
     else pend++;
     if(fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
   });
-  document.getElementById('kpi-ok').textContent=ok;
-  document.getElementById('kpi-parcial').textContent=parc;
-  document.getElementById('kpi-pend').textContent=pend;
-  document.getElementById('kpi-atencao').textContent=atenc;
+  const _total = TODOS.length;
+  const pct = n => _total > 0 ? Math.round(n/_total*100)+'%' : '0%';
+
+  document.getElementById('kpi-ok').textContent      = ok;
+  document.getElementById('kpi-parcial').textContent = parc;
+  document.getElementById('kpi-pend').textContent    = pend;
+  document.getElementById('kpi-atencao').textContent = atenc;
+
+  const elOkPct    = document.getElementById('kpi-ok-pct');
+  const elParcPct  = document.getElementById('kpi-parc-pct');
+  const elPendPct  = document.getElementById('kpi-pend-pct');
+  const elAtencPct = document.getElementById('kpi-atenc-pct');
+  if(elOkPct)    elOkPct.textContent    = pct(ok);
+  if(elParcPct)  elParcPct.textContent  = pct(parc);
+  if(elPendPct)  elPendPct.textContent  = pct(pend);
+  if(elAtencPct) elAtencPct.textContent = pct(atenc);
 }
 
 document.addEventListener('click', e => {
