@@ -489,33 +489,39 @@ window.carregarDados = async function() {
       docsPorPlaca[placa].push(doc);
     });
 
-    console.log('[FIREBASE] Total docs:', allDocs.length);
-    allDocs.slice(0,5).forEach(d => console.log('[DOC]', d.placa, '| modulo:', d.modulo, '| secoes:', d.secoesInspecionadas));
     Object.entries(docsPorPlaca).forEach(([placa, docs]) => {
       docs.sort((a,b) => (a.timestamp||'') < (b.timestamp||'') ? -1 : 1);
       docs.forEach(doc => {
         // secoesInspecionadas salvo como: ['Freios'], ['Pneus'], ['Transmissão / Suspensão'] ou ['FREIOS'], ['PNEUS'], ['SUSPENSÃO']
-        // Usa campo 'modulo' explícito se disponível, senão fallback para secoesInspecionadas
+        // Usa campo 'modulo' explícito (docs novos) ou analisa secoesInspecionadas (docs antigos)
         const mod = doc.modulo || '';
-        const s = (doc.secoesInspecionadas||[]).join(',').toLowerCase()
+        const secoes = (doc.secoesInspecionadas || []);
+        const s = secoes.join(',').toLowerCase()
           .normalize('NFD').replace(/[̀-ͯ]/g,'');
-        const temPneu  = mod==='pneus'       || s.includes('pneu');
-        const temSusp  = mod==='transmissao' || s.includes('susp') || s.includes('trans');
-        const temFreio = mod==='freios'      || s.includes('freio') || s.includes('freis');
 
+        // Identificar módulos presentes
+        const temPneu  = mod === 'pneus'       || s.includes('pneu');
+        const temSusp  = mod === 'transmissao' || s.includes('susp') || s.includes('trans');
+        const temFreio = mod === 'freios'      || (!temPneu && !temSusp && s.includes('freio'));
+
+        // Para docs antigos com múltiplos módulos (ex: ['Freios','Pneus'])
+        // cada módulo identificado preenche sua célula
         if (temPneu) {
-          if (!checkState[placa].pn || doc.timestamp > checkState[placa].pn.timestamp)
+          if (!checkState[placa].pn || doc.timestamp > (checkState[placa].pn.timestamp||''))
             checkState[placa].pn = doc;
         }
         if (temSusp) {
-          if (!checkState[placa].su || doc.timestamp > checkState[placa].su.timestamp)
+          if (!checkState[placa].su || doc.timestamp > (checkState[placa].su.timestamp||''))
             checkState[placa].su = doc;
         }
         if (temFreio) {
-          // Freios: primeiro registro = f1, segundo = f2
-          if (!checkState[placa].f1) checkState[placa].f1 = doc;
-          else if (!checkState[placa].f2 && doc.timestamp !== checkState[placa].f1.timestamp)
-            checkState[placa].f2 = doc;
+          if (!checkState[placa].f1) {
+            checkState[placa].f1 = doc;
+          } else if (!checkState[placa].f2) {
+            // f2 só se for um documento diferente do f1
+            if ((doc.timestamp||'') !== (checkState[placa].f1.timestamp||''))
+              checkState[placa].f2 = doc;
+          }
         }
       });
     });
@@ -571,12 +577,17 @@ function atualizarLinha(placa) {
 function atualizarKPIs() {
   let ok=0,parc=0,pend=0,atenc=0;
   TODOS.forEach(v => {
-    const s=checkState[v.placa];
-    const fp=statusDoc(s?.fp),fs=statusDoc(s?.fs);
-    if(fp==='ok'&&fs==='ok') ok++;
-    else if(s?.fp||s?.fs) parc++;
+    const s = checkState[v.placa];
+    const temF1 = s?.f1 != null, temPn = s?.pn != null;
+    const temF2 = s?.f2 != null, temSu = s?.su != null;
+    const f1s=statusDoc(s?.f1), pns=statusDoc(s?.pn);
+    const f2s=statusDoc(s?.f2), sus=statusDoc(s?.su);
+
+    if (temF1 && temPn && temF2 && temSu) ok++;
+    else if (temF1 || temPn || temF2 || temSu) parc++;
     else pend++;
-    if(fp==='atencao'||fp==='substituir'||fs==='atencao'||fs==='substituir') atenc++;
+
+    if ([f1s,pns,f2s,sus].some(x => x==='atencao'||x==='substituir')) atenc++;
   });
   const _total = TODOS.length;
   const pct = n => _total > 0 ? Math.round(n/_total*100)+'%' : '0%';
