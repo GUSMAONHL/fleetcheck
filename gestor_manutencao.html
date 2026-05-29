@@ -492,14 +492,16 @@ window.carregarDados = async function() {
     Object.entries(docsPorPlaca).forEach(([placa, docs]) => {
       docs.sort((a,b) => (a.timestamp||'') < (b.timestamp||'') ? -1 : 1);
       docs.forEach(doc => {
-        const s = (doc.secoesInspecionadas||[]).join(',').toLowerCase();
+        // secoesInspecionadas salvo como: ['Freios'], ['Pneus'], ['Transmissão / Suspensão'] ou ['FREIOS'], ['PNEUS'], ['SUSPENSÃO']
+        const s = (doc.secoesInspecionadas||[]).join(',').toLowerCase()
+          .normalize('NFD').replace(/[̀-ͯ]/g,''); // remove acentos
         if (s.includes('pneu')) {
           if (!checkState[placa].pn || doc.timestamp > checkState[placa].pn.timestamp)
             checkState[placa].pn = doc;
-        } else if (s.includes('trans')||s.includes('susp')||s.includes('suspensão')||s.includes('suspensao')) {
+        } else if (s.includes('susp') || s.includes('trans')) {
           if (!checkState[placa].su || doc.timestamp > checkState[placa].su.timestamp)
             checkState[placa].su = doc;
-        } else {
+        } else if (s.includes('freio') || s.includes('freis')) {
           // Freios: primeiro registro = f1, segundo = f2
           if (!checkState[placa].f1) checkState[placa].f1 = doc;
           else if (!checkState[placa].f2) checkState[placa].f2 = doc;
