@@ -948,6 +948,44 @@ document.getElementById('btn-nova-inspecao').addEventListener('click', () => nov
 document.getElementById('btn-outro-modulo').addEventListener('click', () => outroModulo());
 // btn-confirmar já tem listener acima
 
+// ── IR PARA MÓDULOS ──
+function irParaModulos() {
+  const placa = document.getElementById('placa-input').value.trim();
+  const data  = document.getElementById('data-input').value;
+  let erros = false;
+  if(!placa) { document.getElementById('err-placa').classList.add('show'); document.getElementById('placa-input').classList.add('error'); erros=true; }
+  if(!data)  { document.getElementById('err-data').classList.add('show');  document.getElementById('data-input').classList.add('error');  erros=true; }
+  if(erros) return;
+  const opt = document.getElementById('placa-input').options[document.getElementById('placa-input').selectedIndex];
+  tipoVeiculo = opt ? opt.getAttribute('data-tipo') : '';
+  document.getElementById('modulo-placa-title').textContent = placa;
+  document.getElementById('modulo-data-sub').textContent = new Date(data+'T12:00').toLocaleDateString('pt-BR') + ' · ' + tipoVeiculo;
+  show('view-modulo');
+}
+
+// ── LISTENERS MÓDULOS ──
+document.getElementById('btn-back-modulo').addEventListener('click', () => show('view-home'));
+document.querySelectorAll('.btn-modulo[data-mods]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const mods = [this.getAttribute('data-mods')];
+    const label = this.getAttribute('data-label');
+    secoesAtivas = mods;
+    moduloAtual = 0;
+    Object.keys(state).forEach(k=>delete state[k]);
+    Object.keys(obsMap).forEach(k=>delete obsMap[k]);
+    Object.keys(numMap).forEach(k=>delete numMap[k]);
+    secoesAtivas.forEach(sec => {
+      ESTRUTURA[sec].eixos.forEach(e => e.itens.forEach(item => { state[item.id]=null; }));
+    });
+    totalItens = contarItens();
+    const placa = document.getElementById('placa-input').value.toUpperCase();
+    document.getElementById('check-title').textContent = placa;
+    document.getElementById('check-sub').textContent = label + ' · ' + tipoVeiculo;
+    renderChecklist();
+    show('view-checklist');
+  });
+});
+
 function mostrarToast(msg) {
   let t = document.getElementById('toast-manut');
   if(!t) {
