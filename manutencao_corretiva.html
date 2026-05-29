@@ -865,6 +865,7 @@ async function confirmarEnvio() {
     dataFormatada: now.toLocaleDateString('pt-BR'),
     horaFormatada: now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
     secoesInspecionadas: secoesAtivas.map(s=>ESTRUTURA[s].label),
+    modulo: secoesAtivas[0], // chave do módulo: 'freios', 'pneus' ou 'transmissao'
     totalOk: ok, totalAtencao: at, totalSubstituir: sub, totalNA: na,
     itens, enviado: true
   };
