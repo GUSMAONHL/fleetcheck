@@ -66,6 +66,12 @@ select.form-input option { background:var(--bg3); color:var(--text); }
 .section-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
 .btn-iniciar { width:100%; padding:16px; background:var(--accent); border:none; border-radius:14px; color:#fff; font-size:16px; font-weight:600; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:4px; transition:background 0.2s; }
+.btn-modulo { width:100%; padding:16px; background:var(--accent); border:none; border-radius:14px; color:#fff; font-size:16px; font-weight:600; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:background 0.2s; }
+.btn-modulo:hover:not([disabled]) { background:#1a6be0; }
+.btn-modulo[disabled] { background:#1a2535; color:#3a5070; cursor:not-allowed; opacity:0.5; }
+.btn-modulo.feito { background:#0d3a20; border:1px solid #1a6a38; color:#2ed47a; }
+.btn-modulo-icon { font-size:18px; }
+.btn-modulo-badge { font-size:10px; padding:2px 8px; border-radius:20px; background:rgba(46,212,122,0.2); color:#2ed47a; margin-left:8px; }
 .btn-iniciar:hover { background:#1a6be0; }
 
 /* ── CHECKLIST ── */
