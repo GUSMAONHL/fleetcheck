@@ -518,8 +518,10 @@ window.carregarDados = async function() {
           if (!checkState[placa].f1) {
             checkState[placa].f1 = doc;
           } else if (!checkState[placa].f2) {
-            // f2 só se for um documento diferente do f1
-            if ((doc.timestamp||'') !== (checkState[placa].f1.timestamp||''))
+            // f2 só se for feito em um DIA diferente do f1
+            const dataF1 = checkState[placa].f1.dataFormatada || '';
+            const dataDoc = doc.dataFormatada || '';
+            if (dataDoc !== dataF1)
               checkState[placa].f2 = doc;
           }
         }
