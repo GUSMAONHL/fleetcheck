@@ -875,12 +875,14 @@ async function confirmarEnvio() {
     }));
   });
 
+  // Usar data selecionada pelo operador, não a data atual
+  const dataInspecao = new Date(data + 'T12:00:00');
   const docData = {
     tipo: 'manutencao_corretiva',
     placa, tipoVeiculo,
     dataInspecao: data,
-    timestamp: now.toISOString(),
-    dataFormatada: now.toLocaleDateString('pt-BR'),
+    timestamp: dataInspecao.toISOString(),
+    dataFormatada: dataInspecao.toLocaleDateString('pt-BR'),
     horaFormatada: now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
     secoesInspecionadas: secoesAtivas.map(s=>ESTRUTURA[s].label),
     modulo: secoesAtivas[0], // chave do módulo: 'freios', 'pneus' ou 'transmissao'
