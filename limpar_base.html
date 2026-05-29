@@ -24,12 +24,11 @@
 <div class="card">
   <h2>⚠️ Limpar Base de Dados</h2>
   <p>
-    Esta ação irá <strong>deletar todos os registros</strong> de inspeção da coleção <code>manutencao_corretiva</code>,
-    <strong>exceto</strong> os do veículo <strong>GBO1J82</strong>.
+    Esta ação irá <strong>deletar TODOS os registros</strong> da coleção <code>manutencao_corretiva</code>.
     <br/><br/>
     Esta ação <strong>não pode ser desfeita</strong>.
   </p>
-  <button class="btn btn-danger" id="btn-limpar" onclick="confirmar()">🗑 Limpar Base Agora</button>
+  <button class="btn btn-danger" id="btn-limpar" onclick="confirmar()">🗑 Limpar TODA a Base Agora</button>
   <button class="btn btn-cancel" onclick="window.close()">Cancelar</button>
   <div class="status" id="status"></div>
   <div class="log" id="log"></div>
@@ -52,7 +51,7 @@ const db = getFirestore(app);
 signInAnonymously(getAuth(app)).catch(console.error);
 
 window.confirmar = async function() {
-  if (!confirm('Tem certeza? Todos os registros exceto GBO1J82 serão deletados permanentemente.')) return;
+  if (!confirm('Tem certeza? TODOS os registros serão deletados permanentemente. Esta ação não pode ser desfeita!')) return;
 
   const btn = document.getElementById('btn-limpar');
   const status = document.getElementById('status');
@@ -74,18 +73,13 @@ window.confirmar = async function() {
 
     for (const docSnap of snap.docs) {
       const placa = (docSnap.data().placa || '').toUpperCase().trim();
-      if (placa === 'GBO1J82') {
-        log.innerHTML += `✔ Mantido: ${placa} (${docSnap.id.slice(0,8)}...)\n`;
-        mantidos++;
-      } else {
-        await deleteDoc(doc(db, 'manutencao_corretiva', docSnap.id));
-        log.innerHTML += `🗑 Deletado: ${placa} (${docSnap.id.slice(0,8)}...)\n`;
-        deletados++;
-      }
+      await deleteDoc(doc(db, 'manutencao_corretiva', docSnap.id));
+      log.innerHTML += `🗑 Deletado: ${placa} (${docSnap.id.slice(0,8)}...)\n`;
+      deletados++;
       log.scrollTop = log.scrollHeight;
     }
 
-    status.innerHTML = `<span class="ok">✅ Concluído! ${deletados} registros deletados · ${mantidos} mantidos (GBO1J82)</span>`;
+    status.innerHTML = `<span class="ok">✅ Concluído! ${deletados} registros deletados.</span>`;
     btn.textContent = '✅ Limpeza Concluída';
 
   } catch(err) {
