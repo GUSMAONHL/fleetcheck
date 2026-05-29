@@ -973,12 +973,9 @@ function renderBotoesModulo() {
   container.innerHTML = MODULOS_DISPONIVEIS.map(m => {
     const feito = modulosFeitos.includes(m.mods);
     return `<button class="btn-modulo${feito?' feito':''}" ${feito?'disabled':''} data-iniciar="${m.mods}" data-label="${m.label}">
-      <div class="btn-modulo-icon">${m.icon}</div>
-      <div style="flex:1;">
-        <div class="btn-modulo-title">${m.label}</div>
-        <div class="btn-modulo-sub">${m.sub}</div>
-      </div>
-      ${feito?'<span class="btn-modulo-badge">✓ Feito</span>':''}
+      <span class="btn-modulo-icon">${m.icon}</span>
+      ${feito ? '✓ ' : ''} ${m.label}
+      ${feito ? '<span class="btn-modulo-badge">Feito</span>' : ''}
     </button>`;
   }).join('');
 }
