@@ -1252,6 +1252,7 @@ function tick() {
     ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 tick(); setInterval(tick,30000);
+semanaVigente();
 
 window.carregarDados = async function() {
   document.getElementById('loading-bar').classList.add('show');
