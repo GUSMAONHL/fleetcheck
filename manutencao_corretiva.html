@@ -990,7 +990,6 @@ document.getElementById('data-input').addEventListener('input', function() {
   document.getElementById('err-data').classList.remove('show');
   this.classList.remove('error');
 });
-document.getElementById('btn-iniciar').addEventListener('click', () => irParaModulos());
 document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
 document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal());
 document.getElementById('btn-nova-inspecao').addEventListener('click', () => novaInspecao());
@@ -1045,6 +1044,7 @@ function irParaModulos() {
 }
 
 // ── LISTENERS MÓDULOS ──
+document.getElementById('btn-iniciar').addEventListener('click', () => irParaModulos());
 document.getElementById('btn-back-modulo').addEventListener('click', () => show('view-home'));
 
 // Delegação para botões de módulo gerados dinamicamente
