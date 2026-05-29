@@ -637,12 +637,12 @@ function renderChecklist() {
             </div>
             <div class="obs-box" id="obs-${item.id}">
               <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
-            </div>`;
-        } else {
+            </div>
             <div class="sub-date-row" id="subdate-${item.id}">
               <span class="sub-date-label">📅 Previsão substituição:</span>
               <input class="sub-date-input" type="date" id="subdt-${item.id}"/>
-            </div>
+            </div>`;
+        } else {
           // Layout padrão
           div.innerHTML = `
             <div class="check-item-top">
@@ -658,10 +658,10 @@ function renderChecklist() {
             </div>
             <div class="obs-box" id="obs-${item.id}">
               <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
+            </div>
             <div class="sub-date-row" id="subdate-${item.id}">
               <span class="sub-date-label">📅 Previsão substituição:</span>
               <input class="sub-date-input" type="date" id="subdt-${item.id}"/>
-            </div>
             </div>`;
         }
 
