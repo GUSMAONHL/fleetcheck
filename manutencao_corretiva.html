@@ -103,6 +103,10 @@ select.form-input option { background:var(--bg3); color:var(--text); }
 
 .obs-box { margin-top:8px; background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:8px 12px; display:none; }
 .obs-box.show { display:block; }
+  .sub-date-row { display:none; margin-top:6px; background:#1a1010; border:1px solid rgba(204,34,34,0.4); border-radius:8px; padding:8px 12px; align-items:center; gap:8px; }
+  .sub-date-row.show { display:flex; }
+  .sub-date-label { font-size:10px; color:#e05050; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; }
+  .sub-date-input { flex:1; background:transparent; border:none; outline:none; color:#e05050; font-size:13px; font-weight:600; }
 .obs-input { width:100%; background:transparent; border:none; outline:none; color:var(--text2); font-size:12px; font-family:'Barlow',sans-serif; resize:none; line-height:1.5; text-transform:uppercase; }
 .obs-input::placeholder { color:var(--text3); }
 
@@ -635,6 +639,10 @@ function renderChecklist() {
               <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
             </div>`;
         } else {
+            <div class="sub-date-row" id="subdate-${item.id}">
+              <span class="sub-date-label">📅 Previsão substituição:</span>
+              <input class="sub-date-input" type="date" id="subdt-${item.id}"/>
+            </div>
           // Layout padrão
           div.innerHTML = `
             <div class="check-item-top">
@@ -650,6 +658,10 @@ function renderChecklist() {
             </div>
             <div class="obs-box" id="obs-${item.id}">
               <textarea class="obs-input" rows="2" placeholder="OBSERVAÇÃO..." id="txt-${item.id}"></textarea>
+            <div class="sub-date-row" id="subdate-${item.id}">
+              <span class="sub-date-label">📅 Previsão substituição:</span>
+              <input class="sub-date-input" type="date" id="subdt-${item.id}"/>
+            </div>
             </div>`;
         }
 
@@ -699,6 +711,17 @@ window.setVal = function(id, val, btn) {
 
   const obs = document.getElementById('obs-'+id);
   if(obs) (val==='at'||val==='sub') ? obs.classList.add('show') : obs.classList.remove('show');
+  const subdate = document.getElementById('subdate-'+id);
+  if(subdate) {
+    if(val==='sub') subdate.classList.add('show');
+    else { subdate.classList.remove('show'); const dt=document.getElementById('subdt-'+id); if(dt) dt.value=''; }
+  }
+  // Campo de data só aparece quando SUBSTITUIR
+  const subdate = document.getElementById('subdate-'+id);
+  if(subdate) {
+    if(val==='sub') subdate.classList.add('show');
+    else { subdate.classList.remove('show'); const dt=document.getElementById('subdt-'+id); if(dt) dt.value=''; }
+  }
   // N/A: desabilita campos de pneu visualmente
   if(val==='na') {
     const fogo = document.getElementById('fogo-'+id);
@@ -852,6 +875,7 @@ async function confirmarEnvio() {
         posicao: item.sub,
         status: state[item.id],
         obs: obsMap[item.id]||'',
+        dataSubstituicao: (()=>{ const el=document.getElementById('subdt-'+item.id); return el&&el.value ? new Date(el.value+'T12:00').toLocaleDateString('pt-BR') : ''; })(),
         ...(item.tipo==='pneu' ? {fogoNum:dadoNum.fogo||'',tdi:dadoNum.tdi||'',estrutura:state[item.id]} : {})
       });
     }));
