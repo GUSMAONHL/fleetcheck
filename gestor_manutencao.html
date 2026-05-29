@@ -196,7 +196,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div>
           <div class="semana-label">📅 Ciclo semanal de inspeção</div>
           <div class="semana-periodo" id="semana-periodo">—</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px;">Cada veículo deve ter 2 inspeções: Freio/Pneu + Freio/Susp-Trans</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px;">Cada veículo deve ter 4 inspeções: 2x Freio · 1x Pneu · 1x Susp-Trans</div>
         </div>
         <div>
           <div class="semana-label" style="margin-bottom:6px;">Dias da semana</div>
@@ -489,6 +489,8 @@ window.carregarDados = async function() {
       docsPorPlaca[placa].push(doc);
     });
 
+    console.log('[FIREBASE] Total docs:', allDocs.length);
+    allDocs.slice(0,5).forEach(d => console.log('[DOC]', d.placa, '| modulo:', d.modulo, '| secoes:', d.secoesInspecionadas));
     Object.entries(docsPorPlaca).forEach(([placa, docs]) => {
       docs.sort((a,b) => (a.timestamp||'') < (b.timestamp||'') ? -1 : 1);
       docs.forEach(doc => {
