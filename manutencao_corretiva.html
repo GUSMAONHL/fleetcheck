@@ -273,20 +273,7 @@ select.form-input option { background:var(--bg3); color:var(--text); }
     </div>
     <div style="padding:20px 18px;flex:1;">
       <div style="font-size:12px;color:var(--text3);font-family:sans-serif;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.8px;">Selecione o módulo a inspecionar:</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn-modulo" data-mods="freios" data-label="Freios" id="btn-mod-freios">
-          <div class="btn-modulo-icon">🔧</div>
-          <div><div class="btn-modulo-title">FREIOS</div><div class="btn-modulo-sub">Inspeção de freios por eixo</div></div>
-        </button>
-        <button class="btn-modulo" data-mods="pneus" data-label="Pneus" id="btn-mod-pneus">
-          <div class="btn-modulo-icon">⚫</div>
-          <div><div class="btn-modulo-title">PNEUS</div><div class="btn-modulo-sub">TDI, estrutura e numeração</div></div>
-        </button>
-        <button class="btn-modulo" data-mods="transmissao" data-label="Suspensão" id="btn-mod-susp">
-          <div class="btn-modulo-icon">⚙️</div>
-          <div><div class="btn-modulo-title">SUSPENSÃO</div><div class="btn-modulo-sub">Transmissão e suspensão por eixo</div></div>
-        </button>
-      </div>
+      <div id="modulos-btns-container" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
   </div>
 
