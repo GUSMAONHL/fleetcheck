@@ -983,28 +983,17 @@ document.getElementById('btn-outro-modulo').addEventListener('click', () => outr
 function renderBotoesModulo() {
   const container = document.getElementById('modulos-btns-container');
   if (!container) return;
-  container.innerHTML = '';
-  MODULOS_DISPONIVEIS.forEach(m => {
+  container.innerHTML = MODULOS_DISPONIVEIS.map(m => {
     const feito = modulosFeitos.includes(m.mods);
-    const btn = document.createElement('button');
-    btn.className = 'btn-modulo' + (feito ? ' feito' : '');
-    btn.disabled = feito;
-    btn.setAttribute('data-mods', m.mods);
-    btn.setAttribute('data-label', m.label);
-    btn.innerHTML = `
+    return `<button class="btn-modulo${feito?' feito':''}" ${feito?'disabled':''} data-iniciar="${m.mods}" data-label="${m.label}">
       <div class="btn-modulo-icon">${m.icon}</div>
       <div style="flex:1;">
         <div class="btn-modulo-title">${m.label}</div>
         <div class="btn-modulo-sub">${m.sub}</div>
       </div>
-      ${feito ? '<span class="btn-modulo-badge">✓ Feito</span>' : ''}`;
-    if (!feito) {
-      btn.addEventListener('click', function() {
-        iniciarModulo(m.mods, m.label);
-      });
-    }
-    container.appendChild(btn);
-  });
+      ${feito?'<span class="btn-modulo-badge">✓ Feito</span>':''}
+    </button>`;
+  }).join('');
 }
 
 function iniciarModulo(mods, label) {
@@ -1042,6 +1031,16 @@ function irParaModulos() {
 
 // ── LISTENERS MÓDULOS ──
 document.getElementById('btn-back-modulo').addEventListener('click', () => show('view-home'));
+
+// Delegação para botões de módulo gerados dinamicamente
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button[data-iniciar]');
+  if (!btn || btn.disabled) return;
+  const mods = btn.getAttribute('data-iniciar');
+  const label = btn.getAttribute('data-label');
+  const mod = MODULOS_DISPONIVEIS.find(m => m.mods === mods);
+  if (mod) iniciarModulo(mod.mods, mod.label);
+});
 
 function mostrarToast(msg) {
   let t = document.getElementById('toast-manut');
