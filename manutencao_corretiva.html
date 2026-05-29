@@ -150,7 +150,7 @@ select.form-input option { background:var(--bg3); color:var(--text); }
 .success-row:last-child { border-bottom:none; }
 .success-row span:first-child { color:var(--text3); }
 .success-row span:last-child { color:var(--text); font-weight:500; }
-.btn-novo { width:100%; padding:14px; background:var(--accent); border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:600; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:1px; cursor:pointer; }
+.btn-novo { width:100%; padding:14px; background:var(--accent); border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:600; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:1px; cursor:pointer; margin-bottom:0; display:block; }
 
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
@@ -252,22 +252,41 @@ select.form-input option { background:var(--bg3); color:var(--text); }
 
 
 
-      <div class="home-form-card">
-        <div class="form-label">Módulos a inspecionar</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <button class="section-tab" id="mod-freio-pneu" data-mods="freios,pneus">
-            🔧 Freio / Pneu
-          </button>
-          <button class="section-tab" id="mod-freio-trans" data-mods="freios,transmissao">
-            ⚙️ Freio / Susp-Trans
-          </button>
-        </div>
-      </div>
+
 
       <button class="btn-iniciar" id="btn-iniciar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Iniciar Inspeção
       </button>
+    </div>
+  </div>
+
+
+  <!-- ── VIEW: MÓDULO ── -->
+  <div class="view" id="view-modulo">
+    <div class="app-header">
+      <button class="back-btn" id="btn-back-modulo">&#8249;</button>
+      <div>
+        <div class="app-header-title" id="modulo-placa-title">Selecionar Módulo</div>
+        <div class="app-header-sub" id="modulo-data-sub">—</div>
+      </div>
+    </div>
+    <div style="padding:20px 18px;flex:1;">
+      <div style="font-size:12px;color:var(--text3);font-family:sans-serif;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.8px;">Selecione o módulo a inspecionar:</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-modulo" data-mods="freios" data-label="Freios" id="btn-mod-freios">
+          <div class="btn-modulo-icon">🔧</div>
+          <div><div class="btn-modulo-title">FREIOS</div><div class="btn-modulo-sub">Inspeção de freios por eixo</div></div>
+        </button>
+        <button class="btn-modulo" data-mods="pneus" data-label="Pneus" id="btn-mod-pneus">
+          <div class="btn-modulo-icon">⚫</div>
+          <div><div class="btn-modulo-title">PNEUS</div><div class="btn-modulo-sub">TDI, estrutura e numeração</div></div>
+        </button>
+        <button class="btn-modulo" data-mods="transmissao" data-label="Suspensão" id="btn-mod-susp">
+          <div class="btn-modulo-icon">⚙️</div>
+          <div><div class="btn-modulo-title">SUSPENSÃO</div><div class="btn-modulo-sub">Transmissão e suspensão por eixo</div></div>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -290,10 +309,19 @@ select.form-input option { background:var(--bg3); color:var(--text); }
       <div class="success-icon">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2ed47a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <div class="success-title">Inspeção Enviada!</div>
-      <div class="success-sub">Registro salvo com sucesso no sistema.</div>
+      <div class="success-title">Módulo Enviado!</div>
+      <div class="success-sub" id="success-sub-mod">Registro salvo com sucesso.</div>
       <div class="success-card" id="success-info"></div>
-      <button class="btn-novo" id="btn-nova-inspecao">+ Nova Inspeção</button>
+
+      <div style="width:100%;margin-top:8px;">
+        <div style="font-size:11px;color:var(--text3);font-family:sans-serif;text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;">Deseja inspecionar outro módulo para esta placa?</div>
+        <button class="btn-novo" id="btn-outro-modulo" style="background:#1e3a6e;border:1px solid var(--accent);margin-bottom:10px;">
+          🔧 Inspecionar Outro Módulo
+        </button>
+        <button class="btn-novo" id="btn-nova-inspecao" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:13px;">
+          ✓ Finalizar — Nova Inspeção
+        </button>
+      </div>
     </div>
   </div>
 
@@ -865,7 +893,19 @@ window.novaInspecao = function() {
   Object.keys(state).forEach(k=>delete state[k]);
   Object.keys(obsMap).forEach(k=>delete obsMap[k]);
   Object.keys(numMap).forEach(k=>delete numMap[k]);
+  document.getElementById('placa-input').value = '';
+  document.getElementById('data-input').value = new Date().toISOString().slice(0,10);
   show('view-home');
+};
+
+window.outroModulo = function() {
+  // Limpa apenas o state do checklist, mantém placa e data
+  Object.keys(state).forEach(k=>delete state[k]);
+  Object.keys(obsMap).forEach(k=>delete obsMap[k]);
+  Object.keys(numMap).forEach(k=>delete numMap[k]);
+  moduloAtual = 0;
+  // Volta para a tela de seleção de módulo (mantém placa/data)
+  show('view-modulo');
 };
 
 // ══ LISTENERS PRINCIPAIS (após definição de todas as funções) ══
@@ -901,10 +941,11 @@ document.getElementById('data-input').addEventListener('input', function() {
   document.getElementById('err-data').classList.remove('show');
   this.classList.remove('error');
 });
-document.getElementById('btn-iniciar').addEventListener('click', () => iniciarChecklist());
+document.getElementById('btn-iniciar').addEventListener('click', () => irParaModulos());
 document.getElementById('btn-rever').addEventListener('click', () => fecharModal());
 document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal());
 document.getElementById('btn-nova-inspecao').addEventListener('click', () => novaInspecao());
+document.getElementById('btn-outro-modulo').addEventListener('click', () => outroModulo());
 // btn-confirmar já tem listener acima
 
 function mostrarToast(msg) {
