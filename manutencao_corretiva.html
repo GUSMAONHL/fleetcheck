@@ -313,6 +313,8 @@ select.form-input option { background:var(--bg3); color:var(--text); }
       <div class="success-sub" id="success-sub-mod">Registro salvo com sucesso.</div>
       <div class="success-card" id="success-info"></div>
 
+      <div id="success-modulos-feitos" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;margin-bottom:4px;"></div>
+
       <div style="width:100%;margin-top:8px;">
         <div style="font-size:11px;color:var(--text3);font-family:sans-serif;text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;">Deseja inspecionar outro módulo para esta placa?</div>
         <button class="btn-novo" id="btn-outro-modulo" style="background:#1e3a6e;border:1px solid var(--accent);margin-bottom:10px;">
@@ -487,9 +489,15 @@ const state = {};   // id -> 'ok'|'at'|'sub'|null
 const obsMap = {};  // id -> string
 const numMap = {};  // id -> {fogo, tdi, estrutura}
 let secoesAtivas = ['freios','pneus'];
-let tipoVeiculo = 'Cavalo';
+let tipoVeiculo = '';
 let totalItens = 0;
-let moduloAtual = 0; // índice do módulo sendo inspecionado agora
+let moduloAtual = 0;
+const MODULOS_DISPONIVEIS = [
+  { mods:'freios',      label:'FREIOS',    icon:'🔧', sub:'Inspeção de freios por eixo' },
+  { mods:'pneus',       label:'PNEUS',     icon:'⚫', sub:'TDI, estrutura e numeração' },
+  { mods:'transmissao', label:'SUSPENSÃO', icon:'⚙️', sub:'Transmissão e suspensão por eixo' },
+];
+let modulosFeitos = []; // ex: ['freios','pneus']
 
 function contarItens() {
   let t = 0;
@@ -882,6 +890,29 @@ async function confirmarEnvio() {
       <div class="success-row"><span>Atenção</span><span style="color:#d29922">${at}</span></div>
       <div class="success-row"><span>Substituir</span><span style="color:#cc2222">${sub}</span></div>
       <div class="success-row"><span>Enviado em</span><span>${now.toLocaleString('pt-BR')}</span></div>`;
+    // Registrar módulo como feito
+    const secFeita = secoesAtivas[0];
+    if (secFeita && !modulosFeitos.includes(secFeita)) modulosFeitos.push(secFeita);
+
+    // Badge dos módulos feitos
+    const feitosEl = document.getElementById('success-modulos-feitos');
+    if(feitosEl) {
+      feitosEl.innerHTML = modulosFeitos.map(m => {
+        const mod = MODULOS_DISPONIVEIS.find(x=>x.mods===m);
+        return mod ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(46,212,122,0.12);border:1px solid rgba(46,212,122,0.3);color:#2ed47a;font-size:11px;padding:3px 10px;border-radius:20px;">${mod.icon} ${mod.label}</span>` : '';
+      }).join(' ');
+    }
+
+    // Desabilitar btn se todos os módulos feitos
+    const btnOutro = document.getElementById('btn-outro-modulo');
+    if(btnOutro) {
+      const todosConcluidos = MODULOS_DISPONIVEIS.every(m => modulosFeitos.includes(m.mods));
+      btnOutro.disabled = todosConcluidos;
+      btnOutro.style.opacity = todosConcluidos ? '0.4' : '1';
+      btnOutro.style.cursor = todosConcluidos ? 'not-allowed' : 'pointer';
+      btnOutro.textContent = todosConcluidos ? '✓ Todos os módulos concluídos' : '🔧 Inspecionar Outro Módulo';
+    }
+
     show('view-sucesso');
   } catch(err) {
     console.error('Erro ao salvar:', err.code, err.message);
@@ -893,18 +924,18 @@ window.novaInspecao = function() {
   Object.keys(state).forEach(k=>delete state[k]);
   Object.keys(obsMap).forEach(k=>delete obsMap[k]);
   Object.keys(numMap).forEach(k=>delete numMap[k]);
+  modulosFeitos = [];
   document.getElementById('placa-input').value = '';
   document.getElementById('data-input').value = new Date().toISOString().slice(0,10);
   show('view-home');
 };
 
 window.outroModulo = function() {
-  // Limpa apenas o state do checklist, mantém placa e data
   Object.keys(state).forEach(k=>delete state[k]);
   Object.keys(obsMap).forEach(k=>delete obsMap[k]);
   Object.keys(numMap).forEach(k=>delete numMap[k]);
   moduloAtual = 0;
-  // Volta para a tela de seleção de módulo (mantém placa/data)
+  renderBotoesModulo(); // atualiza botões mostrando quais faltam
   show('view-modulo');
 };
 
@@ -949,6 +980,50 @@ document.getElementById('btn-outro-modulo').addEventListener('click', () => outr
 // btn-confirmar já tem listener acima
 
 // ── IR PARA MÓDULOS ──
+function renderBotoesModulo() {
+  const container = document.getElementById('modulos-btns-container');
+  if (!container) return;
+  container.innerHTML = '';
+  MODULOS_DISPONIVEIS.forEach(m => {
+    const feito = modulosFeitos.includes(m.mods);
+    const btn = document.createElement('button');
+    btn.className = 'btn-modulo' + (feito ? ' feito' : '');
+    btn.disabled = feito;
+    btn.setAttribute('data-mods', m.mods);
+    btn.setAttribute('data-label', m.label);
+    btn.innerHTML = `
+      <div class="btn-modulo-icon">${m.icon}</div>
+      <div style="flex:1;">
+        <div class="btn-modulo-title">${m.label}</div>
+        <div class="btn-modulo-sub">${m.sub}</div>
+      </div>
+      ${feito ? '<span class="btn-modulo-badge">✓ Feito</span>' : ''}`;
+    if (!feito) {
+      btn.addEventListener('click', function() {
+        iniciarModulo(m.mods, m.label);
+      });
+    }
+    container.appendChild(btn);
+  });
+}
+
+function iniciarModulo(mods, label) {
+  secoesAtivas = [mods];
+  moduloAtual = 0;
+  Object.keys(state).forEach(k=>delete state[k]);
+  Object.keys(obsMap).forEach(k=>delete obsMap[k]);
+  Object.keys(numMap).forEach(k=>delete numMap[k]);
+  secoesAtivas.forEach(sec => {
+    ESTRUTURA[sec].eixos.forEach(e => e.itens.forEach(item => { state[item.id]=null; }));
+  });
+  totalItens = contarItens();
+  const placa = document.getElementById('placa-input').value.toUpperCase();
+  document.getElementById('check-title').textContent = placa;
+  document.getElementById('check-sub').textContent = label + ' · ' + tipoVeiculo;
+  renderChecklist();
+  show('view-checklist');
+}
+
 function irParaModulos() {
   const placa = document.getElementById('placa-input').value.trim();
   const data  = document.getElementById('data-input').value;
@@ -958,33 +1033,15 @@ function irParaModulos() {
   if(erros) return;
   const opt = document.getElementById('placa-input').options[document.getElementById('placa-input').selectedIndex];
   tipoVeiculo = opt ? opt.getAttribute('data-tipo') : '';
+  modulosFeitos = []; // reset ao iniciar nova inspeção
   document.getElementById('modulo-placa-title').textContent = placa;
   document.getElementById('modulo-data-sub').textContent = new Date(data+'T12:00').toLocaleDateString('pt-BR') + ' · ' + tipoVeiculo;
+  renderBotoesModulo();
   show('view-modulo');
 }
 
 // ── LISTENERS MÓDULOS ──
 document.getElementById('btn-back-modulo').addEventListener('click', () => show('view-home'));
-document.querySelectorAll('.btn-modulo[data-mods]').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const mods = [this.getAttribute('data-mods')];
-    const label = this.getAttribute('data-label');
-    secoesAtivas = mods;
-    moduloAtual = 0;
-    Object.keys(state).forEach(k=>delete state[k]);
-    Object.keys(obsMap).forEach(k=>delete obsMap[k]);
-    Object.keys(numMap).forEach(k=>delete numMap[k]);
-    secoesAtivas.forEach(sec => {
-      ESTRUTURA[sec].eixos.forEach(e => e.itens.forEach(item => { state[item.id]=null; }));
-    });
-    totalItens = contarItens();
-    const placa = document.getElementById('placa-input').value.toUpperCase();
-    document.getElementById('check-title').textContent = placa;
-    document.getElementById('check-sub').textContent = label + ' · ' + tipoVeiculo;
-    renderChecklist();
-    show('view-checklist');
-  });
-});
 
 function mostrarToast(msg) {
   let t = document.getElementById('toast-manut');
