@@ -443,20 +443,6 @@ function semanaVigente() {
   }
 }
 
-function rangeSemanaBR() {
-  const hoje = new Date();
-  const diaSemana = hoje.getDay();
-  const diasAteSeg = diaSemana === 0 ? 6 : diaSemana - 1;
-  const seg = new Date(hoje);
-  seg.setDate(hoje.getDate() - diasAteSeg);
-  const datas = [];
-  for (let i = 0; i <= 4; i++) {
-    const d = new Date(seg);
-    d.setDate(seg.getDate() + i);
-    datas.push(d.toLocaleDateString('pt-BR'));
-  }
-  return datas;
-}
 
 function tick() {
   const now = new Date();
@@ -465,7 +451,6 @@ function tick() {
     ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 tick(); setInterval(tick,30000);
-semanaVigente();
 
 function rangeSemanaBR() {
   const hoje2 = new Date();
@@ -681,6 +666,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 carregarDados();
 setInterval(carregarDados,120000);
+semanaVigente();
 </script>
 </body>
 </html>
