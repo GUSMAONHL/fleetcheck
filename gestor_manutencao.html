@@ -72,8 +72,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-tipo{width:90px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
 .vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
-.vcell-check.s-atencao{background:#FAC775;border-color:#854F0B;color:#633806;}
-.vcell-check.s-substituir{background:#F09595;border-color:#A32D2D;color:#791F1F;}
+.vcell-check.s-atencao{background:#ffff00;border-color:#999900;color:#666600;}
+.vcell-check.s-substituir{background:#ff0000;border-color:#cc0000;color:#440000;}
 .vcell-check.s-pending{background:var(--bg3);border-color:var(--border);color:var(--text3);}
 
 /* Conteúdo dos mini cards */
@@ -128,7 +128,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .mitem-os-status{display:flex;gap:6px;}
 .os-status-btn{padding:4px 10px;border-radius:6px;border:1px solid;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;background:transparent;}
 .os-status-btn.agendada{border-color:#b07a10;color:#b07a10;}
-.os-status-btn.agendada.active{background:#FAC775;border-color:#854F0B;color:#633806;}
+.os-status-btn.agendada.active{background:#ffff00;border-color:#999900;color:#666600;}
 .os-status-btn.executada{border-color:#25D366;color:#25D366;}
 .os-status-btn.executada.active{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
 .mitem-os-btn{background:#1a5fd4;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;}
@@ -225,17 +225,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           <div class="kpi-header"><div class="kpi-val" style="color:#0d5028;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#1a8a3a;" id="kpi-ok-pct"></span></div>
           <div class="kpi-lbl" style="color:#1a8a3a;">Inspeções OK</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#FAC775;border-color:#854F0B;">
-          <div class="kpi-header"><div class="kpi-val" style="color:#633806;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#854F0B;" id="kpi-parc-pct"></span></div>
-          <div class="kpi-lbl" style="color:#854F0B;">Parciais</div>
+        <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#ffff00;border-color:#999900;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#666600;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#999900;" id="kpi-parc-pct"></span></div>
+          <div class="kpi-lbl" style="color:#999900;">Parciais</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('pendentes')" style="background:#D3D1C7;border-color:#5F5E5A;">
-          <div class="kpi-header"><div class="kpi-val" style="color:#444441;" id="kpi-pend">62</div><span class="kpi-pct" style="color:#5F5E5A;" id="kpi-pend-pct"></span></div>
-          <div class="kpi-lbl" style="color:#5F5E5A;">Pendentes</div>
+        <div class="kpi-card" onclick="abrirModalKpi('pendentes')" style="background:#808080;border-color:#505050;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#222222;" id="kpi-pend">62</div><span class="kpi-pct" style="color:#505050;" id="kpi-pend-pct"></span></div>
+          <div class="kpi-lbl" style="color:#505050;">Pendentes</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background:#F09595;border-color:#A32D2D;">
-          <div class="kpi-header"><div class="kpi-val" style="color:#791F1F;" id="kpi-atencao">0</div><span class="kpi-pct" style="color:#A32D2D;" id="kpi-atenc-pct"></span></div>
-          <div class="kpi-lbl" style="color:#A32D2D;">C/ Atenção/Sub.</div>
+        <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background:#ff0000;border-color:#cc0000;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#440000;" id="kpi-atencao">0</div><span class="kpi-pct" style="color:#cc0000;" id="kpi-atenc-pct"></span></div>
+          <div class="kpi-lbl" style="color:#cc0000;">C/ Atenção/Sub.</div>
         </div>
       </div>
       <!-- BLOCO FROTA -->
@@ -567,8 +567,8 @@ function atualizarLinha(placa) {
   function renderCell(doc, el) {
     if (!el) return;
     const s = statusDoc(doc);
-    const dotCores = {pending:'#B4B2A9',ok:'#0d5028',atencao:'#633806',substituir:'#791F1F'};
-    const txtCores = {pending:'var(--text3)',ok:'#0d5028',atencao:'#633806',substituir:'#791F1F'};
+    const dotCores = {pending:'#B4B2A9',ok:'#0d5028',atencao:'#666600',substituir:'#440000'};
+    const txtCores = {pending:'var(--text3)',ok:'#0d5028',atencao:'#666600',substituir:'#440000'};
     const hora = doc ? ' · '+doc.dataFormatada : '';
     el.querySelector('.v-check-status').innerHTML =
       `<span class="dot ${s}" style="background:${dotCores[s]};box-shadow:none;"></span><span class="dot-txt" style="color:${txtCores[s]};font-size:10px;">${STATUS_LABEL[s]}${hora}</span>`;
