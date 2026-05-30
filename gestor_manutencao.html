@@ -3,156 +3,177 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Painel Manutenção — SaaS Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<title>Painel Manutenção — NHL/ALCOA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-/* VARIÁVEIS SAAS MODERNAS */
-:root {
-  --bg: #F8FAFC; 
-  --bg-card: #FFFFFF; 
-  --bg-hover: #F1F5F9; 
-  --bg-sidebar: #FFFFFF;
-  --border: #E2E8F0; 
-  --border-focus: #CBD5E1;
-  --text-main: #0F172A; 
-  --text-muted: #64748B; 
-  --text-light: #94A3B8;
-  --ok-bg: #DCFCE7; --ok-text: #166534; --ok-border: #BBF7D0;
-  --warn-bg: #FEF9C3; --warn-text: #854D0E; --warn-border: #FEF08A;
-  --err-bg: #FEE2E2; --err-text: #991B1B; --err-border: #FECACA;
-  --blue-bg: #DBEAFE; --blue-text: #1E40AF; --blue-main: #2563EB;
-  --sidebar-w: 240px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --radius-md: 8px;
-  --radius-lg: 12px;
+:root{
+  --bg:#f0f2f5; --bg2:#ffffff; --bg3:#f5f7fa; --bg4:#eaecf0;
+  --border:#dde1e7; --border2:#c8cdd6;
+  --text:#1a2233; --text2:#4a5568; --text3:#8a9ab0;
+  --ok:#1a7a36; --warn:#b07a10; --err:#b02020; --blue:#1a5fd4;
+  --sidebar:220px;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
 
 /* SIDEBAR */
-.sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10; }
-.sidebar-logo { padding: 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center;}
-.sidebar-logo img { height: 40px; object-fit: contain; }
-.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 14px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; border: none; background: none; width: 100%; text-align: left; border-right: 3px solid transparent; font-weight: 500;}
-.nav-item:hover { background: var(--bg-hover); color: var(--text-main); }
-.nav-item.active { background: var(--blue-bg); color: var(--blue-main); border-right-color: var(--blue-main); }
-.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-.sidebar-user { margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--bg-card);}
-.sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--blue-main); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:10;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo img{height:48px;object-fit:contain;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:13px;color:var(--text2);cursor:pointer;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;border-left:3px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--bg4);color:var(--text);font-weight:500;border-left-color:var(--blue);}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:0.7;}
+.sidebar-user{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
 
-/* MAIN AREA */
-.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
-.topbar { height: 64px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 5; box-shadow: var(--shadow-sm);}
-.topbar-title { font-size: 18px; font-weight: 600; color: var(--text-main); letter-spacing: -0.5px;}
-.topbar-right { display: flex; align-items: center; gap: 16px; }
-.topbar-date { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-.btn-primary { background: var(--blue-main); border: none; border-radius: var(--radius-md); padding: 8px 16px; color: white; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: var(--shadow-sm);}
-.btn-primary:hover { background: #1D4ED8; transform: translateY(-1px); }
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
+.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5;flex-shrink:0;}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
+.btn-sm:hover{background:var(--bg4);color:var(--text);}
+.content{padding:20px 24px;overflow-y:auto;flex:1;}
 
-.content { padding: 32px; overflow-y: auto; flex: 1; }
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;}
+.kpi-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;}
+.kpi-pct{font-size:48px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.kpi-header{display:flex;align-items:center;justify-content:space-between;}
 
-/* WIDGET SEMANA */
-.semana-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm);}
-.semana-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px; }
-.semana-periodo { font-size: 20px; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px;}
-.semana-dias { display: flex; gap: 8px; }
-.semana-dia { padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); }
-.semana-dia.hoje { border-color: var(--blue-main); background: var(--blue-bg); color: var(--blue-main); font-weight: 600;}
-.semana-dia.passado { color: var(--ok-text); border-color: var(--ok-border); background: var(--ok-bg); }
+/* BLOCO */
+.bloco{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.bloco-header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:space-between;}
+.bloco-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.legend{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--text3);}
+.leg{display:flex;align-items:center;gap:4px;}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
 
-/* KPIS */
-.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
-.kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);}
-.kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.kpi-val { font-size: 28px; font-weight: 700; font-family: 'Inter', sans-serif; line-height: 1.2;}
-.kpi-lbl { font-size: 12px; font-weight: 500; margin-top: 4px; }
-.kpi-header { display: flex; align-items: flex-end; justify-content: space-between; }
-.kpi-pct { font-size: 14px; font-weight: 600; opacity: 0.8; }
+/* CABEÇALHO DA GRADE */
+.vgrid-header{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg4);border-bottom:1px solid var(--border);}
+.vh-cell{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:500;}
+.vh-id{width:140px;flex-shrink:0;}
+.vh-tipo{width:90px;flex-shrink:0;}
+.vh-check{flex:1;text-align:center;}
 
-/* BLOCOS DE TABELA */
-.bloco { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: var(--shadow-sm); overflow: hidden; }
-.bloco-header { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: space-between; }
-.bloco-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; color: var(--text-main);}
-.subgrupo-pills { display: flex; gap: 8px; }
-.pill { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); color: var(--text-muted); background: var(--bg); }
-.legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); font-weight: 500;}
-.leg { display: flex; align-items: center; gap: 6px; }
-.leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+/* LINHA DO VEÍCULO */
+.vrow{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.vrow:last-child{border-bottom:none;}
+.vrow:hover{background:var(--bg3);}
 
-/* GRID SAAS */
-.vgrid-header { display: flex; padding: 12px 24px; background: var(--bg-hover); border-bottom: 1px solid var(--border); }
-.vh-cell { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;}
-.vh-id { width: 160px; flex-shrink: 0; }
-.vh-tipo { width: 100px; flex-shrink: 0; text-align: left;}
-.vh-check { flex: 1; text-align: left; padding-left: 10px;}
+/* MINI CARDS — células */
+.vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
+.vcell-id{width:140px;flex-shrink:0;}
+.vcell-tipo{width:90px;flex-shrink:0;}
+.vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
+.vcell-check.s-ok{background:#97C459;border-color:#3B6D11;color:#27500A;}
+.vcell-check.s-atencao{background:#FAC775;border-color:#854F0B;color:#633806;}
+.vcell-check.s-substituir{background:#F09595;border-color:#A32D2D;color:#791F1F;}
+.vcell-check.s-pending{background:var(--bg3);border-color:var(--border);color:var(--text3);}
 
-.vrow { display: flex; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
-.vrow:hover { background: var(--bg-hover); }
-.vrow:last-child { border-bottom: none; }
+/* Conteúdo dos mini cards */
+.v-nfr{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:2px;}
+.v-placa{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;color:var(--text);line-height:1;}
+.v-tipo{font-size:11px;color:var(--text2);font-weight:500;}
+.v-check-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;}
+.v-check-status{display:flex;align-items:center;gap:5px;}
 
-.vcell { display: flex; flex-direction: column; justify-content: center; }
-.vcell-id { width: 160px; flex-shrink: 0; }
-.vcell-tipo { width: 100px; flex-shrink: 0; }
-.vcell-check { flex: 1; align-items: flex-start; padding-left: 10px;}
+/* DOT */
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot.pending{background:var(--text3);}
+.dot.ok{background:var(--ok);box-shadow:0 0 5px rgba(46,160,67,0.5);}
+.dot.atencao{background:var(--warn);box-shadow:0 0 5px rgba(210,153,34,0.4);}
+.dot.substituir{background:var(--err);box-shadow:0 0 5px rgba(204,34,34,0.5);}
+.dot-txt{font-size:10px;font-family:'DM Mono',monospace;}
+.dot-txt.pending{color:var(--text3);}
+.dot-txt.ok{color:var(--ok);}
+.dot-txt.atencao{color:var(--warn);}
+.dot-txt.substituir{color:var(--err);}
 
-/* BADGES DENTRO DA CÉLULA */
-.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
-.status-badge.s-pending { background: var(--bg); border-color: var(--border); color: var(--text-muted); }
-.status-badge.s-ok { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
-.status-badge.s-atencao { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
-.status-badge.s-substituir { background: var(--err-bg); border-color: var(--err-border); color: var(--err-text); }
+/* Status borda esquerda da linha */
+.vrow.s-ok{border-left:3px solid var(--ok);}
+.vrow.s-atencao{border-left:3px solid var(--warn);}
+.vrow.s-substituir{border-left:3px solid var(--err);}
+.vrow.s-parcial{border-left:3px solid var(--blue);}
 
-.v-nfr { font-size: 11px; color: var(--text-light); font-family: 'JetBrains Mono', monospace; margin-bottom: 2px;}
-.v-placa { font-size: 14px; font-weight: 700; color: var(--text-main); }
-.v-tipo { font-size: 12px; color: var(--text-muted); font-weight: 500; background: var(--bg); padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid var(--border);}
+/* SUBGRUPO */
+.subgrupo{padding:6px 14px;background:var(--bg4);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:500;}
 
-/* Borda lateral de status na linha */
-.vrow.s-ok { border-left: 4px solid var(--ok-text); padding-left: 20px;}
-.vrow.s-atencao { border-left: 4px solid var(--warn-text); padding-left: 20px;}
-.vrow.s-substituir { border-left: 4px solid var(--err-text); padding-left: 20px;}
-.vrow.s-parcial { border-left: 4px solid var(--blue-main); padding-left: 20px;}
+/* LOADING */
+.loading-bar{height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);background-size:200%;animation:shimmer 1.5s infinite;display:none;overflow:hidden;}
+.loading-bar.show{display:block;}
+@keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
 
-/* LOADER */
-.loading-bar { height: 3px; background: linear-gradient(90deg, transparent, var(--blue-main), transparent); background-size: 200%; animation: shimmer 1.5s infinite; display: none; position: fixed; top: 0; left: var(--sidebar-w); right: 0; z-index: 100;}
-.loading-bar.show { display: block; }
-@keyframes shimmer { 0% { background-position: 200% } 100% { background-position: -200% } }
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
+.modal-ov.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:500px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
+.modal-body{overflow-y:auto;padding:16px 20px;}
+.msec-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.mitem{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;background:var(--bg3);margin-bottom:4px;font-size:12px;}
+.mitem-obs{font-size:11px;color:var(--text3);padding:2px 8px 6px 26px;font-style:italic;}
+.mitem-sub-info{display:flex;align-items:center;gap:10px;padding:4px 8px 8px 26px;flex-wrap:wrap;}
+.mitem-data-sub{display:inline-flex;align-items:center;gap:5px;background:#fff3f3;border:1px solid #f09595;border-radius:6px;padding:3px 10px;font-size:11px;color:#a32d2d;font-weight:600;}
+.mitem-os-wrap{display:flex;flex-direction:column;gap:6px;background:#f0f4ff;border:1px solid #a0b4e0;border-radius:8px;padding:8px 12px;width:100%;}
+.mitem-os-row{display:flex;align-items:center;gap:8px;}
+.mitem-os-label{font-size:10px;color:#4a6090;font-weight:600;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;}
+.mitem-os-input{border:1px solid #a0b4e0;background:#fff;border-radius:6px;outline:none;font-size:13px;color:#1a3070;font-weight:600;width:110px;padding:4px 8px;font-family:'DM Mono',monospace;}
+.mitem-os-status{display:flex;gap:6px;}
+.os-status-btn{padding:4px 10px;border-radius:6px;border:1px solid;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;background:transparent;}
+.os-status-btn.agendada{border-color:#b07a10;color:#b07a10;}
+.os-status-btn.agendada.active{background:#FAC775;border-color:#854F0B;color:#633806;}
+.os-status-btn.executada{border-color:#1a7a36;color:#1a7a36;}
+.os-status-btn.executada.active{background:#97C459;border-color:#3B6D11;color:#27500A;}
+.mitem-os-btn{background:#1a5fd4;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;}
+.mitem-os-btn:hover{background:#1248a8;}
+.mitem-os-saved{font-size:10px;color:#1a7a36;font-weight:600;display:none;margin-left:4px;}
+.empty-msg{text-align:center;padding:18px;color:var(--text3);font-size:12px;}
 
-/* MODAIS (Manteve-se a estrutura, melhorou visual) */
-.modal-ov, .kpi-modal-ov { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(2px);}
-.modal-ov.show, .kpi-modal-ov.show { display: flex; animation: fadeIn 0.2s ease-out;}
-.modal-box, .kpi-modal-box { background: var(--bg-card); border-radius: var(--radius-lg); width: 550px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-.modal-hdr, .kpi-modal-hdr { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
-.modal-close, .kpi-modal-close { background: var(--bg); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
-.modal-close:hover, .kpi-modal-close:hover { background: var(--err-bg); color: var(--err-text); border-color: var(--err-border);}
-.modal-body, .kpi-modal-body { overflow-y: auto; padding: 24px; }
+.toast{position:fixed;bottom:18px;right:18px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.toast.show{display:block;}
+.page{display:none;}.page.active{display:block;}
 
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-
-/* Elementos do Modal Interno */
-.msec-title { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;}
-.mitem { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--bg); margin-bottom: 6px; font-size: 13px; font-weight: 500;}
-.mitem-sub-info { padding: 8px 12px 16px 36px; }
-.empty-msg { text-align: center; padding: 24px; color: var(--text-light); font-size: 13px; font-style: italic;}
-
-/* Toast */
-.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text-main); color: white; border-radius: var(--radius-md); padding: 12px 20px; font-size: 14px; font-weight: 500; z-index: 200; display: none; box-shadow: var(--shadow-md); }
-.toast.show { display: block; animation: slideUp 0.3s forwards; }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0;} to { transform: translateY(0); opacity: 1;} }
-
-.page { display: none; } .page.active { display: block; }
+/* Semana vigente */
+.semana-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.semana-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
+.semana-periodo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.5px;}
+.semana-dias{display:flex;gap:6px;}
+.semana-dia{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;border:1px solid var(--border);background:var(--bg3);color:var(--text3);}
+.semana-dia.hoje{border-color:var(--blue);background:rgba(26,95,212,0.10);color:var(--blue);}
+.semana-dia.passado{color:var(--ok);border-color:rgba(26,122,54,0.3);}
+.subgrupo-pills{display:flex;gap:8px;align-items:center;}
+.pill{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:var(--bg3);}
+/* Modal KPI */
+.kpi-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
+.kpi-modal-ov.show{display:flex;}
+.kpi-modal-box{background:#fff;border:1px solid var(--border);border-radius:14px;width:420px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+.kpi-modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.kpi-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:0.5px;}
+.kpi-modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0;}
+.kpi-modal-body{overflow-y:auto;padding:14px 18px;}
+.kpi-placa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.kpi-placa-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;}
+.kpi-placa-item:hover{background:var(--bg4);}
+.kpi-placa-nfr{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.kpi-placa-txt{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--text);}
+.kpi-placa-tipo{font-size:10px;color:var(--text3);margin-top:2px;}
+.kpi-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
 </style>
 </head>
 <body>
 
 <aside class="sidebar">
-  <div class="sidebar-logo">
-    <div style="font-weight: 800; font-size: 20px; color: var(--blue-main); letter-spacing: -1px;">FLEET<span style="color: var(--text-main)">CHECK</span></div>
-  </div>
-  <nav style="padding: 24px 0; flex: 1;">
+  <div class="sidebar-logo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALAAAAC6CAYAAAAOLMc4AABsvUlEQVR4nO29d7xlV133/15ll9Nur9Mnk0kmPaEkQGgBYyD0ogiCImBB4VFRrI+9gAo2VBRERUVQOgJKbyGEUBLSM73P7eX0XdZavz/WPvfemSTAI48/n6vnk9fNvXPKLmt/1nd9+xLOOfroY7NC/ldfQB99fCfoE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTY0+gfvY1OgTuI9NjT6B+9jU6BO4j02NPoH72NToE7iPTQ39X30BYIvf32wu+c84QJz1WyI2vrER7kEOc+5nzjp+7zoc7qx/27M+dS4krjisKC5DFte1/o6/twe/P7Hx/t1Zb5xzVtm7vAe5D1u8f+7v//74LybwRqL4AX8g7yxgALvh8Ugkwv92YK1/plL1DmDACpDSf7V44A4QvYcvwBhQ2gLZ2nlS18GINFI4K8EYsorBRJY8NtjIIa3/usokzoW4RIIVyBzCrkKnlhCBxP/WOBQOiUSfdX/GWCKV+bty0l+CA+dAKH+NzuUIIcBJ3IYZ5N8/d5I9cNKt478noYVzDyaq/v/Et0Ngu0EG9yDozT+xRmKHEIVcFueIKeEJ6taOZ4CclGapkzQuaHdaF6amO2FdUutmjfMazZWrm+3Vy1OT4DBrZ17/y08lk3QItSYMIsKw3AqD0ukorBwthbWDQVA6M1Ad/0IUVo/EsnZcEDoDOKsIZYzEAl00IbgSOLCmmGgSpMpZE7lOr9++A6Sf1A+4zwdAnvP7vxf+6wncO70AyOlJWz/gCtdbJM76HLCBiBK54Y315To1FqEsjhRBDrREh+Xzlhunbqy3Fq5NbWt6YXX+8alJyLIEY3KEdECOdQaLIQiUP30xTk4WCoPwKoNVDqRACIezFpsbpINQR8SqRHM1pRRUGSpPzAwPTH5suDb979XK6JcjynOKsCWJgAhHBWvAny4HEnKTEqgyEK3Pc4GfjC7FOouUId8eOfsE/s/BWcTM8A+vR2CNIzj7c2ufBbAIEsDi0KQuByEQCBwWS4olCZeSuccvr55+Wru7eFWjM/foVnc+NDTQEbSS7hoprcsxJkMIRxAEhFrRbrdx1hPYuR55FQKFk4JUOqwUXpe1Kc4ahDVIIdBOEOqYSlgl0hXyrqDbsgSixNjw1MzI8PSHaqXpzw/Vtvx7xNAivXvFooqJ6QjBhmAlUhTDInKgi8MiKLOuCT6YLtxDn8D/OVgj8EZ9uIcNxs/Gy9xA+tx2UMrrxQ6LISFhdbSen3nUanfm8QsrJ5/faC+fl2YJUjscKe3OMt10ldzlBFGV3IGwBiEdQoC1OSbPMVlOtTqAFAGhjFFKo0RYLOcKiyC1BqRAStBKIKXAkWHyLrlJyJOul+55hlKKcrlMOYq9XmsiYiYZKE99eXRw6sO1ytTnqnrya5paWxBgrCOUARKvkQtXzF1lgXoxXjXWif8/D//FBO4ZaADKGzLn4qG8Cz3VUORYulgSOqxONvK5hy82Tj5rdvnwSxebp8NSNaDeWqHVauHIkBKkcijlUFqSZQIhNBKBcwJBQBCExEGFOCizutIkDiuUSxXK5erBOCgfl1J2MUI5hwzC6nFjTNUYU7U2L2c2G0rS9o52pz7a6TSwIiWMBDqw5KZDs9sgSVoI6YhUiZIYwOURoagyNLB1aWrswj8bH9z5rrIauU9RcooAQQCFweqHw4BoFoOzUQL/z8N/MYFzvNoAEHkCn3s5gg36sSve7hlwFktGPZ/dOrt010/ONw69aDU7tbWdr5Bag8WR5Q4rLEJalMjBZVibY3OHMxlxGBIEIYGugi0hTYU4HGWwNv35werkZ6qV4a9oGdS11A2N7CrIJRZBrgXCBFTnHMq6YvZZUIa8lJPWMtKBemf5kY328iNWVmdvqLcXp1PTwpFiyBF0SJIltA6J1RjSlnF5QCUaYfv0+W/aMX7R650dWg7lYCcgoKdB9MZMbDBk1/CgqtZGPNgqt3nx/4AE7hE4OJvAPX+nALemH6eAwa6ROefQ7IFfWG2dun6lc+RJHTtHyhJd2yJzEoQmyRxKBkhyrMnAOuIgJg6qhCpEWEMQRFQro0tDA5OfGBqY/vcyo/sllWWHzgXCpi4faLfrlzW7jUuStHFeniejwmURAJkWirCptV7VYbAQx+XDYRyfiOP4mBK6HaBaAmEcedSivnupMf9di8sLT200Vy/qZCuIsE6ztUiWSkpRmTgIwSq0KRHKMa646PFPL+mp2yt69JQq3HMOgVrzPp+DBxMADxjzjegT+DuDdd4VVAy0LTQKsWFcc8C6LlImCNoYVifOLB9++amFg6+erx+bzkSHLM/JbYaRFrTDiRxHjtQCmzuk08S6RuAqKCpEapByOHhianzb300MT3wwIlrs0J7u5s2dqelOrq4uPnF+YebZq81lbzQJg1AWpSVCeG3bWosQohdOAfCGnhVY6xBGMVgbZmhw4gsjA+OfqJQHv1ETI/cogvZK1rzk5OypHzm5cvz5maxjWCbPlkmTJlhLKRykEg/juhHTY3tv3jF15S8Ph+d9FoY2SGLO8r8YYxBCISXfRBJv9BU/dIBls+C/nsDO/xjnUEqsv+TAOEiynDiSWDpYVoP51qEXzC8d+qHl+rEnNdM52m7Jk9WGGCfIrcOQIZVBKhAEKBcTiCHKaoRKPLo4MjD+icnxqXcOydHb2+Qj3bS7fXll9qnzS2ee3+osjBvRBZFgRZfcdLAiwVqDLQIHFoe1FmstSvsbEI6CzD4aJwkQTjFQHsFmGpsqcAGVeJix0S3vmZ7a8VcVMbw/QYaHGve/5uTMN16Z5/MIkdBNGmTdDKygpEuUwzEmhi64c2Lkor8YqV7wzlhMrAo0WWophV4me8izxtW5swM369hoMG9u/fn/CQI7C7k1aK1A9IbXFQGEDEhoutm9M4sHXjm/dOiHVpqnhpJsiZQ2IhSkeYK1liAUSGWwNgdnkFTQdoxytI2xgQs+PTW+661jpZEvKJJgxR5/wtLyqecs1pee3Oq0qknaApVjXZdO2sTYFKEtzhkM1vuBhURKjZAaerFAmyJ671OQWGi09OFk0HRaXQSagYEhyqUqzkmcFUhZZXL64j+dKm9/b4hqnc6OPO/06f0/1+rMqTxrkHRbaK3JE0slrjFUnWa0tue92yav+pUye+91RERkPoCzJk3lmsvvLEncJ/B/EjbE9nPjMBik8vkIjg6OjppPjj3z2Km7f3t+5djFqa2D6mJcmyRPkCogcylKGJS2CGdxThCrQarxNOODF35idHj3P42GO/7dglrpnLluefX4c5brR57b6C6Sq5R2t4mxGUEgQBi6eRvnLGEY+mUZDSJAqRApInAah0ZaULlFWLPmI7a4tSCHkI44DklNinUZuc3odBokJmVwsMb46A669YhyPL40PbntbRPlsU/mdIdOrxx52cL8iRvSrEGnvUqS1YkjRRRW0G6AydFLv7h7yxNeWmP6YIBa86BIoQCJLbgppewT+D8bxhiU8tEu4yxOOCDF0KbF7IVHZ+787dX2metWmidH2+mSl4bC+qCwtVgDOrDEkfMLaB4QqQkmhy+5dXLswj8fj7d9xGGCpj3z8JOz9/383PKRx3W6K3hV1eIUZDbFZBnGJjjytUBGHMSEQQmTa1weIFyZOBqkWh69Z6A29vlqOHRXnMcr2oVNkNaCtDidCxMbl1eszMJ6a+HalfbCYxvt+W1GtFFRhhVd2mmDtJMSuSqVeJBQhcRRrbtj20W/OhVu/9cWnS2HT937u/NLB65pdk4iZRsdSEwWU4mn2TZ96Xunhi78qyl13icUMRYK0057d6BQ32TU+wT+vwZXhPOdAEuOo4ulxVJ28rrTC/f/5Mn5e5/VtSskpo4hwUmBdWCdN2WUUz50GwQMlEcZHdj1tfHh894+Gu3+14ja6eV07tqFlaMvPL34jR9uJGdwuotUilbiaDU7IDKCUKFViHASKRWxLhMFFQJRQtiIgcrYHRMjW981XJ36RJmhw5Kgk0NgjVIVObwsXYiUXhP1nm3v3jNkpLRqjqScsLp9uXXm+qXGzFPaycol3aQ+mmYtyDOSpI0UhnJlkFI0nldLU1/cMr3nj4bF8B0z6eHnzy7s//GZuf272ukqCoXUEdXKGGPl3Xdesf3J15fc+KwSXq1xqDV1whP5wXxp/30idP+1BC6euKPwoIkmGQu1+faR552cv++1i6snLk5cg3Ze93qucgglfOhXSJSQRCIgVsMMhnvmxwb3vn3r6L4/rojaqZTlqeXGkecdPfOVP+6YU7qRztI23r2WuxBkjVBL4jBB2BxpYhQ1ysEYtXj6wFB5+lOlYPTuncN7/0wQIVHFLHNo1Ut7k4U64UkgRC8Vs0dlW6QhGRz52usp3crS8sJT5laPvXCuuf95LlolSRZZqS9ijGN0eAdTE5d+ZrC67WNj5Z0fSOiMH5u56zdOztz/pNwskrkGkDNS2sGe2hPeMj24780jgxO3g8A6iRQaUH0Cf1s4y11z9sCcnbp6zqAV3gcKb4PTGZYFMZ/c/ZKDJ27787nVE9WMFq20hdAOFSiEEGQmJ88NgY4ohYPItMSuqcu+sGP6YT9fE1u+Kgiz1WTmUSdP3/a7J+duvy6o1mmmM3SyVQg1QpexLiQ1GmkE1UARGE0pGmF0cMd9o4O7/mW4vO3fa3LqawG11NmAQITI3vUKfPDQOX+/heHpnMH5NxBCFNnBYAu/oBACIc4mi6PJQn7gSTOrB16xsHTshe10icQ0yUyOVsNE0RQ7t13+a1sre/+mTXvLwZO3v2m5fu/Vq80TpFmT0epWomQbF2x75G/t2HLhbwfUUuckSkQI1IbzbBh3eKBr+EGf0UM9x4f4vJPfIt96wzV802DL/1kq6HdG4N5DBf8wRS8sLHBofynWp+VChsBinUC6cO17aQ4yAsMiR1a+/JtHZr70K6vpGVKXkZkcYy1BqBBk5GmGsIpyNEA5HCR0E+wcf8yvTI/u/YtIlpY6LO48tXTPaxZWD/zAavv4UKOzQCfvEsYRTkBmc5RySOVPHlKjkmxj69gFn9m2dc8f1NTYNxTlZUHUkcQoIiQSaRVu4732nlUvSujYkMvxUJEEVwxXj+jg6KLISelUVlrLj5ldPvaSMyv3vmSpdQyrOgRxiTAYZXLsoo/sHb3mJwW5vm/mU++eXzh4WZ5b6vU6lUqNUjTKvp2Pfe10bd9bSgzXTZGumZsUrdxaMqrPmdDrIWkBzhSuNrkxrN+7Cx/p63mMnd1wO8IhMRtuV24YGO/ed1ifgIQthskhXJH7vJG5a9FWe84K1vvcur967VvFrPrOCbyWzvsQBAasswhSlBBeMjiNM8WKrCxNe2b01NKdP3dm+c7XLCdHdNctk9qczDhw3rKOlFcZRK4pqUG2jp1/z5axS39/Kr7y7Q7Nanr8kScW7vzlMyt3PquVnCYVTXJrETIizRzWCMIwRknI05SBwSq7xi/54lR8xV8OBts/Gwe1k4KoUAc00mubPkixUfrS09c9vJzL1wb43HwO18uQE/4gZwsfi7UZUvqE9y51Zuv3/siZ5bt/cqGz/+JutoJFo+QQu7Y86u92D1/wxpTF3YdP3vP6+dkTF7fzOgl1BodGqYod+SV7HnfjgNr5uRIjaZZBHGgsHdbJ8EACP/TkE1hEkWet1mNNovduL3Owd88B50pKJ9Z90aJnOLoHGaezCNxLp+1BcRaBz5He/xcl8NkHZsNbxhqcc2jVm0Xey2tJSVisHZq/7fcOn/7aK1vJDEZlZKKDFV2ElOACbKaRrkwpKFOJyozUdty3a+phPzcSbPsUwGJ67Kkn52/79bnlA5c2uwtkNsUR+GVbC5RS2BQwMQOlLQzXpg+Oj0y/Z3Jw1zuG2HaXolLICIl1IEWRYbxBzemNnhPWy4lCbQjFBnL0qio2QgAyXz+Ikzir1qsrBEjpcNJH93K6LKdHHntk5st/emLujqtyVghDjWCYXVuv+ODe0cf96Eq+fOX9+z//0S7zcqk5hw4VoYiYHtx38PJdT7+mzJYlazWBBIp0U4jYSLA1QpGup4o6n4ONUIXKI3jw8qQM6OAJrMBKIAQX4ApVQjwIHzysZ7UzgF4PuT5kzgtAz6f+QHxnPpS15OpzDl48KyEs1oIUCiH9dVuRFcnlHXJWa/vnv/TWM8v7X9BMTmF7g2kMKEcYSKwBIUMwNUIxwfTYnvfsnLjw9WVG92ekAydW7/i5hfqBlyyu7B/r5EsIDQqJzSUChU0zoriECiqUwjG2jF/6d9sn9v1eRY3fpymhiiSiHll1T9I8mJ5WPFSJ9dm2Zz2YBxmDNe1BsyatetKs93Hhj5sbg0WgVI3hcO9N0Y7oeQPV4dcen/naK9N8hU66wMlT9z0rZPsdW0d3/9WePRe+5u6DK38chVW6WR2pu8ytHDx/uXX86S4qvb+qxxvWgpTnSDBg3Y3mpZ0na7yei7JBIj5oOqvoSWsHKF/L5RQIeZaEdGIDdwVer6C4eaEeqG092Dg+5Gse36ETsBgIwYalgXViF7NNSulDw/RsoA5tzuydb93/kkOzN70gMatYpYvLSXy6ihOQG0RmCPUAlXiSieHL/nHXxNWviimtJszuPLHytV+Zr9/18qX2CZrJCgjryWEdQhgkIYGMkKbMcHlHd9fUZf9769DFfxwwZDBl5NoS5w2vtSX1wewIiotfG0zD+rK8YYB70a/ek1vTG/WGY7BGktykKK2RSpJnXufXQYkyO46cPzL04wG1mfsP3fwb5XAeKbscPPTlX6lWxLHxePJTA9WJo1nT7MryNu3OEpWhCvcf+dLbH3Hx+Jcc4w1jIJS6kLaFmuN6uqopXhM4IoRdN64cgPPCxAduWH94AlDB2gx0VuCQCCG9OxTve3HOYJxZC3MLBMIphAh82N2dMxZr3PnmhubZnLffuQ9lbZU994zFG1IG6ycWDkNCTrN2euXgj9x79Cu/0soX6NIgdRm5MTgrUCpAOoFLHdJGVMIRtk3s++vzt1z1kzEjq13SyvH5O3/l9MI9L5+rH6KdLIEIEKKCIMY4jbUW6QS18jg7py/73L5d17xo29AlfxgyaCTxmldBCM5RrDhbCvVsCAVOWBwZlgxLypqEcud8R274Uef8W2YgOyDrIFZwuo2hiaNDEBiCIAdyBAGOMltHLv+93dsf8ebAjdJtJ6CWOHr6tjfMpqeeesXOh79goDa66KxCa02SrbDaPsbs0n0/bknWJ9PaH+tGmofEIDFoclcs3hKQFiG7SNUprvec+8CrdqCwQmKlwAqLIcOKDk60QTZQsoGQTf8j2qASnMyx0ishWU8GiAeRGOeqb2dhPRDzHenAvdkGG3TG3htw1gzzhUIJHWZHZxv3veLImdtef2b1fii1SU0KeYA0IVoolDNImRIQUIu3Mj1++Xu3Tz7mp2LGT9bt0p4TM3f++uzqV17cTE+w2llE6BAtxhBECFIEGWFgCGSF7WOXf3HX1JW/MMTumwwB0ghiFSGcrwpWWuOs9dZxL/TqHN58tl7vxWLJMYXhYnEIHIoY7QbWpaz06aGuUBf8QquK4TCFB6ItHN0qJCWDiXMIHLrIlwuaAaolUSlEzq5Z4V1xz/Gb3nPo1NeeWxlt0u62qJR286i9118zk8189733f/W3jDtNu71AJR6mpvbw8Au//4LB4LwDes1gKyqvbbT+bIQl974E1rXdDoIWkmboK/7ijqCGcrWzyOSEK4oJwBS1jIaOMLSHHd2qIy050pLBxAJhFOVlSamuqM0Lqk5SQgBB4Z06a5acS9w1lab38npG3f+FOOJ6LtS6VctZF2GdRcgMR5Pl9omnHpu5738vtU4TlCRtK7E2QErtAwSZL3cPRJVKNM7k0CUf2zl55S9HDJzssLjl5OxXfm9u9d7ntZNTdNNVoigAEWEzS5Z1cc5QikMqpRLleMBMTk3/vSErL+czV5MFCGvCFZMMBIHpDJRGbpVMtBAxay4b4UlrXQLSsNJe2GdIaqnrjhm6A9ZlFSGcFcI5ZQaWttau+te1e6cnoVNcEY/zgfFkuJM3dzU6S49sNOcf2+wsPbzbXbk4zTOSzIEL0ComDsJ6HKnZaql691Bt4lMDtdGbhAybZaonzt9x1Y8blZRPLN30FOMyjOhyz9ydf3TxxFWvakwtPfbQ8TM3lCs1Ou0GKlrk2Mxdv3nZ9skXWlFBOQoddZ0IODBCkmNJ6dDNV7dl6cr5mVnZ6VxzRMpUSUkmTNzVYuR4LLd9PQrGZrWSXoWlhaFFl9Zk2zV2tlv1y+ut5WtazeVHdNLVfVnejo31BqQQCq1ionDgVDUe/0qtNvnZgfLETaWwcrhKvCxQSDReHYvO9pA8AGe3Dvi/IIF9ICIQIMixJvdJJSIAh8+L1TmGBrPdQ087dOYbb5hZ3r+vYxdxoaWdZqgwIBCWrNOlFpawXc1IZTvTwxe/97xt174solpPWJw8cOaLf3Ns/qYbc7FMbhStTpe4JOlmCUpptCojXEytOsLo4MSR5eXV3Um3jU3BGYVCI6wAukSlnFq0lYfve/FQWWxdVayvIM7lCJlhaPP1/Tf923Lr1FNW2nM4lYJIQThf19YZ4PpHvEzpfNiqWAIZKW0kOYZOadnOP2K1NfvEhdWZZyysnH5kJ20glUMoC856m8Z6qaPwbkIpfGabsD7SNzI8Or9j20W/OqQv/NectHbLfR+616o69eYqcTjMwy5+0osHROXwJ2/7h5tF2CJpd6iWxgnyaa698tkXDLDngHKRXwI1IDq+44WI6DrIZYuTzW+88sSp235/tX6iarImOF9ZLaWmVhnC5TXO2/7Yn905ccUbDSGSBMeJLSdbd//EzPKxH2h0lre1my0sjkArkA5rU6wrPArOoZRCyRCTSXIDcVClGk+s7Bq7+Hcmh3f+Q4nBWShhnEa5GNWzT3pkXlNRe7mKHv9XMjmcAacNosgkW4sP45DaYOiwnJ985Kn5e1+71Di6z8gmSEOSdHEotICk06JWqtCqd5gcOo/B+Lyvb5m44rdjxusJDTmzet+PLjbvuzG1M+Syi2OAIAiweUpJh97atprBwWl2bLvgL6XU7YX5+muMSzCygxMOKxTOeenqdIqUmtnVoy/eMTT556ARDpQAISUGQ0JjMJGrW/JwlSybw4gOQvpi/1xVqNRqKJ1b2XtQZAgSGizsm1899dzZlaMvWVg9ta9jVkmtT9cU0heN5nmONb78Hus9G70JJKyj17FHJo3x5ETrzZGef8We7Ze+5qJ9j3zJrbd97h+stQhpOHni2M/s2L7r984/77KPnpi558ZEG+qdFUbKZWaX7vvx6sjkTwuiDZHEjNxZpIgQEpqcumRm9a5Xz6zeUYVV4orGGYvNNIgS7azFru17PjIxMfwBQz3skA8v1Y89d2759tfM1Q+c74KEbtYms95I7Gaq8CTlWAwCh3E5SkhUUORrODCujsjToYMnkz9YXV1+3PTE7r+slie/WBLDdYTFWIl60Cjd2fryd0RgAX6mco5VCSByTOFnrJuZ80/N3vdzpxcPPKGRzGBUx7ughCUKJZ3OMoOVKu3VNmODWwgYY9f2R/1oLdxxuyNlbumenzg6e/NvLHUOkDuHcRHWgZLgcoNwEUqMUY23sXXokr/YEu75s8X89BPz7CB5DpnzxosUYIXXaK0VuCzhxMKBnxoZ2vb+KqOnnVDe6sZg6NKxq+c104XLE7lMqldITZNQRliniUWZgcHB20EgAoGjS8pKZTWfefTpxUM/dmL+8PNWu7M4Ufi1ZeZ9yNZgXYZQAqXBuI6vhMbr4UJoBApVdONZWJ0nDlOUXH14VDM/v23okj/auX3fh2cW8qcn3TbzrVNX1SrVp2wfvfDP5peXbmylHZJkGVSHk/P3/9TWkSteXxYDs+hgXY9UAgNktDg4c8ubF1r7L8pkAyVTUrqFxKwSBRWq4Va2Tl78ekXYnEmOPH+lcfopc8tHXjK3uB+nUlwOxjqEC5FC45z0KahO4qSjFAckeQImL3wGEuMcaZKSp8vItEuadp/pZBZOjto4qpTfL1BYp33u9bm8WoP8zglMQVzVE/VIHA7jTJFhlmFpiNnlQy87tbD/+d18Eae6JKaLQBKXIhwZsRZ02y0GquMoRtmz6+GvHggnvwo5pxt3v/jU0jd+cal5nMR1kKHXV71bzhKpAJGGlIKtbJt45BumR/a+SaNX60v3X6sEWJviigihD1QKcgTGgHAJi82j58+s3vPjOwb3/XEkhhd6MTWJo9lZvaKdLpEEdazqktkELQMwCmNjatWxmzNsqMjSjEY4Uz/8A7P1gy89s3To6pXWLITW+/mt965Y511OOIlQzrvO0i5KeleecRasRsoQ6zTCKjIbIPOMUnmVk7N33pilDO6buPw17c7pxyy2khEpEuqrs981OTr9roHa5KdXOjNPispdUjpk7UXqnblry6Xx9yFFERH195bQZK594Hkn5+55nNWLxKUAmxuyrOnLr8ISYTjIjh2XvzZk+PhivvCowyfufONq9+hUO10go0OpXKLd6WCcXz20kPQaHDgsCkGn0/K9NiTehy41TjiEkBhSnM5pWctcM3yKcVIOVyY/JZB1rcretFvzJZ+bgCQ30Pg/imLJkwJvJLgAk0ucUDgyDC1mO4deMFc/9JJGMoMVbZT2xr6QIIVA5KCtJEJTjUaZGrn8PdOVS/5KkjPfvfdZx+c+9+aV5J5p41IcJawrATFI4aN7MmCwMsn02CUf2DF+5a9VmTxuQa2snHpGFLdANJEkPlOs8PVJB85KMpOQy1lOL9z+y3Vz/PHQDAQpsliqOp3WBcZl5KaLkMY7KWyAM2VENojWYwccQZaRstidefLx+ft+/tTiPVc30hMYtYzUHbIswRmJdFVKcpxqMElFjRLaKiINieQQkRomVDWUjIpkeIG1IcaUiKMpOl1BZpp0kzMsLNx/bZuZy8ZrWz5UDUbQukuzPbdtbnXumaPDW94fhRWiUplWu4sMYGl15saM1ZKjTW67+JYpluX0yBOPnvnKH0vdIs06dNo5No9QYpBADlMKJxmq7PjaZOWCv69nyXkzs8d/uNmZmWonJ8ntCihFu50XqagOJTOESr33RxvC0BAEGVqnRHFOGKYEOgXRAdkG0cHKJkaukLDESvsUp5eOfveZ+vEXGTrlB3fIrwdWNnosv0N4q33N7ytCJMonDbK0+9DJO/6o3pnZ5nSH1HbIbJcw1N5vmSRI6yDVjNZ2Ugmm5/dsuey1AAnze07M3f6bS83D1dSsQCBBCLI8JzMpFoFWJRSjbBm76BPbJ/e9riwG2r5CLIu73fqAyVsI10XKFInx0X1HkecgwGUI2aXePM3yysyNkAdibVg0SZJsC7TE2C7ogsDOoYmQlNGqMgOwmM1cfWz24GvnVk7ubGfLoFNkkNPNW+hAoYRCW01gY2I3RFVOMiC3MCC2UmUbZTlNJEaRroyzGiGU94WrAGMSglCR5znO5CjZ5cTJA7+8e+jCNw7EY0ed6ZKmCywvz95YkuVTAwOTh50r0U5SpHastmeuy2lMgEUpVWjqrYHFxqEXzK8e2iZFRpakmLSDROANvgq1eMuJ3Tsu+gVDVj49c/CnZhfve1qSn8HSRCqDUpIsywr9XRHKMqWgSikcphKNUQ7GKOlRBuNpqtEEsR5E2AiMAOuz9aTIsbqLC7tkokHmGswtn/4eQ3cA8sI9Z3mg7rvuavsOQ8kWXGHeFhkuQvtFpO3qUycXD/z0UuPEVK6WyOn6MLITRdTDIqzDWclIZRuhOa+9b9djnh0guoLFyftPfeGdq82jl6d55j2oMvOGovNLsRQRgRhhONy7Ojl8xR8Nloa+Ch0MSWBpjiTNNkQJsvDdOnyY07kYEFjhl9Q8SxE2Z3Fx5YalUuPqifKWzwo0nXR1uNtNtwWBIu22UaEvFBXWEgSKalRtVuLocJel804uHnz16YWj13XzFlYX7VVFAC5HWIMG4iCkEg9QDcZOhqp8JpDBipRBq2Nkzcqk1MyOPybPBImZxxrn3Y4uBZdRq1ZIWwHOKXRZkjTbu0MGTk+N7nh7vX3Hr2W2RTdd2LWaLFw9Mbb7bbMLi78ThCVS06XRnj2vnS1fXAq2HYMQQ5OZ+tHvn1s9+FIr6iSthFCEyHIbLduIfJBqZYKJ4fP/ZpDx2w8vfuO3Fut3PKveuQ8rW1gBwgUIaYijAJM4onCQWnmUgfLoyVAPHhE2yJxTTgiRdzurF7eT+vY8WcAkK0CbIHToAKxOgDbIBGO6BCVYbS4+NnXJaEmYGWsFgVxXF9awwXH2LQj8YIkc57wvi1amRRKHnyuGeufUk47P3vlqp5p00ia56yKLnN40970g4iCiZCJCakwP7/vzspy4S9MJT3bu/5HF+uFHNpMFUpeTZDlOOcJQI3WOyR3KBURygOmhi/58uLTr3xRxkcmUhcZ2hztpE60NTmh/x86rHIKiFZTzrqxO2iSMq9SbS9sWlmeeNVbe/VmHYbU7+9hOVt8rpCVNU0qlXtgyJww05dLgnZGozLRY2DdfP/p9q90zqCjFupQk8VKzFAyQdTQD8RiTI+ffu2XsvDePlrd9NKJ2WqK7oJ0lIKE1uJDs/57js+VfV3WxtWNWsdb6UKyUJGlKu91lpDaMMRkqUMlK0rl4enTvXxybG/21JEnJTZu5+RM/uG/bI14eUkKXh0i6DZxdopksXVkJuh/XKNPgzEWnl+79qaXVo7GTCVk3o1yKESIhSzIGohF2Tl/y1vGh7f+ckwyemrn3x1I7i9Spl1kqwuSCzLSI5ACD1e0MVaePTI5t//vxyrYPxoweEkQtCIznWhouJqeuPzN78H/NLB/57nY6Ty4a5FmLNO9C4LBZAlmCrECnXQ+N7YygcrTs0bMg8TkBMnc2gR8sAeDbSS4ueve6AFEI4oTl8NDJm//GBqep1+cIyhGOEmmeIpVFBZLcWqxxDMRjDEeT+7dPnfeHEVF9iePfdWLm4Gs7ts1q2kQIQRBXsEZgTUaovI+yogfYOrDza/umLv1ll1dwOsLHldL2wur8U+PBiMQBrkZuMqwFFSqM62Bcjg5istRSKUU0O8sEpUGOzN/xUxNbpt9eFdUjcmCFmXvu3+biBlFYwmZdrM0IVE4QCoJw6JCksnzo5E2vS+2iFnGXXDZBJCgpcTYAW6MWTLJ78sp3Tg3tfetoaftnBBEGV+hwCmssFVVaDaPor8Mt4WK7O/8+l7bp0EELTZ6GBFGEjnK6eYOBMKSTdSOngg4MzU9MXP7WhUOtHzauS6d7cpptl1SmR0e/PDM7e00nSRkZG+LkyqEfHa8+7M+6rIpDs196cyM7eEEnWwHpiMolWu0mgdaM1LYyoPae2D566etC4qWTy3e9VqgWjfoiTkYIVcWkAiNSpOoQhwHjlfO/smPsyl8br2z5Nx/+1igiBAHWWaxI08ko+sjgjoFvtFrNW+uthemoWmK5vURQ0uhwgE47J45qNJtNRsuj2LwzJlSG7GXQPUikv1ft8k3E68aIx0NltwBF3qjUPSrnHDlzx+tTsRw1OnOIyAdQ8zzHWgdOY4qiw0BX0NTYOrn3DyuyMgO5OHH64M+1kpVqI6mjAgmBT77MMl8dnLQzYlVhpLStu238wjdIIpQIkUbgPbRZ3OysXGVlinE5RmiciBCqF0K1axELpRStbocgUqy057DBKofP3PF7OStbmtnsI4KywdgUKUMUcZEcJMiyhCCI5jKyWquz9LBuuohxTRxdhMyRShCIkFBWGKxsWRkf2P3OodKOzyiGUJTQrowkRhAQSZ8RF1BhWE9/oRKMzQaygjM+1I3TPqNP+apra3Ok1EhRXoKqGxzc8+5qeStKS5RKWGwef/bIYOVm6ULCoEIn6YBKdU57ZMEeu35m5cATVtunsM4btp1uA601lWiUgDGmx/b9iaS2KMEePXnglzPTwJLjRICQEcgQJSPCoEStNMKOyYt+Z6S04980AwRU0aaCtgHKQuAkETGKgIjyXBREZ+IwIjMpveLZLHUIp30OjBAI61BKNQt/zXoa5QPibT5QLx+aoPIhfs79jEbKoEjWsaxmB648OXf7T7eTBs1WhhO+y6JxFiklUgRIo9EuJNKDDA3s/Mz4wK53WXKxkJ54yvzSyevbnWXyPEFIH8HJsgSlc7AJmpiAEaZGL/rTifKefwbtJ6nrzcqkslqfe5IThtz5JR2Ro0SGdQZnFYIQa3xyvXUCFQZYl5HlTWbnj3z3Cmeu7nTrF6lQkeUGKQIEIYKQQFcwxlEu6eOtfPHSdmeZNGv50LNwPiPOWbRUhDpgfGjk34crw18M0fTyhtbyYlxPEtsiL6C0JFy5IRnE5SV/rTLD2iaBTgkDS54atIiTkPKCImZIb/vcYHXyy9YkIJqcOHXg+ytRfFjrKkoMYHJJZrOhZY4/bmZ+/6uX6zPkLkNpn0UnTEYljAnlCJPDe98zOXL+WwPK9S6tqYXlGbpZghO+z7Ihx5ECgkiOMljecftYafrjJRn7xH5r2dilyP/p02clRihtk7ikMaZDoBxSWYxNkNLbQ0oGSBm2Ql0+7VvrnpNYfg73HjpL+EHJ/OCv+5IvQeYcljbHZ776+wlnaHdbCBmRG0tuDVJoQh35buRGE7gStWiMrZOXvA4q9ZzO8JETd/2+pUVqWgSh8A2nrcOYjEolwNmcWnmMWjzNxNAFfy0ZWLNDvYfMkNGcbHUWQiEzED5o4PARMIwlEDGhqmIzhXOSMIzJTE6pElJvL5LaFQ6duOuNq835xydpq1juA5zVSBsS6phABlQq+vDq6uz1wuUgcrQsvOC2qGIQikDFDFaHbw6JlgUS6Zw3dC0+aIEqBInEG5p5lLS7uzGgVIQSGiF91YaXDxqXBMSyeiKSQcMnoA6kg7WpT/rnnLJan8WQVQYHxu+zLsI4Qb2+XDl64p7XzSwcfoJ1CUGg0DrEGYh1QDmsUVET6a6pK34xZqAuEJxePPrDYcWRuaISXIB1ObZIs9RykFpp6iZN2HEOn7dd5DrjZQnO5RiXFKTPojTrbHHk5HmKUhJnfLNFpQtZKwO0Ks0HlBdAIXptY88KJff+WQjPByfrN5O6nJWoI1WEA6RMmW/tf9rMyj3XW71M6lJEEHqDSUrfp8AoXG7QuaIWjDExsPvdQ9HOT1hCN9s++ezl5olLM7cKotefQZDnOWGgcKZDHASEcogt45f8QUVsPwCVohrAFpdlaWWLl2WugSP1/mbhgBwhDUooqqUxhirThLKCdAECTafjI2W5a5KLBsfP3D86v3xqst1tIlA4FCYXCEI0JSqlKhURn16tL1zn/cOyqF6Q3q1kAzQRWpaolAfulGgHEuHEetSy+HF5b9QNbbtwcZrXlXUdhPAd4r3/2oEJEbaMNFVq0ejXIiFRgCJgdHD6Q9V4AK01SsNKfeG6kZHxj1oryE3KanOe03MHt9Xbc6AdmTXkeY6wgpAyA3oi2Tl+xa9VmDooCAHL4urx58cVS+5ynApxaExR5KiFJFRVBsrjXxRESKuQIsTnnBb3Vvj6hbAIDBmdkU63sTNN24UapLxaKFhryyUIKMUD90lKdV9B8k16WxQ5xf/nfmB39t8OSExKzoo4PvON307cIl2zipO+valQyv84yPMcckOsy4xVdx6YGrvgz6BEm2RkduHIy0XQot5exEpDmnZRSuCsJQ4j2s0mtcogEcNsH7n4DZqy7/NM0eapyAZrtBYeI1XmW0NJ329NCYESklJQYXxox+GtY+d/sBaNEokKzgmcsCRZm6iiSfJVctek0V7GSguqIBACKbwkrpWH7w2Q7W67eSF437DFqzHOSZzw0TSlonYgS/Nrw3xuAvdZQ9lkpXnyqQQdcto+b9p0QXjVy1mNcFVKwThDtalP+B6VFoGkqofvHqiMH1YuJlAhcwtzNwgtukjfn8KRkNoWqvBlJ90MYwxRWKasRhmt7X737rHLXw8lvB88E8Y1xzNTx7jMn8lJrPP5DFr7BoJa61WJBKnPvinHWmqpIMeRBfV8+fLcpjgsWocIFSCkRgmFMQYtIxQRtcrYzY4wccVzXUeRlC/s2QL0Wxpp7pyfHsSa6xcjOnK2cc+PLLUPX5mT0MlSnAIrcpw0PqfWCYSFMFAMVoYYq+z4wIja/nmLYKE+8/SVzpnHZK5OZrp4p7sAZ9DSK/ahioh0jS3j5/9lxMjcWh56UbfiBDgMq83Fx6oI0rTrm+8JUSS3QxRUGBva+a7poQv+aqA8WY+DChKF1hLrDDoQZK6LinwcXxb9Hxw5UvraujwR1EpDX9cELZPlVWttUVNW7OchAqxTZAay3JRbabLT9oa6FyNZWxJd4UJvsZgcf+rM4v0/4VSDtlkld11QjtxlXsK7GCUGqJan9g/WJj7tD5AhsQSErVp526fIhzC5pNmqk2aNnZWqRgcOHSuENCCsD+FYRaBCSuEgU8P7vr5j9NLfVQwgXVRQpltGdkrGtnH4jpe4EEGEUgGODN+7bfVCS752P86BdQ4r8yISm2FIqLN08am54z+augQjQEjtk3VU5Pf4MIJSUCXS1Xx0eOpDktBCuIFrRcGwcJy1VdN/SALDWZPNkOJkp3Js9q5ft6rhEzeEJnc5QgmyzM92RE6gFeWoylBl7FglmrxVUCKjVVpcPf681C6z2pojLEc45yiV40IKK7IkZ6AyhszK7Ji45LdzE/jttdYS6HvlLIZOt3mBUj2vR0GuHJzVaFGmVpq6aZAtt5b1yL2aKlL0Il+KTtItyOiQOiC3fhm3ZMjA+ehTaol07RgEiXR+DbBFKQ1CYJ03WBOT0ck7LLfmrstoDhpaZLTIRIdcdjGiRSrrWNWkYU/tnG8cetHM8pGplDbdtEPuLEEUYl2KUF6nViKmHI/eVlajR9ZNQYtAU4unb1JiyBt+wmBse2xgpHRKaIWUmizvkqR+v49ABT6KaSpsG7vk92rBjnu7LS/zfLaIsM5YpbUuyq3cWQ1SjMnodJdodOYek1GvOdo40cGqDk53cbKLv9/VUoP5S84sH33pidnDN7ayVdK8Q2ISP9ZWoolQJiIOBigFAwcG5dg3JLEn5lnG2wZBu6Fw4qEDGcWH8hz0uSuE833J/Bre5fjCvT/fSmam2vkyxgoQIVL5gIYSGi0kOoBkdZXq8DZiPXL/9ODu92RYVronv6uVnXzMSusMqKLnrtJkWUagFcI6AhUjbZXpyT3/GDF6Kjd6rS6wd53GOhLZHu4k7UqmcnJniUSAyR1hWKIUDpK0NSPs+JwhzC/a9bAfbN+7fHvTzMQ6KpN02tjcEkUlnJWkiSUqleh0V4kiTbdTp1opMzA4QSDK8wGlpUCW54QQU0JaHPlauZkjJzENSAKOz9z3s2maTm0Z2/WWqhq6V6ITsDIjHUyz5o6V1dnvnl06+MOz9Xun2nYR0xGEURnjvI9YCMhNl2pUY3BgeHZ0dPp9rtjZyBiBUL7d9VBl27+Xw8nDKQvnpXaVxZUzNwyODN8cR9Wtp2aOU6sMkHU7ZKlhoDyMcoNcsPvhvzE1cMG/QJVS0MvuCmlgagO18ZuX5088RkqJcb5rp5DSuxCFw4k2h4/d9j0qrdWHazs+NFAdvkWhOw6rc7JK2zTOa3UXH3b01P2/3k4XBtt2kYS6L8XShlBppNDYzFFSQ0Si1tyx9fzf9VU14TrdzspGs5yrF59D4AcKZLGxnMP1ZqLPRXWkNJnZ3UhnHtV1dTKbYkVvh0qHcA5jetfRZbA2gElCtuy44A+9BWmZXzn0A83k9Jihg+0ZLDnFdldeBw7DCtpVGR7c+T5JTCAjEHnhO9P4auGcJG2ch/B9e7UOEaJoNWoVzkbUShOJpNxWlNDkRyZGd/zD4uljP5ykbaxRRfGpKLo7Cr9yKL9pi9JFNpUNiPXQAUGUDVRGblnt6GeLDWUOQji/XEsJosnsykHSrPXienPmulhXjmsdLgkh8izrTHey9s56Y37SyTomaOBsinHKJwwVHp44KpN3DUG5xvjYtn8aq279V4iwKKQSWCyKAM3AnJaVWefMedYlZHmHNK1MtTs5pbAGWLSWKCfRoszkyJ7bRqq73u8o+YJOxVqle4mhuWo4fYswtcfYrI6TKVJEeImssHmXJMvJneSew196+WDt+MuHBke+oMNg0TmnkzyZbLSXH9nsLGFlh9TWyUQbGVikcBgLeW7J84yy86HrsaEd/zxUnvysr87AbwNyjvfhLFvCrRFYnv3muQQ+62WLdX4LKf9Yu8ytHPyhlc6JJ7fTDrkFh0AKCc740jICTJYSlyQlXaYab71jKNj+mQxD4pa3zq8cfH4zOeN9tUqT515n1b0TO4kWMeVwYmU02P0RQeR35KRwk1mfnCPIqbeXH2nxFrbWfg8NgUS5EGFiRoanPyIoIYgIKKdbx3a/eWZ1/w8vNhN/nACcMbjCZ22M37nIWq+La6FRrtKshmO3SSImRqfeffpk8GzpfUxeQgRFe1jbwYgcwoB2npE3lrYqEWzVWiO1IskTkqRLq9UiKllE0CYxLYwJCLQikAE2d4hMMhDVmB6+8CuTtb1vV9Q6oMhdjhKqUCIUihKlsHxUJObRznbJ84wsdYNJ2+cq5PkiSgpCEVINR9g2fsnrB+SWb0C0LqAKO0nqQYbL57+3LA+8Jg/atM0CqW1jbbEviTFIAoLAYtQyLXKy9tzjXNsLDCssWd4moUnu2kX0M0NYgUAjRECgAgJZoeammBw6/1NbRs/7qzKDJyX67EqMs8hrzyIv4ttI5hEbxbcomlIUqW4ZjeH5+tHvq3dmSPMUK9fPKJzEGQh1QNJKKA8Ogimxbcu+33GUUollZvHQj7SSOTJTxwrQeCnozyuQDrQMMEYwNrLrH6Gc+lBlcT2FxPP1Zx0arbnHWmtIjfX6qLEoob2fNQ8ZGZj+aHEWHJqaHL1r2/jeP0rz5Kdt5rA2wboEJQROSjKTgbTeStYhOEUQVE/GDJ4WBIwOTX54eHnimE2aO01bkNsEaXOQBkNGbnJC7fOj23nLR5tyhdSKzGakxhCUSxiRY00KSMIgQMsQaQJMHlBWA+wc3/exXdOX/2KVrd+AGNAo4f3b1oETnhhxNLBfNB1SgrWWLMtHA11CC4NxoKxioDLB9Mj57xiOtn1SUvO+6MJrIJHkKSglGYy23zw+eP77aDWfm3cTkrSBEcYb11KDlTghSF2dNG1g2pBbr87I0Pu1DQlBCEJm6CJxy1mFdCFxOEhVj7F14KIPT42c/5YhNf0Vv+GjwPvBH8BE1ty6G4itH1Tynht7dq7w54ET+dqH6p3lR9Rbc3vb+QpGeMncmz3CSaQ1SGvQQkNWoxxva41FOz/s+/K0B87MH36lE0XrI+fd8sI5lPQLibWOKCpBopkc3/U2R7zWn8sYP9BCShwZjnbYTlYucWSFfm4KHdw/IEFItTT8dVG4wK2VKFnKtgxd+BcrjebV3Wb32m4+DxhE4BAiwtrcZ78ZQIU4G1MOh+/udbkpi2p91/Sl/ztaCX/MpkevbXYXMK4DOitWocQ77YvKZIslcwJygf8lUaKEyfFSKQgIKaFchKJGFA4xPXb+R3eOX/q/B9lxG5QwmbcnfJFbWuiLviCyFFf3KxUhrcYaQ9ZNqJZD2q06WoSEqszEwN4vbB+/7LfLjC7JIlCQ+8J6/NKmvbdIDbJ17JI/yMzqziTPHp4JiSUtSsYcNlN0TIoOM6y0qDBAOe0bGAqfMYgR5HmGlhotNFLGWBsTiAFqwTiD8Zbbt09c9puD0cRXBCUkAbnx/RLXOAucy1G34b0HSuBzXGUCMCYvZoSl13UxyVvB4tLcM9p5nZzEZ7VLXzQpnSewdQabdylFVUx3gK3bL329I+oKBEvJzBOb3YVxXzLr/ZzWCKzLETgcCmco9mwbpCpG77EErN/bupvFkpFS32Jsc1IIH342gNYSYRyB0kXP3+oxHwHzagcElBg/OFLd8cFGaeHarLWME944teRoqZBSkEuJEmWwEdXy+C2CqGiIopkunf8OQdDNOmEZE1/VMQuYvOkbfeDtBSl9Rx8rVCEx3dqK4ywIqZCUUFYhXUSkhhkf3nV4cvC8t28ZvfBNISPLkqon1toT8+XwUqwXOJajwXsCEZOIgDQ1WNv0Xpy8QykIGS5PMz649+1Vtt6niDDGFwEa5zyBsWiliyCBZKy8/ZZs4pLXqTh8GSK8sd6dx2SNwr8eYsjJbAtcijNFam2PxBLv4bGAVTgipKhSVmMMVbbOTo7u+tuJwV3/NKS33amKEnvnBMEG0bux+flZ1e8b8NAqxFn1beuJPd7NYmm3mxfPzc28MBOp3xZASt9KyklwCi0EFgMiIVAjlOX2ZGLw4r/McZGmK2bmj708s11S8iI/ISi6vHTxqkGAEAqTOya2TL1PotOexACQRdUzwvscu/nKXkQWCC2JVUySJ4RRABlUVIXBaPSLEfGSKJYIIX0fAkGVkYEd7293zjzGiNlnd8UqqIzUaQKnkVpgUijrISIzyPDg1L8ZJ4qCQ4li2I2WoveIiWqjGo8+f6F94hmtbG6ym69gXJs0a1I0XPMbkQtJLgwOB04SxQpNmUBEhJSpqJHWcGXqk9ND5791rLT13wJqFlfCFnZh7yk6NFrE+D4UGRAQBrVjSpQJZIkEQ5a3sNZQihQlPcCWyX1/Ol7d93eCAf+ArQGlkUp5fy8ZRaJuUZxQYrxywXuDUvWwCiunZ1f3v6KdnSInwZkQYzMsOVbkWKP8j/MNtsPAFy1IBMoqQlmhGo43h0rbPzZa2/m+sdqud0cMZIrSejErnCVAz2pTtYGOdsNf+qzuMucSt/dlK+g1+uj5RVv5wmVLnZNjeTXBurxIrdBI6yWPUz43LdABOM3YwLb3lxlaSGhWMtqji42ZG3ORkJtCP5MSqRwm9w5rIQRKhuRJyOjA9vdnmFIJOm6DJ8XkoLQGoclSVZauXA/d8JighDBVKi4EYRmMp48NVSY/JQi9tBEACmc1SgYMqfGD3dqO9ybdpUu6NtqbiS5pHiB05EPRgSAQtXboxo4PhlvuxkYgUh+8cBGRrDBZLX9ssDr++YHG6E0LK6ee2+gsXJOY5mTXNDGui7OZ91Vr32E+s947EmUx1dIgA5XBrwyURr4yUpv4+Iia+mLIwIKgBHkFCmONwvdtsT6XoDBeezuVKaJ6aCePGGd2J6ZFbnOkMAzWhojF0OK2oQvfFDJoso4gin3YOXO9cLsP2YgiPuuKHA0pKgzLnbeVRyu/MFwdvmmpffSZrfbyw+qNZFezXceiCAMIdBmpQ4xx5JlBpA6ZhYwOTc6HunRmqDxy8/jwlvcOqukvSWotyQDWaP8snDetRO8mhbdhpH7Qak4vwPCFE8K51D/MXm+zInb9wK1ffTAiJ6PN7NStd3/4RJOTei47hqFDaBWBK4Et45zD6Lp3PRlNyW3jUXu/7/nTtfPfm7I6cHJ1/4/fe+rrr6snZ8jMik/26E0QlyARxKpERU9QZk969aU37KkxcdIYTah8UadvGuinYyfJUOUGK9nsVYlJxyMVziftZNfIQO2L3WT1Quecrpa2fF4wYKyr+CajDt/QQgucSEnMQimhscU450sxnc5904Z2zVobB6I6I/KBeq08ddrr34WqYwIvGUUR1CEBDKnplpOks6ObtM7rZvU9xjYnu3lzp3M20EE8F0fD9+RpEA0Njn9SS9WMQjUf4DJHFivCpqLm8iwiENFaE0gfu2iT2wwhK4AGkxXRMUjyjHr32CNaydIVqU3GjMkGolDPJUk2tXN6xx8H1GZDBnGZD+N6XSonJS02Tiy647hi+e+JPudA+nuzdGiZ+s5OYqatyOI0Xzp/tb74BEHQdc7pOFIzSqmWtGG3XBr9erW05QuKKFNyoybr/diicJX1HE5pmqK1LPpJFxOKdRViTaCy7ozQD3QO99SEXnLK+j0I7fO9ltpzT0rEkm7nCyD9rupYHyp2RmJcSi4zrINqPMpINN0cro1+VmBR5KLVXHiUk4l3M0FRyOg3ePFWsY+6WCMoh2N3awZmJbKoLi4Sd4olHAtREGCJGAwmb3NBgCJAlsPblJNU4s6cbzhiC51xwyhIgUscItLEarATMXDIEpE7iUQhRY6ivT7oOgLrgzsov7m43BBMUWsGFQRyqB0H9r6RkrwP0cXR8dISA0XfM7lh+XTk+J5rSebFR4kgCOjJEgT+xKFCSy9icpsSqRCswzpLKBVj1Z1fHa1u/2ov6RtAYAsN0r8qtOz19fOvGHAq9EyQ6uxVuGcx2QghApQoMaBGjlVK7pjBokT+2W21/K99eqMlpyUDZBEKrmJS3xxQaBAqKya4W9MDvKvdr7hhoeDnJi1Sbx/CtVtcl2BNB95YOtRTtNZj96J43SsQSbC4cvrZxnVJ8gQRKJwVCBdgN0RQhFBIp1C2zNjwtneHxEsWS+KaWxaWZ5+V0SY3bd+BhcLTsTbERUDBWSqVyt2aMPPJNOsTbS20KShammVrK4dAoaT0Dz+LINJIEiwWQYZAYfMMqUJE6L3lee4T74WyaNFrSChIUm+cB0qtTfueXWExftSElxa+m6Pwk1/g0wSFn4ipQcRh2eXGEKiS1/nNBj+79X0QoITNIXOOMPCRTp8/UcblCmE13cSgQoNWBkiwMscrbr5RtkMVAaQA5xyRVmSm7Z2Hyj/Q3uY6Ak1YlO4kCVCC3Fi0tDibrxl1WFNIYu9lkMWmMoV6v96/wSrrZJFrbRVqrSrI9wjxPznIEJBo5Y03bxR7P7KSwUPs7XEuize60R7CZbH+nve3ptS3LNVnnmqF3/vMOeldYC4snNTCOySURgdl31S6OvlZ0C53WbjaWrw2yVbIRBNrUnSgzsrP8Gl1xd9OUiqVD8hz3SjOre83YQBli2knsWgEheRK8dXMzhuY3otYVMRKfD2fEyAEWpdRgMG3PvJ8VYRhec3zkpsUpUJUUbjqq6+9g8wf1WKsQBZ9Rh0Z0gmkksQqdr7jucMqr9OaXjLKhth+b4I4530xQvW6YCpE4KWZkqq4Pr95TO/6epsJOCvRqpiEva17nUDroFiWQYTF+bwGWXgNirlSrOtKFfWEwhaL9FrSx7ohVVx7kkIYgZYVKLKorevtHwK4vHDB5j68ZDNwIVqKtWMY61MUgqDoe5+nRUDqoaHXmXuuFPav9TqW+8S8hJVk5nGNZK6a6ZZfDq1CON/g2KFxosjxlBotSlSjMQaCqS9BgBC5WW3OP0GFGTbtFJW3Z1+Qs97lpIVCSUUclY/KHvWKjfzO2kJVg80MLozoOt8wRfVCkBFrUtOJ0JufRhJKUWSaZTiZkgHOxAgkUvXIWwwqCpN1CANR9HjroiiR5ZKgiPb1Kge8D1SuRZEEzpfkF7EyBwSBwpAAAQiLs6HvzOMcqfETU6xtiCRQQqGKlSPJUqKoRhCCQ5FbyGwiA62tJEDit7jtKZHGZsX2vc53kwRaSSKDwFotQyR+1yevVMpieY+KFU2SOgMuJ5S9OgtJ7oqWhc4fU0svPYMQcgtaWjKTEajY7yi19mRloV45JNqXJwFZDloWRmixBUXv+Wq9ISPtoQns4WdzQd4NCRQ+0pXjcKS0R5YbMzfkokHmugjlvMfAUhDL4WwKIkNbkEYzOrL9AzGDx/0uGd3Rlcbck61KyEzTH9f1yLkhRuh86mKgIqIgPu0F09mbaosNf0gdkBMQiJL/OniJ4WDNRPfU9vsnF1Ff6yRW+/08hJJrVr6w/mEYi9+9U5UxJAhEoYYIrFE+wIfEuaJjowDp1iWrkBIhAzLXJbUGpUKvOlD0i1as9QGXUhBo37u+12vZ11DXyD3dCSNIfXEwKgIhS2hZsg5/rbm3SYtIEggZYLF00y5xWPaLVRBYChVYC2+MkufgJGEUkTuwhXSwBCgZrLVfdQU9euPufbesEc4JSK1GKV14N8Dmhaqi9Jp9QPE9YdbafZDnft71DDjfXf5b8renQvhu3f6C5DoJAIQrzLqcNG9tXa7PPEXohCTr4KRD2AzRi1MDiAxEhhIlAhEzOrj9vZYw0yjqzZVrVpqL01216tMEZS9Z3J21EEgh1woHo6h0TKylDm7Ui2yx5zB0Urhn/+Jrg1LliMSSdpcvuvj88d8KVIKUoESN+QVGj59o/IBUpSWXd4crcaex98Lxt3WtQskAZ2F5jh0nj7detLy08BREFkSRmtuzd/fPSZ25scnooEL6Js5ojhw2N2apKktNkkOAyAIhrZNW5SBNoGQjDFkdGePrlWrslPLEvuvOM/9bqGg1z22tGkeHLj6v9s+HDzSf1erKSRWXT7aSZLdRWRhGLCdJsk0Tr+QJA9JoMzQYfd1k+eAFF+r3GAvtDtTr7Do9kz1laX75qXlqhgOlVwcGS1/fubP6t1NbOJpbSRCWMQ4OHEhvrDft3iAKZzLq0xfsHPqT0bJ2CAMyxAH33Lv6g52uGtGqeiaMWSrHzNYbdm+33Tlf63BJq2DFOBc6slgp0cmzZBycUNp1kc5Za+ML9g3/8aGD2QvSTNQUuiOkM4gkRuRaYsGFqTBxV+Aw6fGHX3DB1l8sl7XNMoiib03aswns5LoYeEBiu8TnGaSAo5u3djRa82O5SuikbZR2aOc3+RCi8JnKDIkjVAGRqjBQGvmKdUI5YW0rq1/YtW1S1/GzTWtM5hNuRBGGdsVyJqVG63BVy6Dul59erqJEFEqzdX7qHTnWfv6f/vk7f395tYMOLBNjAb/0sy+6def24Y9Z6/u73Pyle7/6rvd8alfaFZRiwSOu2MH0jqe/LaiG3HbP3C997hP3/s49tx+kvrqMxBTqjSMz4tm79mzhKU9/xO3XPu7yq2IdML/ExPs/dNNHbv/aUXJhMbaFpQ7CIG0ALiDSNaI44OJLd/GCF1136fgEdx85zvV/9KZ3/VbadSSJYXp8iFe+/AUTH3z/B/707ntPY1VE2yRI7Ygqmk47R5kag5Vx2o0WWsHOHSP8zGufPQXwvg/cOvO1r93P0koLkxrCMCRPDdjO08/bM/arl195Hs941rVxbZBkbp5tb/nrD3zk6PFlkAJdyrnx+of90Q99z6OELCq25xcZ/Jd3//vf7T+wiHUVRkbGGBmKOTNzmqWFRaTSRGGNzBqM7SCVIRAObEo371AbGCAIQm58+nN/4NOfvumqufklrDE4l2PpgPO1fcpFSFdCi4RSPMdrfurlXHnl3p9Xel2a256L7VvYcnqjuvCAbB/8MiaAnC6N9vIju1kTK/2FaK0hzZFk3n+rNXnuWxRVoho1PXIiojwXiVKW0QgWlmaeU65GdNs+CmVzh3JybbMU3/xtzYRDCt3RhA1vwqxflJDSbywofEnc/qNzv7i44ugkJaqBxgjN+Japj3WcJZQR7RQOH1/e1epGpImjk2QMju9CxvCeD+1f/uCHPjlUn3eUgzJZqr2lbhRKR3S6AUePwlve9ukrj55qux988aPEcp19992/yGpLkroEHVkGR0okaZNQl2nVHe0GiKah8dVDoCt3vfyHr47n5821y0ua1XrK5MQuStVhdKl2+J5D99GxITrQJGlOoCJEVqOb5IisQto25JljZKRMVBvm+Bme8ta3vuPvDh85QRDUUCqgmzRAC9LcEIZl7juwwJGTcyw1su6Lf/CJcaPD9iMnlulmMUme41oZn/jUN3jsIx923QW7w88YYHap86QDh2bppBErK00mpnbTShLml1YxTqBdRNoRpAa6mSEKBbU4JO2mBHGV1WbO1i3bEcHw8ZMz3as6iSJLuujQEJc03W6bOIjpdLuUo5jcJGwbHWVsbOyDwFm2jdbQTVLi+JvrwbonaR8KaZ4idIYjjRrNxUdHUUA3z9EqwpqcShhhc+cb+gmLChWBCyFXlMuD90aUlgWW1DW2NLvLV7ZzvxOlFbIolfFbVDvnQKo157VAoVBdgcq89nt2YEUUln7mYGax8bBOJunkAtEVXHL51X7zHKSPAQRw8OgCc4tNrJOMjw+ydfuFf3bzl7pvevvff2RIBzVy51CB5Kk33sDunVvecfr0zPffeut9tI92qDcM2lT4ytePcf13P+qSUzPtZy8s13EqIg5LVIdLvPilT333xNjQhxfmWtd/4t9uefH+e+cwuaOVNDk1N8dyg30Hjhz/NUNEqVZjpdnhsec9gtqwuO9lP/rST6VWxk7ErdyFrjow8bmZ051nvPfdH3n06nIbY7vUhjQDoxF7Lzp//g1/9Ja/m52vMzoyTZK2uPqRF3HBvm1HrLXxN247MH3X7fvJbETehc98/k4e+dgn/lCjafa2jcEJQW4EUsfMzjd57wc+8+lX/fgNggCOnl74kZV2x0f4tGNgpMTOndOMTvmMvjTT3HHHUbJGjpUKIy2j44NsmdxJqRahdMjWHRfetbC4/NTEWFLjUFHAwx55JY96zOUfEORaOpnnqRku6crRSGfJcKm+sm3b8M3OeT1ea0gSQxSrb0nedQK7ooT0AS41iHWIJadLUllcOPPdBI5uJ0OXYyQ5edolTXJU5DdpCUOJViVcVmK4MvVJVTinGt2FR7bTpXI7b3qyaFVsRSFwznrVwVjfPVwKv2cF0krCbGMOxFkQkGZw4MhxglKJjs0wCFRY4+67eYHy1T26mzE8t9hmbHKK1KRUBsosrDSf8OnPfO4y5BCr9Q7bJod56Yuf/q7HXFt7YTmCLBt88dXXXnjd7//eZz994PAM2BInT9c5dKzzsqXlhacnpg4iJjeGax/2aB5z7dj3Alx44eDfnzl18fd+4xsHQiklQdBhx3kjDAxz7/HTB0hsHSiRmYzJHbWvjU5x6OqJC74rKNzWjZTo6GFecPttdz/aWhCqjVBNnnTD43jSk6950t+9/V8+ncsUKxWL9SVe8IIn8D3f8zARB9C18OTr94S/9Zv15Cs3n2R6y25W6qc4frLxknZS32dIcIXrz+YQRDGfu/kurnnME37nEY+Of/nk7MJTEpuhVZu4IthzYY3vff5eIdiLBWbnufANb1y8Lz3WJe1kdLNVXvajP/Sayy+p/pGVkBWpFH/4Jze53DVJTEolgp17pnjcE4ae0yvTFIBJvAFXFoP+Oabr+u+39AE/gMBrf/b04HMlsqXRWXxku7mKKWe4TGJT3yCvKis4kaF0jLEJWgXEepDIDDM5tPMd/vs5ne7S5YYWTtgiTOkTxpX0fl1HT+fxXXv8j0wF3/xmmm2mDh05SlAaxrUzGu0GH/v4p/naF/W7pDWYLKSTwtEz80SVMkLn7BzZwpETpy+bmVsmS/39XXLZeVz3pNoL1wY5gLExvjoxOcSxU/OgHNWBAZbqq49bqa/sjcqCRr2Bjksc2H+Qj3987I7FhdnLThxb5sD9J4miCBFYtm4d5TGPf+QrpCI9efIk1oCly+h4heHR4FaHf5BtA5GCmz63/873v+/zexsrAc3VOqNjmhtueBJPe8bDxo6eWPnhW2/9KtXqFtJccMlFu3jGjQ+bLAfgaFOSAa4UpINDNYbGpjgzt8rI2CinZ5Yf0+oskKQZNuugVUySdBBxjdwM8r5//eIv7br4yX8+t9hGqNC38wok+/Zu+7luCmFYEMUhFuZO0+0aorBEZUgQx2kjLCafCqCbw4ljh5EISmFEu73EJz/5ce699yuu064TyRCFQsuASy7cwYue9zih4qJsrcfEorxpvTDh2yJwL8rV24qp8CWaHKUsnfbK5eVKSJuQgcooXdct/E0CYRXYEiYzpAIyE+BcNVXU5jUBhhatzuLDkYnP1UUhRNHoA7Fh0vi9IiSqqISV64rvRmf/Bk6fONV84fLyKioMAEsQaJrNOqaZoJ1CUCbJBWNjIzS6TYxJGRkd4szpWer1JkJFTIzXuPzSHV/0nrcOEoOlysqyuaLVniGIUjp5izAaoFKN77vjtqOPFLLYfVSGnDi6yF/8yTsuq1UqBHKEZsNQrZTZvnuYZz77MX956YXB2w4f4sbZUytoSqQ2oVqVjI1WPt1OkJUI21plx1v/8WPHPv/5O1CyTJ402Ld3imc/5wkfesITtzwL4D1fvOd1w9XdrNQt1UqVa665pjU6yFwAhZktSVLIEs1AbZRmY4VON0WIgPm5BoGsIoKYrVu3MlgLuee+g2g1ytduO8lHPjJ/5PixVbAVwBGFiq0T1Q/UwvVhP3ls5tVLMyskpkZpsMT0xDg7to78jcTnihskhw60X9Fc7eLygCzJKZeGaK4mHFw9SqAFpSCivtwg1JLdU6NoXbgfC9GcZaZwn6nCh91zLDy4mruBwD1XWHbWF7QKcbRYXV18opKOtJkQDpQw1uuwkVRo6SAKETpGS0lFjzMa7vrnkFoGgoxOrd6cfWLm2jjhMNainEYptVbxeu6Pcw5jXOmb6ecAy4tLN9RqNc7MNVE6ZmSkxlWXno/MVxG5JVLD3H73AeYbdYxzRKWQIAjodhOk0MRxTKdZZ3x48OM2h1B7DVwCy/MLTzt17DCCMoiUUilidHDo00ePnHpJty0oRwMk3RZXXXUFZ86cYWWxyeJqg3IU89jHXM1LX7G3XK7SAThxdOlHXRYRiEEsq4wOD3DhHv0eCdx7r/2+v33bu9558vg85aBK0ulw7aMu5oUvfMo1u3ZyK8DKCrVOM6HbTCmVhujmEEWl48J46SXwHc1PnOHRx46e5ujRDkMjI1QGI3bsnHznbbff8kIpFQEh+/acz5OevOcVb37r/F8fPNpBhhXe/f4PhZE2WKPQSjI5MsZwjQPC+q0c0hxOHD7+46GugKiiidm1fTexwmZpmzD0Sf6njp766VDERFLhpGGgKnnc4y4njg3d1qov59eaSini0kt2/XAcUvTMA6UEQaCw1ucmfzuqhF6bXoATPRLnCLfe1ie1aZClnS1RFJgwLas4igmCsk9Q6/qHnTuIwxglJIEcWiiFo3d2u4hSLJ21yUCat8rlSoASNV9xLHxpkFQWYzKs8JE2YTTSBURhTBiGs2dvj70BzmEdHDhw8IY8AyUjatUhrn/StbzoBTvjSJHEGroNwte/oZ7U7z6GcIoojhkZHmdlpkElrtDpplQrZVwq4kiCMn5D8GYDbv7sbb/QaaW4MGBooMY1V1+ddDtMNpYg7wxSKpfYcd4Ar/35Jw7edYf5xb9+8zt+IVIR9ZVlPvmpDzCx5antZz//UpGmqCMHjz0zEFWsrVCJNOfv2U2WwRc/N/uxd7/zX7+72cjotBLGxzQ/+OLn3PGEx+++qlbFGgN5BsM1Gu3GCjrMSEwT50oEMliJBHQbEFchN3DLF/bf3K53GRlRyHiZa5/wcESwMLK4eII8FeSpY3gg4vLLeduTrrv0r2be+zXltODUyeMMViLKahCs4MILLqAS+aCPxkvIU0dPUo0qrDah2+4wPjqRlgPQokovuW/xzMrFrZU2SSvGCXjYFZfx8pdeLnqagMZvSZF1i8oL4cv0feJ6Ee+TPmyv1bnNTTY+/97xziL5BkNuA5SMs4mx3X9Tqu061UzTnTISDSNN0Gy2Lh8qjdxiclvtuGxUhrJhrY1jU5udLp3/NyVZBTKwURIxulKtDp9Gq06nm+5QDqOE7CrtusaYqnNOC6ESZxUYKStR+UA13PIlWUSu1lCEf1yR0bQ836Db6FKLhrFJgy1Tg18ol0h6G8B2u4zPnD6BVo48swyVSzzyyq2vas6f/rMD99VxRpJ2JO9814d+sRw+9/RQVexvNlYfcdNNX/+dz990G3E8TDPtMDo0zPXXbb3s1luW36kpoVxIlqbs3DVFHFK/9tHqFz//6S2/8PUvHyAuWcJY8bnPfppHPebCx27dGtw0O7NInhmypEOkoRyP8oH33eX+9f2fp9kwhKpEqTTCk69/ApdevvsHV+pcODOT7dAyqIchK6t1c3EYxYQ6ptu2aOX41w9++NHD+nGfvuKSLa9cPpZd9qUv3/HuT3zyq74XBylaCq574iOe9vWv3/6RrNOkWhrBIKiV5aICrr/+4vGbvnxg6dDRebZMjNJttdFOkmVddu0cuxlZKJYOkg4cO3wGk5bBCkqRZe95W3+9p9I5C50ONBsZqyttkCGVgQrOOe4/wPetLC9+VxyKxWqpfG+nsfKwIDCdbdND/zQ9WflGGPp2VqYoYVfKh5S/6eq7lswjzn0tOOsDINFU2TH28DdBzmjk0wjBwlARYIh6mrNd+4ail7eriOTEwqMv/p5hQ1bKnS2tHdnhhFgrsuu96tsFOuFwYaKJfZl7cS9JkngDCc3CbLb78P5ZhuJRllZnKFUdF543+MZeG4vcwNHjyYuWl+tU4hHIuoyUJHu28x7xxIvGb/3yR39NB+N0Oo6jJ+r8yZ+//01RqGg267RaLZyoYGyXiy/azfNf8KzXTg5z4MSRow83SYK1XcJQsWVygEoIaQJPeOwl7/nG1778/Dx3OBcxc7rDHbfNvHV6cvtFx0+cRkUWGeREpYi77jzFXXfdRaBqZFiUiBEi59M3fZ1bbrvntuYyfll2bYIoRcgW11zzeIYPW5L2MoiMMydmeOOb3nfdZZddct/c3BwLS4u+fEk6xseGeO7znnHzhTv46If/eR5tQgQZQ7WYPedP/TYGhqosf8+zrn/Tn/zJ215tulCTQ2BC8qzOtt3qPU4VW5RbODnDo5stiTUR1TiEYJGJMb5spHd/CQmdlMr9B05TG5ogyQPqzQZfuvXrfP2O294ZyAAlNFnHEkaadnue7/++61/+vc/ZN9bjmVLrOTjrf39zPIiJ92BWX0CvU+BDtVt7qNd9iqBGUcY51wGvEwI+nv5Qes5ZE8v61lRCrFmlSZKwtLRyQ9JqokWZsWHN2ERIqOqRs4PFJjJwz723/36etZEIQumYHIuoxsxeekn111/9qhc97h//6RNPWl7J6Ha6zK/kBFKT5xlKO0oVxVVXXcwNT3nSCy+6iHfNznLhwfu+gpJ1xiYGSJMltk4NfEkBpQj2nDf++5deMv38O+86SJ4l1KqD3H/v/n1DQ2NvEiJB6SaCgFJ5iGZj2beqMh20sgid00laZAsJUb1Ct1UiDMq+ri1skaSn+KGXvfjVV166d+kdf/+Zd+w/+A3Gx6s4V+L2O+9HyIxqRWFcg8su28uNT7v+Nx7xsOqvnzrOIzuNFYYqAe3mCuMjW9g6LT8mhPd+PO4x5f916xd3vfrWW+4mTxJCPcCWHUOMTqgvQYIpds7cv//QnzhycA2ElFx68SiDA+awEz6/JE3h2PHVV3TTFYxLcQ6i2CKlodsxtPMA6UKyVFCKFJWBElEpPPGAPbY9ax6CTQ9Ck+9kp87/v2DMxg6Q668dP7Z84y1fOfmvUlYWZdAKBobU3Y++9rLHRhvcxnfdOfuzBw+c+B1nA2ttHu/avfX3H/7IqZ8Hv2ocPd697ujx2Z88cvjks1aW6wgrGByssWPX9Oe2bpt46/nnV9+hi/HspnDTZ792qNlIz8NFVivXfeKTLt8yMhis9hJevnH76V/df+DIbxgrKJeqszIIl7ft2P5Hp06deuXyauNKpbQdGhz7VKeT7E7TdEoII6SUXa31aqfbPM+KLmEYtfM00rggs6ZbGRzQBzK7eN53PelxuhzDyaM84sSJM6+6b/+hH1xa6hJXYsLYMDoSccVVFzx/anLkvXHs19KlJUZu/dIdX+u0Ors63Tbbt45+6bonX/6Y3FqcNORYZueaj7vr9tNv6dTdLiGCdqViTz/+u3ZeXtI4RwWB4I5vnPmlw4dnfjFLZNWQcN7e6tuvvGrXS0tSkOQJWcpAu6tHbvnSvbeuNt240pFJXa6UNr6q20Uo4rZzKEkSlQfSmYdfecEzdkwOfPWb9KD8lvhPJ/CDHX8jEb/d8/e+s7FSNUm8BZ6bIpUv6CWb5xjn1go/e7nY1vqMLoDcFl0f8UR2hbUN3iEv5Yby7mKjb01Au2uJoxBckQYIgKXdyYnCoqVWsQt7khQZVsXWYu2uv74w8OcIgnVVR27MImP9OoIA6quUBgbp9LpRgs96SzMQhb4kBLS7qazE2uLDOWRGEBXbXa5XfvjUzUAaMhIMBkeJNA0Itc8eC0IQdPDNA0tAsLGIYq2RoqZLkjQGK1G86giwlGh3JDKgyJn26E1uWZSBOec9pCF5sV/Uty9xH8CL/9cl8Ho7K48kSfARrmAtARzWUlqxLsG6FCmK3lvWb663ZgmK3iTwhqAtqhjORe+M7WS5VI7CjiysFWM1SkZr/ug06xIWW6haK9nQ24W0cHGZYnKcO9LCfwtnLQ7tG5Lgu2b0lLK1PhvCX0uoXSdUNZJOQBD5IGqWQ6DxHYWED/+HOgYK56iFLCtaSxWTMu1aziycuXF629hH23kuI1GxPqjkJ1tmlmSkQiuIaXUs5VJIlnpyJ8YRKEGWdYh1hhKQ55I8D4nCEIPPEIxi8PnSPiG015PDp9tkSDIkvY3W/2P4LyNw77z/J2HDB/2+E+S5QWnno+Gu6CB0lntlPYm1V/0hpMSarEhshzXdfy0jDhC+vy3YgqgxvtYrIGkbgkiByAvHey9bztd59XJZhYQkaxNo5aUPrujgXrTQUtIzDA1SkaVdnIAgiNeOB73EFoEgoZs4Yl1bzysu9P0sT1BK+GbTzrvftPb6aRj1msF4F+HHP/5pl9mEG551nSpFsRUOWk1EqYRTGrIsIQxCn8pVCApjvfQ1eALLYtRM3kWpGBx0u341jMv+8nObIqQtjHog89I5y7wRzLfyNnwLfMdbzX4rPBhRey1Mz339m33fWruhycXZ39NFCcqaRC4Y5Ezml9g11iqE6NV4gXTRWWLR9rqlr41nQKfTUaVyyYRBSJ7lvmmLhCgqyjak76Rp85xA++oKJVmPGDq/obcQvbT8nqoiig3KHV5blWC9P1sWeSKnTzWvvOvOA+/47u++6pIwCulmFkxIHIWkXfjSF0++a2Zu+Xnlijr6sKt3PGdqunpXZtoEKiTP4L576j96793H/7xcLt+/94Jtv7hzd/ihKILllfSKU6caPONZT3tEHGm70rKle2+f/dPZmZXnbts69jd79o6/bnQkWrrrzqWfmD2dPFWKoC1UKlWQuFI1Wdq9Z9evLMy1rl9Zqj/h4gt2v2poIE4zA/fft/LSu+8+9LdTU1v+9qJLp3+qOkAdGaLxk+ieu078tukycPU12/9Xb4X4TvH/iw78H5WyG7+/kfDGFGHcoqTHK1XqgVn8Av++MGAtxjovKax3pAexf7uodHkgjPP1966onZM+H9kXnuEFR2/uFEWSveP0pJ8v1nNeacVikhQVxv7YSq2fd0NxuBPQbsLnPn/7/R/9yMcv+F8/+eNP37mn+hFVVJPccfuZX3znP33gdzstS6U6SrO1jAobfO/3Pe2d11xzyYtOnlx57Dv+/sNfmJltsmVqDydPnmR27jjf+4LnNJ964+W1z9+0/5b3/ssHr3nV/3rVy4cm48//87vee2BpPmewOsSBg3exY8cEP/HqHxj8l3d9ePXgPXVm55apVFN0nLBl2yDf84Lve/6/ffiL78kTeM1PP13MzbPjH/7hn48dPXqU0fEJ5ufnieOAH3vlK563a3ftfVrDLTed+uu3/fXfvzyQAb/zOz87PTnJzHrB8H8c/+kS+Dsh78bvbzyOOrfzW/HexhL3dRTRRVlUKhfEC/yGnX4ERNFlvLeU9ZL8JazlSLPh73PKvXulNg5PMCe8Qbn2vTULTaJ6vaF6UppCz1WQ5g4dWHKnUCHc/OXbLxgYG6U6Wr0F5dWFEyfyR7zpzX//uxdfso/nPvdZl46Pc/exY8kzf/GXfvWD37hj6YUXXcz3/9M7v/iF46eXeNWrf+Jpu3erj8oA/vLNH3cL9dWqiuHoyflrolqF2kjpKx/51y8duO+eOV7+slf+7IX7xJtvu+2Kt9955xeeXxt29Re/7KlidVZd8oY3/u1dU9NDvOqnvl/g4NTp/PqvfvUwT/nu57S6GbzpL95/rNlZ4Gd++aeumZqObt2//+Rr3/72t//+oeMHf3v33qvet7DI2N/+zUdfPjS4j+XlGQ4cXfyZ2vjoayOZo9aKFf5j+I9/8/8JbKgkOXeeiHN+9z5/7uuiJ057GqX1hH7QCpWN3/HH8AbKeizGFVbK2o663wwFr3NnfQ0evnwLAUdPZNcdPnqG7Tt2URlk0eCzVP7tY1/4SmYjnnrjjU+Z2s7dKobRyeizg0NbEGqEO+/k57769ft4yUt/8NfOu1B99PRCftW/f+qeOx/3+Ot+8PkveJw+foqH33XvfUxsG2NqG3dedsVVvyJ1zFve9pY3/NVff6KFk+5FL/neEUuXcqRotMye2dkZHn715V8pxaBCWFqsP6nZ6nLBhdtf+9Wv8qsnT83ywu9/0a9u3RrdioSL9m37g1f86Mt+6JpHX3VZs4X64z9+z/zDr76OH/+J5zwhiAc5eOjYzyoN7bz1nXjQgE1PYG8U+f9yT5pile8RyBekmuLngZ/z2ODDetBzeOnZ81Y4ANGzrk3RkKToE0ZBfVFoGsLSqyr0zVsKYhe2kRHglI/ZikD2phCnzyx+f241O3af9ymtoZWlstHOakePnWTrtp3sPj/4WCfxxzh1OnnmykqbsYmpL95+x22v7+Ytrnj44G/mwJdu/dLXv3DTly79kz/967ffdRc/m6YMnpmd4fx90zhgemv8wdf+/MuuecqNT1hypPzlX77le2695e5brPFpaCdPLPzwynKDqampvzfOuxYPH9n/C1EpY3Kaz9/y1Vt+I7MJ5+0dfmNaeEyOnJ57TidJt1uBvOf++d+9+757aXVb3H/A/siJkye59/4DWCDUZfMQIuLbxqYnsEdPivYkZ++13usP9rkeera0fJAfjd85Qhfklef8Xj+PLI4ti2uQ2LW/1yT7BoneI/Faiyx6yo4ks3Dq1KmXA4yOjH8YwDmUlLpVikNOnTzBwYPpM0oRHD6c3vCP//iP/3Denu3c+NTRxyqd4WyLu+9e+pmsC49//OO2XbRvH+3uKgMDHJhfaNyQdFfZtWPnH3zsE7fMv+lP3nSHcPCcZ+0bvf7JT/hZa3OSdrIzVoo0g/333/30vefvZnho4AtKQNqFO+64nUsu2cPEJHdbU6dcEsycaj0nFHDmTOfqN/3hW9731Vu+8Zv1pezKt/zln//c+edtpd2a5ytf+/z3j47WWFlZotlGrhmv3wH+n/cDf3M8GEl72ChNH+oeBb4pCw8lfM8+wgM+00s/9QEGx1rbFNZbf3jjbZ3wZ7uNzMY85yIxPDPwz/94k7v5S19HKUdctkTlhGc+85n/YLPB1oc+8LEfS5IGAwMDzC8sMTQ6xLOe/fTXXXrp5C/Vl9nxl2/+u2OHD53iiiuuwtqUlfosu3ZP8tznP2Pk3//t40sH9h/m1a/6iZGlRXfV77zudZ8aHx9namKMlZUVRoZGee7zn/roiSlxS57n5Tf+3ttbe867gKc98wmjIyNyaf99qy/6/T/443fccMMNPPf5jxInTthHvvGNb7g16bbZs2cPc7PLjI9N8pznPuN7Pv+Fz7z79Onj/MiP/Nj5Y2PiULPBwCc/cd+ZW7/y+fKP/sT3Pvv83UMf3Ggq/EewyQncw0apu/F+/NLPOdJyzY+GBBecFeT4ZjhXpxVnSdWNBmBxCnH2BPP/P5vAa4WMjvXdjoA77pj/6YX5xg3lauXupeUzz6zW3LGLLrrwZaMj5eP33bP8shNHT/1Mo9G4eM8Fe355+66JPxsepp7mYDMfCbztayf/aXZm4QVxSZ2+6JJdP7Zzd+0jSsKhQ4demeWh3r11+5uiEhw5njzx0KEDb2jWGw8fGBi6+buuu+janjaVZoa77jj8pqnJLW/fsrXyVSS0W3Drl+/8/N6Lzv+J6enSne02JG0zdvvtd3x8fm7lqp1bL3zbo6/d8goB3HbHqd8YGAru2LFj4r3WeMN2YZ6p2bml5+25YOTP4xAC8T+dwD3+CDYQBnol+MADCSp6yzpgNyROrLnd4OzOnOd8f00t2CDBe9gozc8633rVyVmfc2kR5/XLqS3CwLZnVzrvKpYaOt0OpSjwJVnGR+Cs8u66TrdDKS6Rpo4wFCQtKJVYK9XqtctKuglRHCGdD22HZa9QuSKaJyzMLyQ7Jsej4z23pLXru1VJSVFFnpHkHUp6gLRriULvhkk7EETFpJTrqlLvnk1eFG9GGZCjfK/QB471t4n/XgSGdQ/BRgKeK5Sh8DRwtgrR2wVybcDlA793lhQXYNcjeOuS99zv9I4tz3qY/u8E8A0AxdreYfi+YgWB5RrvcwQGY0HaqKjD9d3kYT2HNkky4g0ZTb1wtDXO72xU/PaGaEbXpISq5ndT7eVouCJHQ6771p2DzBi/46dIEUCaSUJdBqDbtsSRPHsclMXZjG5iiWPfid0bsC0ymxLKGv+zCfwfxoMQ/VwCfqvvfrPvf1vH6R1rYyHtOZL/rNXjQc571uv/EYOot0XBhsZd31KlOld1+hbC4kELhXuGtHyQ9759/A8mcB//HfDfxI3Wx/9U9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpkafwH1savQJ3MemRp/AfWxq9Ancx6ZGn8B9bGr0CdzHpsb/BwYK9FnfKVo3AAAAAElFTkSuQmCC" alt="NH"/></div>
+  <nav style="padding:10px 0;">
     <button class="nav-item active" id="nav-quadro" onclick="showPage('quadro',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Quadro Geral
     </button>
     <button class="nav-item" id="nav-historico" onclick="showPage('historico',this)">
@@ -163,8 +184,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   <div class="sidebar-user">
     <div class="sidebar-avatar">GR</div>
     <div>
-      <div style="font-size:13px; font-weight:600;">Gestor Operacional</div>
-      <div style="font-size:11px; color:var(--text-light);">NHL / ALCOA</div>
+      <div style="font-size:12px;font-weight:500;">Gestor</div>
+      <div style="font-size:10px;color:var(--text3);">NHL / ALCOA</div>
     </div>
   </div>
 </aside>
@@ -172,12 +193,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 <main class="main">
   <div class="loading-bar" id="loading-bar"></div>
   <div class="topbar">
-    <div class="topbar-title" id="page-title">Dashboard de Manutenção</div>
+    <div class="topbar-title" id="page-title">Quadro Geral — Manutenção</div>
     <div class="topbar-right">
       <div class="topbar-date" id="topbar-date"></div>
-      <button class="btn-primary" onclick="carregarDados()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 1 0 3.84-10.36l-5.46 3.12"/></svg>
-        Sincronizar
+      <button class="btn-sm" onclick="carregarDados()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        Atualizar
       </button>
     </div>
   </div>
@@ -185,111 +206,186 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   <div class="content">
     <div class="page active" id="page-quadro">
 
+      <!-- CARD SEMANA -->
       <div class="semana-card">
         <div>
-          <div class="semana-label">Ciclo de Inspeção Semanal</div>
+          <div class="semana-label">📅 Ciclo semanal de inspeção</div>
           <div class="semana-periodo" id="semana-periodo">—</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Meta: 2x Freio · 1x Pneu · 1x Susp/Trans por veículo</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px;">Cada veículo deve ter 4 inspeções: 2x Freio · 1x Pneu · 1x Susp-Trans</div>
         </div>
         <div>
+          <div class="semana-label" style="margin-bottom:6px;">Dias da semana</div>
           <div class="semana-dias" id="semana-dias"></div>
         </div>
       </div>
-
+      <!-- KPIs -->
       <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-val">62</div><div class="kpi-lbl" style="color: var(--text-muted)">Total Frota</div></div>
-        <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background: var(--ok-bg); border-color: var(--ok-border);">
-          <div class="kpi-header"><div class="kpi-val" style="color: var(--ok-text);" id="kpi-ok">0</div><span class="kpi-pct" style="color: var(--ok-text);" id="kpi-ok-pct"></span></div>
-          <div class="kpi-lbl" style="color: var(--ok-text);">Inspeções OK</div>
+        <div class="kpi-card"><div class="kpi-val">62</div><div class="kpi-lbl">Total Veículos</div></div>
+        <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background:#97C459;border-color:#3B6D11;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#27500A;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#3B6D11;" id="kpi-ok-pct"></span></div>
+          <div class="kpi-lbl" style="color:#3B6D11;">Inspeções OK</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background: var(--warn-bg); border-color: var(--warn-border);">
-          <div class="kpi-header"><div class="kpi-val" style="color: var(--warn-text);" id="kpi-parcial">0</div><span class="kpi-pct" style="color: var(--warn-text);" id="kpi-parc-pct"></span></div>
-          <div class="kpi-lbl" style="color: var(--warn-text);">Parciais</div>
+        <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#FAC775;border-color:#854F0B;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#633806;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#854F0B;" id="kpi-parc-pct"></span></div>
+          <div class="kpi-lbl" style="color:#854F0B;">Parciais</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('pendentes')">
-          <div class="kpi-header"><div class="kpi-val" style="color: var(--text-main);" id="kpi-pend">62</div><span class="kpi-pct" style="color: var(--text-muted);" id="kpi-pend-pct"></span></div>
-          <div class="kpi-lbl" style="color: var(--text-muted);">Pendentes</div>
+        <div class="kpi-card" onclick="abrirModalKpi('pendentes')" style="background:#D3D1C7;border-color:#5F5E5A;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#444441;" id="kpi-pend">62</div><span class="kpi-pct" style="color:#5F5E5A;" id="kpi-pend-pct"></span></div>
+          <div class="kpi-lbl" style="color:#5F5E5A;">Pendentes</div>
         </div>
-        <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background: var(--err-bg); border-color: var(--err-border);">
-          <div class="kpi-header"><div class="kpi-val" style="color: var(--err-text);" id="kpi-atencao">0</div><span class="kpi-pct" style="color: var(--err-text);" id="kpi-atenc-pct"></span></div>
-          <div class="kpi-lbl" style="color: var(--err-text);">Atenção / Substituir</div>
+        <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background:#F09595;border-color:#A32D2D;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#791F1F;" id="kpi-atencao">0</div><span class="kpi-pct" style="color:#A32D2D;" id="kpi-atenc-pct"></span></div>
+          <div class="kpi-lbl" style="color:#A32D2D;">C/ Atenção/Sub.</div>
         </div>
       </div>
-
+      <!-- BLOCO FROTA -->
       <div class="bloco">
         <div class="bloco-header">
-          <div class="bloco-title">Frota Própria <span style="font-size: 12px; font-weight: normal; color: var(--text-muted)">42 Veículos</span></div>
+          <div class="bloco-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+            Frota — 42 Veículos
+          </div>
           <div class="subgrupo-pills">
-            <span class="pill">Bitruck: 13</span>
-            <span class="pill">Cavalo: 14</span>
-            <span class="pill">Carreta: 15</span>
+            <span class="pill">🚛 Bitruck: 13</span>
+            <span class="pill">🐴 Cavalo: 14</span>
+            <span class="pill">🚛 Carreta: 15</span>
           </div>
           <div class="legend">
-            <div class="leg"><div class="leg-dot" style="background:var(--ok-text)"></div>OK</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--blue-main)"></div>Parcial</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--warn-text)"></div>Atenção</div>
-            <div class="leg"><div class="leg-dot" style="background:var(--err-text)"></div>Substituir</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--ok)"></div>OK</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Parcial</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--warn)"></div>Atenção</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--err)"></div>Substituir</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>Pendente</div>
+          </div>
+        </div>
+        <!-- Cabeçalho -->
+        <div class="vgrid-header">
+          <div class="vh-cell vh-tipo" style="text-align:center;">Tipo</div>
+          <div class="vh-cell vh-id" style="text-align:center;">N° / Placa</div>
+          <div class="vh-cell vh-check">Freio 01</div>
+          <div class="vh-cell vh-check">Pneu</div>
+          <div class="vh-cell vh-check">Freio 02</div>
+          <div class="vh-cell vh-check">Susp</div>
+        </div>
+        <!-- Linhas -->
+        <div id="grid-frota">
+<div class="vrow" data-placa="GHJ6G65"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">1</div><div class="v-placa">GHJ6G65</div></div><div class="vcell vcell-check" id="f1-GHJ6G65"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GHJ6G65"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GHJ6G65"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GHJ6G65"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RNV9E31"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">2</div><div class="v-placa">RNV9E31</div></div><div class="vcell vcell-check" id="f1-RNV9E31"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RNV9E31"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RNV9E31"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RNV9E31"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RNV9E29"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">3</div><div class="v-placa">RNV9E29</div></div><div class="vcell vcell-check" id="f1-RNV9E29"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RNV9E29"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RNV9E29"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RNV9E29"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RNW2E97"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">4</div><div class="v-placa">RNW2E97</div></div><div class="vcell vcell-check" id="f1-RNW2E97"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RNW2E97"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RNW2E97"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RNW2E97"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RNX3A94"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">5</div><div class="v-placa">RNX3A94</div></div><div class="vcell vcell-check" id="f1-RNX3A94"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RNX3A94"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RNX3A94"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RNX3A94"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="DCU4I05"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">9</div><div class="v-placa">DCU4I05</div></div><div class="vcell vcell-check" id="f1-DCU4I05"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-DCU4I05"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-DCU4I05"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-DCU4I05"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FRF4H17"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">10</div><div class="v-placa">FRF4H17</div></div><div class="vcell vcell-check" id="f1-FRF4H17"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FRF4H17"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FRF4H17"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FRF4H17"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="BZA5G73"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">11</div><div class="v-placa">BZA5G73</div></div><div class="vcell vcell-check" id="f1-BZA5G73"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-BZA5G73"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-BZA5G73"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-BZA5G73"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FIM4D42"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">12</div><div class="v-placa">FIM4D42</div></div><div class="vcell vcell-check" id="f1-FIM4D42"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FIM4D42"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FIM4D42"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FIM4D42"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="ESP4G25"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">72</div><div class="v-placa">ESP4G25</div></div><div class="vcell vcell-check" id="f1-ESP4G25"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-ESP4G25"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-ESP4G25"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-ESP4G25"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GFA7C06"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">73</div><div class="v-placa">GFA7C06</div></div><div class="vcell vcell-check" id="f1-GFA7C06"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GFA7C06"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GFA7C06"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GFA7C06"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GGL0D24"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">74</div><div class="v-placa">GGL0D24</div></div><div class="vcell vcell-check" id="f1-GGL0D24"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GGL0D24"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GGL0D24"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GGL0D24"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GBO1J82"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">BITRUCK</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">75</div><div class="v-placa">GBO1J82</div></div><div class="vcell vcell-check" id="f1-GBO1J82"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GBO1J82"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GBO1J82"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GBO1J82"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FKH1B56"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">80</div><div class="v-placa">FKH1B56</div></div><div class="vcell vcell-check" id="f1-FKH1B56"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FKH1B56"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FKH1B56"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FKH1B56"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="QRIIG41"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">81</div><div class="v-placa">QRIIG41</div></div><div class="vcell vcell-check" id="f1-QRIIG41"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-QRIIG41"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-QRIIG41"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-QRIIG41"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="QXZ8F44"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">82</div><div class="v-placa">QXZ8F44</div></div><div class="vcell vcell-check" id="f1-QXZ8F44"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-QXZ8F44"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-QXZ8F44"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-QXZ8F44"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="QXZ8F46"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">83</div><div class="v-placa">QXZ8F46</div></div><div class="vcell vcell-check" id="f1-QXZ8F46"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-QXZ8F46"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-QXZ8F46"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-QXZ8F46"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FUL3D81"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">84</div><div class="v-placa">FUL3D81</div></div><div class="vcell vcell-check" id="f1-FUL3D81"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FUL3D81"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FUL3D81"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FUL3D81"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="EXO0324"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">85</div><div class="v-placa">EXO0324</div></div><div class="vcell vcell-check" id="f1-EXO0324"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-EXO0324"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-EXO0324"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-EXO0324"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GJH9D85"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">86</div><div class="v-placa">GJH9D85</div></div><div class="vcell vcell-check" id="f1-GJH9D85"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GJH9D85"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GJH9D85"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GJH9D85"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GCX8D57"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">87</div><div class="v-placa">GCX8D57</div></div><div class="vcell vcell-check" id="f1-GCX8D57"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GCX8D57"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GCX8D57"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GCX8D57"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="QXZ8F43"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">88</div><div class="v-placa">QXZ8F43</div></div><div class="vcell vcell-check" id="f1-QXZ8F43"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-QXZ8F43"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-QXZ8F43"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-QXZ8F43"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="EYH2G86"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">89</div><div class="v-placa">EYH2G86</div></div><div class="vcell vcell-check" id="f1-EYH2G86"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-EYH2G86"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-EYH2G86"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-EYH2G86"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GFN6H24"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">90</div><div class="v-placa">GFN6H24</div></div><div class="vcell vcell-check" id="f1-GFN6H24"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GFN6H24"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GFN6H24"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GFN6H24"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FMT5D04"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">91</div><div class="v-placa">FMT5D04</div></div><div class="vcell vcell-check" id="f1-FMT5D04"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FMT5D04"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FMT5D04"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FMT5D04"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="CUJ4G66"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">95</div><div class="v-placa">CUJ4G66</div></div><div class="vcell vcell-check" id="f1-CUJ4G66"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-CUJ4G66"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-CUJ4G66"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-CUJ4G66"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GEH8D54"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CAVALO</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">96</div><div class="v-placa">GEH8D54</div></div><div class="vcell vcell-check" id="f1-GEH8D54"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GEH8D54"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GEH8D54"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GEH8D54"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFR2A66"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">100</div><div class="v-placa">RFR2A66</div></div><div class="vcell vcell-check" id="f1-RFR2A66"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFR2A66"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFR2A66"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFR2A66"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GGZ6H55"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">101</div><div class="v-placa">GGZ6H55</div></div><div class="vcell vcell-check" id="f1-GGZ6H55"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GGZ6H55"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GGZ6H55"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GGZ6H55"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFI6A02"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">102</div><div class="v-placa">RFI6A02</div></div><div class="vcell vcell-check" id="f1-RFI6A02"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFI6A02"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFI6A02"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFI6A02"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GHR6H05"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">103</div><div class="v-placa">GHR6H05</div></div><div class="vcell vcell-check" id="f1-GHR6H05"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GHR6H05"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GHR6H05"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GHR6H05"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFJ7H29"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">104</div><div class="v-placa">RFJ7H29</div></div><div class="vcell vcell-check" id="f1-RFJ7H29"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFJ7H29"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFJ7H29"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFJ7H29"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GJY3F67"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">105</div><div class="v-placa">GJY3F67</div></div><div class="vcell vcell-check" id="f1-GJY3F67"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GJY3F67"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GJY3F67"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GJY3F67"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GEN4G58"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">106</div><div class="v-placa">GEN4G58</div></div><div class="vcell vcell-check" id="f1-GEN4G58"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GEN4G58"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GEN4G58"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GEN4G58"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFI5J80"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">107</div><div class="v-placa">RFI5J80</div></div><div class="vcell vcell-check" id="f1-RFI5J80"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFI5J80"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFI5J80"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFI5J80"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFJ7H24"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">108</div><div class="v-placa">RFJ7H24</div></div><div class="vcell vcell-check" id="f1-RFJ7H24"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFJ7H24"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFJ7H24"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFJ7H24"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GIY0I26"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">109</div><div class="v-placa">GIY0I26</div></div><div class="vcell vcell-check" id="f1-GIY0I26"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GIY0I26"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GIY0I26"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GIY0I26"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFI5J82"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">110</div><div class="v-placa">RFI5J82</div></div><div class="vcell vcell-check" id="f1-RFI5J82"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFI5J82"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFI5J82"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFI5J82"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GDI4F13"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">111</div><div class="v-placa">GDI4F13</div></div><div class="vcell vcell-check" id="f1-GDI4F13"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GDI4F13"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GDI4F13"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GDI4F13"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFI6A09"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">112</div><div class="v-placa">RFI6A09</div></div><div class="vcell vcell-check" id="f1-RFI6A09"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFI6A09"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFI6A09"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFI6A09"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GIT6C68"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">113</div><div class="v-placa">GIT6C68</div></div><div class="vcell vcell-check" id="f1-GIT6C68"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GIT6C68"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GIT6C68"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GIT6C68"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="RFJ7H25"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">CARRETA</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">114</div><div class="v-placa">RFJ7H25</div></div><div class="vcell vcell-check" id="f1-RFJ7H25"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-RFJ7H25"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-RFJ7H25"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-RFJ7H25"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+</div>
+
+      <!-- BLOCO TERCEIRO -->
+      <div class="bloco">
+        <div class="bloco-header">
+          <div class="bloco-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Terceiro — 20 Veículos
+          </div>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:var(--ok)"></div>OK</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Parcial</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--warn)"></div>Atenção</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--err)"></div>Substituir</div>
+            <div class="leg"><div class="leg-dot" style="background:var(--text3)"></div>Pendente</div>
           </div>
         </div>
         <div class="vgrid-header">
-          <div class="vh-cell vh-tipo">Categoria</div>
-          <div class="vh-cell vh-id">Identificação</div>
+          <div class="vh-cell vh-tipo" style="text-align:center;">Tipo</div>
+          <div class="vh-cell vh-id" style="text-align:center;">N° / Placa</div>
           <div class="vh-cell vh-check">Freio 01</div>
           <div class="vh-cell vh-check">Pneu</div>
           <div class="vh-cell vh-check">Freio 02</div>
-          <div class="vh-cell vh-check">Suspensão</div>
+          <div class="vh-cell vh-check">Susp</div>
         </div>
-        <div id="grid-frota"></div>
-      </div>
-
-      <div class="bloco">
-        <div class="bloco-header">
-          <div class="bloco-title">Frota Terceira <span style="font-size: 12px; font-weight: normal; color: var(--text-muted)">20 Veículos</span></div>
-        </div>
-        <div class="vgrid-header">
-          <div class="vh-cell vh-tipo">Categoria</div>
-          <div class="vh-cell vh-id">Identificação</div>
-          <div class="vh-cell vh-check">Freio 01</div>
-          <div class="vh-cell vh-check">Pneu</div>
-          <div class="vh-cell vh-check">Freio 02</div>
-          <div class="vh-cell vh-check">Suspensão</div>
-        </div>
-        <div id="grid-terceiro"></div>
-      </div>
+        <div id="grid-terceiro">
+<div class="vrow" data-placa="DWS3948"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">15</div><div class="v-placa">DWS3948</div></div><div class="vcell vcell-check" id="f1-DWS3948"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-DWS3948"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-DWS3948"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-DWS3948"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GZG7847"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">16</div><div class="v-placa">GZG7847</div></div><div class="vcell vcell-check" id="f1-GZG7847"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GZG7847"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GZG7847"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GZG7847"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="HLQ1359"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">19</div><div class="v-placa">HLQ1359</div></div><div class="vcell vcell-check" id="f1-HLQ1359"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-HLQ1359"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-HLQ1359"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-HLQ1359"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="MEL6553"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">21</div><div class="v-placa">MEL6553</div></div><div class="vcell vcell-check" id="f1-MEL6553"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-MEL6553"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-MEL6553"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-MEL6553"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="EZU0931"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">26</div><div class="v-placa">EZU0931</div></div><div class="vcell vcell-check" id="f1-EZU0931"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-EZU0931"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-EZU0931"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-EZU0931"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="GXH8030"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">28</div><div class="v-placa">GXH8030</div></div><div class="vcell vcell-check" id="f1-GXH8030"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-GXH8030"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-GXH8030"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-GXH8030"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="KOX6J02"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">32</div><div class="v-placa">KOX6J02</div></div><div class="vcell vcell-check" id="f1-KOX6J02"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-KOX6J02"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-KOX6J02"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-KOX6J02"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="CNI5508"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">33</div><div class="v-placa">CNI5508</div></div><div class="vcell vcell-check" id="f1-CNI5508"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-CNI5508"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-CNI5508"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-CNI5508"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="CLH9516"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">37</div><div class="v-placa">CLH9516</div></div><div class="vcell vcell-check" id="f1-CLH9516"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-CLH9516"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-CLH9516"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-CLH9516"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="HNG2858"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">39</div><div class="v-placa">HNG2858</div></div><div class="vcell vcell-check" id="f1-HNG2858"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-HNG2858"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-HNG2858"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-HNG2858"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="OLY9961"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">40</div><div class="v-placa">OLY9961</div></div><div class="vcell vcell-check" id="f1-OLY9961"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-OLY9961"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-OLY9961"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-OLY9961"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="HLQ1251"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">50</div><div class="v-placa">HLQ1251</div></div><div class="vcell vcell-check" id="f1-HLQ1251"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-HLQ1251"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-HLQ1251"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-HLQ1251"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="HLL2425"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">51</div><div class="v-placa">HLL2425</div></div><div class="vcell vcell-check" id="f1-HLL2425"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-HLL2425"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-HLL2425"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-HLL2425"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="FTX0B19"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">8X4</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">60</div><div class="v-placa">FTX0B19</div></div><div class="vcell vcell-check" id="f1-FTX0B19"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-FTX0B19"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-FTX0B19"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-FTX0B19"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="ETQ6J42"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">8X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">63</div><div class="v-placa">ETQ6J42</div></div><div class="vcell vcell-check" id="f1-ETQ6J42"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-ETQ6J42"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-ETQ6J42"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-ETQ6J42"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="HLQ1261"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X2</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">66</div><div class="v-placa">HLQ1261</div></div><div class="vcell vcell-check" id="f1-HLQ1261"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-HLQ1261"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-HLQ1261"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-HLQ1261"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="KWE8424"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">8X4</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">67</div><div class="v-placa">KWE8424</div></div><div class="vcell vcell-check" id="f1-KWE8424"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-KWE8424"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-KWE8424"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-KWE8424"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="LQY9B93"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">8X4</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">68</div><div class="v-placa">LQY9B93</div></div><div class="vcell vcell-check" id="f1-LQY9B93"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-LQY9B93"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-LQY9B93"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-LQY9B93"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="LQY9B95"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">8X4</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">69</div><div class="v-placa">LQY9B95</div></div><div class="vcell vcell-check" id="f1-LQY9B95"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-LQY9B95"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-LQY9B95"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-LQY9B95"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+<div class="vrow" data-placa="DPC4J43"><div class="vcell vcell-tipo" style="align-items:center;text-align:center;"><div class="v-tipo">6X4</div></div><div class="vcell vcell-id" style="align-items:center;text-align:center;"><div class="v-nfr">78</div><div class="v-placa">DPC4J43</div></div><div class="vcell vcell-check" id="f1-DPC4J43"><div class="v-check-label">Freio 01</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="pn-DPC4J43"><div class="v-check-label">Pneu</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="f2-DPC4J43"><div class="v-check-label">Freio 02</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div><div class="vcell vcell-check" id="su-DPC4J43"><div class="v-check-label">Susp</div><div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div></div></div>
+</div>
 
     </div>
-    
+    </div>
+    </div>
     <div class="page" id="page-historico">
-      <div style="text-align:center;padding:100px;color:var(--text-muted); font-size: 15px;">
-        <svg style="margin: 0 auto 16px auto; display: block; color: var(--border-focus)" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M12 7v5l3 3"/></svg>
-        Módulo de histórico em desenvolvimento...
-      </div>
+      <div style="text-align:center;padding:60px;color:var(--text3);">Em desenvolvimento...</div>
     </div>
   </div>
 </main>
 
+<!-- MODAL -->
 <div class="kpi-modal-ov" id="kpi-modal-ov" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="kpi-modal-box">
     <div class="kpi-modal-hdr">
-      <div class="topbar-title" id="kpi-modal-title">—</div>
-      <button class="kpi-modal-close" onclick="document.getElementById('kpi-modal-ov').classList.remove('show')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <div class="kpi-modal-title" id="kpi-modal-title">—</div>
+      <button class="kpi-modal-close" onclick="document.getElementById('kpi-modal-ov').classList.remove('show')">✕</button>
     </div>
-    <div class="kpi-modal-body" id="kpi-modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"></div>
+    <div class="kpi-modal-body" id="kpi-modal-body"></div>
   </div>
 </div>
-
 <div class="modal-ov" id="modal-ov" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal-box">
     <div class="modal-hdr">
       <div>
-        <div style="font-size:24px;font-weight:700;color:var(--text-main);" id="modal-placa">—</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:4px; font-weight: 500;" id="modal-meta">—</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1.5px;" id="modal-placa">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="modal-meta">—</div>
       </div>
-      <button class="modal-close" onclick="document.getElementById('modal-ov').classList.remove('show')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <button class="modal-close" onclick="document.getElementById('modal-ov').classList.remove('show')">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
   </div>
@@ -298,14 +394,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-// IMPORTAÇÃO CORRIGIDA: Adicionado doc, setDoc, getDoc
-import { getFirestore, collection, query, where, getDocs, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
-  authDomain:"fleetcheck-nh.firebaseapp.com",
-  projectId:"fleetcheck-nh",
+  authDomain:"fleetcheck-nh.firebaseapp.com",projectId:"fleetcheck-nh",
   storageBucket:"fleetcheck-nh.firebasestorage.app",
   messagingSenderId:"767660468574",
   appId:"1:767660468574:web:940c5cf1164bcd9be707cf"
@@ -316,70 +410,18 @@ signInAnonymously(getAuth(app)).catch(console.error);
 const FROTA    = [{"nfr": 1, "placa": "GHJ6G65", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 2, "placa": "RNV9E31", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 3, "placa": "RNV9E29", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 4, "placa": "RNW2E97", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 5, "placa": "RNX3A94", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 9, "placa": "DCU4I05", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 10, "placa": "FRF4H17", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 11, "placa": "BZA5G73", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 12, "placa": "FIM4D42", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 72, "placa": "ESP4G25", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 73, "placa": "GFA7C06", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 74, "placa": "GGL0D24", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 75, "placa": "GBO1J82", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 80, "placa": "FKH1B56", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 81, "placa": "QRIIG41", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 82, "placa": "QXZ8F44", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 83, "placa": "QXZ8F46", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 84, "placa": "FUL3D81", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 85, "placa": "EXO0324", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 86, "placa": "GJH9D85", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 87, "placa": "GCX8D57", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 88, "placa": "QXZ8F43", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 89, "placa": "EYH2G86", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 90, "placa": "GFN6H24", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 91, "placa": "FMT5D04", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 95, "placa": "CUJ4G66", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 96, "placa": "GEH8D54", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 100, "placa": "RFR2A66", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 101, "placa": "GGZ6H55", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 102, "placa": "RFI6A02", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 103, "placa": "GHR6H05", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 104, "placa": "RFJ7H29", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 105, "placa": "GJY3F67", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 106, "placa": "GEN4G58", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 107, "placa": "RFI5J80", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 108, "placa": "RFJ7H24", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 109, "placa": "GIY0I26", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 110, "placa": "RFI5J82", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 111, "placa": "GDI4F13", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 112, "placa": "RFI6A09", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 113, "placa": "GIT6C68", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 114, "placa": "RFJ7H25", "tipo": "CARRETA", "bloco": "FROTA"}];
 const TERCEIRO = [{"nfr": 15, "placa": "DWS3948", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 16, "placa": "GZG7847", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 19, "placa": "HLQ1359", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 21, "placa": "MEL6553", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 26, "placa": "EZU0931", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 28, "placa": "GXH8030", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 32, "placa": "KOX6J02", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 33, "placa": "CNI5508", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 37, "placa": "CLH9516", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 39, "placa": "HNG2858", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 40, "placa": "OLY9961", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 50, "placa": "HLQ1251", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 51, "placa": "HLL2425", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 60, "placa": "FTX0B19", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 63, "placa": "ETQ6J42", "tipo": "8X2", "bloco": "TERCEIRO"}, {"nfr": 66, "placa": "HLQ1261", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 67, "placa": "KWE8424", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 68, "placa": "LQY9B93", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 69, "placa": "LQY9B95", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 78, "placa": "DPC4J43", "tipo": "6X4", "bloco": "TERCEIRO"}];
 
-const TODOS = [...FROTA,...TERCEIRO];
+const TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
-const osCache = {};
-const STATUS_LABEL = {pending:'Pendente',ok:'Aprovado',atencao:'Atenção',substituir:'Crítico'};
 
-// FUNÇÃO PARA RENDERIZAR O GRID DINAMICAMENTE (Código Limpo)
-function renderizarGrids() {
-  function gerarHtmlGrid(arrayDados) {
-    return arrayDados.map(v => `
-      <div class="vrow" data-placa="${v.placa}">
-        <div class="vcell vcell-tipo"><div class="v-tipo">${v.tipo}</div></div>
-        <div class="vcell vcell-id"><div class="v-nfr">FR-${String(v.nfr).padStart(3, '0')}</div><div class="v-placa">${v.placa}</div></div>
-        <div class="vcell vcell-check" id="f1-${v.placa}"><div class="status-badge s-pending">Pendente</div></div>
-        <div class="vcell vcell-check" id="pn-${v.placa}"><div class="status-badge s-pending">Pendente</div></div>
-        <div class="vcell vcell-check" id="f2-${v.placa}"><div class="status-badge s-pending">Pendente</div></div>
-        <div class="vcell vcell-check" id="su-${v.placa}"><div class="status-badge s-pending">Pendente</div></div>
-      </div>
-    `).join('');
-  }
-  document.getElementById('grid-frota').innerHTML = gerarHtmlGrid(FROTA);
-  document.getElementById('grid-terceiro').innerHTML = gerarHtmlGrid(TERCEIRO);
+function hoje() { return new Date().toLocaleDateString('pt-BR'); }
+function tipoMod(secoes) {
+  if (!secoes) return 'f1';
+  const s = secoes.join(',').toLowerCase();
+  if (s.includes('pneu'))    return 'pn';
+  if (s.includes('trans') || s.includes('susp')) return 'su';
+  // Freios: verificar se já existe f1 para esta placa (se sim, é f2)
+  return null; // será tratado em carregarDados
 }
-
-function tick() {
-  const now = new Date();
-  document.getElementById('topbar-date').textContent =
-    now.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'}) + ' • ' + 
-    now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-}
-tick(); setInterval(tick,30000);
-
-function semanaVigente() {
-  const hoje = new Date();
-  const dSemana = hoje.getDay();
-  const seg = new Date(hoje);
-  seg.setDate(hoje.getDate() - (dSemana === 0 ? 6 : dSemana - 1));
-  const sex = new Date(seg); sex.setDate(seg.getDate() + 4);
-  
-  document.getElementById('semana-periodo').textContent = 
-    `${seg.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})} a ${sex.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})}`;
-  
-  const container = document.getElementById('semana-dias');
-  if(!container) return;
-  container.innerHTML = '';
-  ['Seg','Ter','Qua','Qui','Sex'].forEach((nome, i) => {
-    const d = new Date(seg); d.setDate(seg.getDate() + i);
-    const div = document.createElement('div');
-    div.className = `semana-dia ${d.toDateString() === hoje.toDateString() ? 'hoje' : (d < hoje ? 'passado' : '')}`;
-    div.textContent = `${nome} ${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}`;
-    container.appendChild(div);
-  });
-}
-
-function rangeSemanaBR() {
-  const hoje = new Date();
-  const dSemana = hoje.getDay();
-  const seg = new Date(hoje);
-  seg.setDate(hoje.getDate() - (dSemana === 0 ? 6 : dSemana - 1));
-  return Array.from({length: 5}, (_, i) => {
-    const d = new Date(seg); d.setDate(seg.getDate() + i);
-    return d.toLocaleDateString('pt-BR');
-  });
-}
-
 function statusDoc(doc) {
   if (!doc) return 'pending';
   if ((doc.totalSubstituir||0)>0) return 'substituir';
@@ -387,41 +429,116 @@ function statusDoc(doc) {
   return 'ok';
 }
 
+function semanaVigente() {
+  const hoje = new Date();
+  const diaSemana = hoje.getDay();
+  const diasAteSeg = diaSemana === 0 ? 6 : diaSemana - 1;
+  const seg = new Date(hoje);
+  seg.setDate(hoje.getDate() - diasAteSeg);
+  const sex = new Date(seg);
+  sex.setDate(seg.getDate() + 4);
+  const fmt = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+  const el = document.getElementById('semana-periodo');
+  if(el) el.textContent = `Seg ${fmt(seg)} a Sex ${fmt(sex)}`;
+  const nomes = ['Seg','Ter','Qua','Qui','Sex'];
+  const container = document.getElementById('semana-dias');
+  if(!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(seg);
+    d.setDate(seg.getDate() + i);
+    const btn = document.createElement('div');
+    btn.className = 'semana-dia';
+    const ehHoje = d.toDateString() === hoje.toDateString();
+    const passado = d < hoje && !ehHoje;
+    if (ehHoje) btn.classList.add('hoje');
+    else if (passado) btn.classList.add('passado');
+    btn.textContent = nomes[i]+' '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    container.appendChild(btn);
+  }
+}
+
+
+function tick() {
+  const now = new Date();
+  document.getElementById('topbar-date').textContent =
+    now.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}) +
+    ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick,30000);
+
+function rangeSemanaBR() {
+  const hoje2 = new Date();
+  const diaSemana2 = hoje2.getDay();
+  const diasAteSeg2 = diaSemana2 === 0 ? 6 : diaSemana2 - 1;
+  const seg2 = new Date(hoje2);
+  seg2.setDate(hoje2.getDate() - diasAteSeg2);
+  const datas = [];
+  for (let i = 0; i <= 4; i++) {
+    const d = new Date(seg2);
+    d.setDate(seg2.getDate() + i);
+    datas.push(d.toLocaleDateString('pt-BR'));
+  }
+  return datas;
+}
+
 window.carregarDados = async function() {
   document.getElementById('loading-bar').classList.add('show');
   try {
     TODOS.forEach(v => checkState[v.placa]={f1:null,pn:null,f2:null,su:null});
-    const datas = rangeSemanaBR();
-    
-    // Divide em blocos menores (max 10 'in') para evitar limitações do Firebase (Opcional, mas boa prática)
-    const promises = datas.map(data => getDocs(query(collection(db,'manutencao_corretiva'), where('dataFormatada','==',data))));
+
+    // Busca toda a semana vigente
+    const datasSemanaBR = rangeSemanaBR();
+    const promises = datasSemanaBR.map(data =>
+      getDocs(query(collection(db,'manutencao_corretiva'), where('dataFormatada','==',data)))
+    );
     const snaps = await Promise.all(promises);
     const allDocs = snaps.flatMap(s => s.docs.map(d => d.data()));
 
-    const docsPlaca = {};
-    allDocs.forEach(d => {
-      const p = (d.placa||'').toUpperCase();
-      if (!checkState[p]) return;
-      if (!docsPlaca[p]) docsPlaca[p] = [];
-      docsPlaca[p].push(d);
+    // Agrupa por placa, identifica módulo e atribui f1/f2 cronologicamente para freios
+    const docsPorPlaca = {};
+    allDocs.forEach(doc => {
+      const placa = (doc.placa||'').toUpperCase();
+      if (!checkState[placa]) return;
+      if (!docsPorPlaca[placa]) docsPorPlaca[placa] = [];
+      docsPorPlaca[placa].push(doc);
     });
 
-    Object.entries(docsPlaca).forEach(([placa, docs]) => {
+    Object.entries(docsPorPlaca).forEach(([placa, docs]) => {
       docs.sort((a,b) => (a.timestamp||'') < (b.timestamp||'') ? -1 : 1);
       docs.forEach(doc => {
+        // secoesInspecionadas salvo como: ['Freios'], ['Pneus'], ['Transmissão / Suspensão'] ou ['FREIOS'], ['PNEUS'], ['SUSPENSÃO']
+        // Usa campo 'modulo' explícito (docs novos) ou analisa secoesInspecionadas (docs antigos)
         const mod = doc.modulo || '';
-        const secoesStr = (doc.secoesInspecionadas || []).join(',').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-        
-        const isPn = mod === 'pneus' || secoesStr.includes('pneu');
-        const isSu = mod === 'transmissao' || secoesStr.includes('susp') || secoesStr.includes('trans');
-        const isF1F2 = mod === 'freios' || (!isPn && !isSu && secoesStr.includes('freio'));
+        const secoes = (doc.secoesInspecionadas || []);
+        const s = secoes.join(',').toLowerCase()
+          .normalize('NFD').replace(/[̀-ͯ]/g,'');
 
-        if (isPn && (!checkState[placa].pn || doc.timestamp > (checkState[placa].pn.timestamp||''))) checkState[placa].pn = doc;
-        if (isSu && (!checkState[placa].su || doc.timestamp > (checkState[placa].su.timestamp||''))) checkState[placa].su = doc;
-        
-        if (isF1F2) {
-          if (!checkState[placa].f1) checkState[placa].f1 = doc;
-          else if (!checkState[placa].f2 && doc.dataFormatada !== checkState[placa].f1.dataFormatada) checkState[placa].f2 = doc;
+        // Identificar módulos presentes
+        const temPneu  = mod === 'pneus'       || s.includes('pneu');
+        const temSusp  = mod === 'transmissao' || s.includes('susp') || s.includes('trans');
+        const temFreio = mod === 'freios'      || (!temPneu && !temSusp && s.includes('freio'));
+
+        // Para docs antigos com múltiplos módulos (ex: ['Freios','Pneus'])
+        // cada módulo identificado preenche sua célula
+        if (temPneu) {
+          if (!checkState[placa].pn || doc.timestamp > (checkState[placa].pn.timestamp||''))
+            checkState[placa].pn = doc;
+        }
+        if (temSusp) {
+          if (!checkState[placa].su || doc.timestamp > (checkState[placa].su.timestamp||''))
+            checkState[placa].su = doc;
+        }
+        if (temFreio) {
+          if (!checkState[placa].f1) {
+            checkState[placa].f1 = doc;
+          } else if (!checkState[placa].f2) {
+            // f2 só se for feito em um DIA diferente do f1
+            const dataF1 = checkState[placa].f1.dataFormatada || '';
+            const dataDoc = doc.dataFormatada || '';
+            if (dataDoc !== dataF1)
+              checkState[placa].f2 = doc;
+          }
         }
       });
     });
@@ -429,142 +546,279 @@ window.carregarDados = async function() {
     TODOS.forEach(v => atualizarLinha(v.placa));
     atualizarKPIs();
   } catch(e) {
-    console.error(e);
-    showToast('⚠️ Falha ao sincronizar dados. Verifique sua conexão.');
+    console.error('Erro:', e);
+    showToast('⚠ Erro ao carregar dados.');
   } finally {
     document.getElementById('loading-bar').classList.remove('show');
   }
 };
 
+const STATUS_LABEL = {pending:'Pendente',ok:'OK',atencao:'Atenção',substituir:'Substituir'};
+
 function atualizarLinha(placa) {
   const st = checkState[placa];
-  const row = document.querySelector(`.vrow[data-placa="${placa}"]`);
-  if (!row) return;
+  const f1Cell = document.getElementById('f1-'+placa);
+  const pnCell = document.getElementById('pn-'+placa);
+  const f2Cell = document.getElementById('f2-'+placa);
+  const suCell = document.getElementById('su-'+placa);
+  const row    = f1Cell?.closest('.vrow');
+  if (!f1Cell||!row) return;
 
-  ['f1','pn','f2','su'].forEach(mod => {
-    const el = document.getElementById(`${mod}-${placa}`);
-    if(!el) return;
-    const s = statusDoc(st[mod]);
-    el.innerHTML = `<div class="status-badge s-${s}">${STATUS_LABEL[s]} ${st[mod]?` • ${st[mod].dataFormatada}`:''}</div>`;
-  });
+  function renderCell(doc, el) {
+    if (!el) return;
+    const s = statusDoc(doc);
+    const dotCores = {pending:'#B4B2A9',ok:'#27500A',atencao:'#633806',substituir:'#791F1F'};
+    const txtCores = {pending:'var(--text3)',ok:'#27500A',atencao:'#633806',substituir:'#791F1F'};
+    const hora = doc ? ' · '+doc.dataFormatada : '';
+    el.querySelector('.v-check-status').innerHTML =
+      `<span class="dot ${s}" style="background:${dotCores[s]};box-shadow:none;"></span><span class="dot-txt" style="color:${txtCores[s]};font-size:10px;">${STATUS_LABEL[s]}${hora}</span>`;
+    if(el.querySelector('.v-check-label')) el.querySelector('.v-check-label').style.color = txtCores[s];
+    el.className = el.className.replace(/s-\w+/g,'').trim();
+    el.classList.add('s-'+s);
+  }
 
-  row.className = 'vrow'; // reset
-  const states = [statusDoc(st.f1), statusDoc(st.pn), statusDoc(st.f2), statusDoc(st.su)];
-  
-  if (states.includes('substituir')) row.classList.add('s-substituir');
-  else if (states.includes('atencao')) row.classList.add('s-atencao');
-  else if (states.every(x => x === 'ok')) row.classList.add('s-ok');
-  else if (states.some(x => x !== 'pending')) row.classList.add('s-parcial');
+  renderCell(st?.f1, f1Cell);
+  renderCell(st?.pn, pnCell);
+  renderCell(st?.f2, f2Cell);
+  renderCell(st?.su, suCell);
+
+  // Borda lateral
+  row.className = row.className.replace(/s-\w+/g,'').trim();
+  const f1s=statusDoc(st?.f1),pns=statusDoc(st?.pn),f2s=statusDoc(st?.f2),sus=statusDoc(st?.su);
+  if ([f1s,pns,f2s,sus].includes('substituir')) row.classList.add('s-substituir');
+  else if ([f1s,pns,f2s,sus].includes('atencao')) row.classList.add('s-atencao');
+  else if (f1s==='ok'&&pns==='ok'&&f2s==='ok'&&sus==='ok') row.classList.add('s-ok');
+  else if (st?.f1||st?.pn||st?.f2||st?.su) row.classList.add('s-parcial');
 }
 
 function atualizarKPIs() {
-  let ok=0, parc=0, pend=0, atenc=0;
+  let ok=0,parc=0,pend=0,atenc=0;
   TODOS.forEach(v => {
     const s = checkState[v.placa];
-    const states = [statusDoc(s.f1), statusDoc(s.pn), statusDoc(s.f2), statusDoc(s.su)];
-    
-    if (states.every(x => x !== 'pending')) ok++;
-    else if (states.some(x => x !== 'pending')) parc++;
+    const temF1 = s?.f1 != null, temPn = s?.pn != null;
+    const temF2 = s?.f2 != null, temSu = s?.su != null;
+    const f1s=statusDoc(s?.f1), pns=statusDoc(s?.pn);
+    const f2s=statusDoc(s?.f2), sus=statusDoc(s?.su);
+
+    if (temF1 && temPn && temF2 && temSu) ok++;
+    else if (temF1 || temPn || temF2 || temSu) parc++;
     else pend++;
 
-    if (states.some(x => x === 'atencao' || x === 'substituir')) atenc++;
+    if ([f1s,pns,f2s,sus].some(x => x==='atencao'||x==='substituir')) atenc++;
   });
-  
-  const pct = n => TODOS.length ? Math.round(n/TODOS.length*100)+'%' : '0%';
-  document.getElementById('kpi-ok').textContent = ok; document.getElementById('kpi-ok-pct').textContent = pct(ok);
-  document.getElementById('kpi-parcial').textContent = parc; document.getElementById('kpi-parc-pct').textContent = pct(parc);
-  document.getElementById('kpi-pend').textContent = pend; document.getElementById('kpi-pend-pct').textContent = pct(pend);
-  document.getElementById('kpi-atencao').textContent = atenc; document.getElementById('kpi-atenc-pct').textContent = pct(atenc);
+  const _total = TODOS.length;
+  const pct = n => _total > 0 ? Math.round(n/_total*100)+'%' : '0%';
+
+  document.getElementById('kpi-ok').textContent      = ok;
+  document.getElementById('kpi-parcial').textContent = parc;
+  document.getElementById('kpi-pend').textContent    = pend;
+  document.getElementById('kpi-atencao').textContent = atenc;
+
+  const elOkPct    = document.getElementById('kpi-ok-pct');
+  const elParcPct  = document.getElementById('kpi-parc-pct');
+  const elPendPct  = document.getElementById('kpi-pend-pct');
+  const elAtencPct = document.getElementById('kpi-atenc-pct');
+  if(elOkPct)    elOkPct.textContent    = pct(ok);
+  if(elParcPct)  elParcPct.textContent  = pct(parc);
+  if(elPendPct)  elPendPct.textContent  = pct(pend);
+  if(elAtencPct) elAtencPct.textContent = pct(atenc);
 }
 
 document.addEventListener('click', e => {
   const row = e.target.closest('.vrow[data-placa]');
-  if (row) abrirModal(row.getAttribute('data-placa'));
+  if (!row) return;
+  abrirModal(row.getAttribute('data-placa'));
 });
 
 function abrirModal(placa) {
-  const v = TODOS.find(x=>x.placa===placa);
-  const st = checkState[placa] || {};
+  const v  = TODOS.find(x=>x.placa===placa);
+  const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
-  document.getElementById('modal-meta').textContent = `${v.tipo} • ${v.bloco} • N° ${v.nfr}`;
-  
-  let html = '';
-  [['f1','Sistema de Freio 01'],['pn','Conjunto de Pneus'],['f2','Sistema de Freio 02'],['su','Suspensão / Transmissão']].forEach(([mod,label])=>{
-    const doc = st[mod], s = statusDoc(doc);
-    html += `
-      <div style="margin-bottom:24px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;">
-        <div class="msec-title">
-          <span style="color: var(--text-main)">${label}</span>
-          <span class="status-badge s-${s}">${doc ? `OK: ${doc.totalOk} | At: ${doc.totalAtencao||0} | Crítico: ${doc.totalSubstituir||0}` : 'Pendente'}</span>
-        </div>`;
-    
-    if(!doc) html += `<div class="empty-msg">Nenhuma inspeção registrada para este módulo hoje.</div>`;
-    else {
-      const crit = (doc.itens||[]).filter(i=>i.status==='at'||i.status==='sub');
-      if(crit.length === 0) html += `<div class="mitem" style="color: var(--ok-text); background: var(--ok-bg)">✓ Inspeção concluída sem apontamentos técnicos.</div>`;
-      else {
-          html += `<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Itens requerendo ação:</div>`;
-          crit.forEach(i => {
-              html += `<div class="mitem" style="border-left: 3px solid ${i.status==='sub'?'var(--err-text)':'var(--warn-text)'}">
-                <b>${i.item}</b> (${i.secao})
-              </div>`;
-          });
-      }
+  document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
+  let html='';
+  [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']].forEach(([mod,label])=>{
+    const doc=st[mod], s=statusDoc(doc);
+    const cores={pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
+    html+=`<div style="margin-bottom:16px;">
+      <div class="msec-title">
+        <span>${label}</span>
+        <span style="color:${cores[s]};font-size:11px;">${doc?doc.dataFormatada+' · OK:'+doc.totalOk+' At:'+(doc.totalAtencao||0)+' Sub:'+(doc.totalSubstituir||0):'Pendente'}</span>
+      </div>`;
+    if(!doc){html+=`<div class="empty-msg">Checklist não realizado hoje.</div>`;}
+    else{
+      const crit=(doc.itens||[]).filter(i=>i.status==='at'||i.status==='sub');
+      if(crit.length===0) html+=`<div class="mitem"><span class="dot ok"></span><span style="color:var(--text2)">Todos os itens OK</span></div>`;
+      else crit.forEach((i,idx)=>{
+        const cor=i.status==='sub'?'var(--err)':'var(--warn)';
+        const itemKey = placa+'_'+mod+'_'+idx;
+        const osAtual = osCache[itemKey]||'';
+        html+=`<div class="mitem"><span class="dot ${i.status==='sub'?'substituir':'atencao'}"></span>
+          <span style="color:var(--text2);flex:1">${i.secao||''} · ${i.eixo||''} — ${i.item||''} ${i.posicao?'('+i.posicao+')':''}</span>
+          <span style="font-size:10px;font-weight:600;color:${cor}">${i.status==='sub'?'SUB':'AT'}</span></div>`;
+        // Sub-info: obs + data substituição + campo OS
+        const temInfo = i.obs || i.dataSubstituicao || i.status==='sub';
+        if(temInfo) {
+          html += `<div class="mitem-sub-info">`;
+          if(i.obs) html += `<span style="font-size:11px;color:var(--text3);font-style:italic;">📝 ${i.obs}</span>`;
+          if(i.dataSubstituicao) html += `<span class="mitem-data-sub">📅 Substituição: ${i.dataSubstituicao}</span>`;
+          if(i.status==='sub') {
+            const osData = osCache[itemKey]||{};
+            const osNum = osData.numero||'';
+            const osStatus = osData.status||'';
+            html += `
+            <div class="mitem-os-wrap">
+              <div class="mitem-os-row">
+                <span class="mitem-os-label">OS:</span>
+                <input class="mitem-os-input" type="text" placeholder="Nº da OS" id="os-${itemKey}" value="${osNum}" maxlength="20"/>
+                <span class="mitem-os-saved" id="os-saved-${itemKey}">✓ Salvo!</span>
+              </div>
+              <div class="mitem-os-row">
+                <span class="mitem-os-label">Status:</span>
+                <div class="mitem-os-status">
+                  <button class="os-status-btn agendada ${osStatus==='AGENDADA'?'active':''}" 
+                    id="osbtn-ag-${itemKey}" onclick="toggleOsStatus('${itemKey}','AGENDADA')">
+                    🗓 Agendada ${i.dataSubstituicao?'('+i.dataSubstituicao+')':''}
+                  </button>
+                  <button class="os-status-btn executada ${osStatus==='EXECUTADA'?'active':''}" 
+                    id="osbtn-ex-${itemKey}" onclick="toggleOsStatus('${itemKey}','EXECUTADA')">
+                    ✅ Executada
+                  </button>
+                </div>
+              </div>
+              <div class="mitem-os-row" style="justify-content:flex-end;">
+                <button class="mitem-os-btn" onclick="salvarOS('${itemKey}','${placa}','${i.secao||''}','${i.eixo||''}','${i.item||''}','${i.dataSubstituicao||''}')">
+                  💾 Salvar OS
+                </button>
+              </div>
+            </div>`;
+          }
+          html += `</div>`;
+        }
+      });
     }
-    html += `</div>`;
+    html+=`</div>`;
   });
-  
-  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-ov').classList.add('show');
+  // Carrega OS salvas
+  carregarOSdoModal(placa, [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']]).then(() => {
+    // Atualiza inputs com valores carregados
+    Object.entries(osCache).forEach(([key, data]) => {
+      const inp = document.getElementById('os-'+key);
+      if(inp && data.numero) inp.value = data.numero;
+      if(data.status === 'AGENDADA') document.getElementById('osbtn-ag-'+key)?.classList.add('active');
+      if(data.status === 'EXECUTADA') document.getElementById('osbtn-ex-'+key)?.classList.add('active');
+    });
+  });
 }
 
-window.abrirModalKpi = function(tipo) {
-  const config = {
-    completos: {t: 'Inspeções OK', f: s => !s.includes('pending') },
-    parciais:  {t: 'Inspeções Parciais', f: s => s.includes('pending') && s.some(x=>x!=='pending') },
-    pendentes: {t: 'Totalmente Pendentes', f: s => s.every(x=>x==='pending') },
-    atencao:   {t: 'Requer Atenção', f: s => s.includes('atencao') || s.includes('substituir') }
-  };
-  
-  const veiculos = TODOS.filter(v => {
-    const s = checkState[v.placa] || {};
-    return config[tipo].f([statusDoc(s.f1), statusDoc(s.pn), statusDoc(s.f2), statusDoc(s.su)]);
-  });
+// Cache de OS (placa_mod_idx -> {numero, status})
+const osCache = {};
 
-  document.getElementById('kpi-modal-title').textContent = `${config[tipo].t} (${veiculos.length})`;
-  document.getElementById('kpi-modal-body').innerHTML = veiculos.length ? veiculos.map(v => `
-    <div style="padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); cursor:pointer;" 
-         onclick="document.getElementById('kpi-modal-ov').classList.remove('show'); abrirModal('${v.placa}')"
-         onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background=''">
-      <div style="font-size: 11px; color: var(--text-muted);">FR-${String(v.nfr).padStart(3,'0')}</div>
-      <div style="font-weight: 700;">${v.placa}</div>
-      <div style="font-size: 11px; color: var(--text-light); margin-top: 4px;">${v.tipo} • ${v.bloco}</div>
-    </div>
-  `).join('') : '<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 20px;">Nenhum veículo listado.</div>';
-  
-  document.getElementById('kpi-modal-ov').classList.add('show');
+window.toggleOsStatus = function(itemKey, status) {
+  if(!osCache[itemKey]) osCache[itemKey] = {};
+  // Toggle — se já está ativo, desmarca
+  if(osCache[itemKey].status === status) {
+    osCache[itemKey].status = '';
+    document.getElementById('osbtn-ag-'+itemKey)?.classList.remove('active');
+    document.getElementById('osbtn-ex-'+itemKey)?.classList.remove('active');
+  } else {
+    osCache[itemKey].status = status;
+    document.getElementById('osbtn-ag-'+itemKey)?.classList.toggle('active', status==='AGENDADA');
+    document.getElementById('osbtn-ex-'+itemKey)?.classList.toggle('active', status==='EXECUTADA');
+  }
 };
+
+window.salvarOS = async function(itemKey, placa, secao, eixo, item, dataSub) {
+  const input = document.getElementById('os-'+itemKey);
+  if(!input) return;
+  const numero = input.value.trim().toUpperCase();
+  const status = osCache[itemKey]?.status || '';
+
+  if(!numero) { alert('Informe o número da OS antes de salvar.'); return; }
+
+  osCache[itemKey] = { numero, status };
+
+  try {
+    // Salvar no Firestore — coleção 'ordens_servico'
+    await setDoc(doc(db, 'ordens_servico', itemKey), {
+      itemKey, placa, secao, eixo, item,
+      numeroOS: numero,
+      statusOS: status || 'AGENDADA',
+      dataSubstituicao: dataSub || '',
+      atualizadoEm: new Date().toISOString(),
+      atualizadoEm_fmt: new Date().toLocaleDateString('pt-BR')
+    });
+    const saved = document.getElementById('os-saved-'+itemKey);
+    if(saved) { saved.style.display='inline'; setTimeout(()=>saved.style.display='none',2500); }
+  } catch(e) {
+    console.error('Erro ao salvar OS:', e);
+    alert('Erro ao salvar OS. Verifique a conexão.');
+  }
+};
+
+// Carrega OS salvas do Firebase ao abrir modal
+async function carregarOSdoModal(placa, mods) {
+  for(const [mod] of mods) {
+    const st = checkState[placa];
+    const docMod = st?.[mod];
+    if(!docMod) continue;
+    const criticos = (docMod.itens||[]).filter(i=>i.status==='sub');
+    for(let idx=0; idx<criticos.length; idx++) {
+      const itemKey = placa+'_'+mod+'_'+idx;
+      try {
+        const snap = await getDoc(doc(db,'ordens_servico',itemKey));
+        if(snap.exists()) osCache[itemKey] = { numero: snap.data().numeroOS, status: snap.data().statusOS };
+      } catch(e) {}
+    }
+  }
+}
 
 window.showPage = function(page,btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('page-title').textContent = page==='quadro' ? 'Dashboard de Manutenção' : 'Histórico Operacional';
+  document.getElementById('page-title').textContent = page==='quadro'?'Quadro Geral — Manutenção':'Histórico';
 };
 
-function showToast(msg) {
-  const t = document.getElementById('toast'); 
-  t.textContent = msg; t.classList.add('show'); 
-  setTimeout(()=>t.classList.remove('show'), 3000);
-}
+window.abrirModalKpi = function(tipo) {
+  const titulos = {
+    completos:'✅ 2 Inspeções Realizadas',
+    parciais:'🔵 Inspeção Parcial',
+    pendentes:'⚫ Pendentes',
+    atencao:'⚠️ Com Atenção / Substituir'
+  };
+  const veiculos = TODOS.filter(v => {
+    const s = checkState[v.placa];
+    const temF1=s?.f1!=null,temPn=s?.pn!=null,temF2=s?.f2!=null,temSu=s?.su!=null;
+    const f1s=statusDoc(s?.f1),pns=statusDoc(s?.pn),f2s=statusDoc(s?.f2),sus=statusDoc(s?.su);
+    if (tipo==='completos') return temF1&&temPn&&temF2&&temSu;
+    if (tipo==='parciais')  return (temF1||temPn||temF2||temSu) && !(temF1&&temPn&&temF2&&temSu);
+    if (tipo==='pendentes') return !temF1&&!temPn&&!temF2&&!temSu;
+    if (tipo==='atencao')   return [f1s,pns,f2s,sus].some(x=>x==='atencao'||x==='substituir');
+    return false;
+  });
+  document.getElementById('kpi-modal-title').textContent = titulos[tipo]+' ('+veiculos.length+')';
+  const body = document.getElementById('kpi-modal-body');
+  if(veiculos.length===0) {
+    body.innerHTML='<div class="kpi-empty">Nenhum veículo nesta condição.</div>';
+  } else {
+    body.innerHTML='<div class="kpi-placa-grid">'+
+      veiculos.map(v=>`<div class="kpi-placa-item" onclick="document.getElementById('kpi-modal-ov').classList.remove('show');abrirModal('${v.placa}')">
+        <div class="kpi-placa-nfr">N° ${v.nfr}</div>
+        <div class="kpi-placa-txt">${v.placa}</div>
+        <div class="kpi-placa-tipo">${v.tipo} · ${v.bloco}</div>
+      </div>`).join('')+'</div>';
+  }
+  document.getElementById('kpi-modal-ov').classList.add('show');
+};
 
-// Init
-renderizarGrids();
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
 carregarDados();
-setInterval(carregarDados, 120000);
+setInterval(carregarDados,120000);
 semanaVigente();
-
 </script>
 </body>
 </html>
