@@ -10,7 +10,7 @@
   --bg:#f0f2f5; --bg2:#ffffff; --bg3:#f5f7fa; --bg4:#eaecf0;
   --border:#dde1e7; --border2:#c8cdd6;
   --text:#1a2233; --text2:#4a5568; --text3:#8a9ab0;
-  --ok:#1a7a36; --warn:#b07a10; --err:#b02020; --blue:#1a5fd4;
+  --ok:#25D366; --warn:#b07a10; --err:#b02020; --blue:#1a5fd4;
   --sidebar:220px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -71,7 +71,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-id{width:140px;flex-shrink:0;}
 .vcell-tipo{width:90px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
-.vcell-check.s-ok{background:#97C459;border-color:#3B6D11;color:#27500A;}
+.vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
 .vcell-check.s-atencao{background:#FAC775;border-color:#854F0B;color:#633806;}
 .vcell-check.s-substituir{background:#F09595;border-color:#A32D2D;color:#791F1F;}
 .vcell-check.s-pending{background:var(--bg3);border-color:var(--border);color:var(--text3);}
@@ -129,11 +129,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .os-status-btn{padding:4px 10px;border-radius:6px;border:1px solid;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;background:transparent;}
 .os-status-btn.agendada{border-color:#b07a10;color:#b07a10;}
 .os-status-btn.agendada.active{background:#FAC775;border-color:#854F0B;color:#633806;}
-.os-status-btn.executada{border-color:#1a7a36;color:#1a7a36;}
-.os-status-btn.executada.active{background:#97C459;border-color:#3B6D11;color:#27500A;}
+.os-status-btn.executada{border-color:#25D366;color:#25D366;}
+.os-status-btn.executada.active{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
 .mitem-os-btn{background:#1a5fd4;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;}
 .mitem-os-btn:hover{background:#1248a8;}
-.mitem-os-saved{font-size:10px;color:#1a7a36;font-weight:600;display:none;margin-left:4px;}
+.mitem-os-saved{font-size:10px;color:#25D366;font-weight:600;display:none;margin-left:4px;}
 .empty-msg{text-align:center;padding:18px;color:var(--text3);font-size:12px;}
 
 .toast{position:fixed;bottom:18px;right:18px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
@@ -221,9 +221,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <!-- KPIs -->
       <div class="kpi-row">
         <div class="kpi-card"><div class="kpi-val">62</div><div class="kpi-lbl">Total Veículos</div></div>
-        <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background:#97C459;border-color:#3B6D11;">
-          <div class="kpi-header"><div class="kpi-val" style="color:#27500A;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#3B6D11;" id="kpi-ok-pct"></span></div>
-          <div class="kpi-lbl" style="color:#3B6D11;">Inspeções OK</div>
+        <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background:#25D366;border-color:#1a8a3a;">
+          <div class="kpi-header"><div class="kpi-val" style="color:#0d5028;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#1a8a3a;" id="kpi-ok-pct"></span></div>
+          <div class="kpi-lbl" style="color:#1a8a3a;">Inspeções OK</div>
         </div>
         <div class="kpi-card" onclick="abrirModalKpi('parciais')" style="background:#FAC775;border-color:#854F0B;">
           <div class="kpi-header"><div class="kpi-val" style="color:#633806;" id="kpi-parcial">0</div><span class="kpi-pct" style="color:#854F0B;" id="kpi-parc-pct"></span></div>
@@ -567,8 +567,8 @@ function atualizarLinha(placa) {
   function renderCell(doc, el) {
     if (!el) return;
     const s = statusDoc(doc);
-    const dotCores = {pending:'#B4B2A9',ok:'#27500A',atencao:'#633806',substituir:'#791F1F'};
-    const txtCores = {pending:'var(--text3)',ok:'#27500A',atencao:'#633806',substituir:'#791F1F'};
+    const dotCores = {pending:'#B4B2A9',ok:'#0d5028',atencao:'#633806',substituir:'#791F1F'};
+    const txtCores = {pending:'var(--text3)',ok:'#0d5028',atencao:'#633806',substituir:'#791F1F'};
     const hora = doc ? ' · '+doc.dataFormatada : '';
     el.querySelector('.v-check-status').innerHTML =
       `<span class="dot ${s}" style="background:${dotCores[s]};box-shadow:none;"></span><span class="dot-txt" style="color:${txtCores[s]};font-size:10px;">${STATUS_LABEL[s]}${hora}</span>`;
