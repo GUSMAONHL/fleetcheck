@@ -57,7 +57,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* CABEÇALHO DA GRADE */
 .vgrid-header{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg4);border-bottom:1px solid var(--border);}
 .vh-cell{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:500;}
-.vh-id{width:140px;flex-shrink:0;}
+.vh-id{width:180px;flex-shrink:0;}
 .vh-tipo{width:90px;flex-shrink:0;}
 .vh-check{flex:1;text-align:center;}
 
@@ -68,7 +68,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 /* MINI CARDS — células */
 .vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
-.vcell-id{width:140px;flex-shrink:0;}
+.vcell-id{width:180px;flex-shrink:0;}
 .vcell-tipo{width:90px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
 .vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
@@ -166,20 +166,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-placa-tipo{font-size:10px;color:var(--text3);margin-top:2px;}
 .kpi-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
 
-/* VCELL-ID: placa à esquerda, badge à direita */
-.vcell-id-inner{display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px;}
-.vcell-id-left{display:flex;flex-direction:column;align-items:flex-start;}
-/* BADGE DATAS INSPEÇÃO */
-.v-datas-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 8px;border-radius:7px;flex-shrink:0;}
+/* BADGE DATAS — abaixo da placa no vcell-id */
+.v-datas-badge{display:flex;align-items:center;gap:4px;margin-top:5px;padding:3px 6px;border-radius:5px;}
 .v-datas-badge.prazo-ok     {background:#16a050;}
 .v-datas-badge.prazo-vencer {background:#c9a800;}
 .v-datas-badge.prazo-vencido{background:#cc2222;}
 .v-datas-badge.prazo-sem    {background:var(--bg4);border:1px solid var(--border2);}
-.vdb-row{display:flex;align-items:center;gap:4px;}
-.vdb-key{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.75);white-space:nowrap;}
+.vdb-item{display:flex;align-items:center;gap:2px;}
+.vdb-key{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:rgba(255,255,255,.8);white-space:nowrap;}
 .vdb-key.sem{color:var(--text3);}
-.vdb-val{font-size:10px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;}
+.vdb-val{font-size:9px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;}
 .vdb-val.sem{color:var(--text3);font-family:'DM Mono',monospace;}
+.vdb-sep{font-size:8px;color:rgba(255,255,255,.45);}
+.vdb-sep.sem{color:var(--border2);}
 </style>
 </head>
 <body>
@@ -608,33 +607,18 @@ function calcPrazoBadge(st) {
 function renderDatasCell(placa, st) {
   const idCell = document.getElementById('vcell-id-'+placa);
   if (!idCell) return;
-
+  const old = idCell.querySelector('.v-datas-badge');
+  if (old) old.remove();
   const info = calcPrazoBadge(st);
-  const isSem = !info;
-  const cls = isSem ? 'prazo-sem' : info.cls;
-
-  const badgeHTML = isSem
-    ? `<div class="v-datas-badge prazo-sem">
-        <div class="vdb-row"><span class="vdb-key sem">Ult:</span><span class="vdb-val sem">—</span></div>
-        <div class="vdb-row"><span class="vdb-key sem">Prox:</span><span class="vdb-val sem">—</span></div>
-       </div>`
-    : `<div class="v-datas-badge ${cls}">
-        <div class="vdb-row"><span class="vdb-key">Ult:</span><span class="vdb-val">${info.ult}</span></div>
-        <div class="vdb-row"><span class="vdb-key">Prox:</span><span class="vdb-val">${info.prox}</span></div>
-       </div>`;
-
-  const nfr    = idCell.querySelector('.v-nfr')?.textContent   || '';
-  const plcTxt = idCell.querySelector('.v-placa')?.textContent || placa;
-
-  idCell.style.alignItems = 'center';
-  idCell.innerHTML = `
-    <div class="vcell-id-inner">
-      <div class="vcell-id-left">
-        <div class="v-nfr">${nfr}</div>
-        <div class="v-placa">${plcTxt}</div>
-      </div>
-      ${badgeHTML}
-    </div>`;
+  const badge = document.createElement('div');
+  if (!info) {
+    badge.className = 'v-datas-badge prazo-sem';
+    badge.innerHTML = '<span class="vdb-item"><span class="vdb-key sem">Ult:</span><span class="vdb-val sem">&mdash;</span></span><span class="vdb-sep sem">/</span><span class="vdb-item"><span class="vdb-key sem">Prox:</span><span class="vdb-val sem">&mdash;</span></span>';
+  } else {
+    badge.className = 'v-datas-badge ' + info.cls;
+    badge.innerHTML = '<span class="vdb-item"><span class="vdb-key">Ult:</span><span class="vdb-val">' + info.ult + '</span></span><span class="vdb-sep">/</span><span class="vdb-item"><span class="vdb-key">Prox:</span><span class="vdb-val">' + info.prox + '</span></span>';
+  }
+  idCell.appendChild(badge);
 }
 
 function atualizarLinha(placa) {
