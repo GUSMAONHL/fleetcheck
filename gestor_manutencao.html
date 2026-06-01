@@ -101,6 +101,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vrow.s-substituir{border-left:3px solid var(--err);}
 .vrow.s-parcial{border-left:3px solid var(--blue);}
 
+/* OS PENDENTE — laranja pulsante */
+.vcell-check.s-os-pendente{background:#ff6a00;border-color:#cc4400;animation:pulse-os 1.8s ease-in-out infinite;}
+@keyframes pulse-os{0%,100%{opacity:1;}50%{opacity:.6;}}
+.os-pendente-tag{font-size:8px;font-weight:700;background:rgba(255,255,255,.25);color:#fff;padding:1px 5px;border-radius:4px;margin-top:3px;display:inline-block;letter-spacing:.4px;}
+
 /* SUBGRUPO */
 .subgrupo{padding:6px 14px;background:var(--bg4);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:500;}
 
@@ -406,7 +411,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, getDoc, doc as docRef } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -424,6 +429,7 @@ const TERCEIRO = [{"nfr": 15, "placa": "DWS3948", "tipo": "6X2", "bloco": "TERCE
 
 const TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
+const osState = {}; // placa_mod_idx -> bool (true = tem OS)
 
 function hoje() { return new Date().toLocaleDateString('pt-BR'); }
 function tipoMod(secoes) {
@@ -555,6 +561,8 @@ window.carregarDados = async function() {
       });
     });
 
+    // Carrega OS de todos os itens SUB antes de renderizar
+    await carregarTodasOS();
     TODOS.forEach(v => atualizarLinha(v.placa));
     atualizarKPIs();
   } catch(e) {
@@ -564,6 +572,28 @@ window.carregarDados = async function() {
     document.getElementById('loading-bar').classList.remove('show');
   }
 };
+
+// Carrega OS de todos os itens SUB da semana
+async function carregarTodasOS() {
+  const mods = ['f1','pn','f2','su'];
+  const promises = [];
+  TODOS.forEach(v => {
+    mods.forEach(mod => {
+      const doc = checkState[v.placa]?.[mod];
+      if (!doc) return;
+      const criticos = (doc.itens||[]).filter(i => i.status==='sub');
+      criticos.forEach((_, idx) => {
+        const key = v.placa+'_'+mod+'_'+idx;
+        promises.push(
+          getDoc(docRef(db,'ordens_servico',key))
+            .then(snap => { osState[key] = snap.exists() && !!snap.data().numeroOS; })
+            .catch(() => { osState[key] = false; })
+        );
+      });
+    });
+  });
+  await Promise.allSettled(promises);
+}
 
 const STATUS_LABEL = {pending:'Pendente',ok:'OK',atencao:'Atenção',substituir:'Substituir'};
 
@@ -637,23 +667,58 @@ function atualizarLinha(placa) {
   const row    = f1Cell?.closest('.vrow');
   if (!f1Cell||!row) return;
 
-  function renderCell(doc, el) {
+  function renderCell(doc, el, mod) {
     if (!el) return;
     const s = statusDoc(doc);
+    const hora = doc ? ' · '+doc.dataFormatada : '';
+    el.className = el.className.replace(/s-[\w-]+/g,'').trim();
+
+    if (s === 'substituir') {
+      // Verificar se algum item sub neste módulo tem OS pendente
+      const criticos = (doc?.itens||[]).filter(i => i.status==='sub');
+      const temOsPendente = criticos.some((_,idx) => {
+        const key = placa+'_'+mod+'_'+idx;
+        return osState[key] === false;
+      });
+      if (temOsPendente) {
+        el.classList.add('s-os-pendente');
+        el.querySelector('.v-check-label').style.color = '#ffe0cc';
+        el.querySelector('.v-check-status').innerHTML =
+          `<span class="dot substituir" style="background:#fff;box-shadow:none;"></span><span class="dot-txt" style="color:#fff;font-size:10px;font-weight:700;">Substituir${hora}</span>`;
+        // Tag OS PENDENTE
+        let tag = el.querySelector('.os-pendente-tag');
+        if (!tag) {
+          tag = document.createElement('div');
+          tag.className = 'os-pendente-tag';
+          tag.textContent = 'OS PENDENTE';
+          el.appendChild(tag);
+        }
+        return;
+      } else {
+        el.classList.add('s-substituir');
+        el.querySelector('.v-check-label').style.color = '#440000';
+        el.querySelector('.v-check-status').innerHTML =
+          `<span class="dot substituir" style="background:#440000;box-shadow:none;"></span><span class="dot-txt" style="color:#440000;font-size:10px;">Substituir${hora}</span>`;
+        const tag = el.querySelector('.os-pendente-tag');
+        if (tag) tag.remove();
+        return;
+      }
+    }
+
     const dotCores = {pending:'#B4B2A9',ok:'#0d5028',atencao:'#666600',substituir:'#440000'};
     const txtCores = {pending:'var(--text3)',ok:'#0d5028',atencao:'#666600',substituir:'#440000'};
-    const hora = doc ? ' · '+doc.dataFormatada : '';
     el.querySelector('.v-check-status').innerHTML =
       `<span class="dot ${s}" style="background:${dotCores[s]};box-shadow:none;"></span><span class="dot-txt" style="color:${txtCores[s]};font-size:10px;">${STATUS_LABEL[s]}${hora}</span>`;
     if(el.querySelector('.v-check-label')) el.querySelector('.v-check-label').style.color = txtCores[s];
-    el.className = el.className.replace(/s-\w+/g,'').trim();
     el.classList.add('s-'+s);
+    const tag = el.querySelector('.os-pendente-tag');
+    if (tag) tag.remove();
   }
 
-  renderCell(st?.f1, f1Cell);
-  renderCell(st?.pn, pnCell);
-  renderCell(st?.f2, f2Cell);
-  renderCell(st?.su, suCell);
+  renderCell(st?.f1, f1Cell, 'f1');
+  renderCell(st?.pn, pnCell, 'pn');
+  renderCell(st?.f2, f2Cell, 'f2');
+  renderCell(st?.su, suCell, 'su');
 
   // Borda lateral
   row.className = row.className.replace(/s-\w+/g,'').trim();
@@ -827,6 +892,9 @@ window.salvarOS = async function(itemKey, placa, secao, eixo, item, dataSub) {
     });
     const saved = document.getElementById('os-saved-'+itemKey);
     if(saved) { saved.style.display='inline'; setTimeout(()=>saved.style.display='none',2500); }
+    // Atualizar farol na grade
+    osState[itemKey] = true;
+    atualizarLinha(placa);
   } catch(e) {
     console.error('Erro ao salvar OS:', e);
     alert('Erro ao salvar OS. Verifique a conexão.');
