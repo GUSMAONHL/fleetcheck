@@ -57,7 +57,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* CABEÇALHO DA GRADE */
 .vgrid-header{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg4);border-bottom:1px solid var(--border);}
 .vh-cell{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:500;}
-.vh-id{width:180px;flex-shrink:0;}
+.vh-id{width:210px;flex-shrink:0;}
 .vh-tipo{width:90px;flex-shrink:0;}
 .vh-check{flex:1;text-align:center;}
 
@@ -68,7 +68,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 /* MINI CARDS — células */
 .vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
-.vcell-id{width:180px;flex-shrink:0;}
+.vcell-id{width:210px;flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;}
 .vcell-tipo{width:90px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
 .vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
@@ -112,8 +112,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
-.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:500px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
-.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
 .modal-body{overflow-y:auto;padding:16px 20px;}
 .msec-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
@@ -166,19 +166,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-placa-tipo{font-size:10px;color:var(--text3);margin-top:2px;}
 .kpi-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
 
-/* BADGE DATAS — abaixo da placa no vcell-id */
-.v-datas-badge{display:flex;align-items:center;gap:4px;margin-top:5px;padding:3px 6px;border-radius:5px;}
-.v-datas-badge.prazo-ok     {background:#16a050;}
-.v-datas-badge.prazo-vencer {background:#c9a800;}
-.v-datas-badge.prazo-vencido{background:#cc2222;}
-.v-datas-badge.prazo-sem    {background:var(--bg4);border:1px solid var(--border2);}
-.vdb-item{display:flex;align-items:center;gap:2px;}
-.vdb-key{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:rgba(255,255,255,.8);white-space:nowrap;}
-.vdb-key.sem{color:var(--text3);}
-.vdb-val{font-size:9px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;}
-.vdb-val.sem{color:var(--text3);font-family:'DM Mono',monospace;}
-.vdb-sep{font-size:8px;color:rgba(255,255,255,.45);}
-.vdb-sep.sem{color:var(--border2);}
+/* BADGE ULT/PROX — dentro do vcell-id na grade */
+.v-prazo-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 8px;border-radius:8px;flex-shrink:0;}
+.v-prazo-badge.prazo-ok     {background:#16a050;}
+.v-prazo-badge.prazo-vencer {background:#c9a800;}
+.v-prazo-badge.prazo-vencido{background:#cc2222;}
+.v-prazo-badge.prazo-sem    {background:var(--bg4);border:1px solid var(--border2);}
+.vpb-row{display:flex;align-items:center;gap:3px;}
+.vpb-key{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);}
+.vpb-key.sem{color:var(--text3);}
+.vpb-val{font-size:9px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;}
+.vpb-val.sem{color:var(--text3);}
 </style>
 </head>
 <body>
@@ -607,16 +605,25 @@ function calcPrazoBadge(st) {
 function renderDatasCell(placa, st) {
   const idCell = document.getElementById('vcell-id-'+placa);
   if (!idCell) return;
-  const old = idCell.querySelector('.v-datas-badge');
+  // Remove badge anterior
+  const old = idCell.querySelector('.v-prazo-badge');
   if (old) old.remove();
   const info = calcPrazoBadge(st);
   const badge = document.createElement('div');
   if (!info) {
-    badge.className = 'v-datas-badge prazo-sem';
-    badge.innerHTML = '<span class="vdb-item"><span class="vdb-key sem">Ult:</span><span class="vdb-val sem">&mdash;</span></span><span class="vdb-sep sem">/</span><span class="vdb-item"><span class="vdb-key sem">Prox:</span><span class="vdb-val sem">&mdash;</span></span>';
+    badge.className = 'v-prazo-badge prazo-sem';
+    badge.innerHTML =
+      '<div class="vpb-row"><span class="vpb-key sem">Ult</span></div>' +
+      '<div class="vpb-row"><span class="vpb-val sem">—</span></div>' +
+      '<div class="vpb-row"><span class="vpb-key sem">Prox</span></div>' +
+      '<div class="vpb-row"><span class="vpb-val sem">—</span></div>';
   } else {
-    badge.className = 'v-datas-badge ' + info.cls;
-    badge.innerHTML = '<span class="vdb-item"><span class="vdb-key">Ult:</span><span class="vdb-val">' + info.ult + '</span></span><span class="vdb-sep">/</span><span class="vdb-item"><span class="vdb-key">Prox:</span><span class="vdb-val">' + info.prox + '</span></span>';
+    badge.className = 'v-prazo-badge ' + info.cls;
+    badge.innerHTML =
+      '<div class="vpb-row"><span class="vpb-key">Ult</span></div>' +
+      '<div class="vpb-row"><span class="vpb-val">' + info.ult + '</span></div>' +
+      '<div class="vpb-row"><span class="vpb-key">Prox</span></div>' +
+      '<div class="vpb-row"><span class="vpb-val">' + info.prox + '</span></div>';
   }
   idCell.appendChild(badge);
 }
@@ -656,7 +663,6 @@ function atualizarLinha(placa) {
   else if (f1s==='ok'&&pns==='ok'&&f2s==='ok'&&sus==='ok') row.classList.add('s-ok');
   else if (st?.f1||st?.pn||st?.f2||st?.su) row.classList.add('s-parcial');
 
-  // Badge Ult/Prox inspeção
   renderDatasCell(placa, st);
 }
 
@@ -704,6 +710,7 @@ function abrirModal(placa) {
   const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
   document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
+
   let html='';
   [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']].forEach(([mod,label])=>{
     const doc=st[mod], s=statusDoc(doc);
