@@ -105,6 +105,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-check.s-os-pendente{background:#ff6a00;border-color:#cc4400;animation:pulse-os 1.8s ease-in-out infinite;}
 @keyframes pulse-os{0%,100%{opacity:1;}50%{opacity:.6;}}
 .os-pendente-tag{font-size:8px;font-weight:700;background:rgba(255,255,255,.25);color:#fff;padding:1px 5px;border-radius:4px;margin-top:3px;display:inline-block;letter-spacing:.4px;}
+/* OS EXECUTADA — azul */
+.vcell-check.s-os-executada{background:#1a5fd4;border-color:#0e3fa0;color:#fff;}
+.os-executada-tag{font-size:8px;font-weight:700;background:rgba(255,255,255,.2);color:#fff;padding:1px 5px;border-radius:4px;margin-top:3px;display:inline-block;letter-spacing:.4px;}
 
 /* SUBGRUPO */
 .subgrupo{padding:6px 14px;background:var(--bg4);border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:500;}
@@ -586,7 +589,7 @@ async function carregarTodasOS() {
         const key = v.placa+'_'+mod+'_'+idx;
         promises.push(
           getDoc(docRef(db,'ordens_servico',key))
-            .then(snap => { osState[key] = snap.exists() && !!snap.data().numeroOS; })
+            .then(snap => { osState[key] = snap.exists() && snap.data().numeroOS ? (snap.data().statusOS || 'AGENDADA') : false; })
             .catch(() => { osState[key] = false; })
         );
       });
@@ -674,33 +677,48 @@ function atualizarLinha(placa) {
     el.className = el.className.replace(/s-[\w-]+/g,'').trim();
 
     if (s === 'substituir') {
-      // Verificar se algum item sub neste módulo tem OS pendente
       const criticos = (doc?.itens||[]).filter(i => i.status==='sub');
+      // Checar se TODAS têm OS executada
+      const todasExecutadas = criticos.length > 0 && criticos.every((_,idx) => {
+        const key = placa+'_'+mod+'_'+idx;
+        return osState[key] === 'EXECUTADA';
+      });
+      // Checar se alguma está pendente (sem OS)
       const temOsPendente = criticos.some((_,idx) => {
         const key = placa+'_'+mod+'_'+idx;
         return osState[key] === false;
       });
-      if (temOsPendente) {
+
+      if (todasExecutadas) {
+        // Azul — OS Finalizada
+        el.classList.add('s-os-executada');
+        el.querySelector('.v-check-label').style.color = '#cce0ff';
+        el.querySelector('.v-check-status').innerHTML =
+          `<span class="dot" style="background:#fff;box-shadow:none;width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;"></span><span class="dot-txt" style="color:#fff;font-size:10px;font-weight:700;">OK${hora}</span>`;
+        let tag = el.querySelector('.os-executada-tag');
+        if (!tag) { tag = document.createElement('div'); tag.className = 'os-executada-tag'; el.appendChild(tag); }
+        tag.textContent = 'OS: Finalizada';
+        const pt = el.querySelector('.os-pendente-tag'); if (pt) pt.remove();
+        return;
+      } else if (temOsPendente) {
+        // Laranja pulsante — OS pendente
         el.classList.add('s-os-pendente');
         el.querySelector('.v-check-label').style.color = '#ffe0cc';
         el.querySelector('.v-check-status').innerHTML =
           `<span class="dot substituir" style="background:#fff;box-shadow:none;"></span><span class="dot-txt" style="color:#fff;font-size:10px;font-weight:700;">Substituir${hora}</span>`;
-        // Tag OS PENDENTE
         let tag = el.querySelector('.os-pendente-tag');
-        if (!tag) {
-          tag = document.createElement('div');
-          tag.className = 'os-pendente-tag';
-          tag.textContent = 'OS PENDENTE';
-          el.appendChild(tag);
-        }
+        if (!tag) { tag = document.createElement('div'); tag.className = 'os-pendente-tag'; el.appendChild(tag); }
+        tag.textContent = 'OS PENDENTE';
+        const et = el.querySelector('.os-executada-tag'); if (et) et.remove();
         return;
       } else {
+        // Vermelho — OS agendada mas não executada
         el.classList.add('s-substituir');
         el.querySelector('.v-check-label').style.color = '#440000';
         el.querySelector('.v-check-status').innerHTML =
           `<span class="dot substituir" style="background:#440000;box-shadow:none;"></span><span class="dot-txt" style="color:#440000;font-size:10px;">Substituir${hora}</span>`;
-        const tag = el.querySelector('.os-pendente-tag');
-        if (tag) tag.remove();
+        const pt = el.querySelector('.os-pendente-tag'); if (pt) pt.remove();
+        const et = el.querySelector('.os-executada-tag'); if (et) et.remove();
         return;
       }
     }
@@ -893,7 +911,7 @@ window.salvarOS = async function(itemKey, placa, secao, eixo, item, dataSub) {
     const saved = document.getElementById('os-saved-'+itemKey);
     if(saved) { saved.style.display='inline'; setTimeout(()=>saved.style.display='none',2500); }
     // Atualizar farol na grade
-    osState[itemKey] = true;
+    osState[itemKey] = status || 'AGENDADA';
     atualizarLinha(placa);
   } catch(e) {
     console.error('Erro ao salvar OS:', e);
