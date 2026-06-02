@@ -1070,6 +1070,11 @@ semanaVigente();
 
 let _justPlaca = null;
 
+// Expor funções no escopo global (necessário para onclick inline com type="module")
+window.abrirModalJustificativa = abrirModalJustificativa;
+window.salvarJustificativa = salvarJustificativa;
+window.limparJustificativa = limparJustificativa;
+
 function abrirModalJustificativa(placa) {
   _justPlaca = placa;
   const v = TODOS.find(x => x.placa === placa);
