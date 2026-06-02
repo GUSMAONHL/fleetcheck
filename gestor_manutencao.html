@@ -411,7 +411,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, getDoc, doc as docRef } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, getDoc, getDoc as getDocAlias, setDoc, doc, doc as docRef } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
