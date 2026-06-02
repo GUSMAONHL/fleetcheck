@@ -54,12 +54,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .btn-filtro-tipo.ativo{background:#E6F1FB;border-color:#185FA5;}
 .btn-filtro-tipo.ativo .bft-nome{color:#0C447C;}
 .bft-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
-.bft-nome{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);}
+.bft-nome{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);}
 .bft-total{font-size:12px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;}
 .bft-stats{font-size:9px;font-family:'DM Mono',monospace;margin-top:2px;display:flex;gap:4px;align-items:center;}
 .bft-c{color:#16a050;font-weight:700;}
 .bft-i{color:#cc2222;font-weight:700;}
-.btn-filtro-todos{padding:5px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg4);cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);display:flex;align-items:center;gap:5px;align-self:stretch;}
+.btn-filtro-todos{padding:5px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg4);cursor:pointer;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);display:flex;align-items:center;gap:5px;align-self:stretch;}
 .btn-filtro-todos:hover{border-color:var(--blue);}
 .btn-filtro-todos.ativo{background:#E6F1FB;border-color:#185FA5;color:#0C447C;}
 .bloco-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
@@ -68,21 +68,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .leg-dot{width:7px;height:7px;border-radius:50%;}
 
 /* CABEÇALHO DA GRADE */
-.vgrid-header{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg4);border-bottom:1px solid var(--border);}
-.vh-cell{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:500;}
-.vh-id{width:210px;flex-shrink:0;}
-.vh-tipo{width:90px;flex-shrink:0;}
+.vgrid-header{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--bg4);border-bottom:1px solid var(--border);}
+.vh-cell{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-weight:600;}
+.vh-id{width:240px;flex-shrink:0;}
+.vh-tipo{width:110px;flex-shrink:0;}
 .vh-check{flex:1;text-align:center;}
 
 /* LINHA DO VEÍCULO */
-.vrow{display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.vrow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
 .vrow:last-child{border-bottom:none;}
 .vrow:hover{background:var(--bg3);}
 
 /* MINI CARDS — células */
-.vcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;}
-.vcell-id{width:210px;flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;gap:6px;}
-.vcell-tipo{width:90px;flex-shrink:0;}
+.vcell{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;}
+.vcell-id{width:240px;flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;}
+.vcell-tipo{width:110px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
 .vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
 .vcell-check.s-atencao{background:#ffff00;border-color:#999900;color:#666600;}
@@ -91,18 +91,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 /* Conteúdo dos mini cards */
 .v-nfr{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;color:var(--text3);line-height:1;}
-.v-placa-linha{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;color:var(--text);line-height:1.3;white-space:nowrap;}
-.v-tipo{font-size:11px;color:var(--text2);font-weight:500;}
-.v-check-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;}
+.v-placa-linha{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;letter-spacing:1.8px;color:var(--text);line-height:1.3;white-space:nowrap;}
+.v-tipo{font-size:13px;color:var(--text2);font-weight:600;}
+.v-check-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;}
 .v-check-status{display:flex;align-items:center;gap:5px;}
 
 /* DOT */
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .dot.pending{background:var(--text3);}
 .dot.ok{background:var(--ok);box-shadow:0 0 5px rgba(46,160,67,0.5);}
 .dot.atencao{background:var(--warn);box-shadow:0 0 5px rgba(210,153,34,0.4);}
 .dot.substituir{background:var(--err);box-shadow:0 0 5px rgba(204,34,34,0.5);}
-.dot-txt{font-size:10px;font-family:'DM Mono',monospace;}
+.dot-txt{font-size:12px;font-family:'DM Mono',monospace;}
 .dot-txt.pending{color:var(--text3);}
 .dot-txt.ok{color:var(--ok);}
 .dot-txt.atencao{color:var(--warn);}
@@ -793,7 +793,7 @@ function atualizarLinha(placa) {
         el.classList.add('s-os-executada');
         el.querySelector('.v-check-label').style.color = '#cce0ff';
         el.querySelector('.v-check-status').innerHTML =
-          `<span class="dot" style="background:#fff;box-shadow:none;width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;"></span><span class="dot-txt" style="color:#fff;font-size:10px;font-weight:700;">OK${hora}</span>`;
+          `<span class="dot" style="background:#fff;box-shadow:none;width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;"></span><span class="dot-txt" style="color:#fff;font-size:12px;font-weight:700;">OK${hora}</span>`;
         let tag = el.querySelector('.os-executada-tag');
         if (!tag) { tag = document.createElement('div'); tag.className = 'os-executada-tag'; el.appendChild(tag); }
         tag.textContent = 'OS: Finalizada';
@@ -804,7 +804,7 @@ function atualizarLinha(placa) {
         el.classList.add('s-os-pendente');
         el.querySelector('.v-check-label').style.color = '#ffe0cc';
         el.querySelector('.v-check-status').innerHTML =
-          `<span class="dot substituir" style="background:#fff;box-shadow:none;"></span><span class="dot-txt" style="color:#fff;font-size:10px;font-weight:700;">Substituir${hora}</span>`;
+          `<span class="dot substituir" style="background:#fff;box-shadow:none;"></span><span class="dot-txt" style="color:#fff;font-size:12px;font-weight:700;">Substituir${hora}</span>`;
         let tag = el.querySelector('.os-pendente-tag');
         if (!tag) { tag = document.createElement('div'); tag.className = 'os-pendente-tag'; el.appendChild(tag); }
         tag.textContent = 'OS PENDENTE';
