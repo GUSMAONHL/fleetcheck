@@ -372,11 +372,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
       <!-- BLOCO TERCEIRO -->
       <div class="bloco">
-        <div class="bloco-header">
-          <div class="bloco-title">
+        <div class="bloco-header" id="header-terceiro">
+          <div class="bloco-title" style="white-space:nowrap;margin-right:4px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
             Terceiro — 20 Veículos
           </div>
+          <div style="width:.5px;height:28px;background:var(--border);flex-shrink:0;"></div>
+          <button class="btn-filtro-todos ativo" id="btn-filtro-todos-terceiro" onclick="filtrarTipo('terceiro','TODOS')">
+            <i class="ti ti-layout-grid" aria-hidden="true" style="font-size:12px;"></i>Todos
+          </button>
+          <button class="btn-filtro-tipo" id="btn-filtro-6X2-terceiro" onclick="filtrarTipo('terceiro','6X2')">
+            <div class="bft-row"><span class="bft-nome">6X2</span><span class="bft-total" id="bft-total-6X2-terceiro">14</span></div>
+            <div class="bft-stats"><span class="bft-c" id="bft-c-6X2-terceiro">— C</span><span>/</span><span class="bft-i" id="bft-i-6X2-terceiro">— I</span></div>
+          </button>
+          <button class="btn-filtro-tipo" id="btn-filtro-6X4-terceiro" onclick="filtrarTipo('terceiro','6X4')">
+            <div class="bft-row"><span class="bft-nome">6X4</span><span class="bft-total" id="bft-total-6X4-terceiro">1</span></div>
+            <div class="bft-stats"><span class="bft-c" id="bft-c-6X4-terceiro">— C</span><span>/</span><span class="bft-i" id="bft-i-6X4-terceiro">— I</span></div>
+          </button>
+          <button class="btn-filtro-tipo" id="btn-filtro-8X2-terceiro" onclick="filtrarTipo('terceiro','8X2')">
+            <div class="bft-row"><span class="bft-nome">8X2</span><span class="bft-total" id="bft-total-8X2-terceiro">1</span></div>
+            <div class="bft-stats"><span class="bft-c" id="bft-c-8X2-terceiro">— C</span><span>/</span><span class="bft-i" id="bft-i-8X2-terceiro">— I</span></div>
+          </button>
+          <button class="btn-filtro-tipo" id="btn-filtro-8X4-terceiro" onclick="filtrarTipo('terceiro','8X4')">
+            <div class="bft-row"><span class="bft-nome">8X4</span><span class="bft-total" id="bft-total-8X4-terceiro">4</span></div>
+            <div class="bft-stats"><span class="bft-c" id="bft-c-8X4-terceiro">— C</span><span>/</span><span class="bft-i" id="bft-i-8X4-terceiro">— I</span></div>
+          </button>
+          <div style="flex:1;"></div>
           <div class="legend">
             <div class="leg"><div class="leg-dot" style="background:var(--ok)"></div>OK</div>
             <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Parcial</div>
@@ -1113,7 +1134,10 @@ function filtrarTipo(bloco, tipo) {
     row.style.display = (tipo === 'TODOS' || rowTipo === tipo) ? '' : 'none';
   });
   // Atualizar botões ativos
-  ['TODOS','BITRUCK','CAVALO','CARRETA'].forEach(t => {
+  const todosTipos = bloco === 'frota'
+    ? ['TODOS','BITRUCK','CAVALO','CARRETA']
+    : ['TODOS','6X2','6X4','8X2','8X4'];
+  todosTipos.forEach(t => {
     const btnTodos = document.getElementById('btn-filtro-todos-' + bloco);
     const btn = document.getElementById('btn-filtro-' + t + '-' + bloco);
     if (t === 'TODOS' && btnTodos) btnTodos.classList.toggle('ativo', tipo === 'TODOS');
@@ -1122,19 +1146,21 @@ function filtrarTipo(bloco, tipo) {
 }
 
 function atualizarContadores(bloco) {
-  const tipos = ['BITRUCK','CAVALO','CARRETA'];
+  const tipos = bloco.toLowerCase() === 'frota'
+    ? ['BITRUCK','CAVALO','CARRETA']
+    : ['6X2','6X4','8X2','8X4'];
   tipos.forEach(tipo => {
     const veics = TODOS.filter(v => v.bloco.toUpperCase() === bloco.toUpperCase() && v.tipo === tipo);
     const total = veics.length;
     let completos = 0, incompletos = 0;
     veics.forEach(v => {
       const st = checkState[v.placa];
-      const f1 = statusDoc(st?.f1), pn = statusDoc(st?.pn), f2 = statusDoc(st?.f2), su = statusDoc(st?.su);
-      const todos4 = [f1,pn,f2,su];
-      const algumFeito = todos4.some(s => s !== 'pending');
-      const todosFeitos = todos4.every(s => s !== 'pending');
-      if (todosFeitos) completos++;
-      else if (algumFeito) incompletos++;
+      // Completo = os 4 módulos têm documento salvo no Firebase (não null)
+      const temF1 = st?.f1 != null;
+      const temPn = st?.pn != null;
+      const temF2 = st?.f2 != null;
+      const temSu = st?.su != null;
+      if (temF1 && temPn && temF2 && temSu) completos++;
       else incompletos++;
     });
     const blocoKey = bloco.toLowerCase();
