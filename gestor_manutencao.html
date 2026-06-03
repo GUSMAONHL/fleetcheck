@@ -500,7 +500,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, getDoc, getDoc as getDocAlias, setDoc, doc, doc as docRef } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, getDoc, getDoc as getDocAlias, setDoc, doc, doc as docRef, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -1112,8 +1112,76 @@ window.abrirModalKpi = function(tipo) {
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
-carregarDados();
-setInterval(carregarDados,120000);
+// ── TEMPO REAL: onSnapshot nas coleções relevantes ──
+let _unsubscribes = [];
+let _realtimeReady = false;
+let _debounceTimer = null;
+
+function dispararAtualizacao(origem) {
+  // Debounce: aguarda 800ms de silêncio antes de recarregar (evita cascata)
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(() => {
+    console.log('[FleetCheck] Atualização detectada em:', origem);
+    carregarDados();
+  }, 800);
+}
+
+function iniciarListeners() {
+  // Encerrar listeners anteriores
+  _unsubscribes.forEach(u => u());
+  _unsubscribes = [];
+
+  const datasSemanaBR = rangeSemanaBR();
+
+  // Listener 1: manutencao_corretiva — uma query por dia da semana
+  datasSemanaBR.forEach(data => {
+    const q = query(collection(db,'manutencao_corretiva'), where('dataFormatada','==',data));
+    const unsub = onSnapshot(q,
+      () => { if (_realtimeReady) dispararAtualizacao('manutencao_corretiva · ' + data); },
+      err => console.warn('[FleetCheck] onSnapshot manutencao_corretiva erro:', err)
+    );
+    _unsubscribes.push(unsub);
+  });
+
+  // Listener 2: ordens_servico
+  const unsubOS = onSnapshot(collection(db,'ordens_servico'),
+    () => { if (_realtimeReady) dispararAtualizacao('ordens_servico'); },
+    err => console.warn('[FleetCheck] onSnapshot ordens_servico erro:', err)
+  );
+  _unsubscribes.push(unsubOS);
+
+  // Listener 3: justificativas
+  const unsubJust = onSnapshot(collection(db,'justificativas'),
+    () => { if (_realtimeReady) dispararAtualizacao('justificativas'); },
+    err => console.warn('[FleetCheck] onSnapshot justificativas erro:', err)
+  );
+  _unsubscribes.push(unsubJust);
+
+  console.log('[FleetCheck] Listeners em tempo real ativos:', _unsubscribes.length);
+}
+
+// Carga inicial + ativar listeners
+carregarDados().then(() => {
+  _realtimeReady = true;
+  iniciarListeners();
+});
+
+// Fallback: recarregar a cada 300s caso conexão caia
+setInterval(() => {
+  console.log('[FleetCheck] Fallback 300s — recarregando...');
+  carregarDados();
+}, 300000);
+
+// Reiniciar listeners a cada virada de semana (domingo à meia-noite)
+setInterval(() => {
+  const agora = new Date();
+  if (agora.getDay() === 0 && agora.getHours() === 0 && agora.getMinutes() < 1) {
+    console.log('[FleetCheck] Nova semana — reiniciando listeners...');
+    _realtimeReady = false;
+    iniciarListeners();
+    carregarDados().then(() => { _realtimeReady = true; });
+  }
+}, 60000);
 semanaVigente();
 
 let _justPlaca = null;
