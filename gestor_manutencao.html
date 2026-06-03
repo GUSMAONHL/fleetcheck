@@ -1295,7 +1295,13 @@ window.showPage = function(page,btn) {
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('page-title').textContent = page==='quadro'?'Quadro Geral — Manutenção':'Histórico';
+  const titles = {
+    quadro: 'Quadro Geral — Manutenção',
+    historico: 'Histórico de Inspeções',
+    pcm: 'PCM — Planejamento e Controle da Manutenção'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  if (page === 'pcm') renderPCM();
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -1606,6 +1612,12 @@ async function limparJustificativa() {
 }
 
 function renderPCM() {
+  // Se dados ainda não carregaram, aguarda e re-renderiza
+  if (!TODOS || TODOS.length === 0) {
+    document.getElementById('pcm-data-rel').textContent = 'Carregando...';
+    carregarDados().then(() => renderPCM());
+    return;
+  }
   const total = TODOS.length;
   const hoje = new Date();
   document.getElementById('pcm-data-rel').textContent =
