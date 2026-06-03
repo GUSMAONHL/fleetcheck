@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Painel Manutenção — NHL/ALCOA</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --bg:#f0f2f5; --bg2:#ffffff; --bg3:#f5f7fa; --bg4:#eaecf0;
@@ -32,7 +32,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5;flex-shrink:0;}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
-.topbar-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.topbar-date{font-size:11px;color:var(--text3);font-family:Arial,sans-serif;}
 .btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
 .btn-sm:hover{background:var(--bg4);color:var(--text);}
 .content{padding:20px 24px;overflow-y:auto;flex:1;}
@@ -41,9 +41,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
 .kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-.kpi-val{font-size:32px;font-weight:700;font-family:'DM Mono',monospace;}
+.kpi-val{font-size:32px;font-weight:700;font-family:Arial,sans-serif;}
 .kpi-lbl{font-size:13px;text-transform:uppercase;letter-spacing:0.6px;margin-top:4px;font-weight:600;}
-.kpi-pct{font-size:48px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.kpi-pct{font-size:48px;font-weight:700;font-family:Arial,sans-serif;line-height:1;}
 .kpi-header{display:flex;align-items:center;justify-content:space-between;}
 
 /* BLOCO */
@@ -55,8 +55,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .btn-filtro-tipo.ativo .bft-nome{color:#0C447C;}
 .bft-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
 .bft-nome{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);}
-.bft-total{font-size:12px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;}
-.bft-stats{font-size:9px;font-family:'DM Mono',monospace;margin-top:2px;display:flex;gap:4px;align-items:center;}
+.bft-total{font-size:12px;font-weight:700;color:var(--text);font-family:Arial,sans-serif;}
+.bft-stats{font-size:9px;font-family:Arial,sans-serif;margin-top:2px;display:flex;gap:4px;align-items:center;}
 .bft-c{color:#16a050;font-weight:700;}
 .bft-i{color:#cc2222;font-weight:700;}
 .btn-filtro-todos{padding:5px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg4);cursor:pointer;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);display:flex;align-items:center;gap:5px;align-self:stretch;}
@@ -102,7 +102,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .dot.ok{background:var(--ok);box-shadow:0 0 5px rgba(46,160,67,0.5);}
 .dot.atencao{background:var(--warn);box-shadow:0 0 5px rgba(210,153,34,0.4);}
 .dot.substituir{background:var(--err);box-shadow:0 0 5px rgba(204,34,34,0.5);}
-.dot-txt{font-size:12px;font-family:'DM Mono',monospace;}
+.dot-txt{font-size:12px;font-family:Arial,sans-serif;}
 .dot-txt.pending{color:var(--text3);}
 .dot-txt.ok{color:var(--ok);}
 .dot-txt.atencao{color:var(--warn);}
@@ -165,7 +165,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .mitem-os-wrap{display:flex;flex-direction:column;gap:6px;background:#f0f4ff;border:1px solid #a0b4e0;border-radius:8px;padding:8px 12px;width:100%;}
 .mitem-os-row{display:flex;align-items:center;gap:8px;}
 .mitem-os-label{font-size:10px;color:#4a6090;font-weight:600;white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;}
-.mitem-os-input{border:1px solid #a0b4e0;background:#fff;border-radius:6px;outline:none;font-size:13px;color:#1a3070;font-weight:600;width:110px;padding:4px 8px;font-family:'DM Mono',monospace;}
+.mitem-os-input{border:1px solid #a0b4e0;background:#fff;border-radius:6px;outline:none;font-size:13px;color:#1a3070;font-weight:600;width:110px;padding:4px 8px;font-family:Arial,sans-serif;}
 .mitem-os-status{display:flex;gap:6px;}
 .os-status-btn{padding:4px 10px;border-radius:6px;border:1px solid;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;background:transparent;}
 .os-status-btn.agendada{border-color:#b07a10;color:#b07a10;}
@@ -186,7 +186,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .semana-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
 .semana-periodo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:0.5px;}
 .semana-dias{display:flex;gap:6px;}
-.semana-dia{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;border:1px solid var(--border);background:var(--bg3);color:var(--text3);}
+.semana-dia{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;font-family:Arial,sans-serif;border:1px solid var(--border);background:var(--bg3);color:var(--text3);}
 .semana-dia.hoje{border-color:var(--blue);background:rgba(26,95,212,0.10);color:var(--blue);}
 .semana-dia.passado{color:var(--ok);border-color:rgba(26,122,54,0.3);}
 .subgrupo-pills{display:flex;gap:8px;align-items:center;}
@@ -202,7 +202,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .kpi-placa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .kpi-placa-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;}
 .kpi-placa-item:hover{background:var(--bg4);}
-.kpi-placa-nfr{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.kpi-placa-nfr{font-size:10px;color:var(--text3);font-family:Arial,sans-serif;margin-bottom:3px;}
 .kpi-placa-txt{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1.5px;color:var(--text);}
 .kpi-placa-tipo{font-size:10px;color:var(--text3);margin-top:2px;}
 .kpi-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
@@ -216,7 +216,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vpb-row{display:flex;align-items:center;gap:3px;}
 .vpb-key{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);}
 .vpb-key.sem{color:var(--text3);}
-.vpb-val{font-size:9px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;white-space:nowrap;}
+.vpb-val{font-size:9px;font-weight:700;color:#fff;font-family:Arial,sans-serif;white-space:nowrap;}
 .vpb-val.sem{color:var(--text3);}
 
 .just-motivo-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text2);cursor:pointer;font-weight:500;}
@@ -230,8 +230,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .pcm-kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
 .pcm-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--text3);line-height:1.4;}
 .pcm-kpi-bottom{display:flex;align-items:flex-end;justify-content:space-between;margin-top:6px;}
-.pcm-kpi-val{font-size:36px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
-.pcm-kpi-pct{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.pcm-kpi-val{font-size:36px;font-weight:700;font-family:Arial,sans-serif;line-height:1;}
+.pcm-kpi-pct{font-size:26px;font-weight:700;font-family:Arial,sans-serif;line-height:1;}
 .pcm-kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 /* ══ PCM PAINEL — layout full screen ══ */
 #page-pcm{padding:0;}
@@ -246,27 +246,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .pcm-mc.pd{background:#FCEBEB;border:1px solid #F09595;}
 .pcm-mlbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
 .pcm-mlbl.ok{color:#27500A;} .pcm-mlbl.pd{color:#791F1F;}
-.pcm-mnum{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;}
+.pcm-mnum{font-size:28px;font-weight:700;font-family:Arial,sans-serif;}
 .pcm-mnum.ok{color:#27500A;} .pcm-mnum.pd{color:#A32D2D;}
-.pcm-mpct{font-size:14px;font-weight:600;margin-left:6px;}
+.pcm-mpct{font-size:20px;font-weight:700;}
 .pcm-mpct.ok{color:#3B6D11;} .pcm-mpct.pd{color:#A32D2D;}
-.pcm-msub{font-size:11px;margin-top:2px;}
+.pcm-mvals{display:flex;align-items:flex-end;justify-content:space-between;margin-top:4px;}
+.pcm-msub{font-size:11px;margin-top:4px;}
 .pcm-msub.ok{color:#3B6D11;} .pcm-msub.pd{color:#791F1F;}
 .pcm-tbl{width:100%;border-collapse:collapse;}
 .pcm-tbl th{background:#001854;color:#fff;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;}
 .pcm-tbl td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
 .pcm-tbl tr:nth-child(even) td{background:var(--bg3);}
-.pcm-tbl td.pn{color:#A32D2D;font-weight:700;font-family:'DM Mono',monospace;font-size:14px;}
+.pcm-tbl td.pn{color:#A32D2D;font-weight:700;font-family:Arial,sans-serif;font-size:14px;}
 .pcm-tbl td.mot{font-size:12px;color:var(--text2);}
 .pcm-rrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
 .pcm-rrow:last-child{border-bottom:none;}
 .pcm-rlbl{color:var(--text2);display:flex;align-items:center;gap:8px;}
-.pcm-rval{font-weight:700;font-family:'DM Mono',monospace;font-size:14px;}
+.pcm-rval{font-weight:700;font-family:Arial,sans-serif;font-size:14px;}
 .pcm-rval.g{color:#27500A;} .pcm-rval.r{color:#A32D2D;} .pcm-rval.b{color:#0C447C;}
 .pcm-mtbl{width:100%;border-collapse:collapse;margin-top:8px;}
 .pcm-mtbl th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:8px 10px;border-bottom:2px solid var(--border2);text-align:left;}
 .pcm-mtbl td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
-.pcm-mtbl td.qt{font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:14px;}
+.pcm-mtbl td.qt{font-weight:700;text-align:center;font-family:Arial,sans-serif;font-size:14px;}
 .pcm-mtbl td.pc{color:#A32D2D;font-weight:700;text-align:right;font-size:14px;}
 .pcm-ftr{background:#001854;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 10px 10px;}
 .pcm-ftxt{font-size:12px;color:#85B7EB;display:flex;align-items:center;gap:6px;}
@@ -653,7 +654,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div>
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:5px;">Itens reprovados</div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <input id="termac-itens" type="number" min="0" value="0" disabled style="width:90px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:14px;font-weight:700;text-align:center;font-family:'DM Mono',monospace;color:var(--text);opacity:.45;">
+          <input id="termac-itens" type="number" min="0" value="0" disabled style="width:90px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:14px;font-weight:700;text-align:center;font-family:Arial,sans-serif;color:var(--text);opacity:.45;">
           <span style="font-size:12px;color:var(--text2);">itens reprovados na inspeção</span>
         </div>
       </div>
@@ -1700,8 +1701,8 @@ function renderPCM() {
     const pi = total > 0 ? (insp/total*100).toFixed(1) : '0.0';
     const pp = total > 0 ? (pend/total*100).toFixed(1) : '0.0';
     return `<div class="pcm-mrow">
-      <div class="pcm-mc ok"><div class="pcm-mlbl ok">${m.label}</div><div><span class="pcm-mnum ok">${insp}</span><span class="pcm-mpct ok">${pi}%</span></div><div class="pcm-msub ok">inspecionados</div></div>
-      <div class="pcm-mc pd"><div class="pcm-mlbl pd">${m.label}</div><div><span class="pcm-mnum pd">${pend}</span><span class="pcm-mpct pd">${pp}%</span></div><div class="pcm-msub pd">pendentes</div></div>
+      <div class="pcm-mc ok"><div class="pcm-mlbl ok">${m.label}</div><div class="pcm-mvals"><span class="pcm-mnum ok">${insp}</span><span class="pcm-mpct ok">${pi}%</span></div><div class="pcm-msub ok">inspecionados</div></div>
+      <div class="pcm-mc pd"><div class="pcm-mlbl pd">${m.label}</div><div class="pcm-mvals"><span class="pcm-mnum pd">${pend}</span><span class="pcm-mpct pd">${pp}%</span></div><div class="pcm-msub pd">pendentes</div></div>
     </div>`;
   }).join('');
   document.getElementById('pcm-modulos').innerHTML = modHtml;
@@ -1758,15 +1759,15 @@ function renderPCM() {
     <div style="background:#EAF3DE;border:.5px solid #97C459;border-radius:7px;padding:8px 10px;">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#27500A;letter-spacing:.5px;margin-bottom:3px;">Realizadas</div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:20px;font-weight:700;color:#27500A;font-family:'DM Mono',monospace;">${termacRealizados}</span>
-        <span style="font-size:13px;font-weight:700;color:#3B6D11;font-family:'DM Mono',monospace;">${tpct(termacRealizados)}</span>
+        <span style="font-size:20px;font-weight:700;color:#27500A;font-family:Arial,sans-serif;">${termacRealizados}</span>
+        <span style="font-size:13px;font-weight:700;color:#3B6D11;font-family:Arial,sans-serif;">${tpct(termacRealizados)}</span>
       </div>
     </div>
     <div style="background:#FCEBEB;border:.5px solid #F09595;border-radius:7px;padding:8px 10px;">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#791F1F;letter-spacing:.5px;margin-bottom:3px;">Pendentes</div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:20px;font-weight:700;color:#A32D2D;font-family:'DM Mono',monospace;">${termacPendentes}</span>
-        <span style="font-size:13px;font-weight:700;color:#A32D2D;font-family:'DM Mono',monospace;">${tpct(termacPendentes)}</span>
+        <span style="font-size:20px;font-weight:700;color:#A32D2D;font-family:Arial,sans-serif;">${termacPendentes}</span>
+        <span style="font-size:13px;font-weight:700;color:#A32D2D;font-family:Arial,sans-serif;">${tpct(termacPendentes)}</span>
       </div>
     </div>
   </div>`;
@@ -1786,9 +1787,9 @@ function renderPCM() {
       termacHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:.5px solid var(--border);">
         <span style="font-size:11px;color:var(--text2);font-weight:500;">${tipo}</span>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:#27500A;font-weight:600;font-family:'DM Mono',monospace;">${realTipo}✓</span>
-          <span style="font-size:11px;color:#A32D2D;font-weight:600;font-family:'DM Mono',monospace;">${pendTipo}✗</span>
-          <span style="font-size:11px;font-weight:700;color:${bloco.cor};font-family:'DM Mono',monospace;min-width:36px;text-align:right;">${pctTipo}</span>
+          <span style="font-size:11px;color:#27500A;font-weight:600;font-family:Arial,sans-serif;">${realTipo}✓</span>
+          <span style="font-size:11px;color:#A32D2D;font-weight:600;font-family:Arial,sans-serif;">${pendTipo}✗</span>
+          <span style="font-size:11px;font-weight:700;color:${bloco.cor};font-family:Arial,sans-serif;min-width:36px;text-align:right;">${pctTipo}</span>
         </div>
       </div>`;
     });
