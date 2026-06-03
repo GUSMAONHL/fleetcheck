@@ -224,23 +224,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 /* PCM PAINEL */
 /* ══ PCM PAINEL — layout full screen ══ */
+.pcm-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.pcm-kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;transition:all 0.15s;}
+.pcm-kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.pcm-kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.pcm-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--text3);line-height:1.4;}
+.pcm-kpi-val{font-size:36px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.pcm-kpi-pct{font-size:13px;font-weight:600;margin-top:4px;font-family:'DM Mono',monospace;}
+.pcm-kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* ══ PCM PAINEL — layout full screen ══ */
 #page-pcm{padding:0;}
-.pcm-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
-.pcm-hdr{background:#001854;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
-.pcm-hdr-left{display:flex;align-items:center;gap:16px;}
-.pcm-title{color:#fff;font-size:28px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.8px;}
-.pcm-sub{color:#85B7EB;font-size:13px;text-transform:uppercase;letter-spacing:1.2px;margin-top:4px;}
-.pcm-dbox{background:#0C447C;border:1px solid #185FA5;border-radius:10px;padding:10px 20px;text-align:center;}
-.pcm-dlbl{font-size:11px;color:#85B7EB;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.pcm-dval{font-size:20px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;}
-.pcm-krow{display:grid;grid-template-columns:repeat(7,1fr);}
-.pcm-kc{background:var(--bg2);padding:20px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
-.pcm-kc:last-child{border-right:none;}
-.pcm-klbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);line-height:1.4;}
-.pcm-knum{font-size:38px;font-weight:700;line-height:1;font-family:'DM Mono',monospace;}
-.pcm-knum.b{color:#001854;} .pcm-knum.g{color:#27500A;} .pcm-knum.r{color:#A32D2D;} .pcm-knum.n{color:#0C447C;}
-.pcm-ksub{font-size:12px;font-weight:600;}
-.pcm-ksub.b{color:#185FA5;} .pcm-ksub.g{color:#3B6D11;} .pcm-ksub.r{color:#A32D2D;}
+.pcm-wrap{background:transparent;}
+
 .pcm-bgrid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:1px;background:var(--border);flex:1;}
 .pcm-bp{background:var(--bg2);padding:24px 28px;}
 .pcm-pt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #001854;display:flex;align-items:center;gap:8px;}
@@ -272,7 +267,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .pcm-mtbl td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
 .pcm-mtbl td.qt{font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:14px;}
 .pcm-mtbl td.pc{color:#A32D2D;font-weight:700;text-align:right;font-size:14px;}
-.pcm-ftr{background:#001854;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;}
+.pcm-ftr{background:#001854;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 10px 10px;}
 .pcm-ftxt{font-size:12px;color:#85B7EB;display:flex;align-items:center;gap:6px;}
 </style>
 </head>
@@ -506,27 +501,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     </div>
     <div class="page" id="page-pcm">
       <div class="pcm-wrap">
-        <div class="pcm-hdr">
-          <div class="pcm-hdr-left">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
-            <div>
-              <div class="pcm-title">Inspeção de Freio — PCM</div>
-              <div class="pcm-sub">Planejamento e Controle da Manutenção · Novo Horizonte Logística</div>
+        <div class="pcm-kpi-row">
+          <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);">
+            <div class="pcm-kpi-top">
+              <div class="pcm-kpi-label">Total de veículos</div>
+              <div class="pcm-kpi-icon" style="background:#E6F1FB;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg></div>
             </div>
+            <div class="pcm-kpi-val" style="color:#001854;" id="pcm-total">—</div>
+            <div class="pcm-kpi-pct" style="color:var(--text3);">100%</div>
           </div>
-          <div class="pcm-dbox">
-            <div class="pcm-dlbl">Data do relatório</div>
-            <div class="pcm-dval" id="pcm-data-rel">—</div>
+          <div class="pcm-kpi-card" style="border-left:4px solid var(--ok);">
+            <div class="pcm-kpi-top">
+              <div class="pcm-kpi-label">Inspeção completa</div>
+              <div class="pcm-kpi-icon" style="background:#EAF3DE;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div class="pcm-kpi-val" style="color:#27500A;" id="pcm-kpi-completos">—</div>
+            <div class="pcm-kpi-pct" style="color:#3B6D11;" id="pcm-kpi-pct-comp">—%</div>
           </div>
-        </div>
-        <div class="pcm-krow">
-          <div class="pcm-kc"><div class="pcm-klbl">Total de frotas analisadas</div><div class="pcm-knum b" id="pcm-total">—</div><div class="pcm-ksub b">100% do total</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Com inspeção completa</div><div class="pcm-knum g" id="pcm-completos">—</div><div class="pcm-ksub g" id="pcm-pct-comp">—% do total</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Sem inspeção (pendentes)</div><div class="pcm-knum r" id="pcm-pendentes">—</div><div class="pcm-ksub r" id="pcm-pct-pend">—% do total</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Percentual realizado</div><div class="pcm-knum n" id="pcm-pct-real">—%</div><div class="pcm-ksub">Realizado</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Percentual pendente</div><div class="pcm-knum r" id="pcm-pct-pend2">—%</div><div class="pcm-ksub r">Pendente</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Meta de inspeção</div><div class="pcm-knum n">95%</div><div class="pcm-ksub">Meta mínima</div></div>
-          <div class="pcm-kc"><div class="pcm-klbl">Gap para meta</div><div class="pcm-knum r" id="pcm-gap">—</div><div class="pcm-ksub r">p.p.</div></div>
+          <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);">
+            <div class="pcm-kpi-top">
+              <div class="pcm-kpi-label">Inspeção parcial</div>
+              <div class="pcm-kpi-icon" style="background:#E6F1FB;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            </div>
+            <div class="pcm-kpi-val" style="color:#0C447C;" id="pcm-kpi-parciais">—</div>
+            <div class="pcm-kpi-pct" style="color:#185FA5;" id="pcm-kpi-pct-parc">—%</div>
+          </div>
+          <div class="pcm-kpi-card" style="border-left:4px solid var(--text3);">
+            <div class="pcm-kpi-top">
+              <div class="pcm-kpi-label">Pendentes</div>
+              <div class="pcm-kpi-icon" style="background:#F1EFE8;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5F5E5A" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            </div>
+            <div class="pcm-kpi-val" style="color:#444441;" id="pcm-kpi-pendentes">—</div>
+            <div class="pcm-kpi-pct" style="color:#5F5E5A;" id="pcm-kpi-pct-pend">—%</div>
+          </div>
+          <div class="pcm-kpi-card" style="border-left:4px solid var(--err);">
+            <div class="pcm-kpi-top">
+              <div class="pcm-kpi-label">Substituição</div>
+              <div class="pcm-kpi-icon" style="background:#FCEBEB;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            </div>
+            <div class="pcm-kpi-val" style="color:#A32D2D;" id="pcm-kpi-subst">—</div>
+            <div class="pcm-kpi-pct" style="color:#A32D2D;" id="pcm-kpi-pct-subst">—%</div>
+          </div>
         </div>
         <div class="pcm-bgrid">
           <div class="pcm-bp">
@@ -1617,28 +1632,40 @@ function renderPCM() {
     return;
   }
   const total = TODOS.length;
-  const hoje = new Date();
-  document.getElementById('pcm-data-rel').textContent =
-    hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Completos = 4 módulos inspecionados
-  const completos = TODOS.filter(v => {
-    const st = checkState[v.placa];
-    return st?.f1 != null && st?.pn != null && st?.f2 != null && st?.su != null;
-  }).length;
-  const pendentes = total - completos;
-  const pctComp = total > 0 ? (completos/total*100).toFixed(1) : '0.0';
-  const pctPend = total > 0 ? (pendentes/total*100).toFixed(1) : '0.0';
-  const gap = (parseFloat(pctComp) - 95).toFixed(1);
+  // Calcular cada categoria — igual ao painel do gestor
+  let nCompletos=0, nParciais=0, nPendentes=0, nSubst=0;
+  TODOS.forEach(v => {
+    const s = checkState[v.placa];
+    const temF1=s?.f1!=null, temPn=s?.pn!=null, temF2=s?.f2!=null, temSu=s?.su!=null;
+    const algum = temF1||temPn||temF2||temSu;
+    const todos4 = temF1&&temPn&&temF2&&temSu;
+    // Substituir em qualquer módulo
+    const temSub = [s?.f1,s?.pn,s?.f2,s?.su].some(d => d && statusDoc(d)==='substituir');
+    if (temSub) nSubst++;
+    if (todos4) nCompletos++;
+    else if (algum) nParciais++;
+    else nPendentes++;
+  });
+
+  const pct = n => total > 0 ? (n/total*100).toFixed(1)+'%' : '0.0%';
 
   document.getElementById('pcm-total').textContent = total;
-  document.getElementById('pcm-completos').textContent = completos;
-  document.getElementById('pcm-pendentes').textContent = pendentes;
-  document.getElementById('pcm-pct-comp').textContent = pctComp+'% do total';
-  document.getElementById('pcm-pct-pend').textContent = pctPend+'% do total';
-  document.getElementById('pcm-pct-real').textContent = pctComp+'%';
-  document.getElementById('pcm-pct-pend2').textContent = pctPend+'%';
-  document.getElementById('pcm-gap').textContent = (gap > 0 ? '+' : '') + gap;
+  document.getElementById('pcm-kpi-completos').textContent = nCompletos;
+  document.getElementById('pcm-kpi-pct-comp').textContent = pct(nCompletos);
+  document.getElementById('pcm-kpi-parciais').textContent = nParciais;
+  document.getElementById('pcm-kpi-pct-parc').textContent = pct(nParciais);
+  document.getElementById('pcm-kpi-pendentes').textContent = nPendentes;
+  document.getElementById('pcm-kpi-pct-pend').textContent = pct(nPendentes);
+  document.getElementById('pcm-kpi-subst').textContent = nSubst;
+  document.getElementById('pcm-kpi-pct-subst').textContent = pct(nSubst);
+
+  // Para tabelas e resumo (compatibilidade)
+  const completos = nCompletos;
+  const pendentes = nPendentes;
+  const pctComp = total > 0 ? (nCompletos/total*100).toFixed(1) : '0.0';
+  const pctPend = total > 0 ? (nPendentes/total*100).toFixed(1) : '0.0';
+  const gap = (parseFloat(pctComp) - 95).toFixed(1);
 
   // Módulos
   const mods = [
