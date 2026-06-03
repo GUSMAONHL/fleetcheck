@@ -122,6 +122,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-check.s-os-executada{background:#1a5fd4;border-color:#0e3fa0;color:#fff;}
 .os-executada-tag{font-size:8px;font-weight:700;background:rgba(255,255,255,.2);color:#fff;padding:1px 5px;border-radius:4px;margin-top:3px;display:inline-block;letter-spacing:.4px;}
 
+/* TERMAC — badge no vcell-tipo */
+.btn-termac-badge{display:flex;align-items:center;justify-content:center;gap:3px;padding:3px 5px;border-radius:5px;cursor:pointer;width:100%;font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border:.5px solid;}
+.btn-termac-badge.t-sem{background:var(--bg4);border-color:var(--border2);color:var(--text3);}
+.btn-termac-badge.t-sem:hover{border-color:var(--blue);color:var(--blue);}
+.btn-termac-badge.t-apr{background:#d4f7e4;border-color:#1a8a3a;color:#0d5028;}
+.btn-termac-badge.t-rep{background:#fee2e2;border-color:#b02020;color:#8a1a1a;}
+.termac-data-txt{font-size:8px;text-align:center;}
+.termac-data-txt.t-apr{color:#1a8a3a;}
+.termac-data-txt.t-rep{color:#b02020;}
+.just-motivo-btn.ativo{background:#5F5E5A;border-color:#444441;color:#fff;}
+
 /* JUSTIFICATIVA — badge no vcell-tipo */
 .vcell-tipo-inner{display:flex;flex-direction:column;align-items:center;gap:4px;}
 .btn-just-badge{display:flex;align-items:center;justify-content:center;gap:3px;padding:3px 5px;border-radius:5px;background:#5F5E5A;border:.5px solid #444441;cursor:pointer;width:100%;}
@@ -469,6 +480,51 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
   </div>
 </div>
 
+
+<div class="modal-ov" id="modal-termac-ov" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-hdr">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1.5px;" id="termac-modal-placa">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="termac-modal-meta">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E6F1FB;color:#0C447C;border:.5px solid #185FA5;">
+          <i class="ti ti-clipboard-check" aria-hidden="true" style="font-size:13px;"></i>Inspeção TERMAC
+        </div>
+        <button class="modal-close" onclick="document.getElementById('modal-termac-ov').classList.remove('show')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:5px;">Data da inspeção</div>
+        <input id="termac-data" type="date" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+      </div>
+      <div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:5px;">Resultado</div>
+        <div style="display:flex;gap:8px;">
+          <button id="termac-btn-apr" onclick="selecionarResultadoTermac('APROVADO')" style="flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text2);">
+            <i class="ti ti-circle-check" aria-hidden="true" style="font-size:16px;"></i>Aprovado
+          </button>
+          <button id="termac-btn-rep" onclick="selecionarResultadoTermac('REPROVADO')" style="flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text2);">
+            <i class="ti ti-circle-x" aria-hidden="true" style="font-size:16px;"></i>Reprovado
+          </button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:5px;">Itens reprovados</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input id="termac-itens" type="number" min="0" value="0" disabled style="width:90px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:14px;font-weight:700;text-align:center;font-family:'DM Mono',monospace;color:var(--text);opacity:.45;">
+          <span style="font-size:12px;color:var(--text2);">itens reprovados na inspeção</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
+        <button onclick="limparTermac()" style="padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer;">Limpar</button>
+        <button onclick="salvarTermac()" style="padding:8px 20px;border-radius:6px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Salvar TERMAC</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-ov" id="modal-just-ov" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal-box" style="max-width:480px;">
     <div class="modal-hdr">
@@ -520,6 +576,7 @@ const TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
 const osState = {}; // placa_mod_idx -> bool (true = tem OS)
 const justState = {}; // placa -> {motivo, obs} | null
+const termacState = {}; // placa -> {dataInspecao, resultado, itensReprovados} | null
 
 function hoje() { return new Date().toLocaleDateString('pt-BR'); }
 function tipoMod(secoes) {
@@ -654,6 +711,7 @@ window.carregarDados = async function() {
     // Carrega OS de todos os itens SUB antes de renderizar
     await carregarTodasOS();
     await carregarJustificativas();
+    await carregarTermac();
     TODOS.forEach(v => atualizarLinha(v.placa));
     atualizarKPIs();
     atualizarContadores('frota');
@@ -693,6 +751,15 @@ async function carregarJustificativas() {
     getDoc(docRef(db, 'justificativas', v.placa))
       .then(snap => { justState[v.placa] = snap.exists() ? snap.data() : null; })
       .catch(() => { justState[v.placa] = null; })
+  );
+  await Promise.allSettled(promises);
+}
+
+async function carregarTermac() {
+  const promises = TODOS.map(v =>
+    getDoc(docRef(db, 'termac', v.placa))
+      .then(snap => { termacState[v.placa] = snap.exists() ? snap.data() : null; })
+      .catch(() => { termacState[v.placa] = null; })
   );
   await Promise.allSettled(promises);
 }
@@ -881,6 +948,47 @@ function renderJustBadge(placa) {
   } else {
     row.classList.remove('s-justificado');
   }
+  renderTermacBadge(placa);
+}
+
+function renderTermacBadge(placa) {
+  const tipoCell = document.getElementById('vcell-tipo-'+placa);
+  if (!tipoCell) return;
+  const inner = tipoCell.querySelector('.vcell-tipo-inner');
+  if (!inner) return;
+  const old = inner.querySelector('.btn-termac-badge');
+  if (old) old.remove();
+  const oldDt = inner.querySelector('.termac-data-txt');
+  if (oldDt) oldDt.remove();
+
+  const t = termacState[placa];
+  const badge = document.createElement('div');
+  badge.onclick = (e) => { e.stopPropagation(); abrirModalTermac(placa); };
+
+  if (!t?.resultado) {
+    badge.className = 'btn-termac-badge t-sem';
+    badge.innerHTML = '<i class="ti ti-clipboard-check" aria-hidden="true" style="font-size:10px;"></i>TERMAC';
+  } else if (t.resultado === 'APROVADO') {
+    badge.className = 'btn-termac-badge t-apr';
+    badge.innerHTML = '<i class="ti ti-circle-check" aria-hidden="true" style="font-size:10px;"></i>APROVADO';
+    const dt = document.createElement('div');
+    dt.className = 'termac-data-txt t-apr';
+    dt.textContent = t.dataInspecao || '';
+    inner.appendChild(badge);
+    inner.appendChild(dt);
+    return;
+  } else {
+    badge.className = 'btn-termac-badge t-rep';
+    const it = t.itensReprovados > 0 ? ' · '+t.itensReprovados+' it' : '';
+    badge.innerHTML = '<i class="ti ti-circle-x" aria-hidden="true" style="font-size:10px;"></i>REPROV'+it;
+    const dt = document.createElement('div');
+    dt.className = 'termac-data-txt t-rep';
+    dt.textContent = t.dataInspecao || '';
+    inner.appendChild(badge);
+    inner.appendChild(dt);
+    return;
+  }
+  inner.appendChild(badge);
 }
 
 function atualizarKPIs() {
@@ -1157,6 +1265,12 @@ function iniciarListeners() {
   );
   _unsubscribes.push(unsubJust);
 
+  const unsubTermac = onSnapshot(collection(db,'termac'),
+    () => { if (_realtimeReady) dispararAtualizacao('termac'); },
+    err => console.warn('[FleetCheck] onSnapshot termac erro:', err)
+  );
+  _unsubscribes.push(unsubTermac);
+
   console.log('[FleetCheck] Listeners em tempo real ativos:', _unsubscribes.length);
 }
 
@@ -1188,6 +1302,92 @@ let _justPlaca = null;
 
 // Expor funções no escopo global (necessário para onclick inline com type="module")
 window.abrirModalJustificativa = abrirModalJustificativa;
+
+let _termacPlaca = null;
+let _termacResultado = null;
+
+function abrirModalTermac(placa) {
+  _termacPlaca = placa;
+  _termacResultado = null;
+  const v = TODOS.find(x => x.placa === placa);
+  document.getElementById('termac-modal-placa').textContent = placa;
+  document.getElementById('termac-modal-meta').textContent = (v?.bloco||'') + ' · ' + (v?.tipo||'') + ' · N° ' + (v?.nfr||'');
+  const t = termacState[placa];
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('termac-data').value = t?.dataInspecao || today;
+  document.getElementById('termac-itens').value = t?.itensReprovados || 0;
+  if (t?.resultado) selecionarResultadoTermac(t.resultado);
+  else { resetBtnTermac(); }
+  document.getElementById('modal-termac-ov').classList.add('show');
+}
+
+function resetBtnTermac() {
+  _termacResultado = null;
+  const btnApr = document.getElementById('termac-btn-apr');
+  const btnRep = document.getElementById('termac-btn-rep');
+  if (btnApr) { btnApr.style.background=''; btnApr.style.borderColor=''; btnApr.style.color=''; }
+  if (btnRep) { btnRep.style.background=''; btnRep.style.borderColor=''; btnRep.style.color=''; }
+  const ni = document.getElementById('termac-itens');
+  if (ni) { ni.disabled=true; ni.style.opacity='.45'; }
+}
+
+function selecionarResultadoTermac(res) {
+  _termacResultado = res;
+  const btnApr = document.getElementById('termac-btn-apr');
+  const btnRep = document.getElementById('termac-btn-rep');
+  const ni = document.getElementById('termac-itens');
+  if (res === 'APROVADO') {
+    btnApr.style.cssText='flex:1;padding:9px;border-radius:7px;border:1px solid #1a8a3a;background:#d4f7e4;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#0d5028;';
+    btnRep.style.cssText='flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text2);';
+    ni.disabled=true; ni.style.opacity='.45'; ni.value=0;
+  } else {
+    btnRep.style.cssText='flex:1;padding:9px;border-radius:7px;border:1px solid #b02020;background:#fee2e2;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#8a1a1a;';
+    btnApr.style.cssText='flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text2);';
+    ni.disabled=false; ni.style.opacity='1';
+  }
+}
+
+async function salvarTermac() {
+  if (!_termacPlaca) return;
+  if (!_termacResultado) { alert('Selecione Aprovado ou Reprovado.'); return; }
+  const dataInspecao = document.getElementById('termac-data').value;
+  if (!dataInspecao) { alert('Informe a data da inspeção.'); return; }
+  const itensReprovados = _termacResultado === 'REPROVADO'
+    ? parseInt(document.getElementById('termac-itens').value)||0 : 0;
+  const v = TODOS.find(x => x.placa === _termacPlaca);
+  try {
+    await setDoc(doc(db,'termac',_termacPlaca), {
+      placa: _termacPlaca,
+      dataInspecao,
+      resultado: _termacResultado,
+      itensReprovados,
+      tipo: v?.tipo||'',
+      bloco: v?.bloco||'',
+      nfr: v?.nfr||'',
+      updatedAt: new Date().toISOString()
+    });
+    termacState[_termacPlaca] = { dataInspecao, resultado: _termacResultado, itensReprovados };
+    renderTermacBadge(_termacPlaca);
+    document.getElementById('modal-termac-ov').classList.remove('show');
+    showToast('TERMAC salvo!');
+  } catch(e) { alert('Erro ao salvar TERMAC. Verifique a conexão.'); }
+}
+
+async function limparTermac() {
+  if (!_termacPlaca) return;
+  try {
+    await setDoc(doc(db,'termac',_termacPlaca), { placa: _termacPlaca, resultado: null, updatedAt: new Date().toISOString() });
+    termacState[_termacPlaca] = null;
+    renderTermacBadge(_termacPlaca);
+    document.getElementById('modal-termac-ov').classList.remove('show');
+    showToast('TERMAC removido.');
+  } catch(e) { alert('Erro ao limpar TERMAC.'); }
+}
+
+window.abrirModalTermac = abrirModalTermac;
+window.selecionarResultadoTermac = selecionarResultadoTermac;
+window.salvarTermac = salvarTermac;
+window.limparTermac = limparTermac;
 
 // ── FILTRO POR TIPO ──
 let _filtroAtivo = { frota: 'TODOS', terceiro: 'TODOS' };
