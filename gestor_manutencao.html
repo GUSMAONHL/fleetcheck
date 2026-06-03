@@ -572,6 +572,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
               <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Resumo geral</div>
               <div id="pcm-resumo"></div>
             </div>
+            <div>
+              <div class="pcm-pt" style="border-bottom-color:#185FA5;color:#0C447C;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Inspeção TERMAC
+              </div>
+              <div id="pcm-termac"></div>
+            </div>
           </div>
         </div>
         <div class="pcm-ftr">
@@ -1729,6 +1736,64 @@ function renderPCM() {
   const osPend = Object.entries(osState).filter(([k,v]) => v === false).length;
   // TERMAC aprovados
   const termacApr = Object.values(termacState).filter(t => t?.resultado === 'APROVADO').length;
+
+  // ── TERMAC ──
+  const todosTermac = TODOS.length;
+  const termacRealizados = TODOS.filter(v => termacState[v.placa]?.resultado).length;
+  const termacPendentes = todosTermac - termacRealizados;
+  const tpct = n => todosTermac > 0 ? (n/todosTermac*100).toFixed(1)+'%' : '0.0%';
+
+  // Por bloco e tipo
+  const blocos = [
+    { label: 'Frota', cor: '#185FA5', fundoCor: '#E6F1FB', veics: TODOS.filter(v => v.bloco && v.bloco.toUpperCase().includes('FROTA')) },
+    { label: 'Terceiros', cor: '#854F0B', fundoCor: '#FAEEDA', veics: TODOS.filter(v => v.bloco && !v.bloco.toUpperCase().includes('FROTA')) },
+  ];
+
+  let termacHtml = '';
+
+  // Totalizadores
+  termacHtml += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+    <div style="background:#EAF3DE;border:.5px solid #97C459;border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#27500A;letter-spacing:.5px;margin-bottom:3px;">Realizadas</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:20px;font-weight:700;color:#27500A;font-family:'DM Mono',monospace;">${termacRealizados}</span>
+        <span style="font-size:13px;font-weight:700;color:#3B6D11;font-family:'DM Mono',monospace;">${tpct(termacRealizados)}</span>
+      </div>
+    </div>
+    <div style="background:#FCEBEB;border:.5px solid #F09595;border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#791F1F;letter-spacing:.5px;margin-bottom:3px;">Pendentes</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:20px;font-weight:700;color:#A32D2D;font-family:'DM Mono',monospace;">${termacPendentes}</span>
+        <span style="font-size:13px;font-weight:700;color:#A32D2D;font-family:'DM Mono',monospace;">${tpct(termacPendentes)}</span>
+      </div>
+    </div>
+  </div>`;
+
+  // Por bloco e tipo
+  blocos.forEach(bloco => {
+    if (!bloco.veics.length) return;
+    // Tipos únicos no bloco
+    const tiposBloco = [...new Set(bloco.veics.map(v => v.tipo))].filter(Boolean).sort();
+    termacHtml += `<div style="margin-bottom:8px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:${bloco.cor};margin-bottom:5px;padding-bottom:3px;border-bottom:1.5px solid ${bloco.cor};">${bloco.label}</div>`;
+    tiposBloco.forEach(tipo => {
+      const veicsTipo = bloco.veics.filter(v => v.tipo === tipo);
+      const realTipo = veicsTipo.filter(v => termacState[v.placa]?.resultado).length;
+      const pendTipo = veicsTipo.length - realTipo;
+      const pctTipo = veicsTipo.length > 0 ? (realTipo/veicsTipo.length*100).toFixed(0)+'%' : '0%';
+      termacHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:.5px solid var(--border);">
+        <span style="font-size:11px;color:var(--text2);font-weight:500;">${tipo}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:#27500A;font-weight:600;font-family:'DM Mono',monospace;">${realTipo}✓</span>
+          <span style="font-size:11px;color:#A32D2D;font-weight:600;font-family:'DM Mono',monospace;">${pendTipo}✗</span>
+          <span style="font-size:11px;font-weight:700;color:${bloco.cor};font-family:'DM Mono',monospace;min-width:36px;text-align:right;">${pctTipo}</span>
+        </div>
+      </div>`;
+    });
+    termacHtml += '</div>';
+  });
+
+  document.getElementById('pcm-termac').innerHTML = termacHtml;
 
   document.getElementById('pcm-resumo').innerHTML = `
     <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>Total de frotas</span><span class="pcm-rval b">${total}</span></div>
