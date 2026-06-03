@@ -221,6 +221,57 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 .just-motivo-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text2);cursor:pointer;font-weight:500;}
 .just-motivo-btn.ativo{background:#5F5E5A;border-color:#444441;color:#fff;}
+
+/* PCM PAINEL */
+.pcm-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:'DM Sans',sans-serif;}
+.pcm-hdr{background:#001854;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.pcm-hdr-left{display:flex;align-items:center;gap:10px;}
+.pcm-title{color:#fff;font-size:18px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;}
+.pcm-sub{color:#85B7EB;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.pcm-dbox{background:#0C447C;border:1px solid #185FA5;border-radius:8px;padding:5px 14px;text-align:center;}
+.pcm-dlbl{font-size:9px;color:#85B7EB;text-transform:uppercase;letter-spacing:.7px;}
+.pcm-dval{font-size:14px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;}
+.pcm-krow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);}
+.pcm-kc{background:var(--bg2);padding:10px 6px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;border-right:1px solid var(--border);}
+.pcm-kc:last-child{border-right:none;}
+.pcm-klbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);line-height:1.3;}
+.pcm-knum{font-size:22px;font-weight:700;line-height:1;font-family:'DM Mono',monospace;}
+.pcm-knum.b{color:#001854;} .pcm-knum.g{color:#27500A;} .pcm-knum.r{color:#A32D2D;} .pcm-knum.n{color:#0C447C;}
+.pcm-ksub{font-size:9px;font-weight:600;}
+.pcm-ksub.b{color:#185FA5;} .pcm-ksub.g{color:#3B6D11;} .pcm-ksub.r{color:#A32D2D;}
+.pcm-bgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);}
+.pcm-bp{background:var(--bg2);padding:14px;}
+.pcm-pt{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid #001854;display:flex;align-items:center;gap:5px;}
+.pcm-mrow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.pcm-mc{border-radius:6px;padding:7px 8px;}
+.pcm-mc.ok{background:#EAF3DE;border:.5px solid #97C459;}
+.pcm-mc.pd{background:#FCEBEB;border:.5px solid #F09595;}
+.pcm-mlbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.pcm-mlbl.ok{color:#27500A;} .pcm-mlbl.pd{color:#791F1F;}
+.pcm-mnum{font-size:16px;font-weight:700;font-family:'DM Mono',monospace;}
+.pcm-mnum.ok{color:#27500A;} .pcm-mnum.pd{color:#A32D2D;}
+.pcm-mpct{font-size:10px;font-weight:600;margin-left:4px;}
+.pcm-mpct.ok{color:#3B6D11;} .pcm-mpct.pd{color:#A32D2D;}
+.pcm-msub{font-size:8px;}
+.pcm-msub.ok{color:#3B6D11;} .pcm-msub.pd{color:#791F1F;}
+.pcm-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.pcm-tbl th{background:#001854;color:#fff;padding:4px 7px;text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.5px;}
+.pcm-tbl td{padding:4px 7px;border-bottom:.5px solid var(--border);font-size:11px;color:var(--text);}
+.pcm-tbl tr:nth-child(even) td{background:var(--bg3);}
+.pcm-tbl td.pn{color:#A32D2D;font-weight:700;font-family:'DM Mono',monospace;}
+.pcm-tbl td.mot{font-size:10px;color:var(--text2);}
+.pcm-rrow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:.5px solid var(--border);font-size:11px;}
+.pcm-rrow:last-child{border-bottom:none;}
+.pcm-rlbl{color:var(--text2);display:flex;align-items:center;gap:5px;}
+.pcm-rval{font-weight:700;font-family:'DM Mono',monospace;}
+.pcm-rval.g{color:#27500A;} .pcm-rval.r{color:#A32D2D;} .pcm-rval.b{color:#0C447C;}
+.pcm-mtbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
+.pcm-mtbl th{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:3px 5px;border-bottom:1px solid var(--border2);text-align:left;}
+.pcm-mtbl td{padding:4px 5px;border-bottom:.5px solid var(--border);}
+.pcm-mtbl td.qt{font-weight:700;text-align:center;font-family:'DM Mono',monospace;}
+.pcm-mtbl td.pc{color:#A32D2D;font-weight:700;text-align:right;}
+.pcm-ftr{background:#001854;padding:7px 20px;display:flex;align-items:center;justify-content:space-between;}
+.pcm-ftxt{font-size:9px;color:#85B7EB;display:flex;align-items:center;gap:5px;}
 </style>
 </head>
 <body>
@@ -231,6 +282,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <button class="nav-item active" id="nav-quadro" onclick="showPage('quadro',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Quadro Geral
+    </button>
+    <button class="nav-item" id="nav-pcm" onclick="showPage('pcm',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      PCM
     </button>
     <button class="nav-item" id="nav-historico" onclick="showPage('historico',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -450,6 +505,57 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
     </div>
     </div>
+    </div>
+    <div class="page" id="page-pcm">
+      <div class="pcm-wrap">
+        <div class="pcm-hdr">
+          <div class="pcm-hdr-left">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+            <div>
+              <div class="pcm-title">Inspeção de Freio — PCM</div>
+              <div class="pcm-sub">Planejamento e Controle da Manutenção · Novo Horizonte Logística</div>
+            </div>
+          </div>
+          <div class="pcm-dbox">
+            <div class="pcm-dlbl">Data do relatório</div>
+            <div class="pcm-dval" id="pcm-data-rel">—</div>
+          </div>
+        </div>
+        <div class="pcm-krow">
+          <div class="pcm-kc"><div class="pcm-klbl">Total de frotas analisadas</div><div class="pcm-knum b" id="pcm-total">—</div><div class="pcm-ksub b">100% do total</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Com inspeção completa</div><div class="pcm-knum g" id="pcm-completos">—</div><div class="pcm-ksub g" id="pcm-pct-comp">—% do total</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Sem inspeção (pendentes)</div><div class="pcm-knum r" id="pcm-pendentes">—</div><div class="pcm-ksub r" id="pcm-pct-pend">—% do total</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Percentual realizado</div><div class="pcm-knum n" id="pcm-pct-real">—%</div><div class="pcm-ksub">Realizado</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Percentual pendente</div><div class="pcm-knum r" id="pcm-pct-pend2">—%</div><div class="pcm-ksub r">Pendente</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Meta de inspeção</div><div class="pcm-knum n">95%</div><div class="pcm-ksub">Meta mínima</div></div>
+          <div class="pcm-kc"><div class="pcm-klbl">Gap para meta</div><div class="pcm-knum r" id="pcm-gap">—</div><div class="pcm-ksub r">p.p.</div></div>
+        </div>
+        <div class="pcm-bgrid">
+          <div class="pcm-bp">
+            <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Inspeção por módulo</div>
+            <div id="pcm-modulos"></div>
+          </div>
+          <div class="pcm-bp">
+            <div class="pcm-pt" style="color:#A32D2D;border-bottom-color:#A32D2D;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Frotas sem inspeção (pendentes)</div>
+            <table class="pcm-tbl"><thead><tr><th>#</th><th>Frota</th><th>Placa</th><th>Motivo</th></tr></thead><tbody id="pcm-pendentes-tbl"></tbody></table>
+          </div>
+          <div class="pcm-bp" style="display:flex;flex-direction:column;gap:14px;">
+            <div>
+              <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Resumo dos motivos</div>
+              <table class="pcm-mtbl"><thead><tr><th>Motivo</th><th style="text-align:center;">Qtde</th><th style="text-align:right;">%</th></tr></thead><tbody id="pcm-motivos-tbl"></tbody></table>
+            </div>
+            <div>
+              <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Resumo geral</div>
+              <div id="pcm-resumo"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pcm-ftr">
+          <div class="pcm-ftxt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Fonte: FleetCheck · Firebase</div>
+          <div class="pcm-ftxt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Dados em tempo real</div>
+          <div class="pcm-ftxt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#85B7EB" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>Meta mínima: 95% da frota</div>
+        </div>
+      </div>
     </div>
     <div class="page" id="page-historico">
       <div style="text-align:center;padding:60px;color:var(--text3);">Em desenvolvimento...</div>
@@ -951,6 +1057,12 @@ function renderJustBadge(placa) {
   renderTermacBadge(placa);
 }
 
+function fmtDataBR(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y;
+}
+
 function renderTermacBadge(placa) {
   const tipoCell = document.getElementById('vcell-tipo-'+placa);
   if (!tipoCell) return;
@@ -973,7 +1085,7 @@ function renderTermacBadge(placa) {
     badge.innerHTML = '<i class="ti ti-circle-check" aria-hidden="true" style="font-size:10px;"></i>APROVADO';
     const dt = document.createElement('div');
     dt.className = 'termac-data-txt t-apr';
-    dt.textContent = t.dataInspecao || '';
+    dt.textContent = fmtDataBR(t.dataInspecao);
     inner.appendChild(badge);
     inner.appendChild(dt);
     return;
@@ -983,7 +1095,7 @@ function renderTermacBadge(placa) {
     badge.innerHTML = '<i class="ti ti-circle-x" aria-hidden="true" style="font-size:10px;"></i>REPROV'+it;
     const dt = document.createElement('div');
     dt.className = 'termac-data-txt t-rep';
-    dt.textContent = t.dataInspecao || '';
+    dt.textContent = fmtDataBR(t.dataInspecao);
     inner.appendChild(badge);
     inner.appendChild(dt);
     return;
@@ -1492,6 +1604,94 @@ async function limparJustificativa() {
     showToast('Justificativa removida.');
   } catch(e) { alert('Erro ao limpar justificativa.'); }
 }
+
+function renderPCM() {
+  const total = TODOS.length;
+  const hoje = new Date();
+  document.getElementById('pcm-data-rel').textContent =
+    hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // Completos = 4 módulos inspecionados
+  const completos = TODOS.filter(v => {
+    const st = checkState[v.placa];
+    return st?.f1 != null && st?.pn != null && st?.f2 != null && st?.su != null;
+  }).length;
+  const pendentes = total - completos;
+  const pctComp = total > 0 ? (completos/total*100).toFixed(1) : '0.0';
+  const pctPend = total > 0 ? (pendentes/total*100).toFixed(1) : '0.0';
+  const gap = (parseFloat(pctComp) - 95).toFixed(1);
+
+  document.getElementById('pcm-total').textContent = total;
+  document.getElementById('pcm-completos').textContent = completos;
+  document.getElementById('pcm-pendentes').textContent = pendentes;
+  document.getElementById('pcm-pct-comp').textContent = pctComp+'% do total';
+  document.getElementById('pcm-pct-pend').textContent = pctPend+'% do total';
+  document.getElementById('pcm-pct-real').textContent = pctComp+'%';
+  document.getElementById('pcm-pct-pend2').textContent = pctPend+'%';
+  document.getElementById('pcm-gap').textContent = (gap > 0 ? '+' : '') + gap;
+
+  // Módulos
+  const mods = [
+    {key:'f1', label:'Freio 01'},
+    {key:'pn', label:'Pneu'},
+    {key:'f2', label:'Freio 02'},
+    {key:'su', label:'Suspensão'},
+  ];
+  const modHtml = mods.map(m => {
+    const insp = TODOS.filter(v => checkState[v.placa]?.[m.key] != null).length;
+    const pend = total - insp;
+    const pi = total > 0 ? (insp/total*100).toFixed(1) : '0.0';
+    const pp = total > 0 ? (pend/total*100).toFixed(1) : '0.0';
+    return `<div class="pcm-mrow">
+      <div class="pcm-mc ok"><div class="pcm-mlbl ok">${m.label}</div><div><span class="pcm-mnum ok">${insp}</span><span class="pcm-mpct ok">${pi}%</span></div><div class="pcm-msub ok">inspecionados</div></div>
+      <div class="pcm-mc pd"><div class="pcm-mlbl pd">${m.label}</div><div><span class="pcm-mnum pd">${pend}</span><span class="pcm-mpct pd">${pp}%</span></div><div class="pcm-msub pd">pendentes</div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('pcm-modulos').innerHTML = modHtml;
+
+  // Frotas pendentes
+  const semInspecao = TODOS.filter(v => {
+    const st = checkState[v.placa];
+    return !st?.f1 && !st?.pn && !st?.f2 && !st?.su;
+  });
+  const tblRows = semInspecao.map((v, i) => {
+    const just = justState[v.placa];
+    const motivo = just?.motivo || 'Não inspecionado';
+    return `<tr><td class="pn">${String(i+1).padStart(2,'0')}</td><td>${v.nfr}</td><td>${v.placa}</td><td class="mot">${motivo}</td></tr>`;
+  }).join('');
+  document.getElementById('pcm-pendentes-tbl').innerHTML = tblRows || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:8px;">Todas as frotas inspecionadas</td></tr>';
+
+  // Resumo dos motivos
+  const motivoCount = {};
+  semInspecao.forEach(v => {
+    const m = justState[v.placa]?.motivo || 'Não inspecionado';
+    motivoCount[m] = (motivoCount[m]||0) + 1;
+  });
+  const totalPend = semInspecao.length;
+  const motivoRows = Object.entries(motivoCount)
+    .sort((a,b) => b[1]-a[1])
+    .map(([m,q]) => {
+      const pct = totalPend > 0 ? (q/totalPend*100).toFixed(1) : '0.0';
+      return `<tr><td>${m}</td><td class="qt">${q}</td><td class="pc">${pct}%</td></tr>`;
+    }).join('');
+  const totalRow = `<tr style="border-top:2px solid #001854;"><td style="font-weight:700;">Total</td><td class="qt" style="color:#001854;">${totalPend}</td><td class="pc">100%</td></tr>`;
+  document.getElementById('pcm-motivos-tbl').innerHTML = (motivoRows || '') + totalRow;
+
+  // OS pendentes
+  const osPend = Object.entries(osState).filter(([k,v]) => v === false).length;
+  // TERMAC aprovados
+  const termacApr = Object.values(termacState).filter(t => t?.resultado === 'APROVADO').length;
+
+  document.getElementById('pcm-resumo').innerHTML = `
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>Total de frotas</span><span class="pcm-rval b">${total}</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Com inspeção completa</span><span class="pcm-rval g">${completos} (${pctComp}%)</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Sem inspeção</span><span class="pcm-rval r">${pendentes} (${pctPend}%)</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Com OS pendente</span><span class="pcm-rval r">${osPend}</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>TERMAC aprovados</span><span class="pcm-rval g">${termacApr}</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>Meta de inspeção</span><span class="pcm-rval b">95%</span></div>
+    <div class="pcm-rrow"><span class="pcm-rlbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>Gap para meta</span><span class="pcm-rval r">${(gap>0?'+':'')+gap} p.p.</span></div>`;
+}
+window.renderPCM = renderPCM;
 </script>
 </body>
 </html>
