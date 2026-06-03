@@ -559,9 +559,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Inspeção por módulo</div>
             <div id="pcm-modulos"></div>
           </div>
-          <div class="pcm-bp">
-            <div class="pcm-pt" style="color:#A32D2D;border-bottom-color:#A32D2D;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Frotas sem inspeção (pendentes)</div>
-            <table class="pcm-tbl"><thead><tr><th>#</th><th>Frota</th><th>Placa</th><th>Motivo</th></tr></thead><tbody id="pcm-pendentes-tbl"></tbody></table>
+          <div class="pcm-bp" style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <div class="pcm-pt" style="color:#A32D2D;border-bottom-color:#A32D2D;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Frotas sem inspeção (pendentes)</div>
+              <table class="pcm-tbl"><thead><tr><th>#</th><th>Frota</th><th>Placa</th><th>Motivo</th></tr></thead><tbody id="pcm-pendentes-tbl"></tbody></table>
+            </div>
+            <div>
+              <div class="pcm-pt" style="border-bottom-color:#185FA5;color:#0C447C;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Inspeção TERMAC
+              </div>
+              <div id="pcm-termac"></div>
+            </div>
           </div>
           <div class="pcm-bp" style="display:flex;flex-direction:column;gap:14px;">
             <div>
@@ -571,13 +580,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             <div>
               <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Resumo geral</div>
               <div id="pcm-resumo"></div>
-            </div>
-            <div>
-              <div class="pcm-pt" style="border-bottom-color:#185FA5;color:#0C447C;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                Inspeção TERMAC
-              </div>
-              <div id="pcm-termac"></div>
             </div>
           </div>
         </div>
