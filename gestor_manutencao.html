@@ -716,6 +716,17 @@ const TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
 const osState = {}; // placa_mod_idx -> bool (true = tem OS)
 const justState = {}; // placa -> {motivo, obs} | null
+
+// Semana atual no formato ISO para usar como chave
+function getSemanaAtual() {
+  const hoje = new Date();
+  const dia = hoje.getDay();
+  const diasAteSeg = dia === 0 ? 6 : dia - 1;
+  const seg = new Date(hoje);
+  seg.setDate(hoje.getDate() - diasAteSeg);
+  return seg.toISOString().split('T')[0]; // ex: "2026-06-02"
+}
+const SEMANA_ATUAL = getSemanaAtual();
 const termacState = {}; // placa -> {dataInspecao, resultado, itensReprovados} | null
 
 function hoje() { return new Date().toLocaleDateString('pt-BR'); }
@@ -1631,7 +1642,7 @@ async function salvarJustificativa() {
     atualizarLinha(_justPlaca);
     document.getElementById('modal-just-ov').classList.remove('show');
     showToast('Justificativa salva!');
-  } catch(e) { alert('Erro ao salvar justificativa.'); }
+  } catch(e) { console.error('Erro salvarJustificativa:', e); alert('Erro ao salvar justificativa: ' + (e?.message || e)); }
 }
 
 async function limparJustificativa() {
@@ -1642,7 +1653,7 @@ async function limparJustificativa() {
     atualizarLinha(_justPlaca);
     document.getElementById('modal-just-ov').classList.remove('show');
     showToast('Justificativa removida.');
-  } catch(e) { alert('Erro ao limpar justificativa.'); }
+  } catch(e) { console.error('Erro limparJustificativa:', e); alert('Erro ao limpar justificativa: ' + (e?.message || e)); }
 }
 
 function renderPCM() {
