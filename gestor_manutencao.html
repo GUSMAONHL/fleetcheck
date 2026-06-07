@@ -1935,7 +1935,9 @@ function renderVencimentos() {
       ? `<div style="font-size:10px;color:var(--text3);margin-top:3px;">+${veics.length-4} mais</div>`
       : '';
 
-    return `<div style="padding:10px 10px 8px;${bgCard}">
+    const labelDia = `${diasSemana[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${meses[d.getMonth()]}`;
+    const clickable = total > 0 ? `onclick="abrirModalVenc('${key}','${labelDia}',${JSON.stringify(veics).replace(/"/g,'&quot;')})" style="padding:10px 10px 8px;${bgCard}cursor:pointer;" title="Ver todos os veículos"` : `style="padding:10px 10px 8px;${bgCard}"`;
+    return `<div ${clickable}>
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
         <div>
           <div style="font-size:10px;font-weight:700;color:var(--text2);">${diasSemana[d.getDay()]}</div>
@@ -1949,6 +1951,46 @@ function renderVencimentos() {
   }).join('');
 }
 window.renderVencimentos = renderVencimentos;
+
+// MODAL VENCIMENTOS DO DIA
+function abrirModalVenc(key, labelDia, veics) {
+  const ov = document.getElementById('modal-venc-ov');
+  document.getElementById('modal-venc-titulo').textContent = labelDia;
+  document.getElementById('modal-venc-sub').textContent = veics.length + ' veículo' + (veics.length !== 1 ? 's' : '') + ' com inspeção a vencer';
+
+  // Separar por bloco
+  const frota     = veics.filter(v => { const vd = TODOS.find(x=>x.placa===v.placa); return vd?.bloco?.toUpperCase().includes('FROTA'); });
+  const terceiros = veics.filter(v => { const vd = TODOS.find(x=>x.placa===v.placa); return !vd?.bloco?.toUpperCase().includes('FROTA'); });
+
+  function colHTML(titulo, cor, lista) {
+    if (!lista.length) return `<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:${cor};margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid ${cor};">${titulo}</div><div style="font-size:11px;color:var(--text3);">Nenhum</div></div>`;
+    const rows = lista.map(v => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--border);">
+        <div>
+          <span style="font-size:13px;font-weight:700;color:var(--text);font-family:Arial,sans-serif;">${v.nfr}</span>
+          <span style="font-size:12px;color:var(--text2);margin-left:4px;">· ${v.placa}</span>
+        </div>
+        <span style="font-size:11px;color:var(--text2);font-weight:500;">${v.tipo||''}</span>
+      </div>`).join('');
+    return `<div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:${cor};margin-bottom:8px;padding-bottom:4px;border-bottom:1.5px solid ${cor};">${titulo} <span style="font-weight:400;opacity:.7;">(${lista.length})</span></div>
+      ${rows}
+    </div>`;
+  }
+
+  document.getElementById('modal-venc-body').innerHTML =
+    colHTML('Frota', '#185FA5', frota) +
+    colHTML('Terceiros', '#854F0B', terceiros);
+
+  ov.style.display = 'flex';
+}
+
+function fecharModalVenc() {
+  document.getElementById('modal-venc-ov').style.display = 'none';
+}
+
+window.abrirModalVenc = abrirModalVenc;
+window.fecharModalVenc = fecharModalVenc;
 
 function ordenarGridPorVencimento(gridId) {
   const grid = document.getElementById(gridId);
@@ -1967,5 +2009,21 @@ function ordenarGridPorVencimento(gridId) {
 }
 window.ordenarGridPorVencimento = ordenarGridPorVencimento;
 </script>
+
+<!-- MODAL VENCIMENTOS DO DIA -->
+<div id="modal-venc-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVenc()">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div id="modal-venc-titulo" style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:.5px;color:var(--text);text-transform:uppercase;">—</div>
+        <div id="modal-venc-sub" style="font-size:11px;color:var(--text3);margin-top:2px;">Inspeções a vencer</div>
+      </div>
+      <button onclick="fecharModalVenc()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px 18px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="modal-venc-body"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
