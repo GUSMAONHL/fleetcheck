@@ -880,6 +880,8 @@ window.carregarDados = async function() {
     atualizarContadores('frota');
     atualizarContadores('terceiro');
     renderVencimentos();
+    ordenarGridPorVencimento('grid-frota');
+    ordenarGridPorVencimento('grid-terceiro');
   } catch(e) {
     console.error('Erro:', e);
     showToast('⚠ Erro ao carregar dados.');
@@ -931,37 +933,73 @@ async function carregarTermac() {
 const STATUS_LABEL = {pending:'Pendente',ok:'OK',atencao:'Atenção',substituir:'Substituir'};
 
 // Calcula badge de prazo de inspeção (3 dias corridos)
+// Adiciona N dias úteis (seg-sex) a partir de uma data
+function addDiasUteis(date, n) {
+  const d = new Date(date);
+  let adicionados = 0;
+  while (adicionados < n) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay(); // 0=dom, 6=sab
+    if (dow !== 0 && dow !== 6) adicionados++;
+  }
+  return d;
+}
+
+// Conta dias úteis entre duas datas (positivo = prox está no futuro)
+function diffDiasUteis(de, ate) {
+  const d = new Date(de);
+  const fim = new Date(ate);
+  d.setHours(0,0,0,0);
+  fim.setHours(0,0,0,0);
+  let count = 0;
+  const sinal = fim >= d ? 1 : -1;
+  const cur = new Date(d);
+  while (cur.toDateString() !== fim.toDateString()) {
+    cur.setDate(cur.getDate() + sinal);
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) count += sinal;
+  }
+  return count; // negativo = proxDate já passou
+}
+
 function calcPrazoBadge(st) {
-  // Pega a data mais recente dentre todos os módulos inspecionados
   const datas = ['f1','pn','f2','su']
     .map(m => st?.[m]?.dataFormatada)
     .filter(Boolean);
-  if (!datas.length) return null; // sem inspeção
+  if (!datas.length) return null;
 
-  // Converte dd/mm/yyyy -> Date
   function parseBR(d) {
     const [dd,mm,yyyy] = d.split('/');
     return new Date(+yyyy, +mm-1, +dd);
   }
   const maisRecente = datas.reduce((a,b) => parseBR(a) >= parseBR(b) ? a : b);
   const ultDate = parseBR(maisRecente);
-  const proxDate = new Date(ultDate);
-  proxDate.setDate(ultDate.getDate() + 3); // próxima inspeção = + 3 dias
+
+  // Próxima inspeção = +3 dias úteis (seg-sex)
+  const proxDate = addDiasUteis(ultDate, 3);
+  proxDate.setHours(0,0,0,0);
 
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
-  proxDate.setHours(0,0,0,0);
 
-  const diffDias = Math.floor((hoje - proxDate) / 86400000);
-  // diffDias < 0  → ainda não chegou (dentro do prazo)
-  // diffDias === 0 → é hoje (à vencer, dia 3)
-  // diffDias >= 1  → vencida (dia 4+)
+  // diff em dias úteis: negativo = proxDate já passou, 0 = hoje, positivo = futuro
+  const diff = diffDiasUteis(hoje, proxDate);
+  // diff > 0 → ok (prox ainda no futuro)
+  // diff === 0 → hoje é o dia da prox (à vencer — amarelo)
+  // diff === -1 → 1 dia útil passado (à vencer — amarelo, último alerta)
+  // diff <= -2 → vencida (vermelho)
+
+  let cls;
+  if (diff > 1)       cls = 'prazo-ok';      // verde: mais de 1 dia útil de folga
+  else if (diff >= -1) cls = 'prazo-vencer';  // amarelo: hoje ou 1 dia útil passado
+  else                 cls = 'prazo-vencido'; // vermelho: 2+ dias úteis passados
 
   const fmtBR = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   return {
-    ult:  maisRecente,
-    prox: fmtBR(proxDate),
-    cls:  diffDias >= 1 ? 'prazo-vencido' : diffDias === 0 ? 'prazo-vencer' : 'prazo-ok'
+    ult:      maisRecente,
+    prox:     fmtBR(proxDate),
+    proxDate: proxDate,
+    cls
   };
 }
 
@@ -1866,8 +1904,7 @@ function renderVencimentos() {
     const maisRecente = datas.reduce((a,b) => parseBR(a) >= parseBR(b) ? a : b);
     const ultDate = parseBR(maisRecente);
     if (!ultDate) return;
-    const proxDate = new Date(ultDate);
-    proxDate.setDate(ultDate.getDate() + 3);
+    const proxDate = addDiasUteis(ultDate, 3);
     proxDate.setHours(0,0,0,0);
     const key = proxDate.toISOString().split('T')[0];
     if (!vencMap[key]) vencMap[key] = [];
@@ -1912,6 +1949,23 @@ function renderVencimentos() {
   }).join('');
 }
 window.renderVencimentos = renderVencimentos;
+
+function ordenarGridPorVencimento(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const rows = Array.from(grid.querySelectorAll('.vrow'));
+  rows.sort((a, b) => {
+    const pa = a.dataset.placa, pb = b.dataset.placa;
+    const ia = calcPrazoBadge(checkState[pa]);
+    const ib = calcPrazoBadge(checkState[pb]);
+    // Sem inspeção → vai para o final
+    const ta = ia ? ia.proxDate.getTime() : Infinity;
+    const tb = ib ? ib.proxDate.getTime() : Infinity;
+    return ta - tb; // mais antigo (vencido) primeiro
+  });
+  rows.forEach(r => grid.appendChild(r));
+}
+window.ordenarGridPorVencimento = ordenarGridPorVencimento;
 </script>
 </body>
 </html>
