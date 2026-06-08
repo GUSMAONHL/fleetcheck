@@ -740,6 +740,7 @@ function getSemanaAtual() {
 }
 const SEMANA_ATUAL = getSemanaAtual();
 const termacState = {}; // placa -> {dataInspecao, resultado, itensReprovados} | null
+const lastInspState = {}; // placa -> {dataFormatada} da última inspeção (qualquer semana)
 
 function hoje() { return new Date().toLocaleDateString('pt-BR'); }
 function tipoMod(secoes) {
@@ -875,6 +876,7 @@ window.carregarDados = async function() {
     await carregarTodasOS();
     await carregarJustificativas();
     await carregarTermac();
+    await carregarUltimaInspecao();
     TODOS.forEach(v => atualizarLinha(v.placa));
     atualizarKPIs();
     atualizarContadores('frota');
@@ -910,6 +912,51 @@ async function carregarTodasOS() {
     });
   });
   await Promise.allSettled(promises);
+}
+
+// Busca a última inspeção de cada veículo nas últimas 4 semanas
+async function carregarUltimaInspecao() {
+  // Gera datas das últimas 4 semanas (28 dias úteis atrás até hoje)
+  const hoje = new Date();
+  const datasRange = [];
+  const cur = new Date(hoje);
+  for (let i = 0; i < 28; i++) {
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) {
+      datasRange.push(cur.toLocaleDateString('pt-BR'));
+    }
+    cur.setDate(cur.getDate() - 1);
+  }
+
+  // Busca docs de todas essas datas em lotes de 10 (limite do Firebase 'in')
+  const chunks = [];
+  for (let i = 0; i < datasRange.length; i += 10) chunks.push(datasRange.slice(i, i+10));
+
+  const allDocs = [];
+  await Promise.all(chunks.map(async chunk => {
+    try {
+      const snap = await getDocs(
+        query(collection(db,'manutencao_corretiva'), where('dataFormatada','in', chunk))
+      );
+      snap.docs.forEach(d => allDocs.push(d.data()));
+    } catch(e) { console.warn('carregarUltimaInspecao chunk error:', e); }
+  }));
+
+  // Para cada placa, pega a data mais recente encontrada
+  allDocs.forEach(doc => {
+    const placa = (doc.placa||'').toUpperCase();
+    if (!placa) return;
+    const cur = lastInspState[placa]?.dataFormatada;
+    if (!cur || compareDateBR(doc.dataFormatada, cur) > 0) {
+      lastInspState[placa] = { dataFormatada: doc.dataFormatada };
+    }
+  });
+}
+
+// Compara datas BR dd/mm/yyyy: retorna >0 se a > b
+function compareDateBR(a, b) {
+  function toNum(s) { const [d,m,y] = s.split('/'); return +y*10000 + +m*100 + +d; }
+  return toNum(a) - toNum(b);
 }
 
 async function carregarJustificativas() {
@@ -962,11 +1009,18 @@ function diffDiasUteis(de, ate) {
   return count; // negativo = proxDate já passou
 }
 
-function calcPrazoBadge(st) {
+function calcPrazoBadge(st, placa) {
+  // Prioridade: checkState da semana atual → lastInspState (semana anterior)
   const datas = ['f1','pn','f2','su']
     .map(m => st?.[m]?.dataFormatada)
     .filter(Boolean);
-  if (!datas.length) return null;
+
+  // Se não há dado na semana atual, usa a última inspeção do histórico
+  if (!datas.length) {
+    const last = placa ? lastInspState[placa] : null;
+    if (!last?.dataFormatada) return null;
+    datas.push(last.dataFormatada);
+  }
 
   function parseBR(d) {
     const [dd,mm,yyyy] = d.split('/');
@@ -1009,7 +1063,7 @@ function renderDatasCell(placa, st) {
   // Remove badge anterior
   const old = idCell.querySelector('.v-prazo-badge');
   if (old) old.remove();
-  const info = calcPrazoBadge(st);
+  const info = calcPrazoBadge(st, placa);
   const badge = document.createElement('div');
   if (!info) {
     badge.className = 'v-prazo-badge prazo-sem';
@@ -1901,6 +1955,12 @@ function renderVencimentos() {
     const st = checkState[v.placa];
     const datas = ['f1','pn','f2','su'].map(m => st?.[m]?.dataFormatada).filter(Boolean);
     if (!datas.length) return;
+    // Fallback para semana anterior se não há dado atual
+    if (!datas.length) {
+      const last = lastInspState[v.placa];
+      if (last?.dataFormatada) datas.push(last.dataFormatada);
+    }
+    if (!datas.length) return;
     const maisRecente = datas.reduce((a,b) => parseBR(a) >= parseBR(b) ? a : b);
     const ultDate = parseBR(maisRecente);
     if (!ultDate) return;
@@ -1998,8 +2058,8 @@ function ordenarGridPorVencimento(gridId) {
   const rows = Array.from(grid.querySelectorAll('.vrow'));
   rows.sort((a, b) => {
     const pa = a.dataset.placa, pb = b.dataset.placa;
-    const ia = calcPrazoBadge(checkState[pa]);
-    const ib = calcPrazoBadge(checkState[pb]);
+    const ia = calcPrazoBadge(checkState[pa], pa);
+    const ib = calcPrazoBadge(checkState[pb], pb);
     // Sem inspeção → vai para o final
     const ta = ia ? ia.proxDate.getTime() : Infinity;
     const tb = ib ? ib.proxDate.getTime() : Infinity;
