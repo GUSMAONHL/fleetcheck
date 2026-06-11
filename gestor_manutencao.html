@@ -273,9 +273,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .pcm-ftxt{font-size:12px;color:#85B7EB;display:flex;align-items:center;gap:6px;}
 
 /* ══ ESTOQUE ══ */
-.est-tabs{display:flex;gap:0;margin-bottom:1.25rem;border-bottom:1px solid var(--border);}
-.est-tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;}
-.est-tab.at{color:#185FA5;border-bottom-color:#185FA5;}
+.est-btn-cad{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.est-btn-cad.item{border-color:#185FA5;color:#0C447C;background:#E6F1FB;}
+.est-btn-cad.tipo{border-color:#3B6D11;color:#27500A;background:#EAF3DE;}
+.est-btn-cad.modelo{border-color:#854F0B;color:#633806;background:#FAEEDA;}
+.est-btn-cad.marca{border-color:#533AB7;color:#26215C;background:#EEEDFE;}
+.est-btn-cad.filial{border-color:#5F5E5A;color:#444441;background:#F1EFE8;}
+.est-btn-entrada{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:500;cursor:pointer;}
+.est-lists-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem;}
+.est-list-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.est-list-hdr{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);}
+.est-list-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;}
+.est-list-body{max-height:130px;overflow-y:auto;}
+.est-list-row{padding:6px 12px;font-size:12px;color:var(--text);border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.est-list-row:last-child{border-bottom:none;}
+.est-list-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0;}
 .est-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem;}
 .est-kpi{background:var(--bg3);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;}
 .est-kpi-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;}
@@ -634,118 +646,83 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
     <!-- ══ ESTOQUE ══ -->
     <div class="page" id="page-estoque">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-        <div class="est-tabs" style="margin-bottom:0;border-bottom:none;">
-          <button class="est-tab at" id="est-tab-estoque" onclick="estSwitchTab('estoque')">
-            <i class="ti ti-package" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px;"></i>Estoque
-          </button>
-          <button class="est-tab" id="est-tab-precad" onclick="estSwitchTab('precad')">
-            <i class="ti ti-list-check" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:5px;"></i>Pré-cadastro
-          </button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:15px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Controle de Estoque
         </div>
-        <div style="display:flex;gap:8px;">
-          <button class="est-btn-s" id="btn-est-action" onclick="estAbrirModal('entrada')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:13px;">
-            <i class="ti ti-plus" aria-hidden="true" style="font-size:15px;"></i>Dar entrada
-          </button>
-        </div>
-      </div>
-
-      <!-- ABA ESTOQUE -->
-      <div id="est-panel-estoque">
-        <div class="est-kpi-grid">
-          <div class="est-kpi"><div class="est-kpi-lbl">Produtos cadastrados</div><div class="est-kpi-val" style="color:#185FA5;" id="est-kpi-produtos">—</div><div class="est-kpi-sub">tipos distintos</div></div>
-          <div class="est-kpi"><div class="est-kpi-lbl">Unidades em estoque</div><div class="est-kpi-val" style="color:#27500A;" id="est-kpi-unidades">—</div><div class="est-kpi-sub">itens disponíveis</div></div>
-          <div class="est-kpi"><div class="est-kpi-lbl">Estoque baixo</div><div class="est-kpi-val" style="color:#BA7517;" id="est-kpi-baixo">—</div><div class="est-kpi-sub">itens ≤ 2 unidades</div></div>
-          <div class="est-kpi"><div class="est-kpi-lbl">Valor total</div><div class="est-kpi-val" style="font-size:20px;" id="est-kpi-valor">—</div><div class="est-kpi-sub">em estoque</div></div>
-        </div>
-        <div class="est-tbl-wrap">
-          <div class="est-tbl-hdr"><div class="est-tbl-title">Itens em estoque</div></div>
-          <table class="est-tbl">
-            <thead><tr>
-              <th>Tipo</th><th>Modelo</th><th>Marca</th><th>Medida</th>
-              <th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th>Local</th><th></th>
-            </tr></thead>
-            <tbody id="est-tbl-body"></tbody>
-          </table>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="est-btn-cad item" onclick="estAbrirCad('item')"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Item</button>
+          <button class="est-btn-cad tipo" onclick="estAbrirCad('tipo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Tipo</button>
+          <button class="est-btn-cad modelo" onclick="estAbrirCad('modelo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Modelo</button>
+          <button class="est-btn-cad marca" onclick="estAbrirCad('marca')"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Marca</button>
+          <button class="est-btn-cad filial" onclick="estAbrirCad('filial')"><i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Filial</button>
+          <div style="width:.5px;height:24px;background:var(--border);"></div>
+          <button class="est-btn-entrada" onclick="estAbrirEntrada()"><i class="ti ti-arrow-bar-to-down" aria-hidden="true" style="font-size:15px;"></i>Dar entrada</button>
         </div>
       </div>
-
-      <!-- ABA PRÉ-CADASTRO -->
-      <div id="est-panel-precad" style="display:none;">
-        <div class="est-tbl-wrap">
-          <div class="est-tbl-hdr">
-            <div class="est-tbl-title">Produtos cadastrados</div>
-            <button class="est-btn-s" onclick="estAbrirModal('precad')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;">
-              <i class="ti ti-plus" aria-hidden="true" style="font-size:13px;"></i>Novo produto
-            </button>
-          </div>
-          <table class="est-tbl">
-            <thead><tr>
-              <th>Tipo</th><th>Modelo</th><th>Marca</th><th>Medida</th><th>Local</th><th></th>
-            </tr></thead>
-            <tbody id="precad-tbl-body"></tbody>
-          </table>
-        </div>
+      <div class="est-kpi-grid">
+        <div class="est-kpi"><div class="est-kpi-lbl">Itens cadastrados</div><div class="est-kpi-val" style="color:#185FA5;" id="est-kpi-itens">—</div><div class="est-kpi-sub">tipos distintos</div></div>
+        <div class="est-kpi"><div class="est-kpi-lbl">Unidades em estoque</div><div class="est-kpi-val" style="color:#27500A;" id="est-kpi-unidades">—</div><div class="est-kpi-sub">disponíveis</div></div>
+        <div class="est-kpi"><div class="est-kpi-lbl">Estoque baixo</div><div class="est-kpi-val" style="color:#BA7517;" id="est-kpi-baixo">—</div><div class="est-kpi-sub">itens ≤ 2</div></div>
+        <div class="est-kpi"><div class="est-kpi-lbl">Valor total</div><div class="est-kpi-val" style="font-size:20px;" id="est-kpi-valor">—</div><div class="est-kpi-sub">em estoque</div></div>
+      </div>
+      <div class="est-lists-grid">
+        <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#0C447C;">Itens</span><span style="font-size:10px;color:var(--text3);" id="cnt-item">0</span></div><div class="est-list-body" id="list-item"></div></div>
+        <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#27500A;">Tipos</span><span style="font-size:10px;color:var(--text3);" id="cnt-tipo">0</span></div><div class="est-list-body" id="list-tipo"></div></div>
+        <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#633806;">Modelos</span><span style="font-size:10px;color:var(--text3);" id="cnt-modelo">0</span></div><div class="est-list-body" id="list-modelo"></div></div>
+        <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#26215C;">Marcas</span><span style="font-size:10px;color:var(--text3);" id="cnt-marca">0</span></div><div class="est-list-body" id="list-marca"></div></div>
+        <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#444441;">Filiais</span><span style="font-size:10px;color:var(--text3);" id="cnt-filial">0</span></div><div class="est-list-body" id="list-filial"></div></div>
+      </div>
+      <div class="est-tbl-wrap">
+        <div class="est-tbl-hdr"><div class="est-tbl-title">Entradas de estoque</div></div>
+        <table class="est-tbl">
+          <thead><tr><th>Item</th><th>Tipo</th><th>Modelo</th><th>Marca</th><th>Filial</th><th>Medida</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th></th></tr></thead>
+          <tbody id="est-tbl-body"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- MODAL PRÉ-CADASTRO -->
-    <div id="modal-precad-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)estFecharModal('precad')">
-      <div class="est-modal" style="width:460px;max-width:95vw;">
-        <div class="est-mhdr">
-          <div class="est-mhdr-t"><i class="ti ti-list-check" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;"></i>Pré-cadastro de produto</div>
-          <button onclick="estFecharModal('precad')" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button>
-        </div>
+    <!-- MODAL CAD SIMPLES ESTOQUE -->
+    <div id="est-modal-cad-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)estFecharCad()">
+      <div class="est-modal" style="width:360px;max-width:95vw;">
+        <div class="est-mhdr"><div class="est-mhdr-t" id="est-cad-titulo">Cadastrar</div><button onclick="estFecharCad()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button></div>
         <div class="est-mbody">
-          <div class="est-field-row">
-            <div class="est-field"><label>Tipo</label>
-              <select id="precad-tipo"><option value="">— selecione —</option><option>Freio</option><option>Pneu</option><option>Suspensão</option><option>Óleo</option><option>Filtro</option><option>Outro</option></select>
-            </div>
-            <div class="est-field"><label>Marca</label><input type="text" id="precad-marca" placeholder="Ex: Cofap, Monroe..."></div>
-          </div>
-          <div class="est-field"><label>Modelo / Descrição</label><input type="text" id="precad-modelo" placeholder="Ex: Lona 2ª tração lado direito"></div>
-          <div class="est-field"><label>Unidade de medida</label>
-            <div class="est-unit-toggle">
-              <button class="est-ut at" id="precad-ut-unid" onclick="estSetUnidade('unid')">Unidades</button>
-              <button class="est-ut" id="precad-ut-litros" onclick="estSetUnidade('litros')">Litros</button>
-            </div>
-            <input type="hidden" id="precad-unidade" value="unid">
-          </div>
-          <div class="est-field"><label>Unidade / Local</label><input type="text" id="precad-local" placeholder="Ex: ALCOA, NHL, Matriz..."></div>
+          <div class="est-field"><label id="est-cad-label">Nome</label><input type="text" id="est-cad-input" oninput="this.value=this.value.toUpperCase()" placeholder="" autocomplete="off"></div>
         </div>
-        <div class="est-mfooter">
-          <button class="est-btn-c" onclick="estFecharModal('precad')">Cancelar</button>
-          <button class="est-btn-s" onclick="estSalvarPrecad()">Salvar produto</button>
-        </div>
+        <div class="est-mfooter"><button class="est-btn-c" onclick="estFecharCad()">Cancelar</button><button class="est-btn-s" onclick="estSalvarCad()">Salvar</button></div>
       </div>
     </div>
 
     <!-- MODAL ENTRADA DE ESTOQUE -->
-    <div id="modal-entrada-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)estFecharModal('entrada')">
-      <div class="est-modal" style="width:480px;max-width:95vw;">
-        <div class="est-mhdr">
-          <div class="est-mhdr-t"><i class="ti ti-plus" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;"></i>Dar entrada no estoque</div>
-          <button onclick="estFecharModal('entrada')" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button>
-        </div>
+    <div id="modal-entrada-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)estFecharEntrada()">
+      <div class="est-modal" style="width:500px;max-width:95vw;">
+        <div class="est-mhdr"><div class="est-mhdr-t"><i class="ti ti-arrow-bar-to-down" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;"></i>Dar entrada no estoque</div><button onclick="estFecharEntrada()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button></div>
         <div class="est-mbody">
-          <div class="est-field"><label>Produto</label>
-            <select id="entrada-produto" onchange="estPreencherProduto()">
-              <option value="">— selecione um produto —</option>
-            </select>
-          </div>
-          <div class="est-info-box" id="entrada-info" style="display:none;">
-            <i class="ti ti-info-circle" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i>
-            <span id="entrada-info-txt"></span>
+          <div class="est-field-row">
+            <div class="est-field"><label>Item</label><select id="ent-item"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Tipo</label><select id="ent-tipo"><option value="">— selecione —</option></select></div>
           </div>
           <div class="est-field-row">
-            <div class="est-field"><label id="entrada-qty-label">Quantidade</label><input type="number" id="entrada-qty" min="0" placeholder="0"></div>
-            <div class="est-field"><label>Valor unitário (R$)</label><input type="number" id="entrada-valor" min="0" step="0.01" placeholder="0,00"></div>
+            <div class="est-field"><label>Modelo</label><select id="ent-modelo"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Marca</label><select id="ent-marca"><option value="">— selecione —</option></select></div>
+          </div>
+          <div class="est-field-row">
+            <div class="est-field"><label>Filial</label><select id="ent-filial"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Unidade de medida</label>
+              <div class="est-unit-toggle">
+                <button class="est-ut at" id="ent-ut-unid" onclick="estSetEntUnidade('unid')">Unidades</button>
+                <button class="est-ut" id="ent-ut-litros" onclick="estSetEntUnidade('litros')">Litros</button>
+              </div>
+              <input type="hidden" id="ent-unidade" value="unid">
+            </div>
+          </div>
+          <div class="est-field-row">
+            <div class="est-field"><label id="ent-qty-lbl">Quantidade</label><input type="number" id="ent-qty" min="0" placeholder="0"></div>
+            <div class="est-field"><label>Valor unitário (R$)</label><input type="number" id="ent-valor" min="0" step="0.01" placeholder="0,00"></div>
           </div>
         </div>
-        <div class="est-mfooter">
-          <button class="est-btn-c" onclick="estFecharModal('entrada')">Cancelar</button>
-          <button class="est-btn-s" onclick="estSalvarEntrada()">Confirmar entrada</button>
-        </div>
+        <div class="est-mfooter"><button class="est-btn-c" onclick="estFecharEntrada()">Cancelar</button><button class="est-btn-s" onclick="estSalvarEntrada()">Confirmar entrada</button></div>
       </div>
     </div>
     <div class="page" id="page-historico">
@@ -2228,147 +2205,164 @@ function ordenarGridPorVencimento(gridId) {
 }
 window.ordenarGridPorVencimento = ordenarGridPorVencimento;
 
-// ══ ESTOQUE ══
-let _estoque = [];
-let _precad  = [];
-let _precadUnidade = 'unid';
+// ══ ESTOQUE v2 ══
+let _estoque  = [];  // entradas
+let _estCads  = {};  // { item:[], tipo:[], modelo:[], marca:[], filial:[] }
+let _estCadTipo = '';
+let _estEntUnidade = 'unid';
+
+const EST_CAD_INFO = {
+  item:   { label:'Nome do item',  titulo:'Cadastrar Item',   cor:'#0C447C' },
+  tipo:   { label:'Tipo',          titulo:'Cadastrar Tipo',   cor:'#27500A' },
+  modelo: { label:'Modelo',        titulo:'Cadastrar Modelo', cor:'#633806' },
+  marca:  { label:'Marca',         titulo:'Cadastrar Marca',  cor:'#26215C' },
+  filial: { label:'Filial / Local',titulo:'Cadastrar Filial', cor:'#444441' },
+};
+const EST_COLS = ['item','tipo','modelo','marca','filial'];
 
 async function carregarEstoque() {
   try {
-    const [snapPrecad, snapEstoque] = await Promise.all([
-      getDocs(query(collection(db,'estoque_precad'), where('_deleted','!=',true))),
-      getDocs(query(collection(db,'estoque_entradas'), where('_deleted','!=',true)))
-    ]);
-    _precad  = snapPrecad.docs.map(d => ({id:d.id,...d.data()})).filter(p => !p._deleted);
-    _estoque = snapEstoque.docs.map(d => ({id:d.id,...d.data()})).filter(e => !e._deleted);
+    // Carregar listas de cadastros
+    const cadSnaps = await Promise.all(EST_COLS.map(c => getDocs(collection(db,'est_cad_'+c))));
+    EST_COLS.forEach((c,i) => {
+      _estCads[c] = cadSnaps[i].docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x._del).sort((a,b)=>a.nome>b.nome?1:-1);
+    });
+    // Carregar entradas
+    const snap = await getDocs(collection(db,'estoque_entradas'));
+    _estoque = snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x._del);
+    renderEstLists();
     renderEstoqueKpis();
     renderEstoqueTbl();
-    renderPrecadTbl();
-    renderEntradaSelect();
-  } catch(e) { console.error('carregarEstoque:', e); }
+    renderEntradaSelects();
+  } catch(e){ console.error('carregarEstoque:',e); }
+}
+
+function renderEstLists() {
+  EST_COLS.forEach(c => {
+    const cnt  = document.getElementById('cnt-'+c);
+    const body = document.getElementById('list-'+c);
+    const arr  = _estCads[c]||[];
+    if (cnt)  cnt.textContent = arr.length;
+    if (body) body.innerHTML = arr.length
+      ? arr.map(x=>`<div class="est-list-row"><span>${x.nome}</span><button class="est-list-del" onclick="estDelCad('${c}','${x.id}')"><i class="ti ti-x" aria-hidden="true"></i></button></div>`).join('')
+      : '<div style="padding:8px 12px;font-size:11px;color:var(--text3);">Nenhum cadastro</div>';
+  });
 }
 
 function renderEstoqueKpis() {
-  const prods = _precad.length;
-  const unids = _estoque.reduce((s,e) => s + (parseFloat(e.qtd)||0), 0);
-  const baixo = _estoque.filter(e => (parseFloat(e.qtd)||0) <= 2).length;
-  const valor = _estoque.reduce((s,e) => s + (parseFloat(e.qtd)||0)*(parseFloat(e.valorUnit)||0), 0);
-  document.getElementById('est-kpi-produtos').textContent = prods;
-  document.getElementById('est-kpi-unidades').textContent = unids;
-  document.getElementById('est-kpi-baixo').textContent    = baixo;
-  document.getElementById('est-kpi-valor').textContent    = 'R$ ' + valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const itens = (_estCads.item||[]).length;
+  const unids = _estoque.reduce((s,e)=>s+(parseFloat(e.qtd)||0),0);
+  const baixo = _estoque.filter(e=>(parseFloat(e.qtd)||0)<=2).length;
+  const valor = _estoque.reduce((s,e)=>s+(parseFloat(e.qtd)||0)*(parseFloat(e.valorUnit)||0),0);
+  const el = id => document.getElementById(id);
+  if(el('est-kpi-itens'))    el('est-kpi-itens').textContent    = itens;
+  if(el('est-kpi-unidades')) el('est-kpi-unidades').textContent = unids;
+  if(el('est-kpi-baixo'))    el('est-kpi-baixo').textContent    = baixo;
+  if(el('est-kpi-valor'))    el('est-kpi-valor').textContent    = 'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-const EST_TIPO_CORES = {
-  'Freio':{'bg':'#EAF3DE','cor':'#27500A'},'Pneu':{'bg':'#E6F1FB','cor':'#0C447C'},
-  'Suspensão':{'bg':'#FAEEDA','cor':'#633806'},'Óleo':{'bg':'#FCEBEB','cor':'#791F1F'},
-  'Filtro':{'bg':'#EEEDFE','cor':'#26215C'}
-};
-function estBadge(tipo) {
-  const c = EST_TIPO_CORES[tipo]||{bg:'var(--bg3)',cor:'var(--text2)'};
-  return `<span style="display:inline-flex;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;background:${c.bg};color:${c.cor};">${tipo||'—'}</span>`;
-}
+const EST_TIPO_CORES = {'FREIO':{'bg':'#EAF3DE','cor':'#27500A'},'PNEU':{'bg':'#E6F1FB','cor':'#0C447C'},'SUSPENSÃO':{'bg':'#FAEEDA','cor':'#633806'},'ÓLEO':{'bg':'#FCEBEB','cor':'#791F1F'},'FILTRO':{'bg':'#EEEDFE','cor':'#26215C'}};
+function estBadge(tipo){const c=EST_TIPO_CORES[tipo?.toUpperCase()]||{bg:'var(--bg3)',cor:'var(--text2)'};return `<span style="display:inline-flex;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;background:${c.bg};color:${c.cor};">${tipo||'—'}</span>`;}
 
 function renderEstoqueTbl() {
   const tbody = document.getElementById('est-tbl-body');
   if (!tbody) return;
-  if (!_estoque.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:16px;">Nenhum item em estoque</td></tr>'; return; }
-  tbody.innerHTML = _estoque.map(e => {
-    const qtd = parseFloat(e.qtd)||0;
-    const cls = qtd===0?'zt':qtd<=2?'lw':'ok';
-    const medida = e.unidade==='litros'?'Litros':'Unid.';
-    return `<tr><td>${estBadge(e.tipo)}</td><td>${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="color:var(--text2);font-size:12px;">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="font-size:12px;color:var(--text2);">${e.local||'—'}</td><td style="text-align:center;"><button onclick="estExcluirEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
+  if (!_estoque.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:16px;">Nenhuma entrada registrada</td></tr>'; return; }
+  tbody.innerHTML = _estoque.map(e=>{
+    const qtd=parseFloat(e.qtd)||0;
+    const cls=qtd===0?'zt':qtd<=2?'lw':'ok';
+    const medida=e.unidade==='litros'?'Litros':'Unid.';
+    return `<tr><td>${e.item||'—'}</td><td>${estBadge(e.tipo)}</td><td style="color:var(--text2);">${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.filial||'—'}</td><td style="font-size:12px;color:var(--text2);">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="text-align:center;"><button onclick="estDelEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
   }).join('');
 }
 
-function renderPrecadTbl() {
-  const tbody = document.getElementById('precad-tbl-body');
-  if (!tbody) return;
-  if (!_precad.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:16px;">Nenhum produto cadastrado</td></tr>'; return; }
-  tbody.innerHTML = _precad.map(p => `<tr><td>${estBadge(p.tipo)}</td><td>${p.modelo||'—'}</td><td style="color:var(--text2);">${p.marca||'—'}</td><td style="color:var(--text2);font-size:12px;">${p.unidade==='litros'?'Litros':'Unid.'}</td><td style="font-size:12px;color:var(--text2);">${p.local||'—'}</td><td style="text-align:center;"><button onclick="estExcluirPrecad('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`).join('');
+function renderEntradaSelects() {
+  const populate = (id, col) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const saved = sel.value;
+    sel.innerHTML = '<option value="">— selecione —</option>' + (_estCads[col]||[]).map(x=>`<option value="${x.nome}">${x.nome}</option>`).join('');
+    if (saved) sel.value = saved;
+  };
+  populate('ent-item','item'); populate('ent-tipo','tipo');
+  populate('ent-modelo','modelo'); populate('ent-marca','marca'); populate('ent-filial','filial');
 }
 
-function renderEntradaSelect() {
-  const sel = document.getElementById('entrada-produto');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— selecione um produto —</option>' +
-    _precad.map(p => `<option value="${p.id}">${p.tipo} · ${p.modelo} · ${p.marca} · ${p.local}</option>`).join('');
+// ── Modal cad simples ──
+function estAbrirCad(tipo) {
+  _estCadTipo = tipo;
+  const info = EST_CAD_INFO[tipo];
+  document.getElementById('est-cad-titulo').innerHTML = `<i class="ti ti-plus" aria-hidden="true" style="font-size:14px;color:${info.cor};vertical-align:-2px;margin-right:6px;"></i><span style="color:${info.cor};">${info.titulo}</span>`;
+  document.getElementById('est-cad-label').textContent = info.label;
+  document.getElementById('est-cad-input').value = '';
+  document.getElementById('est-cad-input').placeholder = 'Ex: '+( tipo==='item'?'LONA DE FREIO':tipo==='tipo'?'FREIO':tipo==='modelo'?'295/80 R22.5':tipo==='marca'?'BRIDGESTONE':'ALCOA' );
+  document.getElementById('est-modal-cad-ov').style.display = 'flex';
+  setTimeout(()=>document.getElementById('est-cad-input').focus(), 100);
 }
-
-function estSwitchTab(tab) {
-  document.getElementById('est-panel-estoque').style.display = tab==='estoque'?'':'none';
-  document.getElementById('est-panel-precad').style.display  = tab==='precad'?'':'none';
-  document.getElementById('est-tab-estoque').classList.toggle('at', tab==='estoque');
-  document.getElementById('est-tab-precad').classList.toggle('at',  tab==='precad');
-  document.getElementById('btn-est-action').style.display = tab==='estoque'?'':'none';
-}
-function estAbrirModal(tipo) { document.getElementById('modal-'+tipo+'-ov').style.display='flex'; }
-function estFecharModal(tipo){ document.getElementById('modal-'+tipo+'-ov').style.display='none'; }
-function estSetUnidade(u) {
-  _precadUnidade=u;
-  document.getElementById('precad-unidade').value=u;
-  document.getElementById('precad-ut-unid').classList.toggle('at',   u==='unid');
-  document.getElementById('precad-ut-litros').classList.toggle('at', u==='litros');
-}
-function estPreencherProduto() {
-  const id=document.getElementById('entrada-produto').value;
-  const box=document.getElementById('entrada-info');
-  const lbl=document.getElementById('entrada-qty-label');
-  if (!id){box.style.display='none';return;}
-  const p=_precad.find(x=>x.id===id);
-  if (!p){box.style.display='none';return;}
-  const medida=p.unidade==='litros'?'Litros':'Unidades';
-  document.getElementById('entrada-info-txt').innerHTML=`Tipo: <b style="color:var(--text);">${p.tipo}</b> · Marca: <b style="color:var(--text);">${p.marca}</b> · Medida: <b style="color:var(--text);">${medida}</b> · Local: <b style="color:var(--text);">${p.local}</b>`;
-  lbl.textContent='Quantidade ('+medida+')';
-  box.style.display='';
-}
-async function estSalvarPrecad() {
-  const tipo=document.getElementById('precad-tipo').value;
-  const marca=document.getElementById('precad-marca').value.trim();
-  const modelo=document.getElementById('precad-modelo').value.trim();
-  const unidade=document.getElementById('precad-unidade').value;
-  const local=document.getElementById('precad-local').value.trim();
-  if (!tipo||!modelo||!marca||!local){alert('Preencha todos os campos.');return;}
+function estFecharCad() { document.getElementById('est-modal-cad-ov').style.display='none'; }
+async function estSalvarCad() {
+  const val = document.getElementById('est-cad-input').value.trim().toUpperCase();
+  if (!val) { alert('Preencha o campo.'); return; }
+  // Verificar duplicata
+  if ((_estCads[_estCadTipo]||[]).some(x=>x.nome===val)) { alert(val+' já está cadastrado.'); return; }
   try {
-    await setDoc(doc(db,'estoque_precad',Date.now().toString()),{tipo,marca,modelo,unidade,local,criadoEm:new Date().toISOString()});
-    estFecharModal('precad');
-    ['precad-tipo','precad-marca','precad-modelo','precad-local'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    estSetUnidade('unid');
+    await setDoc(doc(db,'est_cad_'+_estCadTipo,Date.now().toString()),{nome:val,criadoEm:new Date().toISOString()});
+    estFecharCad();
     await carregarEstoque();
-    showToast('Produto cadastrado!');
-  } catch(e){console.error(e);alert('Erro: '+e.message);}
+    showToast(EST_CAD_INFO[_estCadTipo].titulo.replace('Cadastrar','')+' salvo!');
+  } catch(e){ console.error(e); alert('Erro: '+e.message); }
+}
+async function estDelCad(tipo, id) {
+  if (!confirm('Remover este cadastro?')) return;
+  try { await setDoc(doc(db,'est_cad_'+tipo,id),{_del:true}); await carregarEstoque(); showToast('Removido.'); } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ── Modal entrada ──
+function estAbrirEntrada() {
+  renderEntradaSelects();
+  estSetEntUnidade('unid');
+  document.getElementById('ent-qty').value='';
+  document.getElementById('ent-valor').value='';
+  document.getElementById('modal-entrada-ov').style.display='flex';
+}
+function estFecharEntrada() { document.getElementById('modal-entrada-ov').style.display='none'; }
+function estSetEntUnidade(u) {
+  _estEntUnidade=u;
+  document.getElementById('ent-unidade').value=u;
+  document.getElementById('ent-ut-unid').classList.toggle('at',   u==='unid');
+  document.getElementById('ent-ut-litros').classList.toggle('at', u==='litros');
+  document.getElementById('ent-qty-lbl').textContent='Quantidade ('+(u==='litros'?'Litros':'Unidades')+')';
 }
 async function estSalvarEntrada() {
-  const prodId=document.getElementById('entrada-produto').value;
-  const qtd=parseFloat(document.getElementById('entrada-qty').value)||0;
-  const valor=parseFloat(document.getElementById('entrada-valor').value)||0;
-  if (!prodId){alert('Selecione um produto.');return;}
-  if (qtd<=0){alert('Informe uma quantidade maior que zero.');return;}
-  const p=_precad.find(x=>x.id===prodId);
-  if (!p){alert('Produto não encontrado.');return;}
+  const item   = document.getElementById('ent-item').value;
+  const tipo   = document.getElementById('ent-tipo').value;
+  const modelo = document.getElementById('ent-modelo').value;
+  const marca  = document.getElementById('ent-marca').value;
+  const filial = document.getElementById('ent-filial').value;
+  const qtd    = parseFloat(document.getElementById('ent-qty').value)||0;
+  const valor  = parseFloat(document.getElementById('ent-valor').value)||0;
+  const unidade= document.getElementById('ent-unidade').value;
+  if (!item||!tipo||!modelo||!marca||!filial){ alert('Preencha todos os campos.'); return; }
+  if (qtd<=0){ alert('Informe uma quantidade maior que zero.'); return; }
   try {
-    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{precadId:prodId,tipo:p.tipo,marca:p.marca,modelo:p.modelo,unidade:p.unidade,local:p.local,qtd,valorUnit:valor,entradaEm:new Date().toISOString()});
-    estFecharModal('entrada');
-    document.getElementById('entrada-produto').value='';
-    document.getElementById('entrada-qty').value='';
-    document.getElementById('entrada-valor').value='';
-    document.getElementById('entrada-info').style.display='none';
+    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{item,tipo,modelo,marca,filial,unidade,qtd,valorUnit:valor,entradaEm:new Date().toISOString()});
+    estFecharEntrada();
     await carregarEstoque();
     showToast('Entrada registrada!');
-  } catch(e){console.error(e);alert('Erro: '+e.message);}
+  } catch(e){ console.error(e); alert('Erro: '+e.message); }
 }
-async function estExcluirPrecad(id) {
-  if (!confirm('Excluir este produto?')) return;
-  try { await setDoc(doc(db,'estoque_precad',id),{_deleted:true}); await carregarEstoque(); showToast('Removido.'); } catch(e){alert('Erro: '+e.message);}
+async function estDelEntrada(id) {
+  if (!confirm('Excluir esta entrada?')) return;
+  try { await setDoc(doc(db,'estoque_entradas',id),{_del:true}); await carregarEstoque(); showToast('Removido.'); } catch(e){ alert('Erro: '+e.message); }
 }
-async function estExcluirEntrada(id) {
-  if (!confirm('Excluir este item?')) return;
-  try { await setDoc(doc(db,'estoque_entradas',id),{_deleted:true}); await carregarEstoque(); showToast('Removido.'); } catch(e){alert('Erro: '+e.message);}
-}
-window.estSwitchTab=estSwitchTab; window.estAbrirModal=estAbrirModal; window.estFecharModal=estFecharModal;
-window.estSetUnidade=estSetUnidade; window.estPreencherProduto=estPreencherProduto;
-window.estSalvarPrecad=estSalvarPrecad; window.estSalvarEntrada=estSalvarEntrada;
-window.estExcluirPrecad=estExcluirPrecad; window.estExcluirEntrada=estExcluirEntrada;
+
+// Suporte Enter no campo de cad
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('est-modal-cad-ov')?.style.display==='flex') estSalvarCad();
+});
+
+window.estAbrirCad=estAbrirCad; window.estFecharCad=estFecharCad; window.estSalvarCad=estSalvarCad; window.estDelCad=estDelCad;
+window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
 </script>
 
 <!-- MODAL VENCIMENTOS DO DIA -->
