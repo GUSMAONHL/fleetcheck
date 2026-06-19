@@ -1719,6 +1719,10 @@ async function carregarVeiculosFirebase() {
         else TERCEIRO.push(novoV);
         TODOS.push(novoV);
       }
+      // Adicionar na grade se ainda não existe
+      else if (!document.getElementById('vcell-id-' + v.placa)) {
+        adicionarVeiculoNaGrade(v);
+      }
     });
   } catch(e) { console.warn('carregarVeiculosFirebase:', e); }
 }
@@ -2325,7 +2329,7 @@ async function salvarNovoVeiculo() {
     TODOS.push(novoV);
 
     fecharModalNovoVeiculo();
-    await carregarDados();
+    adicionarVeiculoNaGrade(novoV);
     showToast('Veículo ' + placa + ' cadastrado!');
   } catch(e) {
     console.error('salvarNovoVeiculo:', e);
@@ -2333,6 +2337,59 @@ async function salvarNovoVeiculo() {
   }
 }
 
+
+// ── ADICIONAR VEÍCULO NA GRADE DINAMICAMENTE ──
+function gerarVrow(v) {
+  const placa = v.placa;
+  const nfr   = String(v.nfr).padStart(2,'0');
+  const tipo  = v.tipo;
+  return `<div class="vrow" data-placa="${placa}" data-tipo="${tipo}">
+    <div class="vcell vcell-tipo" id="vcell-tipo-${placa}" style="align-items:center;text-align:center;" onclick="event.stopPropagation();abrirModalJustificativa('${placa}')">
+      <div class="vcell-tipo-inner"><div class="v-tipo">${tipo}</div></div>
+    </div>
+    <div class="vcell vcell-id" id="vcell-id-${placa}">
+      <div class="v-placa-linha">${nfr} - ${placa}</div>
+    </div>
+    <div class="vcell vcell-check" id="f1-${placa}">
+      <div class="v-check-label">Freio 01</div>
+      <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div>
+    </div>
+    <div class="vcell vcell-check" id="pn-${placa}">
+      <div class="v-check-label">Pneu</div>
+      <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div>
+    </div>
+    <div class="vcell vcell-check" id="f2-${placa}">
+      <div class="v-check-label">Freio 02</div>
+      <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div>
+    </div>
+    <div class="vcell vcell-check" id="su-${placa}">
+      <div class="v-check-label">Susp</div>
+      <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div>
+    </div>
+  </div>`;
+}
+
+function adicionarVeiculoNaGrade(v) {
+  const gridId = v.bloco === 'FROTA' ? 'grid-frota' : 'grid-terceiro';
+  const grid   = document.getElementById(gridId);
+  if (!grid) return;
+  // Verificar se já existe na grade
+  if (document.getElementById('vcell-id-' + v.placa)) return;
+  // Injetar HTML
+  grid.insertAdjacentHTML('beforeend', gerarVrow(v));
+  // Registrar evento de clique na linha (igual aos outros)
+  const row = grid.lastElementChild;
+  row.addEventListener('click', () => abrirModal(v.placa));
+  // Inicializar estado e renderizar
+  atualizarLinha(v.placa);
+  renderJustBadge(v.placa);
+  renderTermacBadge(v.placa);
+  renderDatasCell(v.placa, checkState[v.placa]);
+  // Atualizar contadores dos filtros
+  atualizarContadores('frota');
+  atualizarContadores('terceiro');
+}
+window.adicionarVeiculoNaGrade = adicionarVeiculoNaGrade;
 window.abrirModalNovoVeiculo = abrirModalNovoVeiculo;
 window.fecharModalNovoVeiculo = fecharModalNovoVeiculo;
 window.salvarNovoVeiculo = salvarNovoVeiculo;
