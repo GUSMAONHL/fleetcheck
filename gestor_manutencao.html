@@ -354,6 +354,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="topbar-title" id="page-title">Quadro Geral — Manutenção</div>
     <div class="topbar-right">
       <div class="topbar-date" id="topbar-date"></div>
+      <button onclick="abrirModalNovoVeiculo()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+        Novo veículo
+      </button>
+      <button id="btn-vencidas" onclick="abrirModalVencidas()" style="display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:none;background:#cc2222;color:#fff;font-size:12px;font-weight:500;cursor:pointer;position:relative;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Inspeções vencidas
+        <span id="badge-vencidas" style="position:absolute;top:-7px;right:-7px;background:#fff;color:#cc2222;border:.5px solid #cc2222;border-radius:50%;width:19px;height:19px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">0</span>
+      </button>
       <button class="btn-sm" onclick="carregarDados()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
         Atualizar
@@ -874,10 +883,10 @@ const app = initializeApp({
 const db = getFirestore(app);
 signInAnonymously(getAuth(app)).catch(console.error);
 
-const FROTA    = [{"nfr": 1, "placa": "GHJ6G65", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 2, "placa": "RNV9E31", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 3, "placa": "RNV9E29", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 4, "placa": "RNW2E97", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 5, "placa": "RNX3A94", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 9, "placa": "DCU4I05", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 10, "placa": "FRF4H17", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 11, "placa": "BZA5G73", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 12, "placa": "FIM4D42", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 72, "placa": "ESP4G25", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 73, "placa": "GFA7C06", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 74, "placa": "GGL0D24", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 75, "placa": "GBO1J82", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 80, "placa": "FKH1B56", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 81, "placa": "QRIIG41", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 82, "placa": "QXZ8F44", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 83, "placa": "QXZ8F46", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 84, "placa": "FUL3D81", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 85, "placa": "EXO0324", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 86, "placa": "GJH9D85", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 87, "placa": "GCX8D57", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 88, "placa": "QXZ8F43", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 89, "placa": "EYH2G86", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 90, "placa": "GFN6H24", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 91, "placa": "FMT5D04", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 95, "placa": "CUJ4G66", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 96, "placa": "GEH8D54", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 100, "placa": "RFR2A66", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 101, "placa": "GGZ6H55", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 102, "placa": "RFI6A02", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 103, "placa": "GHR6H05", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 104, "placa": "RFJ7H29", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 105, "placa": "GJY3F67", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 106, "placa": "GEN4G58", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 107, "placa": "RFI5J80", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 108, "placa": "RFJ7H24", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 109, "placa": "GIY0I26", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 110, "placa": "RFI5J82", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 111, "placa": "GDI4F13", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 112, "placa": "RFI6A09", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 113, "placa": "GIT6C68", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 114, "placa": "RFJ7H25", "tipo": "CARRETA", "bloco": "FROTA"}];
-const TERCEIRO = [{"nfr": 15, "placa": "DWS3948", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 16, "placa": "GZG7847", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 19, "placa": "HLQ1359", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 21, "placa": "MEL6553", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 26, "placa": "EZU0931", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 28, "placa": "GXH8030", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 32, "placa": "KOX6J02", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 33, "placa": "CNI5508", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 37, "placa": "CLH9516", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 39, "placa": "HNG2858", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 40, "placa": "OLY9961", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 50, "placa": "HLQ1251", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 51, "placa": "HLL2425", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 60, "placa": "FTX0B19", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 63, "placa": "ETQ6J42", "tipo": "8X2", "bloco": "TERCEIRO"}, {"nfr": 66, "placa": "HLQ1261", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 67, "placa": "KWE8424", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 68, "placa": "LQY9B93", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 69, "placa": "LQY9B95", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 78, "placa": "DPC4J43", "tipo": "6X4", "bloco": "TERCEIRO"}];
+let FROTA    = [{"nfr": 1, "placa": "GHJ6G65", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 2, "placa": "RNV9E31", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 3, "placa": "RNV9E29", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 4, "placa": "RNW2E97", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 5, "placa": "RNX3A94", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 9, "placa": "DCU4I05", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 10, "placa": "FRF4H17", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 11, "placa": "BZA5G73", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 12, "placa": "FIM4D42", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 72, "placa": "ESP4G25", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 73, "placa": "GFA7C06", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 74, "placa": "GGL0D24", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 75, "placa": "GBO1J82", "tipo": "BITRUCK", "bloco": "FROTA"}, {"nfr": 80, "placa": "FKH1B56", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 81, "placa": "QRIIG41", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 82, "placa": "QXZ8F44", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 83, "placa": "QXZ8F46", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 84, "placa": "FUL3D81", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 85, "placa": "EXO0324", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 86, "placa": "GJH9D85", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 87, "placa": "GCX8D57", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 88, "placa": "QXZ8F43", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 89, "placa": "EYH2G86", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 90, "placa": "GFN6H24", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 91, "placa": "FMT5D04", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 95, "placa": "CUJ4G66", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 96, "placa": "GEH8D54", "tipo": "CAVALO", "bloco": "FROTA"}, {"nfr": 100, "placa": "RFR2A66", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 101, "placa": "GGZ6H55", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 102, "placa": "RFI6A02", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 103, "placa": "GHR6H05", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 104, "placa": "RFJ7H29", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 105, "placa": "GJY3F67", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 106, "placa": "GEN4G58", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 107, "placa": "RFI5J80", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 108, "placa": "RFJ7H24", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 109, "placa": "GIY0I26", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 110, "placa": "RFI5J82", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 111, "placa": "GDI4F13", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 112, "placa": "RFI6A09", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 113, "placa": "GIT6C68", "tipo": "CARRETA", "bloco": "FROTA"}, {"nfr": 114, "placa": "RFJ7H25", "tipo": "CARRETA", "bloco": "FROTA"}];
+let TERCEIRO = [{"nfr": 15, "placa": "DWS3948", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 16, "placa": "GZG7847", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 19, "placa": "HLQ1359", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 21, "placa": "MEL6553", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 26, "placa": "EZU0931", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 28, "placa": "GXH8030", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 32, "placa": "KOX6J02", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 33, "placa": "CNI5508", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 37, "placa": "CLH9516", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 39, "placa": "HNG2858", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 40, "placa": "OLY9961", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 50, "placa": "HLQ1251", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 51, "placa": "HLL2425", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 60, "placa": "FTX0B19", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 63, "placa": "ETQ6J42", "tipo": "8X2", "bloco": "TERCEIRO"}, {"nfr": 66, "placa": "HLQ1261", "tipo": "6X2", "bloco": "TERCEIRO"}, {"nfr": 67, "placa": "KWE8424", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 68, "placa": "LQY9B93", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 69, "placa": "LQY9B95", "tipo": "8X4", "bloco": "TERCEIRO"}, {"nfr": 78, "placa": "DPC4J43", "tipo": "6X4", "bloco": "TERCEIRO"}];
 
-const TODOS    = [...FROTA,...TERCEIRO];
+let TODOS    = [...FROTA,...TERCEIRO];
 const checkState = {};
 const osState = {}; // placa_mod_idx -> bool (true = tem OS)
 const justState = {}; // placa -> {motivo, obs} | null
@@ -1035,6 +1044,7 @@ window.carregarDados = async function() {
     atualizarContadores('frota');
     atualizarContadores('terceiro');
     renderVencimentos();
+    atualizarBtnVencidas();
     ordenarGridPorVencimento('grid-frota');
     ordenarGridPorVencimento('grid-terceiro');
   } catch(e) {
@@ -1697,8 +1707,24 @@ function iniciarListeners() {
   console.log('[FleetCheck] Listeners em tempo real ativos:', _unsubscribes.length);
 }
 
+// Carregar veículos cadastrados no Firebase (merge com hardcoded)
+async function carregarVeiculosFirebase() {
+  try {
+    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
+    snap.docs.forEach(d => {
+      const v = d.data();
+      if (!TODOS.find(x => x.placa === v.placa)) {
+        const novoV = { nfr: v.nfr, placa: v.placa, tipo: v.tipo, bloco: v.bloco };
+        if (v.bloco === 'FROTA') FROTA.push(novoV);
+        else TERCEIRO.push(novoV);
+        TODOS.push(novoV);
+      }
+    });
+  } catch(e) { console.warn('carregarVeiculosFirebase:', e); }
+}
+
 // Carga inicial + ativar listeners
-carregarDados().then(() => {
+carregarVeiculosFirebase().then(() => carregarDados()).then(() => {
   _realtimeReady = true;
   iniciarListeners();
 });
@@ -2167,6 +2193,152 @@ function renderVencimentos() {
 }
 window.renderVencimentos = renderVencimentos;
 
+// ── INSPEÇÕES VENCIDAS ──
+function calcularVencidas() {
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const vencidas = [];
+
+  TODOS.forEach(v => {
+    const st = checkState[v.placa];
+    const info = calcPrazoBadge(st, v.placa);
+    if (!info) return;
+    if (info.cls !== 'prazo-vencido') return; // só vencidas (vermelho)
+
+    // Calcular dias úteis de atraso
+    const prox = info.proxDate;
+    prox.setHours(0,0,0,0);
+    const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
+
+    vencidas.push({
+      nfr:   v.nfr,
+      placa: v.placa,
+      tipo:  v.tipo,
+      bloco: v.bloco,
+      ult:   info.ult,
+      prox:  info.prox,
+      dias:  diasAtraso
+    });
+  });
+
+  // Ordenar do mais atrasado para o menos
+  vencidas.sort((a,b) => b.dias - a.dias);
+  return vencidas;
+}
+
+function atualizarBtnVencidas() {
+  const vencidas = calcularVencidas();
+  const btn    = document.getElementById('btn-vencidas');
+  const badge  = document.getElementById('badge-vencidas');
+  if (!btn) return;
+  if (vencidas.length > 0) {
+    btn.style.display = 'flex';
+    badge.textContent = vencidas.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function abrirModalVencidas() {
+  const vencidas = calcularVencidas();
+  const ov    = document.getElementById('modal-vencidas-ov');
+  const body  = document.getElementById('modal-vencidas-body');
+  const titulo = document.getElementById('modal-venc-titulo');
+  const sub    = document.getElementById('modal-venc-sub');
+
+  titulo.textContent = 'Inspeções vencidas — ' + vencidas.length + ' veículo' + (vencidas.length !== 1 ? 's' : '');
+  sub.textContent    = 'Ordenado do mais crítico ao menos crítico';
+
+  if (!vencidas.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma inspeção vencida</td></tr>';
+  } else {
+    body.innerHTML = vencidas.map((v,i) => {
+      const corDias = v.dias >= 5 ? '#791F1F' : '#A32D2D';
+      return `<tr style="${i % 2 === 1 ? 'background:var(--bg3);' : ''}">
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);">${v.nfr}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:14px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);">${v.placa}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.tipo||'—'}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.bloco||'—'}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);font-family:Arial,sans-serif;">${v.ult}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
+          <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#FCEBEB;color:#791F1F;">${v.prox}</span>
+        </td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);text-align:center;">
+          <span style="font-size:13px;font-weight:700;font-family:Arial,sans-serif;color:${corDias};">-${v.dias}d</span>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  ov.style.display = 'flex';
+}
+
+function fecharModalVencidas() {
+  document.getElementById('modal-vencidas-ov').style.display = 'none';
+}
+
+
+// ── NOVO VEÍCULO ──
+function abrirModalNovoVeiculo() {
+  document.getElementById('nv-nfr').value   = '';
+  document.getElementById('nv-placa').value  = '';
+  document.getElementById('nv-bloco').value  = 'FROTA';
+  document.getElementById('nv-tipo').value   = 'BITRUCK';
+  document.getElementById('modal-novo-veiculo-ov').style.display = 'flex';
+  setTimeout(() => document.getElementById('nv-nfr').focus(), 100);
+}
+
+function fecharModalNovoVeiculo() {
+  document.getElementById('modal-novo-veiculo-ov').style.display = 'none';
+}
+
+async function salvarNovoVeiculo() {
+  const nfr   = parseInt(document.getElementById('nv-nfr').value);
+  const placa = document.getElementById('nv-placa').value.trim().toUpperCase();
+  const bloco = document.getElementById('nv-bloco').value;
+  const tipo  = document.getElementById('nv-tipo').value;
+
+  if (!nfr || nfr < 1)  { alert('Informe um número de frota válido.'); return; }
+  if (!placa)            { alert('Informe a placa do veículo.'); return; }
+  if (placa.length < 5)  { alert('Placa inválida.'); return; }
+
+  // Verificar duplicata em memória
+  if (TODOS.find(v => v.placa === placa)) {
+    alert('Já existe um veículo com a placa ' + placa + '.'); return;
+  }
+  if (TODOS.find(v => v.nfr === nfr && v.bloco === bloco)) {
+    alert('Já existe um veículo com o Nº ' + nfr + ' no bloco ' + bloco + '.'); return;
+  }
+
+  try {
+    // Salvar no Firebase
+    await setDoc(doc(db, 'veiculos', placa), {
+      nfr, placa, tipo, bloco,
+      ativo: true,
+      criadoEm: new Date().toISOString()
+    });
+
+    // Adicionar em memória e re-renderizar sem recarregar tudo
+    const novoV = { nfr, placa, tipo, bloco };
+    if (bloco === 'FROTA') FROTA.push(novoV);
+    else TERCEIRO.push(novoV);
+    TODOS.push(novoV);
+
+    fecharModalNovoVeiculo();
+    await carregarDados();
+    showToast('Veículo ' + placa + ' cadastrado!');
+  } catch(e) {
+    console.error('salvarNovoVeiculo:', e);
+    alert('Erro ao salvar: ' + (e?.message || e));
+  }
+}
+
+window.abrirModalNovoVeiculo = abrirModalNovoVeiculo;
+window.fecharModalNovoVeiculo = fecharModalNovoVeiculo;
+window.salvarNovoVeiculo = salvarNovoVeiculo;
+window.abrirModalVencidas = abrirModalVencidas;
+window.fecharModalVencidas = fecharModalVencidas;
+
 // MODAL VENCIMENTOS DO DIA
 function abrirModalVenc(key, labelDia, veics) {
   const ov = document.getElementById('modal-venc-ov');
@@ -2386,6 +2558,90 @@ window.estAbrirCad=estAbrirCad; window.estFecharCad=estFecharCad; window.estSalv
 window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
 </script>
 
+
+
+<!-- MODAL NOVO VEÍCULO -->
+<div id="modal-novo-veiculo-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalNovoVeiculo()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:460px;max-width:95vw;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+        <span style="font-size:15px;font-weight:500;color:var(--text);">Cadastrar novo veículo</span>
+      </div>
+      <button onclick="fecharModalNovoVeiculo()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding-bottom:4px;border-bottom:.5px solid var(--border);">Identificação</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Nº de frota</label>
+          <input type="number" id="nv-nfr" placeholder="Ex: 115" min="1" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Placa</label>
+          <input type="text" id="nv-placa" placeholder="Ex: ABC1D23" oninput="this.value=this.value.toUpperCase()" maxlength="8" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:'Barlow Condensed',sans-serif;letter-spacing:1.5px;font-weight:700;">
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding-bottom:4px;border-bottom:.5px solid var(--border);margin-top:2px;">Classificação</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Bloco</label>
+          <select id="nv-bloco" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+            <option value="FROTA">FROTA</option>
+            <option value="TERCEIRO">TERCEIRO</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Tipo</label>
+          <select id="nv-tipo" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+            <option value="BITRUCK">BITRUCK</option>
+            <option value="CAVALO">CAVALO</option>
+            <option value="CARRETA">CARRETA</option>
+            <option value="6X2">6X2</option>
+            <option value="6X4">6X4</option>
+            <option value="8X2">8X2</option>
+            <option value="8X4">8X4</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border);">
+      <button onclick="fecharModalNovoVeiculo()" style="padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarNovoVeiculo()" style="padding:7px 18px;border-radius:7px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:500;cursor:pointer;">Salvar veículo</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL INSPEÇÕES VENCIDAS -->
+<div id="modal-vencidas-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVencidas()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:680px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 18px;background:#FCEBEB;border-bottom:1px solid #F09595;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#791F1F" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <div style="font-size:15px;font-weight:500;color:#791F1F;" id="modal-venc-titulo">Inspeções vencidas</div>
+          <div style="font-size:11px;color:#A32D2D;margin-top:1px;" id="modal-venc-sub">—</div>
+        </div>
+      </div>
+      <button onclick="fecharModalVencidas()" style="background:none;border:none;color:#A32D2D;font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--bg3);">
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Frota</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Placa</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Tipo</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Bloco</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Ult. inspeção</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Próxima era</th>
+            <th style="padding:8px 14px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Atraso</th>
+          </tr>
+        </thead>
+        <tbody id="modal-vencidas-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 <!-- MODAL VENCIMENTOS DO DIA -->
 <div id="modal-venc-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVenc()">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
