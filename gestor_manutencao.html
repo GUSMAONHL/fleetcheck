@@ -1183,8 +1183,9 @@ function calcPrazoBadge(st, placa) {
     .filter(Boolean);
 
   // Se não há dado na semana atual, usa a última inspeção do histórico
+  // placa=null desativa o fallback (usado em calcularVencidas para evitar falsos vencidos)
   if (!datas.length) {
-    const last = placa ? lastInspState[placa] : null;
+    const last = (placa !== null && placa) ? lastInspState[placa] : null;
     if (!last?.dataFormatada) return null;
     datas.push(last.dataFormatada);
   }
@@ -2216,14 +2217,23 @@ function calcularVencidas() {
 
   TODOS.forEach(v => {
     const st = checkState[v.placa];
-    const info = calcPrazoBadge(st, v.placa);
-    if (!info) return;
-    if (info.cls !== 'prazo-vencido') return; // só vencidas (vermelho)
 
-    // Calcular dias úteis de atraso
-    const prox = info.proxDate;
+    // Só usar dados da semana atual (checkState) — não usar lastInspState para vencidas
+    // Isso evita que inspeções de semanas antigas gerem falsos "vencidos"
+    const datas = ['f1','pn','f2','su'].map(m => st?.[m]?.dataFormatada).filter(Boolean);
+    if (!datas.length) return; // sem inspeção nesta semana = pendente, não vencido
+
+    // Calcular com dados reais da semana
+    const info = calcPrazoBadge(st, null); // null = sem fallback lastInspState
+    if (!info) return;
+    if (info.cls !== 'prazo-vencido') return;
+
+    const prox = new Date(info.proxDate);
     prox.setHours(0,0,0,0);
     const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
+
+    // Sanidade: ignorar se atraso for absurdo (> 10 dias úteis = dado corrompido)
+    if (diasAtraso > 10) return;
 
     const just = justState[v.placa];
     vencidas.push({
@@ -2238,7 +2248,6 @@ function calcularVencidas() {
     });
   });
 
-  // Ordenar do mais atrasado para o menos
   vencidas.sort((a,b) => b.dias - a.dias);
   return vencidas;
 }
@@ -2436,8 +2445,13 @@ function abrirResumoDia() {
 
     if (!info) return;
 
-    // Vencem hoje — proxDate é hoje
-    if (info.cls === 'prazo-vencer') {
+    // Vencem hoje — proxDate é EXATAMENTE hoje (diff === 0)
+    const proxDateCopy = new Date(info.proxDate);
+    proxDateCopy.setHours(0,0,0,0);
+    const hojeZero = new Date(hoje);
+    hojeZero.setHours(0,0,0,0);
+    const ehHoje = proxDateCopy.toDateString() === hojeZero.toDateString();
+    if (ehHoje) {
       const just = justState[v.placa];
       vencemHoje.push({ ...v, ult: info.ult, prox: info.prox, just: just?.motivo || '—' });
     }
