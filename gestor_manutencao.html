@@ -1708,7 +1708,11 @@ function iniciarListeners() {
 }
 
 // Carregar veículos cadastrados no Firebase (merge com hardcoded)
+// Guarda veículos novos do Firebase para injetar na grade após carregarDados
+let _veiculosNovosFirebase = [];
+
 async function carregarVeiculosFirebase() {
+  _veiculosNovosFirebase = [];
   try {
     const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
     snap.docs.forEach(d => {
@@ -1718,17 +1722,20 @@ async function carregarVeiculosFirebase() {
         if (v.bloco === 'FROTA') FROTA.push(novoV);
         else TERCEIRO.push(novoV);
         TODOS.push(novoV);
-      }
-      // Adicionar na grade se ainda não existe
-      else if (!document.getElementById('vcell-id-' + v.placa)) {
-        adicionarVeiculoNaGrade(v);
+        _veiculosNovosFirebase.push(novoV); // marcar para injetar na grade
       }
     });
   } catch(e) { console.warn('carregarVeiculosFirebase:', e); }
 }
 
+function injetarVeiculosNovosNaGrade() {
+  _veiculosNovosFirebase.forEach(v => adicionarVeiculoNaGrade(v));
+  _veiculosNovosFirebase = [];
+}
+
 // Carga inicial + ativar listeners
 carregarVeiculosFirebase().then(() => carregarDados()).then(() => {
+  injetarVeiculosNovosNaGrade(); // injetar APÓS DOM da grade estar pronto
   _realtimeReady = true;
   iniciarListeners();
 });
@@ -2343,7 +2350,7 @@ function gerarVrow(v) {
   const placa = v.placa;
   const nfr   = String(v.nfr).padStart(2,'0');
   const tipo  = v.tipo;
-  return `<div class="vrow" data-placa="${placa}" data-tipo="${tipo}">
+  return `<div class="vrow" data-placa="${placa}" data-tipo="${tipo}" onclick="abrirModal('${placa}')">
     <div class="vcell vcell-tipo" id="vcell-tipo-${placa}" style="align-items:center;text-align:center;" onclick="event.stopPropagation();abrirModalJustificativa('${placa}')">
       <div class="vcell-tipo-inner"><div class="v-tipo">${tipo}</div></div>
     </div>
@@ -2373,21 +2380,19 @@ function adicionarVeiculoNaGrade(v) {
   const gridId = v.bloco === 'FROTA' ? 'grid-frota' : 'grid-terceiro';
   const grid   = document.getElementById(gridId);
   if (!grid) return;
-  // Verificar se já existe na grade
+  // Evitar duplicata
   if (document.getElementById('vcell-id-' + v.placa)) return;
   // Injetar HTML
   grid.insertAdjacentHTML('beforeend', gerarVrow(v));
-  // Registrar evento de clique na linha (igual aos outros)
-  const row = grid.lastElementChild;
-  row.addEventListener('click', () => abrirModal(v.placa));
-  // Inicializar estado e renderizar
+  // Inicializar estado e renderizar badges
   atualizarLinha(v.placa);
   renderJustBadge(v.placa);
   renderTermacBadge(v.placa);
   renderDatasCell(v.placa, checkState[v.placa]);
-  // Atualizar contadores dos filtros
+  // Atualizar contadores e ordenação
   atualizarContadores('frota');
   atualizarContadores('terceiro');
+  ordenarGridPorVencimento(gridId);
 }
 window.adicionarVeiculoNaGrade = adicionarVeiculoNaGrade;
 window.abrirModalNovoVeiculo = abrirModalNovoVeiculo;
