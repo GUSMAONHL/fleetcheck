@@ -354,6 +354,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="topbar-title" id="page-title">Quadro Geral — Manutenção</div>
     <div class="topbar-right">
       <div class="topbar-date" id="topbar-date"></div>
+      <button onclick="abrirResumoDia()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
+        Resumo do dia
+      </button>
       <button onclick="abrirModalNovoVeiculo()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
         Novo veículo
@@ -2221,6 +2225,7 @@ function calcularVencidas() {
     prox.setHours(0,0,0,0);
     const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
 
+    const just = justState[v.placa];
     vencidas.push({
       nfr:   v.nfr,
       placa: v.placa,
@@ -2228,7 +2233,8 @@ function calcularVencidas() {
       bloco: v.bloco,
       ult:   info.ult,
       prox:  info.prox,
-      dias:  diasAtraso
+      dias:  diasAtraso,
+      just:  just?.motivo || '—'
     });
   });
 
@@ -2273,6 +2279,11 @@ function abrirModalVencidas() {
         <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);font-family:Arial,sans-serif;">${v.ult}</td>
         <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
           <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#FCEBEB;color:#791F1F;">${v.prox}</span>
+        </td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
+          ${v.just !== '—'
+            ? `<span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#F1EFE8;color:#444441;">${v.just}</span>`
+            : `<span style="font-size:11px;color:var(--text3);">—</span>`}
         </td>
         <td style="padding:9px 14px;border-bottom:.5px solid var(--border);text-align:center;">
           <span style="font-size:13px;font-weight:700;font-family:Arial,sans-serif;color:${corDias};">-${v.dias}d</span>
@@ -2398,6 +2409,129 @@ window.adicionarVeiculoNaGrade = adicionarVeiculoNaGrade;
 window.abrirModalNovoVeiculo = abrirModalNovoVeiculo;
 window.fecharModalNovoVeiculo = fecharModalNovoVeiculo;
 window.salvarNovoVeiculo = salvarNovoVeiculo;
+
+// ── RESUMO DO DIA ──
+function abrirResumoDia() {
+  const hoje     = new Date();
+  const hojeISO  = hoje.toISOString().split('T')[0];
+  const hojeBR   = hoje.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  document.getElementById('resumo-dia-data').textContent = hojeBR.charAt(0).toUpperCase() + hojeBR.slice(1);
+
+  const inspecionadosHoje = [];
+  const vencemHoje        = [];
+  const vencidasHoje      = [];
+
+  TODOS.forEach(v => {
+    const st   = checkState[v.placa];
+    const info = calcPrazoBadge(st, v.placa);
+
+    // Inspecionados hoje — algum módulo tem dataFormatada de hoje
+    const hojeFormatado = hoje.toLocaleDateString('pt-BR');
+    const modulosHoje = ['f1','pn','f2','su'].filter(m => st?.[m]?.dataFormatada === hojeFormatado);
+    if (modulosHoje.length > 0) {
+      const status = ['f1','pn','f2','su'].map(m => statusDoc(st?.[m]));
+      const piorStatus = status.includes('substituir') ? 'substituir' : status.includes('atencao') ? 'atencao' : 'ok';
+      inspecionadosHoje.push({ ...v, modulosHoje, piorStatus });
+    }
+
+    if (!info) return;
+
+    // Vencem hoje — proxDate é hoje
+    if (info.cls === 'prazo-vencer') {
+      const just = justState[v.placa];
+      vencemHoje.push({ ...v, ult: info.ult, prox: info.prox, just: just?.motivo || '—' });
+    }
+
+    // Vencidas
+    if (info.cls === 'prazo-vencido') {
+      const dias = Math.abs(diffDiasUteis(hoje, info.proxDate));
+      const just = justState[v.placa];
+      vencidasHoje.push({ ...v, ult: info.ult, prox: info.prox, dias, just: just?.motivo || '—' });
+    }
+  });
+
+  vencidasHoje.sort((a,b) => b.dias - a.dias);
+
+  // KPIs
+  document.getElementById('rd-kpi-insp').textContent     = inspecionadosHoje.length;
+  document.getElementById('rd-kpi-vence').textContent    = vencemHoje.length;
+  document.getElementById('rd-kpi-vencidas').textContent = vencidasHoje.length;
+
+  // Montar seções
+  const thStyle = 'padding:6px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);';
+  const tdStyle = 'padding:8px 12px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text);';
+  const td2Style= 'padding:8px 12px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);';
+
+  function secao(titulo, cor, icone, rows, colunas, vazio) {
+    return `<div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:${cor};margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid ${cor};display:flex;align-items:center;gap:6px;">
+        ${icone} ${titulo} <span style="font-weight:400;opacity:.7;">(${rows.length})</span>
+      </div>
+      ${rows.length === 0
+        ? `<div style="font-size:12px;color:var(--text3);padding:8px 0;">${vazio}</div>`
+        : `<table style="width:100%;border-collapse:collapse;">
+            <thead><tr>${colunas.map(c=>`<th style="${thStyle}">${c}</th>`).join('')}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`}
+    </div>`;
+  }
+
+  // Seção 1 — Inspecionados hoje
+  const rowsInsp = inspecionadosHoje.map(v => {
+    const corStatus = v.piorStatus==='substituir'?'#cc2222':v.piorStatus==='atencao'?'#c9a800':'#27500A';
+    const lblStatus = v.piorStatus==='substituir'?'Substituir':v.piorStatus==='atencao'?'Atenção':'OK';
+    return `<tr>
+      <td style="${tdStyle}">${v.nfr}</td>
+      <td style="${tdStyle};font-family:Arial,sans-serif;font-weight:500;">${v.placa}</td>
+      <td style="${td2Style}">${v.tipo}</td>
+      <td style="${td2Style}">${v.bloco}</td>
+      <td style="${tdStyle}"><span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:${corStatus}22;color:${corStatus};">${lblStatus}</span></td>
+    </tr>`;
+  }).join('');
+
+  const s1 = secao('Inspecionados hoje', '#27500A',
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    rowsInsp, ['Frota','Placa','Tipo','Bloco','Status'], 'Nenhuma inspeção realizada hoje ainda.');
+
+  // Seção 2 — Vencem hoje
+  const rowsVence = vencemHoje.map(v => `<tr>
+    <td style="${tdStyle}">${v.nfr}</td>
+    <td style="${tdStyle};font-family:Arial,sans-serif;font-weight:500;">${v.placa}</td>
+    <td style="${td2Style}">${v.tipo}</td>
+    <td style="${td2Style}">${v.bloco}</td>
+    <td style="${td2Style};font-family:Arial,sans-serif;">${v.ult}</td>
+    <td style="${tdStyle}">${v.just!=='—'?`<span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;background:#F1EFE8;color:#444441;">${v.just}</span>`:'<span style="color:var(--text3);">—</span>'}</td>
+  </tr>`).join('');
+
+  const s2 = secao('Vencem hoje', '#c9a800',
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c9a800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    rowsVence, ['Frota','Placa','Tipo','Bloco','Ult. inspeção','Justificativa'], 'Nenhuma inspeção vence hoje.');
+
+  // Seção 3 — Vencidas
+  const rowsVenc = vencidasHoje.map(v => `<tr>
+    <td style="${tdStyle}">${v.nfr}</td>
+    <td style="${tdStyle};font-family:Arial,sans-serif;font-weight:500;">${v.placa}</td>
+    <td style="${td2Style}">${v.tipo}</td>
+    <td style="${td2Style}">${v.bloco}</td>
+    <td style="${td2Style};font-family:Arial,sans-serif;">${v.ult}</td>
+    <td style="${tdStyle}"><span style="font-weight:700;font-family:Arial,sans-serif;color:#cc2222;">-${v.dias}d</span></td>
+    <td style="${tdStyle}">${v.just!=='—'?`<span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;background:#F1EFE8;color:#444441;">${v.just}</span>`:'<span style="color:var(--text3);">—</span>'}</td>
+  </tr>`).join('');
+
+  const s3 = secao('Inspeções vencidas', '#cc2222',
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cc2222" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    rowsVenc, ['Frota','Placa','Tipo','Bloco','Ult. inspeção','Atraso','Justificativa'], 'Nenhuma inspeção vencida.');
+
+  document.getElementById('resumo-dia-body').innerHTML = s1 + s2 + s3;
+  document.getElementById('modal-resumo-dia-ov').style.display = 'flex';
+}
+
+function fecharResumoDia() {
+  document.getElementById('modal-resumo-dia-ov').style.display = 'none';
+}
+
+window.abrirResumoDia  = abrirResumoDia;
+window.fecharResumoDia = fecharResumoDia;
 window.abrirModalVencidas = abrirModalVencidas;
 window.fecharModalVencidas = fecharModalVencidas;
 
@@ -2622,6 +2756,38 @@ window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada
 
 
 
+
+<!-- MODAL RESUMO DO DIA -->
+<div id="modal-resumo-dia-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharResumoDia()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:700px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:16px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Resumo do dia
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="resumo-dia-data">—</div>
+      </div>
+      <button onclick="fecharResumoDia()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <!-- KPIs rápidos -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);flex-shrink:0;">
+      <div style="background:var(--bg2);padding:14px 18px;text-align:center;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Inspecionados hoje</div>
+        <div style="font-size:30px;font-weight:500;color:#27500A;font-family:Arial,sans-serif;" id="rd-kpi-insp">—</div>
+      </div>
+      <div style="background:var(--bg2);padding:14px 18px;text-align:center;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Vencem hoje</div>
+        <div style="font-size:30px;font-weight:500;color:#c9a800;font-family:Arial,sans-serif;" id="rd-kpi-vence">—</div>
+      </div>
+      <div style="background:var(--bg2);padding:14px 18px;text-align:center;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Vencidas</div>
+        <div style="font-size:30px;font-weight:500;color:#cc2222;font-family:Arial,sans-serif;" id="rd-kpi-vencidas">—</div>
+      </div>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:16px;" id="resumo-dia-body"></div>
+  </div>
+</div>
 <!-- MODAL NOVO VEÍCULO -->
 <div id="modal-novo-veiculo-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalNovoVeiculo()">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:460px;max-width:95vw;overflow:hidden;">
@@ -2696,6 +2862,7 @@ window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada
             <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Bloco</th>
             <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Ult. inspeção</th>
             <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Próxima era</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Justificativa</th>
             <th style="padding:8px 14px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Atraso</th>
           </tr>
         </thead>
