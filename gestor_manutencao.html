@@ -354,11 +354,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="topbar-title" id="page-title">Quadro Geral — Manutenção</div>
     <div class="topbar-right">
       <div class="topbar-date" id="topbar-date"></div>
-      <button id="btn-vencidas" onclick="abrirModalVencidas()" style="display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:none;background:#cc2222;color:#fff;font-size:12px;font-weight:500;cursor:pointer;position:relative;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Inspeções vencidas
-        <span id="badge-vencidas" style="position:absolute;top:-7px;right:-7px;background:#fff;color:#cc2222;border:.5px solid #cc2222;border-radius:50%;width:19px;height:19px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">0</span>
-      </button>
       <button class="btn-sm" onclick="carregarDados()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
         Atualizar
@@ -1040,7 +1035,6 @@ window.carregarDados = async function() {
     atualizarContadores('frota');
     atualizarContadores('terceiro');
     renderVencimentos();
-    atualizarBtnVencidas();
     ordenarGridPorVencimento('grid-frota');
     ordenarGridPorVencimento('grid-terceiro');
   } catch(e) {
@@ -2173,93 +2167,6 @@ function renderVencimentos() {
 }
 window.renderVencimentos = renderVencimentos;
 
-// ── INSPEÇÕES VENCIDAS ──
-function calcularVencidas() {
-  const hoje = new Date();
-  hoje.setHours(0,0,0,0);
-  const vencidas = [];
-
-  TODOS.forEach(v => {
-    const st = checkState[v.placa];
-    const info = calcPrazoBadge(st, v.placa);
-    if (!info) return;
-    if (info.cls !== 'prazo-vencido') return; // só vencidas (vermelho)
-
-    // Calcular dias úteis de atraso
-    const prox = info.proxDate;
-    prox.setHours(0,0,0,0);
-    const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
-
-    vencidas.push({
-      nfr:   v.nfr,
-      placa: v.placa,
-      tipo:  v.tipo,
-      bloco: v.bloco,
-      ult:   info.ult,
-      prox:  info.prox,
-      dias:  diasAtraso
-    });
-  });
-
-  // Ordenar do mais atrasado para o menos
-  vencidas.sort((a,b) => b.dias - a.dias);
-  return vencidas;
-}
-
-function atualizarBtnVencidas() {
-  const vencidas = calcularVencidas();
-  const btn    = document.getElementById('btn-vencidas');
-  const badge  = document.getElementById('badge-vencidas');
-  if (!btn) return;
-  if (vencidas.length > 0) {
-    btn.style.display = 'flex';
-    badge.textContent = vencidas.length;
-  } else {
-    btn.style.display = 'none';
-  }
-}
-
-function abrirModalVencidas() {
-  const vencidas = calcularVencidas();
-  const ov    = document.getElementById('modal-vencidas-ov');
-  const body  = document.getElementById('modal-vencidas-body');
-  const titulo = document.getElementById('modal-venc-titulo');
-  const sub    = document.getElementById('modal-venc-sub');
-
-  titulo.textContent = 'Inspeções vencidas — ' + vencidas.length + ' veículo' + (vencidas.length !== 1 ? 's' : '');
-  sub.textContent    = 'Ordenado do mais crítico ao menos crítico';
-
-  if (!vencidas.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma inspeção vencida</td></tr>';
-  } else {
-    body.innerHTML = vencidas.map((v,i) => {
-      const corDias = v.dias >= 5 ? '#791F1F' : '#A32D2D';
-      return `<tr style="${i % 2 === 1 ? 'background:var(--bg3);' : ''}">
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);">${v.nfr}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:14px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);">${v.placa}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.tipo||'—'}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.bloco||'—'}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);font-family:Arial,sans-serif;">${v.ult}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
-          <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#FCEBEB;color:#791F1F;">${v.prox}</span>
-        </td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);text-align:center;">
-          <span style="font-size:13px;font-weight:700;font-family:Arial,sans-serif;color:${corDias};">-${v.dias}d</span>
-        </td>
-      </tr>`;
-    }).join('');
-  }
-
-  ov.style.display = 'flex';
-}
-
-function fecharModalVencidas() {
-  document.getElementById('modal-vencidas-ov').style.display = 'none';
-}
-
-window.abrirModalVencidas = abrirModalVencidas;
-window.fecharModalVencidas = fecharModalVencidas;
-
 // MODAL VENCIMENTOS DO DIA
 function abrirModalVenc(key, labelDia, veics) {
   const ov = document.getElementById('modal-venc-ov');
@@ -2479,38 +2386,6 @@ window.estAbrirCad=estAbrirCad; window.estFecharCad=estFecharCad; window.estSalv
 window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
 </script>
 
-
-<!-- MODAL INSPEÇÕES VENCIDAS -->
-<div id="modal-vencidas-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVencidas()">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:680px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;">
-    <div style="padding:14px 18px;background:#FCEBEB;border-bottom:1px solid #F09595;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#791F1F" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <div>
-          <div style="font-size:15px;font-weight:500;color:#791F1F;" id="modal-venc-titulo">Inspeções vencidas</div>
-          <div style="font-size:11px;color:#A32D2D;margin-top:1px;" id="modal-venc-sub">—</div>
-        </div>
-      </div>
-      <button onclick="fecharModalVencidas()" style="background:none;border:none;color:#A32D2D;font-size:20px;cursor:pointer;padding:0;">✕</button>
-    </div>
-    <div style="overflow-y:auto;flex:1;">
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr style="background:var(--bg3);">
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Frota</th>
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Placa</th>
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Tipo</th>
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Bloco</th>
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Ult. inspeção</th>
-            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Próxima era</th>
-            <th style="padding:8px 14px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Atraso</th>
-          </tr>
-        </thead>
-        <tbody id="modal-vencidas-body"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
 <!-- MODAL VENCIMENTOS DO DIA -->
 <div id="modal-venc-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVenc()">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">
