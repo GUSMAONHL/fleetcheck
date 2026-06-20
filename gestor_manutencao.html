@@ -2218,22 +2218,16 @@ function calcularVencidas() {
   TODOS.forEach(v => {
     const st = checkState[v.placa];
 
-    // Só usar dados da semana atual (checkState) — não usar lastInspState para vencidas
-    // Isso evita que inspeções de semanas antigas gerem falsos "vencidos"
-    const datas = ['f1','pn','f2','su'].map(m => st?.[m]?.dataFormatada).filter(Boolean);
-    if (!datas.length) return; // sem inspeção nesta semana = pendente, não vencido
-
-    // Calcular com dados reais da semana
-    const info = calcPrazoBadge(st, null); // null = sem fallback lastInspState
-    if (!info) return;
+    // Usar dados da semana atual + fallback lastInspState (histórico de até 4 semanas)
+    // Isso garante que veículos sem inspeção NESTA semana mas com histórico recente
+    // continuem aparecendo como vencidos corretamente
+    const info = calcPrazoBadge(st, v.placa);
+    if (!info) return; // sem nenhum histórico de inspeção = não dá pra calcular prazo
     if (info.cls !== 'prazo-vencido') return;
 
     const prox = new Date(info.proxDate);
     prox.setHours(0,0,0,0);
     const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
-
-    // Sanidade: ignorar se atraso for absurdo (> 10 dias úteis = dado corrompido)
-    if (diasAtraso > 10) return;
 
     const just = justState[v.placa];
     vencidas.push({
