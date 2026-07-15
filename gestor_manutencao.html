@@ -2954,25 +2954,23 @@ async function carregarHistorico() {
     const osSnap = await getDocs(collection(db,'ordens_servico'));
     const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}));
 
-    // Agrupar por data
+    // Agrupar por data — conta DOCUMENTOS (1 doc = 1 módulo inspecionado de 1 veículo)
+    // OK = doc sem nenhum item substituir; Substituir = doc com pelo menos 1 substituir
     const porDia = {};
     datas.forEach(dt => { porDia[dt] = { total:0, ok:0, sub:0, os:0 }; });
 
     allDocs.forEach(doc => {
       const dt = doc.dataFormatada;
       if (!porDia[dt]) return;
-      const itens = doc.itens || [];
-      itens.forEach(item => {
-        porDia[dt].total++;
-        if (item.status === 'ok')  porDia[dt].ok++;
-        if (item.status === 'sub') porDia[dt].sub++;
-      });
-      // Contagem alternativa: status no doc inteiro (docs sem itens)
-      if (!itens.length) {
-        porDia[dt].total++;
-        const s = (doc.status||'').toLowerCase();
-        if (s === 'ok')  porDia[dt].ok++;
-        if (s === 'sub' || s === 'substituir') porDia[dt].sub++;
+
+      porDia[dt].total++; // 1 documento = 1 inspeção de módulo
+
+      // Usar totalSubstituir do doc (já calculado pelo operador ao salvar)
+      const temSub = (doc.totalSubstituir || 0) > 0;
+      if (temSub) {
+        porDia[dt].sub++;
+      } else {
+        porDia[dt].ok++;
       }
     });
 
