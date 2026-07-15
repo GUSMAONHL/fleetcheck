@@ -319,6 +319,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .est-ut{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:none;font-size:12px;cursor:pointer;color:var(--text2);}
 .est-ut.at{background:#E6F1FB;border-color:#185FA5;color:#0C447C;font-weight:500;}
 .est-info-box{background:var(--bg3);border-radius:7px;padding:8px 10px;font-size:12px;color:var(--text2);}
+
+/* ══ HISTÓRICO ══ */
+.hist-filtros{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.hist-pill{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;}
+.hist-pill.at{background:#E6F1FB;border-color:#185FA5;color:#0C447C;}
+.hist-pill:hover{border-color:#185FA5;}
+.hist-sep{width:.5px;height:20px;background:var(--border);}
+.hist-date-input{padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text);font-family:inherit;}
+.hist-btn-apply{padding:6px 14px;border-radius:7px;border:none;background:#185FA5;color:#fff;font-size:12px;font-weight:500;cursor:pointer;}
+.hist-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+.hist-kpi{background:var(--bg3);border-radius:var(--radius, 8px);padding:1rem;display:flex;flex-direction:column;gap:4px;}
+.hist-kpi-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;}
+.hist-kpi-val{font-size:26px;font-weight:500;line-height:1;font-family:Arial,sans-serif;}
+.hist-kpi-sub{font-size:11px;color:var(--text3);}
+.hist-tbl-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.hist-tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);}
+.hist-tbl-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);}
+.hist-tbl{width:100%;border-collapse:collapse;}
+.hist-tbl th{padding:7px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);}
+.hist-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
+.hist-tbl tr:last-child td{border-bottom:none;}
+.hist-tbl tr:hover td{background:var(--bg3);}
+.hist-bar-wrap{display:flex;align-items:center;gap:6px;}
+.hist-bar-bg{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;min-width:60px;}
+.hist-bar-f{height:100%;border-radius:3px;background:#16a050;}
+.hist-pct{font-size:11px;color:var(--text3);white-space:nowrap;}
+
+.reg-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.25rem;}
+.reg-tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;}
+.reg-tab.at{color:#185FA5;border-bottom-color:#185FA5;}
+.reg-tbl-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.reg-tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--bg3);border-bottom:1px solid var(--border);}
+.reg-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.reg-tbl th{padding:7px 8px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);border-right:0.5px solid var(--border);white-space:nowrap;overflow:hidden;}
+.reg-tbl th:first-child{text-align:left;width:120px;}
+.reg-tbl th:last-child{border-right:none;text-align:left;}
+.reg-tbl td{padding:7px 8px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);text-align:center;font-size:12px;}
+.reg-tbl td:first-child{text-align:left;font-size:12px;font-weight:500;color:var(--text);}
+.reg-tbl td:last-child{text-align:left;border-right:none;font-size:11px;color:#A32D2D;}
+.reg-tbl tr:last-child td{border-bottom:none;}
+.reg-tbl tr:hover td{background:var(--bg3);}
+.reg-check{color:#27500A;font-weight:700;font-size:14px;}
 </style>
 </head>
 <body>
@@ -769,7 +811,78 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       </div>
     </div>
     <div class="page" id="page-historico">
-      <div style="text-align:center;padding:60px;color:var(--text3);">Em desenvolvimento...</div>
+      <!-- Abas -->
+      <div class="reg-tabs">
+        <button class="reg-tab at" id="hist-tab-visao" onclick="histSwitchTab('visao')">Visão geral</button>
+        <button class="reg-tab" id="hist-tab-regulagem" onclick="histSwitchTab('regulagem')">Controle de regulagem</button>
+      </div>
+
+      <!-- PAINEL VISÃO GERAL -->
+      <div id="hist-panel-visao">
+        <div class="hist-filtros">
+          <button class="hist-pill at" id="hist-p-7" onclick="histSetPeriodo(7)">7 dias</button>
+          <button class="hist-pill" id="hist-p-15" onclick="histSetPeriodo(15)">15 dias</button>
+          <button class="hist-pill" id="hist-p-30" onclick="histSetPeriodo(30)">30 dias</button>
+          <button class="hist-pill" id="hist-p-hoje" onclick="histSetPeriodo(1)">Hoje</button>
+          <div class="hist-sep"></div>
+          <input class="hist-date-input" type="date" id="hist-de" />
+          <span style="font-size:12px;color:var(--text3);">até</span>
+          <input class="hist-date-input" type="date" id="hist-ate" />
+          <button class="hist-btn-apply" onclick="histAplicarFiltro()">Aplicar</button>
+        </div>
+        <div class="hist-kpi-row">
+          <div class="hist-kpi"><div class="hist-kpi-lbl">Total de inspeções</div><div class="hist-kpi-val" style="color:#185FA5;" id="hist-kpi-total">—</div><div class="hist-kpi-sub" id="hist-kpi-periodo">—</div></div>
+          <div class="hist-kpi"><div class="hist-kpi-lbl">Resultados OK</div><div class="hist-kpi-val" style="color:#27500A;" id="hist-kpi-ok">—</div><div class="hist-kpi-sub" id="hist-kpi-ok-pct">—</div></div>
+          <div class="hist-kpi"><div class="hist-kpi-lbl">Com substituição</div><div class="hist-kpi-val" style="color:#A32D2D;" id="hist-kpi-sub">—</div><div class="hist-kpi-sub" id="hist-kpi-sub-pct">—</div></div>
+          <div class="hist-kpi"><div class="hist-kpi-lbl">OS geradas</div><div class="hist-kpi-val" style="color:#BA7517;" id="hist-kpi-os">—</div><div class="hist-kpi-sub" id="hist-kpi-os-pct">—</div></div>
+        </div>
+        <div class="hist-tbl-wrap">
+          <div class="hist-tbl-hdr">
+            <div class="hist-tbl-title">Inspeções por dia</div>
+            <div style="font-size:11px;color:var(--text3);" id="hist-periodo-label">—</div>
+          </div>
+          <table class="hist-tbl">
+            <thead><tr>
+              <th>Data</th>
+              <th style="text-align:center;">Total</th>
+              <th style="text-align:center;">OK</th>
+              <th style="text-align:center;">Substituir</th>
+              <th style="text-align:center;">OS geradas</th>
+              <th>Aproveitamento</th>
+            </tr></thead>
+            <tbody id="hist-tbl-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAINEL CONTROLE DE REGULAGEM -->
+      <div id="hist-panel-regulagem" style="display:none;">
+        <div class="hist-filtros">
+          <button class="hist-pill at" id="reg-p-semana" onclick="regSetPeriodo('semana')">Semana atual</button>
+          <button class="hist-pill" id="reg-p-anterior" onclick="regSetPeriodo('anterior')">Semana anterior</button>
+          <div class="hist-sep"></div>
+          <input class="hist-date-input" type="date" id="reg-de" />
+          <span style="font-size:12px;color:var(--text3);">até</span>
+          <input class="hist-date-input" type="date" id="reg-ate" />
+          <button class="hist-btn-apply" onclick="regAplicarFiltro()">Aplicar</button>
+        </div>
+        <div class="reg-tbl-wrap">
+          <div class="reg-tbl-hdr">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);">Controle de regulagem de freio</div>
+            <div style="font-size:11px;color:var(--text3);" id="reg-periodo-label">—</div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="reg-tbl" id="reg-tbl">
+              <thead id="reg-thead"></thead>
+              <tbody id="reg-tbody">
+                <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1622,6 +1735,7 @@ window.showPage = function(page,btn) {
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
   if (page === 'estoque') carregarEstoque();
+  if (page === 'historico') { histSetPeriodo(7); }
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -2760,6 +2874,320 @@ function estAbrirModalCadastros(){document.getElementById("modal-est-cadastros-o
 window.estAbrirModalCadastros=estAbrirModalCadastros;
 window.estAbrirCad=estAbrirCad; window.estFecharCad=estFecharCad; window.estSalvarCad=estSalvarCad; window.estDelCad=estDelCad;
 window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
+
+// ══ HISTÓRICO ══
+let _histDe = null, _histAte = null;
+
+function histSetPeriodo(dias) {
+  ['hist-p-7','hist-p-15','hist-p-30','hist-p-hoje'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('at');
+  });
+  const id = dias === 1 ? 'hist-p-hoje' : 'hist-p-' + dias;
+  const btn = document.getElementById(id);
+  if (btn) btn.classList.add('at');
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const de = new Date(hoje);
+  if (dias > 1) de.setDate(hoje.getDate() - (dias - 1));
+
+  _histDe  = de;
+  _histAte = hoje;
+
+  const toISO = d => d.toISOString().split('T')[0];
+  const deEl  = document.getElementById('hist-de');
+  const ateEl = document.getElementById('hist-ate');
+  if (deEl)  deEl.value  = toISO(de);
+  if (ateEl) ateEl.value = toISO(hoje);
+
+  carregarHistorico();
+}
+
+function histAplicarFiltro() {
+  const deVal  = document.getElementById('hist-de')?.value;
+  const ateVal = document.getElementById('hist-ate')?.value;
+  if (!deVal || !ateVal) { alert('Informe as duas datas.'); return; }
+  if (deVal > ateVal) { alert('A data inicial deve ser anterior à final.'); return; }
+  ['hist-p-7','hist-p-15','hist-p-30','hist-p-hoje'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('at');
+  });
+  _histDe  = new Date(deVal + 'T00:00:00');
+  _histAte = new Date(ateVal + 'T00:00:00');
+  carregarHistorico();
+}
+
+async function carregarHistorico() {
+  const body  = document.getElementById('hist-tbl-body');
+  const label = document.getElementById('hist-periodo-label');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
+
+  const de  = _histDe  || new Date();
+  const ate = _histAte || new Date();
+
+  // Gerar lista de datas no período (mais recente primeiro)
+  const datas = [];
+  const cur = new Date(ate);
+  while (cur >= de) {
+    datas.push(cur.toLocaleDateString('pt-BR'));
+    cur.setDate(cur.getDate() - 1);
+  }
+
+  if (label) {
+    const fmtBR = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    label.textContent = fmtBR(de) + ' – ' + fmtBR(ate);
+  }
+
+  try {
+    // Buscar inspeções em chunks de 10 (limite Firebase 'in')
+    let allDocs = [];
+    const datasRev = [...datas];
+    for (let i = 0; i < datasRev.length; i += 10) {
+      const chunk = datasRev.slice(i, i + 10);
+      const snap = await getDocs(query(collection(db,'manutencao_corretiva'), where('dataFormatada','in', chunk)));
+      snap.docs.forEach(d => allDocs.push(d.data()));
+    }
+
+    // Buscar OS
+    const osSnap = await getDocs(collection(db,'ordens_servico'));
+    const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}));
+
+    // Agrupar por data
+    const porDia = {};
+    datas.forEach(dt => { porDia[dt] = { total:0, ok:0, sub:0, os:0 }; });
+
+    allDocs.forEach(doc => {
+      const dt = doc.dataFormatada;
+      if (!porDia[dt]) return;
+      const itens = doc.itens || [];
+      itens.forEach(item => {
+        porDia[dt].total++;
+        if (item.status === 'ok')  porDia[dt].ok++;
+        if (item.status === 'sub') porDia[dt].sub++;
+      });
+      // Contagem alternativa: status no doc inteiro (docs sem itens)
+      if (!itens.length) {
+        porDia[dt].total++;
+        const s = (doc.status||'').toLowerCase();
+        if (s === 'ok')  porDia[dt].ok++;
+        if (s === 'sub' || s === 'substituir') porDia[dt].sub++;
+      }
+    });
+
+    // OS por data de criação
+    osDocs.forEach(os => {
+      if (!os.entradaEm) return;
+      const dt = new Date(os.entradaEm).toLocaleDateString('pt-BR');
+      if (porDia[dt]) porDia[dt].os++;
+    });
+
+    // KPIs totais
+    let totTotal=0, totOk=0, totSub=0, totOs=0;
+    datas.forEach(dt => {
+      totTotal += porDia[dt].total;
+      totOk    += porDia[dt].ok;
+      totSub   += porDia[dt].sub;
+      totOs    += porDia[dt].os;
+    });
+
+    const pct = (n,d) => d > 0 ? (n/d*100).toFixed(1)+'%' : '—';
+    const el = id => document.getElementById(id);
+    if (el('hist-kpi-total'))   el('hist-kpi-total').textContent   = totTotal;
+    if (el('hist-kpi-ok'))      el('hist-kpi-ok').textContent      = totOk;
+    if (el('hist-kpi-sub'))     el('hist-kpi-sub').textContent     = totSub;
+    if (el('hist-kpi-os'))      el('hist-kpi-os').textContent      = totOs;
+    if (el('hist-kpi-periodo')) el('hist-kpi-periodo').textContent = datas.length + (datas.length===1?' dia':' dias');
+    if (el('hist-kpi-ok-pct'))  el('hist-kpi-ok-pct').textContent  = pct(totOk,totTotal) + ' do total';
+    if (el('hist-kpi-sub-pct')) el('hist-kpi-sub-pct').textContent = pct(totSub,totTotal) + ' do total';
+    if (el('hist-kpi-os-pct'))  el('hist-kpi-os-pct').textContent  = pct(totOs,totSub) + ' dos substituir';
+
+    // Tabela
+    const diasSem = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const rows = datas.map(dt => {
+      const d = porDia[dt];
+      const [dd,mm,yyyy] = dt.split('/');
+      const dateObj = new Date(+yyyy, +mm-1, +dd);
+      const dow = diasSem[dateObj.getDay()];
+      const fds = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+      const pctOk = d.total > 0 ? Math.round(d.ok/d.total*100) : 0;
+
+      if (fds && d.total === 0) {
+        return `<tr><td style="color:var(--text3);">${dow}, ${dd}/${mm}</td><td style="text-align:center;color:var(--text3);">0</td><td style="text-align:center;color:var(--text3);">—</td><td style="text-align:center;color:var(--text3);">—</td><td style="text-align:center;color:var(--text3);">—</td><td style="color:var(--text3);">—</td></tr>`;
+      }
+      return `<tr>
+        <td>${dow}, ${dd}/${mm}</td>
+        <td style="text-align:center;font-family:Arial,sans-serif;font-weight:500;">${d.total||0}</td>
+        <td style="text-align:center;font-family:Arial,sans-serif;font-weight:500;color:${d.ok>0?'#27500A':'var(--text3)'};">${d.ok||0}</td>
+        <td style="text-align:center;font-family:Arial,sans-serif;font-weight:500;color:${d.sub>0?'#A32D2D':'var(--text3)'};">${d.sub||0}</td>
+        <td style="text-align:center;font-family:Arial,sans-serif;font-weight:500;color:${d.os>0?'#BA7517':'var(--text3)'};">${d.os||0}</td>
+        <td>${d.total>0?`<div class="hist-bar-wrap"><div class="hist-bar-bg"><div class="hist-bar-f" style="width:${pctOk}%;"></div></div><span class="hist-pct">${pctOk}%</span></div>`:'<span style="color:var(--text3);">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    body.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma inspeção encontrada no período.</td></tr>';
+
+  } catch(e) {
+    console.error('carregarHistorico:', e);
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar dados.</td></tr>';
+  }
+}
+
+window.histSetPeriodo    = histSetPeriodo;
+window.histAplicarFiltro = histAplicarFiltro;
+
+// ══ CONTROLE DE REGULAGEM ══
+let _regDe = null, _regAte = null;
+
+function histSwitchTab(tab) {
+  document.getElementById('hist-panel-visao').style.display      = tab==='visao' ? '' : 'none';
+  document.getElementById('hist-panel-regulagem').style.display  = tab==='regulagem' ? '' : 'none';
+  document.getElementById('hist-tab-visao').classList.toggle('at',     tab==='visao');
+  document.getElementById('hist-tab-regulagem').classList.toggle('at', tab==='regulagem');
+  if (tab === 'regulagem' && !_regDe) regSetPeriodo('semana');
+}
+
+function regGetSemana(offset) {
+  // offset=0 semana atual, offset=-1 semana anterior
+  const hoje = new Date();
+  const dow = hoje.getDay(); // 0=dom
+  const diasAteSeg = dow === 0 ? 6 : dow - 1;
+  const seg = new Date(hoje);
+  seg.setDate(hoje.getDate() - diasAteSeg + (offset * 7));
+  seg.setHours(0,0,0,0);
+  const sex = new Date(seg);
+  sex.setDate(seg.getDate() + 4); // seg+4 = sexta
+  return { de: seg, ate: sex };
+}
+
+function regSetPeriodo(tipo) {
+  ['reg-p-semana','reg-p-anterior'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('at');
+  });
+  document.getElementById('reg-p-' + tipo)?.classList.add('at');
+
+  const { de, ate } = tipo === 'semana' ? regGetSemana(0) : regGetSemana(-1);
+  _regDe  = de;
+  _regAte = ate;
+
+  const toISO = d => d.toISOString().split('T')[0];
+  const deEl  = document.getElementById('reg-de');
+  const ateEl = document.getElementById('reg-ate');
+  if (deEl)  deEl.value  = toISO(de);
+  if (ateEl) ateEl.value = toISO(ate);
+
+  carregarRegulagem();
+}
+
+function regAplicarFiltro() {
+  const deVal  = document.getElementById('reg-de')?.value;
+  const ateVal = document.getElementById('reg-ate')?.value;
+  if (!deVal || !ateVal) { alert('Informe as duas datas.'); return; }
+  if (deVal > ateVal)    { alert('Data inicial deve ser anterior à final.'); return; }
+  ['reg-p-semana','reg-p-anterior'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('at');
+  });
+  _regDe  = new Date(deVal + 'T00:00:00');
+  _regAte = new Date(ateVal + 'T00:00:00');
+  carregarRegulagem();
+}
+
+async function carregarRegulagem() {
+  const tbody = document.getElementById('reg-tbody');
+  const thead = document.getElementById('reg-thead');
+  const label = document.getElementById('reg-periodo-label');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
+
+  const de  = _regDe  || regGetSemana(0).de;
+  const ate = _regAte || regGetSemana(0).ate;
+
+  // Gerar datas do período
+  const datas = [];
+  const cur = new Date(de);
+  while (cur <= ate) {
+    datas.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  const fmtBR   = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+  const fmtCurto= d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+  if (label) label.textContent = fmtBR(de) + ' – ' + fmtBR(ate);
+
+  const diasSem = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // Cabeçalho da tabela
+  const thCols = datas.map(d =>
+    `<th style="min-width:72px;">${diasSem[d.getDay()]}<br>${fmtCurto(d)}</th>`
+  ).join('');
+  if (thead) thead.innerHTML = `<tr><th>Nº Frota</th>${thCols}<th>Observações</th></tr>`;
+
+  try {
+    // Buscar inspeções do período
+    const datasStr = datas.map(d => d.toLocaleDateString('pt-BR'));
+    let allDocs = [];
+    for (let i = 0; i < datasStr.length; i += 10) {
+      const chunk = datasStr.slice(i, i + 10);
+      const snap = await getDocs(query(collection(db,'manutencao_corretiva'), where('dataFormatada','in', chunk)));
+      snap.docs.forEach(d => allDocs.push(d.data()));
+    }
+
+    // Buscar justificativas (observações do gestor)
+    const justSnap = await getDocs(collection(db,'justificativas'));
+    const justDocs = {};
+    justSnap.docs.forEach(d => {
+      const data = d.data();
+      if (!data._deleted) justDocs[data.placa] = data;
+    });
+
+    // Mapear placas que inspecionaram por dia
+    // inspPorPlacaDia[placa][dataStr] = true
+    const inspPorPlacaDia = {};
+    allDocs.forEach(doc => {
+      const placa = (doc.placa||'').toUpperCase();
+      if (!placa) return;
+      if (!inspPorPlacaDia[placa]) inspPorPlacaDia[placa] = {};
+      inspPorPlacaDia[placa][doc.dataFormatada] = true;
+    });
+
+    // Renderizar por veículo (ordenado por nfr)
+    const veiculosOrdenados = [...TODOS].sort((a,b) => (a.nfr||0) - (b.nfr||0));
+
+    const rows = veiculosOrdenados.map(v => {
+      const insp   = inspPorPlacaDia[v.placa] || {};
+      const just   = justDocs[v.placa];
+      const obs    = just?.motivo || '';
+
+      const cols = datas.map(d => {
+        const dtStr = d.toLocaleDateString('pt-BR');
+        const fezInsp = !!insp[dtStr];
+        return `<td>${fezInsp ? '<span class="reg-check">✕</span>' : ''}</td>`;
+      }).join('');
+
+      const nfrFmt = String(v.nfr).padStart(2,'0');
+      const obsStyle = obs ? 'color:#A32D2D;font-size:11px;' : 'color:var(--text3);font-size:11px;';
+
+      return `<tr>
+        <td title="${v.placa}">${nfrFmt} - ${v.placa}</td>
+        ${cols}
+        <td style="${obsStyle}">${obs || '—'}</td>
+      </tr>`;
+    }).join('');
+
+    tbody.innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Nenhum dado encontrado.</td></tr>';
+
+  } catch(e) {
+    console.error('carregarRegulagem:', e);
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar dados.</td></tr>';
+  }
+}
+
+window.histSwitchTab   = histSwitchTab;
+window.regSetPeriodo   = regSetPeriodo;
+window.regAplicarFiltro= regAplicarFiltro;
 </script>
 
 
