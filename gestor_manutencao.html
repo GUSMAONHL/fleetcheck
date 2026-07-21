@@ -411,6 +411,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
         Resumo do dia
       </button>
+      <button onclick="abrirModalVeiculosInativos()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Inativos
+      </button>
       <button onclick="abrirModalNovoVeiculo()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
         Novo veículo
@@ -1151,11 +1155,11 @@ async function carregarTodasOS() {
 
 // Busca a última inspeção de cada veículo nas últimas 4 semanas
 async function carregarUltimaInspecao() {
-  // Gera datas das últimas 4 semanas (28 dias úteis atrás até hoje)
+  // Busca os últimos 90 dias corridos para cobrir veículos que ficaram sem inspeção por mais tempo
   const hoje = new Date();
   const datasRange = [];
   const cur = new Date(hoje);
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < 90; i++) {
     const dow = cur.getDay();
     if (dow !== 0 && dow !== 6) {
       datasRange.push(cur.toLocaleDateString('pt-BR'));
@@ -1163,21 +1167,21 @@ async function carregarUltimaInspecao() {
     cur.setDate(cur.getDate() - 1);
   }
 
-  // Busca docs de todas essas datas em lotes de 10 (limite do Firebase 'in')
+  // Busca em lotes de 10 (limite Firebase 'in') — sequencial para evitar sobrecarga
   const chunks = [];
   for (let i = 0; i < datasRange.length; i += 10) chunks.push(datasRange.slice(i, i+10));
 
   const allDocs = [];
-  await Promise.all(chunks.map(async chunk => {
+  for (const chunk of chunks) {
     try {
       const snap = await getDocs(
         query(collection(db,'manutencao_corretiva'), where('dataFormatada','in', chunk))
       );
       snap.docs.forEach(d => allDocs.push(d.data()));
     } catch(e) { console.warn('carregarUltimaInspecao chunk error:', e); }
-  }));
+  }
 
-  // Para cada placa, pega a data mais recente encontrada
+  // Para cada placa, manter apenas a data mais recente encontrada
   allDocs.forEach(doc => {
     const placa = (doc.placa||'').toUpperCase();
     if (!placa) return;
@@ -2584,6 +2588,81 @@ async function confirmarInativar() {
   }
 }
 
+
+// ── VEÍCULOS INATIVOS ──
+async function abrirModalVeiculosInativos() {
+  document.getElementById('modal-inativos-ov').style.display = 'flex';
+  const body = document.getElementById('modal-inativos-body');
+  body.innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Carregando...</div>';
+
+  try {
+    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',false)));
+    const inativos = snap.docs.map(d => d.data()).sort((a,b) => (a.nfr||0)-(b.nfr||0));
+
+    if (!inativos.length) {
+      body.innerHTML = '<div style="text-align:center;color:var(--text3);padding:32px;font-size:13px;">Nenhum veículo inativo.</div>';
+      return;
+    }
+
+    body.innerHTML = inativos.map(v => {
+      const nfr = String(v.nfr||'—').padStart(2,'0');
+      const inativadoEm = v.inativadoEm
+        ? new Date(v.inativadoEm).toLocaleDateString('pt-BR')
+        : '—';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:.5px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg3);">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;color:var(--text2);">${nfr} · ${v.placa}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo||'—'} · ${v.bloco||'—'} · Inativado em ${inativadoEm}</div>
+        </div>
+        <button onclick="reativarVeiculo('${v.placa}')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;border:.5px solid #3B6D11;background:#EAF3DE;color:#27500A;font-size:12px;font-weight:500;cursor:pointer;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Reativar
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('abrirModalVeiculosInativos:', e);
+    body.innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar.</div>';
+  }
+}
+
+function fecharModalVeiculosInativos() {
+  document.getElementById('modal-inativos-ov').style.display = 'none';
+}
+
+async function reativarVeiculo(placa) {
+  try {
+    // Reativar no Firebase
+    await setDoc(doc(db,'veiculos', placa), { ativo: true, reativadoEm: new Date().toISOString() }, { merge: true });
+
+    // Buscar dados completos do veículo
+    const snap = await getDocs(query(collection(db,'veiculos'), where('placa','==',placa)));
+    if (snap.empty) { alert('Veículo não encontrado.'); return; }
+    const v = snap.docs[0].data();
+    const novoV = { nfr: v.nfr, placa: v.placa, tipo: v.tipo, bloco: v.bloco };
+
+    // Adicionar de volta na memória
+    if (v.bloco === 'FROTA') FROTA.push(novoV);
+    else TERCEIRO.push(novoV);
+    TODOS.push(novoV);
+
+    // Adicionar na grade
+    adicionarVeiculoNaGrade(novoV);
+    atualizarContadores('frota');
+    atualizarContadores('terceiro');
+
+    // Atualizar lista de inativos
+    await abrirModalVeiculosInativos();
+    showToast('Veículo ' + placa + ' reativado!');
+  } catch(e) {
+    console.error('reativarVeiculo:', e);
+    alert('Erro: ' + (e?.message || e));
+  }
+}
+
+window.abrirModalVeiculosInativos = abrirModalVeiculosInativos;
+window.fecharModalVeiculosInativos = fecharModalVeiculosInativos;
+window.reativarVeiculo = reativarVeiculo;
 window.abrirModalInativar  = abrirModalInativar;
 window.fecharModalInativar = fecharModalInativar;
 window.confirmarInativar   = confirmarInativar;
@@ -3341,6 +3420,25 @@ window.regAplicarFiltro= regAplicarFiltro;
   </div>
 </div>
 
+
+<!-- MODAL VEÍCULOS INATIVOS -->
+<div id="modal-inativos-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalVeiculosInativos()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:560px;max-width:95vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <div>
+          <div style="font-size:15px;font-weight:500;color:var(--text);">Veículos inativos</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Clique em Reativar para devolver o veículo ao painel</div>
+        </div>
+      </div>
+      <button onclick="fecharModalVeiculosInativos()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px 18px;" id="modal-inativos-body">
+      <div style="text-align:center;color:var(--text3);padding:24px;">Carregando...</div>
+    </div>
+  </div>
+</div>
 <!-- MODAL INATIVAR VEÍCULO -->
 <div id="modal-inativar-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;" onclick="if(event.target===this)fecharModalInativar()">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:420px;max-width:95vw;overflow:hidden;">
