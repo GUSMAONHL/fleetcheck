@@ -2509,6 +2509,10 @@ function gerarVrow(v) {
       <div class="v-check-label">Susp</div>
       <div class="v-check-status"><span class="dot pending"></span><span class="dot-txt pending">Pendente</span></div>
     </div>
+    <button class="btn-inativar-veiculo" onclick="event.stopPropagation();abrirModalInativar('${placa}')" title="Inativar veículo">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Inativar
+    </button>
   </div>`;
 }
 
