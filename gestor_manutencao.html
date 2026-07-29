@@ -448,7 +448,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       </div>
       <!-- KPIs -->
       <div class="kpi-row">
-        <div class="kpi-card"><div class="kpi-val">62</div><div class="kpi-lbl">Total Veículos</div></div>
+        <div class="kpi-card"><div class="kpi-val" id="kpi-total">—</div><div class="kpi-lbl">Total Veículos</div></div>
         <div class="kpi-card" onclick="abrirModalKpi('completos')" style="background:#25D366;border-color:#1a8a3a;">
           <div class="kpi-header"><div class="kpi-val" style="color:#000000;" id="kpi-ok">0</div><span class="kpi-pct" style="color:#000000;" id="kpi-ok-pct"></span></div>
           <div class="kpi-lbl" style="color:#000000;">Inspeções OK</div>
@@ -458,7 +458,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           <div class="kpi-lbl" style="color:#000000;">Parciais</div>
         </div>
         <div class="kpi-card" onclick="abrirModalKpi('pendentes')" style="background:#808080;border-color:#505050;">
-          <div class="kpi-header"><div class="kpi-val" style="color:#000000;" id="kpi-pend">62</div><span class="kpi-pct" style="color:#000000;" id="kpi-pend-pct"></span></div>
+          <div class="kpi-header"><div class="kpi-val" style="color:#000000;" id="kpi-pend">—</div><span class="kpi-pct" style="color:#000000;" id="kpi-pend-pct"></span></div>
           <div class="kpi-lbl" style="color:#000000;">Pendentes</div>
         </div>
         <div class="kpi-card" onclick="abrirModalKpi('atencao')" style="background:#ff0000;border-color:#cc0000;">
@@ -471,7 +471,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="bloco-header" id="header-frota">
           <div class="bloco-title" style="white-space:nowrap;margin-right:4px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
-            Frota — 42 Veículos
+            Frota — <span id="bloco-frota-count">—</span> Veículos
           </div>
           <div style="width:.5px;height:28px;background:var(--border);flex-shrink:0;"></div>
           <button class="btn-filtro-todos ativo" id="btn-filtro-todos-frota" onclick="filtrarTipo('frota','TODOS')">
@@ -517,7 +517,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="bloco-header" id="header-terceiro">
           <div class="bloco-title" style="white-space:nowrap;margin-right:4px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            Terceiro — 20 Veículos
+            Terceiro — <span id="bloco-terceiro-count">—</span> Veículos
           </div>
           <div style="width:.5px;height:28px;background:var(--border);flex-shrink:0;"></div>
           <button class="btn-filtro-todos ativo" id="btn-filtro-todos-terceiro" onclick="filtrarTipo('terceiro','TODOS')">
@@ -1494,6 +1494,14 @@ function renderTermacBadge(placa) {
 }
 
 function atualizarKPIs() {
+  // Atualizar total de veículos (dinâmico)
+  const elTotal = document.getElementById('kpi-total');
+  if (elTotal) elTotal.textContent = TODOS.length;
+  // Atualizar contadores dos blocos
+  const elFrota = document.getElementById('bloco-frota-count');
+  if (elFrota) elFrota.textContent = FROTA.length;
+  const elTerceiro = document.getElementById('bloco-terceiro-count');
+  if (elTerceiro) elTerceiro.textContent = TERCEIRO.length;
   let ok=0,parc=0,pend=0,atenc=0;
   TODOS.forEach(v => {
     const s = checkState[v.placa];
@@ -2476,6 +2484,7 @@ async function salvarNovoVeiculo() {
     TODOS.push(novoV);
 
     fecharModalNovoVeiculo();
+    atualizarKPIs();
     adicionarVeiculoNaGrade(novoV);
     showToast('Veículo ' + placa + ' cadastrado!');
   } catch(e) {
@@ -2578,6 +2587,7 @@ async function confirmarInativar() {
     if (vrow) vrow.remove();
 
     fecharModalInativar();
+    atualizarKPIs();
     atualizarContadores('frota');
     atualizarContadores('terceiro');
     atualizarBtnVencidas();
@@ -2648,6 +2658,7 @@ async function reativarVeiculo(placa) {
 
     // Adicionar na grade
     adicionarVeiculoNaGrade(novoV);
+    atualizarKPIs();
     atualizarContadores('frota');
     atualizarContadores('terceiro');
 
