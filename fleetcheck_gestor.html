@@ -180,6 +180,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   display: none; position: fixed; inset: 0; z-index: 50;
   background: rgba(0,0,0,0.6);
 }
+#prod-overlay { z-index: 80; }
+#prod-quadro-tabela thead th { padding: 6px 10px; font-size: 10px; }
+#prod-quadro-tabela tbody td { padding: 6px 10px; font-size: 11px; }
 .detail-overlay.open { display: flex; justify-content: flex-end; }
 .detail-panel {
   width: 520px; height: 100vh; background: var(--bg2);
@@ -357,22 +360,30 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
   <nav class="sidebar-nav">
     <div class="nav-label">Menu</div>
-    <button class="nav-item active" onclick="showPage('dashboard')">
+    <button class="nav-item" style="display:none;" onclick="showPage('dashboard')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </button>
-    <button class="nav-item" onclick="showPage('checklists')">
+    <button class="nav-item" style="display:none;" onclick="showPage('checklists')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
       Checklists
       <span class="nav-badge" id="badge-reparos">3</span>
     </button>
-    <button class="nav-item" onclick="showPage('frotas')">
+    <button class="nav-item" style="display:none;" onclick="showPage('frotas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
       Frota
     </button>
-    <button class="nav-item" onclick="showPage('desempenho')">
+    <button class="nav-item" style="display:none;" onclick="showPage('desempenho')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Desempenho KM
+    </button>
+    <button class="nav-item" onclick="showPage('produtividade')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M12 3v6M9 6h6"/></svg>
+      Produtividade
+    </button>
+    <button class="nav-item active" onclick="showPage('volume')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+      Volume
     </button>
   </nav>
   <div class="sidebar-user">
@@ -387,7 +398,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <!-- MAIN -->
 <main class="main">
   <header class="topbar">
-    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-title" id="page-title">Volume Transportado</div>
     <div class="topbar-right">
       <span class="topbar-date" id="topbar-date"></span>
       <button class="btn btn-outline" onclick="exportarPDF()">
@@ -411,7 +422,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   <div class="content">
 
     <!-- PAGE: DASHBOARD -->
-    <div class="page active" id="page-dashboard">
+    <div class="page" id="page-dashboard">
       <div class="kpi-grid">
         <div class="kpi-card green">
           <div class="kpi-label">Checklists Hoje</div>
@@ -557,6 +568,119 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
     </div>
 
+    <!-- PAGE: PRODUTIVIDADE DE VEÍCULOS -->
+    <div class="page" id="page-produtividade">
+      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
+              <button id="prod-modo-dia-btn" onclick="_setModoView('dia')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
+              <button id="prod-modo-mes-btn" onclick="_setModoView('mes')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
+              <button id="prod-modo-ano-btn" onclick="_setModoView('ano')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
+            </div>
+            <select id="prod-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_onProdDiaChange(this.value)">
+              <option value="">—</option>
+            </select>
+            <select id="prod-mes-select" class="filter-input" style="min-width:170px;" onchange="_onProdMesChange(this.value)">
+              <option value="">—</option>
+            </select>
+            <select id="prod-ano-select" class="filter-input" style="min-width:120px;display:none;" onchange="_onProdAnoChange(this.value)">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="prod-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+            <label class="import-btn" id="import-btn-prod-label" title="Importar BASE_VOLUME.xlsx">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Importar Base de Volume
+              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-prod-input"/>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="import-progress" id="import-progress-prod">
+        <span id="import-progress-prod-text">Lendo arquivo...</span>
+        <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-prod-fill" style="width:0%"></div></div>
+      </div>
+      <div class="km-resumo" id="prod-resumo"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--text3);">Categoria:</div>
+        <div id="prod-categoria-btns-principal" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
+      </div>
+      <div id="prod-cards-trabalho"></div>
+
+      <div id="prod-grafico-df" style="margin-bottom:20px;"></div>
+
+      <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;border:1px dashed var(--border2);border-radius:10px;">
+        Clique em <strong style="color:var(--text2);">FROTA</strong>, <strong style="color:var(--text2);">TERCEIRO</strong> ou num dos cards de tipo acima para abrir o quadro completo.
+      </div>
+    </div>
+
+    <!-- PAGE: VOLUME TRANSPORTADO -->
+    <div class="page active" id="page-volume">
+      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
+              <button id="vol-modo-dia-btn" onclick="_volSetModoView('dia')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
+              <button id="vol-modo-mes-btn" onclick="_volSetModoView('mes')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
+              <button id="vol-modo-ano-btn" onclick="_volSetModoView('ano')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
+            </div>
+            <select id="vol-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_volOnDiaChange(this.value)">
+              <option value="">—</option>
+            </select>
+            <select id="vol-mes-select" class="filter-input" style="min-width:170px;" onchange="_volOnMesChange(this.value)">
+              <option value="">—</option>
+            </select>
+            <select id="vol-ano-select" class="filter-input" style="min-width:120px;display:none;" onchange="_volOnAnoChange(this.value)">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="vol-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+            <button onclick="abrirMetasModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);">
+              🎯 Metas
+            </button>
+            <label class="import-btn" id="import-btn-vol-label" title="Importar BASE_VOLUME.xlsx">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Importar Base de Volume
+              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-vol-input"/>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="import-progress" id="import-progress-vol">
+        <span id="import-progress-vol-text">Lendo arquivo...</span>
+        <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-vol-fill" style="width:0%"></div></div>
+      </div>
+
+      
+      <div style="display:flex;gap:10px;margin:4px 0 14px;">
+        <button class="vol-aba-btn" data-aba="local" onclick="_volSetAba('local')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:#388bfd;color:#fff;">📍 Por Mina/Rota</button>
+        <button class="vol-aba-btn" data-aba="origem" onclick="_volSetAba('origem')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚩 Por Origem</button>
+        <button class="vol-aba-btn" data-aba="destino" onclick="_volSetAba('destino')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏁 Por Destino</button>
+        <button class="vol-aba-btn" data-aba="veiculo" onclick="_volSetAba('veiculo')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚛 Por Veículo</button>
+        <button class="vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏷️ Por Tipo</button>
+      </div>
+
+      <div id="vol-cards-mina-rota" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;"></div>
+
+      <div class="table-card" id="vol-tabela-card">
+        <div class="table-header">
+          <div class="table-title" id="vol-tabela-titulo">Volume por Mina/Rota</div>
+          <div class="table-count" id="vol-tabela-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table id="vol-tabela">
+            <thead id="vol-tabela-thead"></thead>
+            <tbody id="vol-tabela-body">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Importe a base de volume (BASE_VOLUME.xlsx) para visualizar o volume transportado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 
@@ -588,6 +712,126 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- PAINEL PRODUTIVIDADE VEÍCULO -->
+<div class="detail-overlay" id="prod-overlay" onclick="fecharProdModal(event)" style="display:none;">
+  <div class="detail-panel" style="width:560px;">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="prod-modal-title">Veículo</div>
+        <div class="panel-meta" id="prod-modal-meta"></div>
+      </div>
+      <button class="panel-close" onclick="document.getElementById('prod-overlay').style.display='none'">&#x2715;</button>
+    </div>
+    <div class="panel-body" id="prod-modal-body"></div>
+  </div>
+</div>
+
+<!-- QUADRO FROTA / TERCEIRO EM TELA CHEIA -->
+<div id="prod-quadro-overlay" onclick="if(event.target===this) fecharQuadroModal()" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;height:100%;max-width:1700px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div id="prod-quadro-title" style="font-size:17px;font-weight:700;color:var(--text);">Quadro</div>
+        <div id="prod-quadro-meta" style="font-size:11px;color:var(--text3);margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="prod-quadro-categoria-btns" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
+        <button onclick="fecharQuadroModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+      </div>
+    </div>
+    <div id="prod-quadro-cards" style="padding:12px 22px 0;flex-shrink:0;"></div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 22px 16px;">
+      <div style="overflow-x:auto;">
+        <table id="prod-quadro-tabela" style="font-size:11px;">
+          <thead>
+            <tr>
+              <th data-sort="fr" style="cursor:pointer;padding:6px 10px;text-align:center;">FR <span class="prod-sort-ico"></span></th>
+              <th data-sort="placa" style="cursor:pointer;padding:6px 10px;text-align:left;">PLACA <span class="prod-sort-ico"></span></th>
+              <th data-sort="tipo2" style="cursor:pointer;padding:6px 10px;text-align:center;">TIPO2 <span class="prod-sort-ico"></span></th>
+              <th data-sort="aderencia" style="cursor:pointer;padding:6px 10px;text-align:center;">ADERÊNCIA <span class="prod-sort-ico"></span></th>
+              <th data-sort="viagens" style="cursor:pointer;padding:6px 10px;text-align:right;">VGS <span class="prod-sort-ico"></span></th>
+              <th data-sort="volume" style="cursor:pointer;padding:6px 10px;text-align:right;">PESO (t) <span class="prod-sort-ico"></span></th>
+              <th data-sort="percTon" style="cursor:pointer;padding:6px 10px;text-align:right;">PERC.TON. <span class="prod-sort-ico"></span></th>
+              <th style="padding:6px 10px;text-align:left;">OFENSOR</th>
+              <th style="padding:6px 10px;text-align:left;">TIPO OFENSOR</th>
+              <th style="padding:6px 10px;text-align:left;">RESPONSAVEL</th>
+            </tr>
+          </thead>
+          <tbody id="prod-quadro-tabela-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETALHE ITEM DE VOLUME (Local/Veículo/Tipo) -->
+<div id="vol-item-overlay" onclick="fecharVolItemModal(event)" style="display:none;position:fixed;inset:0;z-index:90;background:rgba(0,0,0,0.6);align-items:center;justify-content:flex-end;">
+  <div class="detail-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="vol-item-title">Item</div>
+        <div class="panel-meta" id="vol-item-meta"></div>
+      </div>
+      <button class="panel-close" onclick="document.getElementById('vol-item-overlay').style.display='none'">&#x2715;</button>
+    </div>
+    <div class="panel-body" id="vol-item-body"></div>
+  </div>
+</div>
+
+<!-- METAS DE VOLUME (Origem x Destino) -->
+<!-- CARD EM DESTAQUE (clique no ⤢ de qualquer card de Volume) -->
+<div id="vol-card-foco-overlay" onclick="if(event.target===this) fecharCardFoco()" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;overflow:hidden;">
+  <button onclick="fecharCardFoco()" style="position:fixed;top:18px;right:22px;background:none;border:none;color:#fff;font-size:30px;line-height:1;cursor:pointer;z-index:1;">&#x2715;</button>
+  <div id="vol-card-foco-corpo"></div>
+</div>
+
+<div id="metas-overlay" onclick="if(event.target===this) fecharMetasModal()" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+
+  <div style="width:100%;height:100%;max-width:900px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--text);">🎯 Metas de Volume</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Meta do mês × realizado, por combinação Origem × Destino</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <select id="meta-mes-select" class="filter-input" style="min-width:150px;" onchange="_onMetaMesChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <button onclick="fecharMetasModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+      </div>
+    </div>
+
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border2);flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Dias de operação no mês</label>
+        <input type="number" id="meta-input-dias-operacao" placeholder="ex: 26" class="filter-input" style="width:110px;" onchange="_onDiasOperacaoChange()">
+      </div>
+      <div style="border-left:1px solid var(--border2);height:36px;margin:0 4px;"></div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</label>
+        <input type="text" id="meta-input-origem" placeholder="ex: SANTO ANTONIO" class="filter-input" style="width:180px;">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Destino</label>
+        <select id="meta-input-destino" class="filter-input" style="width:140px;">
+          <option value="FABRICA">FABRICA</option>
+          <option value="PATIO 4">PATIO 4</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Meta mensal (t)</label>
+        <input type="number" id="meta-input-valor" placeholder="ex: 15757" class="filter-input" style="width:130px;">
+      </div>
+      <button onclick="adicionarMeta()" style="padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">+ Adicionar</button>
+      <button onclick="salvarMetas()" style="padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;margin-left:auto;">💾 Salvar Metas</button>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 22px;" id="metas-corpo">
+      <div style="text-align:center;padding:30px;color:var(--text3);">Carregando metas...</div>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL PANEL -->
 <div class="detail-overlay" id="detail-overlay" onclick="fecharPainel(event)">
   <div class="detail-panel" id="detail-panel">
@@ -613,7 +857,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 // ══ FIREBASE SDK ══
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc, setDoc, getDocs, deleteDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc, setDoc, getDocs, deleteDoc, getDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
@@ -1092,7 +1336,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Produtividade de Veículos', volume: 'Volume Transportado' };
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -1211,6 +1455,8 @@ window.showPage = function showPage(id) {
   if (id === 'checklists') renderListTable();
   if (id === 'frotas') renderFrotaTable();
   if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
+  if (id === 'produtividade') setTimeout(() => window.renderProdutividade(), 0);
+  if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
 }
 
 // ══════════════════════════════════════
@@ -1306,7 +1552,2461 @@ function abrirViagensMotorista(motKey, periodo, dados) {
   document.getElementById('viagens-overlay').style.display = 'flex';
 }
 
+// Grava uma lista de { ref, data } no Firestore em lotes seguros: respeita o limite de 500
+// operações por batch E um limite de tamanho estimado por lote (o Firestore recusa uma
+// remessa cujo payload total passe de ~10MB, mesmo com poucos documentos, se cada um for grande).
+async function _gravarEmLotesSeguro(gravacoes, onProgresso) {
+  const LIMITE_BYTES_LOTE = 1500000; // ~1.5MB estimados por lote (margem de segurança generosa)
+  const LIMITE_DOCS_LOTE = 400;
+  const lotes = [];
+  let loteAtual = [];
+  let bytesAtual = 0;
+  gravacoes.forEach(g => {
+    const tamanho = JSON.stringify(g.data).length;
+    if (loteAtual.length > 0 && (bytesAtual + tamanho > LIMITE_BYTES_LOTE || loteAtual.length >= LIMITE_DOCS_LOTE)) {
+      lotes.push(loteAtual);
+      loteAtual = [];
+      bytesAtual = 0;
+    }
+    loteAtual.push(g);
+    bytesAtual += tamanho;
+  });
+  if (loteAtual.length) lotes.push(loteAtual);
+
+  for (let i = 0; i < lotes.length; i++) {
+    const batch = writeBatch(db);
+    lotes[i].forEach(g => batch.set(g.ref, g.data));
+    await batch.commit();
+    if (onProgresso) onProgresso((i + 1) / lotes.length);
+  }
+}
+
 // ══════════════════════════════════════
+// PRODUTIVIDADE DE VEÍCULOS (base: aba ADERENCIA)
+// ══════════════════════════════════════
+function corProdutividade(pct) {
+  if (pct === null || pct === undefined) return { bg:'rgba(139,148,158,0.10)', border:'rgba(139,148,158,0.35)', cor:'#8b949e', label:'Sem dado' };
+  if (pct >= 90) return { bg:'rgba(46,160,67,0.10)',  border:'rgba(46,160,67,0.35)',  cor:'#2ea043', label:'Alta' };
+  if (pct >= 70) return { bg:'rgba(56,139,253,0.10)', border:'rgba(56,139,253,0.35)', cor:'#388bfd', label:'Boa' };
+  if (pct >= 50) return { bg:'rgba(210,153,34,0.10)', border:'rgba(210,153,34,0.35)', cor:'#d29922', label:'Atenção' };
+  return           { bg:'rgba(218,54,51,0.10)',  border:'rgba(218,54,51,0.35)',  cor:'#f85149', label:'Crítico' };
+}
+
+let _prodMeta = null;
+let _prodDiaAtual = null;   // 'DD/MM/YYYY'
+let _prodLinhasAtual = [];  // linhas (um por veículo) do dia carregado
+
+function _topEntry(obj) {
+  const arr = Object.entries(obj || {}).sort((a,b) => b[1]-a[1]);
+  return arr.length ? arr[0][0] : '';
+}
+
+function _diaParaChave(diaStr) {
+  // 'DD/MM/YYYY' -> 'YYYY-MM-DD'
+  const p = diaStr.split('/');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : diaStr;
+}
+
+function _cellAderencia(pct) {
+  const cores = corProdutividade(pct);
+  return `<span style="display:inline-block;min-width:52px;text-align:center;padding:3px 10px;border-radius:6px;font-weight:600;background:${cores.bg};color:${cores.cor};border:1px solid ${cores.border};">${pct}%</span>`;
+}
+
+function _dividirFrotaTerceiro(linhas) {
+  const terceiro = linhas.filter(l => (l.forca||'').toString().trim().toUpperCase() === 'TERCEIRO');
+  const frota = linhas.filter(l => !terceiro.includes(l));
+  return { frota, terceiro };
+}
+
+function _cardTrabalho(label, total, verdes, vermelhos, opts) {
+  opts = opts || {};
+  verdes = Math.round(verdes);
+  vermelhos = Math.round(vermelhos);
+  total = verdes + vermelhos;
+  const pctV = total > 0 ? Math.round((verdes/total)*100) : 0;
+  const pctR = total > 0 ? Math.round((vermelhos/total)*100) : 0;
+  const vTxt = verdes > 0 ? verdes : '—';
+  const vPct = verdes > 0 ? pctV+'%' : '—';
+  const rTxt = vermelhos > 0 ? vermelhos : '—';
+  const rPct = vermelhos > 0 ? pctR+'%' : '—';
+  const ativo = !!opts.ativo;
+  const clicavel = opts.clicavel !== false;
+  const attrs = clicavel ? [
+    opts.forca !== undefined ? `data-card-forca="${opts.forca === null ? '' : opts.forca}"` : '',
+    opts.tipo2 !== undefined ? `data-card-tipo2="${opts.tipo2 === null ? '' : opts.tipo2}"` : ''
+  ].filter(Boolean).join(' ') : '';
+  const classe = clicavel ? 'prod-card-filtro' : '';
+  const cursor = clicavel ? 'cursor:pointer;' : '';
+  const borda = ativo ? '2px solid #388bfd' : '1px solid var(--border2)';
+  const sombra = ativo ? 'box-shadow:0 0 0 3px rgba(56,139,253,0.15);' : '';
+
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  let transportadoTxt = '', perdidoTxt = '', medioTxt = '';
+  if (opts.pesoStats) {
+    transportadoTxt = fmt(opts.pesoStats.transportado) + 't';
+    perdidoTxt = opts.pesoStats.perdido > 0 ? fmt(opts.pesoStats.perdido) + 't' : '—';
+    // médio por veículo = peso transportado ÷ quantidade que trabalharam (verdes)
+    medioTxt = verdes > 0 ? fmt(opts.pesoStats.transportado / verdes) + 't' : '—';
+  }
+
+  let rodapeAderencia = '';
+  if (opts.aderenciaMedia !== undefined && opts.aderenciaMedia !== null) {
+    const coresAdr = corProdutividade(opts.aderenciaMedia);
+    const linhaPesoAdr = (transportadoTxt || perdidoTxt)
+      ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px;border-top:1px solid var(--border2);">
+          <span style="flex:1;text-align:left;font-size:14px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;">${transportadoTxt || '—'}</span>
+          <span style="flex:1.2;text-align:center;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">ADR (ADERÊNCIA)<br><span style="font-size:14px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span></span>
+          <span style="flex:1;text-align:right;font-size:14px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;">${perdidoTxt || '—'}</span>
+        </div>`
+      : `<div style="padding:5px 8px;text-align:center;border-top:1px solid var(--border2);">
+          <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">ADR (ADERÊNCIA) </span><span style="font-size:15px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span>
+        </div>`;
+    const linhaMedio = medioTxt
+      ? `<div style="padding:8px;text-align:center;border-top:1px solid var(--border2);">
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">MÉDIO/VEÍC</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.3;">${medioTxt}</div>
+        </div>`
+      : '';
+    rodapeAderencia = linhaPesoAdr + linhaMedio;
+  }
+
+  return `<div ${attrs} class="${classe}" style="${cursor}display:flex;flex-direction:column;border:${borda};border-radius:10px;overflow:hidden;background:var(--bg2);${sombra}transition:box-shadow .15s,border-color .15s;">
+    <div style="display:flex;">
+      <div style="flex:1;background:rgba(46,160,67,0.14);padding:10px 8px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;line-height:1.1;">${vTxt}</div>
+        <div style="font-size:15px;color:#2ea043;font-weight:700;">${vPct}</div>
+      </div>
+      <div style="flex:1.3;background:var(--bg3);padding:8px 10px;text-align:center;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:10px;color:${ativo?'#388bfd':'var(--text3)'};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;white-space:nowrap;font-weight:${ativo?'700':'400'};">${label}${ativo ? ' ✓' : ''}</div>
+        <div style="font-size:22px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${total}</div>
+      </div>
+      <div style="flex:1;background:rgba(248,81,73,0.14);padding:10px 8px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;line-height:1.1;">${rTxt}</div>
+        <div style="font-size:15px;color:#f85149;font-weight:700;">${rPct}</div>
+      </div>
+    </div>
+    ${rodapeAderencia}
+  </div>`;
+}
+
+// Peso transportado (só quem trabalhou) e peso perdido (soma de PERC.TON.) do grupo.
+// O peso médio/veículo é calculado no próprio card: transportado ÷ quantidade que trabalhou.
+function _statsPeso(arr) {
+  const transportado = arr.reduce((s,l) => s + ((l.viagens||0) >= 1 ? (l.volume||0) : 0), 0);
+  const perdido = arr.reduce((s,l) => s + (l.percTon||0), 0);
+  return { transportado, perdido };
+}
+
+function _contagemTrabalho(arr) {
+  const total = arr.length;
+  const verdes = arr.filter(l => (l.viagens||0) >= 1).length;
+  const vermelhos = total - verdes;
+  const aderenciaMedia = total > 0 ? arr.reduce((s,l) => s + (l.aderencia||0), 0) / total : null;
+  return { total, verdes, vermelhos, aderenciaMedia };
+}
+
+// Para o modo Mês: soma quantos veículos trabalharam/não trabalharam EM CADA DIA e divide pela
+// quantidade de dias do mês — média diária real, em vez de "trabalhou pelo menos 1 dia no mês".
+function _mediaDiariaPorGrupo(filtroFn) {
+  const diasReg = _prodDiasRegistrosPeriodo || [];
+  if (diasReg.length === 0) return { total: 0, verdes: 0, vermelhos: 0, aderenciaMedia: null };
+  let somaVerdes = 0, somaVermelhos = 0, somaAderencia = 0, nAderencia = 0;
+  diasReg.forEach(({ linhas }) => {
+    let filtradas = _filtrarCategoria(linhas);
+    if (filtroFn) filtradas = filtradas.filter(filtroFn);
+    somaVerdes += filtradas.filter(l => (l.viagens||0) >= 1).length;
+    somaVermelhos += filtradas.filter(l => (l.viagens||0) === 0).length;
+    filtradas.forEach(l => { somaAderencia += (l.aderencia||0); nAderencia++; });
+  });
+  const nDias = diasReg.length;
+  const verdes = somaVerdes / nDias;
+  const vermelhos = somaVermelhos / nDias;
+  return { total: verdes + vermelhos, verdes, vermelhos, aderenciaMedia: nAderencia > 0 ? somaAderencia / nAderencia : null };
+}
+
+function _porTipo2(arr) {
+  const tipos = {};
+  arr.forEach(l => { const t = l.tipo2 || '—'; (tipos[t] = tipos[t] || []).push(l); });
+  return tipos;
+}
+
+function _renderCardsTrabalho(linhasOriginais) {
+  const cont = document.getElementById('prod-cards-trabalho');
+  _renderBotoesCategoria('prod-categoria-btns-principal');
+  const linhas = _filtrarCategoria(linhasOriginais || []);
+  if (!linhas || linhas.length === 0) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">Nenhum veículo nessa categoria.</div>'; return; }
+
+  const modoMes = _prodModoView !== 'dia';
+  const { frota, terceiro } = _dividirFrotaTerceiro(linhas);
+  const ehTerceiro = l => (l.forca||'').toString().trim().toUpperCase() === 'TERCEIRO';
+  const ehFrota = l => !ehTerceiro(l);
+
+  const geralC = modoMes ? _mediaDiariaPorGrupo(null) : _contagemTrabalho(linhas);
+  const frotaC = modoMes ? _mediaDiariaPorGrupo(ehFrota) : _contagemTrabalho(frota);
+  const terceiroC = modoMes ? _mediaDiariaPorGrupo(ehTerceiro) : _contagemTrabalho(terceiro);
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:12px;">
+    ${_cardTrabalho('VEÍCULOS', geralC.total, geralC.verdes, geralC.vermelhos, { clicavel: false, aderenciaMedia: geralC.aderenciaMedia, pesoStats: _statsPeso(linhas) })}
+    ${_cardTrabalho('FROTA', frotaC.total, frotaC.verdes, frotaC.vermelhos, { forca: 'FROTA', tipo2: null, aderenciaMedia: frotaC.aderenciaMedia, pesoStats: _statsPeso(frota) })}
+    ${_cardTrabalho('TERCEIRO', terceiroC.total, terceiroC.verdes, terceiroC.vermelhos, { forca: 'TERCEIRO', tipo2: null, aderenciaMedia: terceiroC.aderenciaMedia, pesoStats: _statsPeso(terceiro) })}
+  </div>`;
+
+  const tiposFrota = _porTipo2(frota);
+  const tiposTerceiro = _porTipo2(terceiro);
+  const subCardsHtml = (tiposObj, forcaGrupo) => Object.entries(tiposObj).map(([tipo, arr]) => {
+    const c = modoMes
+      ? _mediaDiariaPorGrupo(l => (forcaGrupo === 'TERCEIRO' ? ehTerceiro(l) : ehFrota(l)) && (l.tipo2||'—') === tipo)
+      : _contagemTrabalho(arr);
+    return _cardTrabalho(tipo, c.total, c.verdes, c.vermelhos, { forca: forcaGrupo, tipo2: tipo, aderenciaMedia: c.aderenciaMedia, pesoStats: _statsPeso(arr) });
+  }).join('');
+
+  const subHtml = subCardsHtml(tiposFrota, 'FROTA') + subCardsHtml(tiposTerceiro, 'TERCEIRO');
+  if (subHtml) {
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;">${subHtml}</div>`;
+  }
+
+  cont.innerHTML = html;
+}
+
+// ---- Modal em tela cheia (quadro FROTA / TERCEIRO) ----
+let _prodQuadroForca = null;   // 'FROTA' | 'TERCEIRO'
+let _prodQuadroTipo2 = null;
+let _prodCategoria = 'todos'; // 'todos' | 'caminhao' | 'cavalo'
+let _prodQuadroSort = { col: 'volume', dir: -1 };
+
+function _ehCavalo(l) { return (l.tipo||'').toString().trim().toUpperCase() === 'CAVALO'; }
+function _filtrarCategoria(arr) {
+  if (_prodCategoria === 'cavalo') return arr.filter(_ehCavalo);
+  if (_prodCategoria === 'caminhao') return arr.filter(l => !_ehCavalo(l));
+  return arr;
+}
+
+function _linhasDoQuadro() {
+  const { frota, terceiro } = _dividirFrotaTerceiro(_prodLinhasAtual || []);
+  let linhas = _prodQuadroForca === 'FROTA' ? frota : terceiro;
+  linhas = _filtrarCategoria(linhas);
+  if (_prodQuadroTipo2) linhas = linhas.filter(l => (l.tipo2||'—') === _prodQuadroTipo2);
+  return linhas;
+}
+
+function _renderQuadroTabela() {
+  const linhas = _linhasDoQuadro();
+  const tbody = document.getElementById('prod-quadro-tabela-body');
+
+  if (linhas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text3);">Nenhum registro.</td></tr>';
+    return;
+  }
+
+  const { col, dir } = _prodQuadroSort;
+  const ordenado = linhas.slice().sort((a,b) => {
+    let va = a[col], vb = b[col];
+    if (typeof va === 'string' || typeof vb === 'string') {
+      va = (va||'').toString(); vb = (vb||'').toString();
+      return dir * va.localeCompare(vb);
+    }
+    return dir * ((va||0) - (vb||0));
+  });
+
+  tbody.innerHTML = ordenado.map(l => `<tr class="prod-row" data-placa="${l.placa}" style="cursor:pointer;">
+      <td class="text-primary" style="text-align:center;font-family:'DM Mono',monospace;">${l.fr ?? '—'}</td>
+      <td class="text-primary" style="text-align:left;font-family:'DM Mono',monospace;">${l.placa}</td>
+      <td style="text-align:center;">${l.tipo2 || '—'}</td>
+      <td style="text-align:center;">${_cellAderencia(l.aderencia)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${l.percTon>0?'#f85149':'var(--text3)'};">${l.percTon > 0 ? l.percTon.toLocaleString('pt-BR',{maximumFractionDigits:0}) : '—'}</td>
+      <td style="text-align:left;">${l.ofensor ? `<span style="color:#f85149;">${l.ofensor}</span>` : '—'}</td>
+      <td style="text-align:left;">${l.tipoOfensor || '—'}</td>
+      <td style="text-align:left;">${l.responsavel || '—'}</td>
+    </tr>`).join('');
+
+  document.querySelectorAll('#prod-quadro-tabela thead th[data-sort]').forEach(th => {
+    const ico = th.querySelector('.prod-sort-ico');
+    if (!ico) return;
+    ico.textContent = th.getAttribute('data-sort') === col ? (dir === 1 ? '▲' : '▼') : '';
+  });
+}
+
+function _renderQuadro() {
+  const forca = _prodQuadroForca;
+  const { frota, terceiro } = _dividirFrotaTerceiro(_prodLinhasAtual || []);
+  const base = _filtrarCategoria(forca === 'FROTA' ? frota : terceiro);
+  const tiposObj = _porTipo2(base);
+
+  document.getElementById('prod-quadro-title').textContent = (forca === 'FROTA' ? '🚛 FROTA' : '🚚 TERCEIRO') + (_prodQuadroTipo2 ? ' · ' + _prodQuadroTipo2 : '');
+  const rotuloPeriodo = _prodModoView === 'ano' ? ('Ano: ' + (_prodAnoAtual || '')) : (_prodModoView === 'mes' ? ('Mês: ' + (_prodMesAtual ? _mesParaLabel(_prodMesAtual) : '')) : ('Dia: ' + (_prodDiaAtual || '')));
+  document.getElementById('prod-quadro-meta').textContent = rotuloPeriodo + ' · ' + base.length + (base.length === 1 ? ' veículo' : ' veículos');
+
+  _renderBotoesCategoria('prod-quadro-categoria-btns');
+
+  const modoMes = _prodModoView !== 'dia';
+  const ehForca = l => (l.forca||'').toString().trim().toUpperCase() === forca;
+  const c = modoMes ? _mediaDiariaPorGrupo(ehForca) : _contagemTrabalho(base);
+  let html = _cardTrabalho(forca, c.total, c.verdes, c.vermelhos, { forca, tipo2: null, ativo: !_prodQuadroTipo2, aderenciaMedia: c.aderenciaMedia, pesoStats: _statsPeso(base) });
+  const subs = Object.entries(tiposObj).map(([tipo, arr]) => {
+    const cc = modoMes ? _mediaDiariaPorGrupo(l => ehForca(l) && (l.tipo2||'—') === tipo) : _contagemTrabalho(arr);
+    return _cardTrabalho(tipo, cc.total, cc.verdes, cc.vermelhos, { forca, tipo2: tipo, ativo: _prodQuadroTipo2 === tipo, aderenciaMedia: cc.aderenciaMedia, pesoStats: _statsPeso(arr) });
+  }).join('');
+  document.getElementById('prod-quadro-cards').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">${html}${subs}</div>`;
+
+  _renderQuadroTabela();
+}
+
+function _renderBotoesCategoria(containerId) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  const btnCat = (valor, rotulo) => {
+    const ativo = _prodCategoria === valor;
+    return `<button onclick="_setCategoria('${valor}')" style="padding:7px 12px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:${ativo?'#388bfd':'var(--bg3)'};color:${ativo?'#fff':'var(--text3)'};">${rotulo}</button>`;
+  };
+  cont.innerHTML = btnCat('todos','Todos') + btnCat('caminhao','Caminhão') + btnCat('cavalo','Cavalo');
+}
+
+window._setCategoria = function _setCategoria(valor) {
+  _prodCategoria = valor;
+  _renderBotoesCategoria('prod-categoria-btns-principal');
+  if (_prodLinhasAtual && _prodLinhasAtual.length) {
+    _renderCardsTrabalho(_prodLinhasAtual);
+    _renderGraficoDF();
+  }
+  if (_prodQuadroForca && document.getElementById('prod-quadro-overlay').style.display === 'flex') {
+    _renderQuadro();
+  }
+};
+
+window.abrirQuadro = function abrirQuadro(forca) {
+  _prodQuadroForca = forca;
+  _prodQuadroTipo2 = null;
+  _renderQuadro();
+  document.getElementById('prod-quadro-overlay').style.display = 'flex';
+}
+
+window.fecharQuadroModal = function fecharQuadroModal() {
+  document.getElementById('prod-quadro-overlay').style.display = 'none';
+}
+
+// Cards da página principal (VEÍCULOS/FROTA/TERCEIRO/tipo) abrem o quadro em tela cheia
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('#prod-cards-trabalho .prod-card-filtro');
+  if (!card) return;
+  const forcaAttr = card.getAttribute('data-card-forca');
+  const forca = forcaAttr === '' ? null : forcaAttr;
+  if (!forca) return;
+  const tipo2Attr = card.getAttribute('data-card-tipo2');
+  const tipo2 = tipo2Attr === '' ? null : tipo2Attr;
+  window.abrirQuadro(forca);
+  if (tipo2) { _prodQuadroTipo2 = tipo2; _renderQuadro(); }
+});
+
+// Cards dentro do quadro (modal) filtram por tipo sem fechar o popup
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('#prod-quadro-cards .prod-card-filtro');
+  if (!card) return;
+  const tipo2Attr = card.getAttribute('data-card-tipo2');
+  const tipo2 = tipo2Attr === '' ? null : tipo2Attr;
+  _prodQuadroTipo2 = (_prodQuadroTipo2 === tipo2) ? null : tipo2;
+  _renderQuadro();
+});
+
+// Ordenação por clique no cabeçalho da tabela do quadro
+document.addEventListener('click', function(e) {
+  const th = e.target.closest('#prod-quadro-tabela thead th[data-sort]');
+  if (!th) return;
+  const col = th.getAttribute('data-sort');
+  const s = _prodQuadroSort;
+  if (s.col === col) { s.dir *= -1; } else { s.col = col; s.dir = -1; }
+  _renderQuadroTabela();
+});
+
+function _renderGraficoDF() {
+  const cont = document.getElementById('prod-grafico-df');
+  if (!cont) return;
+
+  if (_prodModoView === 'dia' || !_prodDiasRegistrosPeriodo || _prodDiasRegistrosPeriodo.length === 0) {
+    cont.innerHTML = '';
+    return;
+  }
+
+  let dados, titulo;
+
+  if (_prodModoView === 'ano') {
+    // agrupa os dias do ano por mês
+    const porMes = {};
+    _prodDiasRegistrosPeriodo.forEach(({ dia, linhas }) => {
+      const mesKey = dia.split('/')[1]; // 'MM'
+      (porMes[mesKey] = porMes[mesKey] || []).push({ dia, linhas });
+    });
+    const mesesOrdenados = Object.keys(porMes).sort();
+    dados = mesesOrdenados.map(mesKey => {
+      const diasDoMes = porMes[mesKey];
+      let somaVermelhos = 0, somaTotal = 0;
+      diasDoMes.forEach(({ linhas }) => {
+        const linhasCat = _filtrarCategoria(linhas);
+        somaTotal += linhasCat.length;
+        somaVermelhos += linhasCat.filter(l => (l.viagens||0) === 0).length;
+      });
+      const nDias = diasDoMes.length;
+      const vermelhosMedia = somaVermelhos / nDias;
+      const totalMedia = somaTotal / nDias;
+      const pct = totalMedia > 0 ? Math.round((vermelhosMedia/totalMedia)*100) : 0;
+      return {
+        diaLbl: MESES_LBL_PT[parseInt(mesKey,10)-1].slice(0,3),
+        diaCompleto: _mesParaLabel(`${_prodAnoAtual}-${mesKey}`),
+        vermelhos: vermelhosMedia, pct, total: totalMedia, dfPct: 100 - pct
+      };
+    });
+    titulo = `Indisponibilidade Média Mensal (DF) — Ano ${_prodAnoAtual}`;
+  } else {
+    dados = _prodDiasRegistrosPeriodo.map(({ dia, linhas }) => {
+      const linhasCat = _filtrarCategoria(linhas);
+      const total = linhasCat.length;
+      const vermelhos = linhasCat.filter(l => (l.viagens||0) === 0).length;
+      const pct = total > 0 ? Math.round((vermelhos/total)*100) : 0;
+      return { diaLbl: dia.slice(0,2), diaCompleto: dia, vermelhos, pct, total, dfPct: 100 - pct };
+    });
+    titulo = `Indisponibilidade Diária (DF) — ${_mesParaLabel(_prodMesAtual)}`;
+  }
+
+  const maxVermelhos = Math.max(1, ...dados.map(d => d.vermelhos));
+  const larguraBarra = 44;
+  const gap = 8;
+  const alturaGrafico = 150;
+  const margemTopo = 32;
+  const margemBaixo = 46;
+  const larguraTotal = dados.length * (larguraBarra + gap) + gap;
+  const alturaTotal = alturaGrafico + margemTopo + margemBaixo;
+
+  const barras = dados.map((d, i) => {
+    const x = gap + i * (larguraBarra + gap);
+    const h = d.vermelhos > 0 ? Math.max(4, (d.vermelhos / maxVermelhos) * alturaGrafico) : 2;
+    const y = margemTopo + (alturaGrafico - h);
+    const cor = d.pct >= 30 ? '#f85149' : (d.pct >= 15 ? '#d29922' : '#2ea043');
+    const qtdLbl = Math.round(d.vermelhos);
+
+    const anterior = i > 0 ? dados[i-1] : null;
+    let seta = '', corSeta = 'var(--text3)';
+    if (anterior) {
+      if (d.dfPct > anterior.dfPct) { seta = '▲'; corSeta = '#2ea043'; }
+      else if (d.dfPct < anterior.dfPct) { seta = '▼'; corSeta = '#f85149'; }
+      else { seta = '▬'; corSeta = 'var(--text3)'; }
+    }
+
+    // % dentro da barra quando há espaço; senão, logo acima dela (junto da quantidade)
+    const cabeDentro = h >= 20;
+    const pctDentro = cabeDentro
+      ? `<text x="${x + larguraBarra/2}" y="${y + h/2 + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="#0d1117">${d.pct}%</text>`
+      : `<text x="${x + larguraBarra/2}" y="${y - 22}" text-anchor="middle" font-size="12" font-weight="700" fill="${cor}">${d.pct}%</text>`;
+
+    return `<g>
+        <title>${d.diaCompleto}: ${qtdLbl} de ${Math.round(d.total)} veículo(s) parado(s) em média (${d.pct}%) · DF (disponibilidade) ${d.dfPct}%</title>
+        <text x="${x + larguraBarra/2}" y="${y - 10}" text-anchor="middle" font-size="16" font-weight="700" fill="${cor}" font-family="'DM Mono',monospace">${qtdLbl}</text>
+        <rect x="${x}" y="${y}" width="${larguraBarra}" height="${h}" rx="3" fill="${cor}" opacity="0.9"/>
+        ${pctDentro}
+        <text x="${x + larguraBarra/2}" y="${margemTopo + alturaGrafico + 17}" text-anchor="middle" font-size="11" fill="var(--text3)" font-family="'DM Sans',sans-serif">${d.diaLbl}</text>
+        ${seta ? `<text x="${x + larguraBarra/2}" y="${margemTopo + alturaGrafico + 34}" text-anchor="middle" font-size="13" font-weight="700" fill="${corSeta}">${seta}</text>` : ''}
+      </g>`;
+  }).join('');
+
+  cont.innerHTML = `<div class="table-card" style="padding:16px 18px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">${titulo}</div>
+      <div style="overflow-x:auto;">
+        <svg viewBox="0 0 ${larguraTotal} ${alturaTotal}" style="width:100%;min-width:${larguraTotal}px;height:${alturaTotal}px;display:block;">
+          <line x1="0" y1="${margemTopo + alturaGrafico}" x2="${larguraTotal}" y2="${margemTopo + alturaGrafico}" stroke="var(--border2)" stroke-width="1"/>
+          ${barras}
+        </svg>
+      </div>
+    </div>`;
+}
+
+function _renderProdResumoEBlocos(linhas) {
+  _prodLinhasAtual = linhas;
+
+  if (linhas.length === 0) {
+    document.getElementById('prod-resumo').innerHTML = '';
+    document.getElementById('prod-cards-trabalho').innerHTML = '';
+    document.getElementById('prod-grafico-df').innerHTML = '';
+    return;
+  }
+
+  const linhasCat = _filtrarCategoria(linhas);
+  const volumeTotal = linhasCat.reduce((s,l) => s + l.volume, 0);
+  const viagensTotal = linhasCat.reduce((s,l) => s + l.viagens, 0);
+  const aderenciaMedia = linhasCat.length ? linhasCat.reduce((s,l) => s + l.aderencia, 0) / linhasCat.length : 0;
+
+  document.getElementById('prod-resumo').innerHTML = `
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#388bfd;">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="km-resumo-lbl">Toneladas</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#2ea043;">${viagensTotal.toLocaleString('pt-BR')}</div><div class="km-resumo-lbl">Viagens</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:${aderenciaMedia<70?'#f85149':'#d29922'};">${aderenciaMedia.toFixed(0)}%</div><div class="km-resumo-lbl">Aderência Média</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:var(--text);">${linhasCat.length}</div><div class="km-resumo-lbl">Veículos Ativos</div></div>`;
+
+  _renderCardsTrabalho(linhas);
+  _renderGraficoDF();
+
+  // se o quadro estiver aberto, atualiza também (ex.: trocou de dia com o popup aberto)
+  if (_prodQuadroForca && document.getElementById('prod-quadro-overlay').style.display === 'flex') {
+    _renderQuadro();
+  }
+}
+
+let _prodModoView = 'mes';  // 'dia' | 'mes' | 'ano'
+let _prodMesAtual = null;   // 'YYYY-MM'
+let _prodAnoAtual = null;   // 'YYYY'
+let _prodDiasRegistrosPeriodo = []; // [{ dia:'DD/MM/YYYY', linhas:[...] }] — registros brutos por dia do período carregado (mês ou ano, p/ média diária do DF e gráfico)
+
+const MESES_LBL_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function _mesParaLabel(mesKey) {
+  const [ano, mes] = mesKey.split('-');
+  return `${MESES_LBL_PT[parseInt(mes,10)-1]} ${ano}`;
+}
+
+async function _carregarDia(diaStr) {
+  _prodDiaAtual = diaStr;
+  const cont = document.getElementById('prod-cards-trabalho');
+  if (!diaStr) {
+    document.getElementById('prod-resumo').innerHTML = '';
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhum dia disponível.</div>';
+    return;
+  }
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando...</div>';
+  try {
+    const snap = await getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaStr)));
+    if (!snap.exists()) {
+      _renderProdResumoEBlocos([]);
+      return;
+    }
+    const veiculosObj = snap.data().veiculos || {};
+    const linhas = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
+    _renderProdResumoEBlocos(linhas);
+  } catch (err) {
+    console.error('Erro ao carregar dia:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Erro ao carregar dados do dia.</div>';
+  }
+}
+
+// Agrega uma lista de registros diários [{dia, linhas}] em uma linha por veículo
+// (soma volume/viagens/percTon, média de aderência, motivo mais frequente de perda)
+function _agregarRegistrosDiarios(diasReg) {
+  const acumulado = {};
+  diasReg.forEach(({ linhas }) => {
+    linhas.forEach(v => {
+      const placa = v.placa;
+      if (!acumulado[placa]) {
+        acumulado[placa] = { placa, fr: v.fr, forca: v.forca, tipo: v.tipo, tipo2: v.tipo2, volume: 0, viagens: 0, percTon: 0, somaAderencia: 0, diasRegistrados: 0, ofensores: {}, tipoOfensores: {}, responsaveis: {} };
+      }
+      const a = acumulado[placa];
+      a.volume += v.volume || 0;
+      a.viagens += v.viagens || 0;
+      a.percTon += v.percTon || 0;
+      a.somaAderencia += v.aderencia || 0;
+      a.diasRegistrados += 1;
+      if (v.ofensor) a.ofensores[v.ofensor] = (a.ofensores[v.ofensor] || 0) + 1;
+      if (v.tipoOfensor) a.tipoOfensores[v.tipoOfensor] = (a.tipoOfensores[v.tipoOfensor] || 0) + 1;
+      if (v.responsavel) a.responsaveis[v.responsavel] = (a.responsaveis[v.responsavel] || 0) + 1;
+    });
+  });
+  return Object.values(acumulado).map(a => ({
+    placa: a.placa, fr: a.fr, forca: a.forca, tipo: a.tipo, tipo2: a.tipo2,
+    volume: Math.round(a.volume * 100) / 100,
+    viagens: a.viagens,
+    percTon: Math.round(a.percTon * 100) / 100,
+    aderencia: a.diasRegistrados > 0 ? Math.round(a.somaAderencia / a.diasRegistrados) : 0,
+    ofensor: _topEntry(a.ofensores),
+    tipoOfensor: _topEntry(a.tipoOfensores),
+    responsavel: _topEntry(a.responsaveis)
+  }));
+}
+
+async function _carregarMes(mesKey) {
+  _prodMesAtual = mesKey;
+  const cont = document.getElementById('prod-cards-trabalho');
+  if (!mesKey) {
+    document.getElementById('prod-resumo').innerHTML = '';
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhum mês disponível.</div>';
+    return;
+  }
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando consolidado do mês...</div>';
+  try {
+    // dias do mês selecionado, no formato de exibição 'DD/MM/YYYY'
+    const [ano, mes] = mesKey.split('-');
+    const diasDoMes = (_prodMeta.dias || []).filter(d => {
+      const p = d.split('/'); // [DD, MM, YYYY]
+      return p[1] === mes && p[2] === ano;
+    });
+
+    if (diasDoMes.length === 0) { _prodDiasRegistrosPeriodo = []; _renderProdResumoEBlocos([]); return; }
+
+    // busca todos os documentos de dia do mês em paralelo
+    const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'base_volume_dias', _diaParaChave(d)))));
+
+    // guarda os registros brutos por dia (usados para a média diária do DF e o gráfico)
+    _prodDiasRegistrosPeriodo = diasDoMes.map((d, i) => {
+      const snap = snaps[i];
+      const veiculosObj = snap.exists() ? (snap.data().veiculos || {}) : {};
+      const linhasDoDia = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
+      return { dia: d, linhas: linhasDoDia };
+    });
+
+    const linhas = _agregarRegistrosDiarios(_prodDiasRegistrosPeriodo);
+    _renderProdResumoEBlocos(linhas);
+  } catch (err) {
+    console.error('Erro ao carregar mês:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Erro ao carregar dados do mês.</div>';
+  }
+}
+
+async function _carregarAno(anoKey) {
+  _prodAnoAtual = anoKey;
+  const cont = document.getElementById('prod-cards-trabalho');
+  if (!anoKey) {
+    document.getElementById('prod-resumo').innerHTML = '';
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhum ano disponível.</div>';
+    return;
+  }
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando consolidado do ano...</div>';
+  try {
+    // dias do ano selecionado, no formato de exibição 'DD/MM/YYYY'
+    const diasDoAno = (_prodMeta.dias || []).filter(d => d.split('/')[2] === anoKey);
+
+    if (diasDoAno.length === 0) { _prodDiasRegistrosPeriodo = []; _renderProdResumoEBlocos([]); return; }
+
+    // busca todos os documentos de dia do ano em paralelo
+    const snaps = await Promise.all(diasDoAno.map(d => getDoc(doc(db, 'base_volume_dias', _diaParaChave(d)))));
+
+    _prodDiasRegistrosPeriodo = diasDoAno.map((d, i) => {
+      const snap = snaps[i];
+      const veiculosObj = snap.exists() ? (snap.data().veiculos || {}) : {};
+      const linhasDoDia = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
+      return { dia: d, linhas: linhasDoDia };
+    });
+
+    const linhas = _agregarRegistrosDiarios(_prodDiasRegistrosPeriodo);
+    _renderProdResumoEBlocos(linhas);
+  } catch (err) {
+    console.error('Erro ao carregar ano:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Erro ao carregar dados do ano.</div>';
+  }
+}
+
+window._onProdDiaChange = function _onProdDiaChange(diaStr) {
+  _carregarDia(diaStr);
+};
+
+window._onProdMesChange = function _onProdMesChange(mesKey) {
+  _carregarMes(mesKey);
+};
+
+window._onProdAnoChange = function _onProdAnoChange(anoKey) {
+  _carregarAno(anoKey);
+};
+
+window._setModoView = function _setModoView(modo) {
+  _prodModoView = modo;
+  const btnDia = document.getElementById('prod-modo-dia-btn');
+  const btnMes = document.getElementById('prod-modo-mes-btn');
+  const btnAno = document.getElementById('prod-modo-ano-btn');
+  const selDia = document.getElementById('prod-dia-select');
+  const selMes = document.getElementById('prod-mes-select');
+  const selAno = document.getElementById('prod-ano-select');
+
+  const ativo = { background: '#388bfd', color: '#fff' };
+  const inativo = { background: 'var(--bg3)', color: 'var(--text3)' };
+  [btnDia, btnMes, btnAno].forEach(b => { b.style.background = inativo.background; b.style.color = inativo.color; });
+  [selDia, selMes, selAno].forEach(s => { s.style.display = 'none'; });
+
+  if (modo === 'dia') {
+    btnDia.style.background = ativo.background; btnDia.style.color = ativo.color;
+    selDia.style.display = '';
+    _carregarDia(selDia.value || _prodDiaAtual);
+  } else if (modo === 'ano') {
+    btnAno.style.background = ativo.background; btnAno.style.color = ativo.color;
+    selAno.style.display = '';
+    _carregarAno(selAno.value || _prodAnoAtual);
+  } else {
+    btnMes.style.background = ativo.background; btnMes.style.color = ativo.color;
+    selMes.style.display = '';
+    _carregarMes(selMes.value || _prodMesAtual);
+  }
+};
+
+// Clique na linha abre o histórico completo do veículo (busca sob demanda)
+document.addEventListener('click', function(e) {
+  const row = e.target.closest('.prod-row[data-placa]');
+  if (!row) return;
+  abrirDetalheVeiculo(row.getAttribute('data-placa'));
+});
+
+window.renderProdutividade = async function renderProdutividade() {
+  const cont = document.getElementById('prod-cards-trabalho');
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando...</div>';
+  try {
+    const snap = await getDoc(doc(db, 'base_volume', 'meta'));
+    if (!snap.exists()) {
+      cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhuma base importada.<br/>Use o botão "Importar Base de Volume" para carregar os dados.</div>';
+      return;
+    }
+    _prodMeta = snap.data();
+    document.getElementById('prod-ultima-import').textContent = _prodMeta.importadoEm ? 'Importado em: ' + new Date(_prodMeta.importadoEm).toLocaleString('pt-BR') : '';
+
+    const diasTodos = (_prodMeta.dias || []);
+    const dias = diasTodos.slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
+      return db.localeCompare(da); // desc — mais recente primeiro
+    });
+
+    const selectDia = document.getElementById('prod-dia-select');
+    const manterDia = dias.includes(_prodDiaAtual) ? _prodDiaAtual : (dias[0] || '');
+    selectDia.innerHTML = dias.length ? dias.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">—</option>';
+    selectDia.value = manterDia;
+
+    // meses distintos disponíveis na base ('YYYY-MM'), mais recente primeiro
+    const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+    const meses = Array.from(mesesSet).sort().reverse();
+    const hoje = new Date();
+    const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+    const mesPadrao = meses.includes(_prodMesAtual) ? _prodMesAtual : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
+
+    const selectMes = document.getElementById('prod-mes-select');
+    selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_mesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
+    selectMes.value = mesPadrao;
+
+    // anos distintos disponíveis na base ('YYYY'), mais recente primeiro
+    const anosSet = new Set(diasTodos.map(d => d.split('/')[2]));
+    const anos = Array.from(anosSet).sort().reverse();
+    const anoAtualKey = String(hoje.getFullYear());
+    const anoPadrao = anos.includes(_prodAnoAtual) ? _prodAnoAtual : (anos.includes(anoAtualKey) ? anoAtualKey : (anos[0] || ''));
+
+    const selectAno = document.getElementById('prod-ano-select');
+    selectAno.innerHTML = anos.length ? anos.map(a => `<option value="${a}">${a}</option>`).join('') : '<option value="">—</option>';
+    selectAno.value = anoPadrao;
+
+    if (_prodModoView === 'ano') {
+      await _carregarAno(anoPadrao);
+    } else if (_prodModoView === 'mes') {
+      await _carregarMes(mesPadrao);
+    } else {
+      await _carregarDia(manterDia);
+    }
+  } catch (err) {
+    console.error('Erro produtividade:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Erro ao carregar dados.</div>';
+  }
+}
+
+window.fecharProdModal = function fecharProdModal(e) {
+  if (e.target === document.getElementById('prod-overlay'))
+    document.getElementById('prod-overlay').style.display = 'none';
+}
+
+async function abrirDetalheVeiculo(placaKey) {
+  document.getElementById('prod-modal-title').textContent = placaKey;
+  document.getElementById('prod-modal-meta').textContent = 'Carregando histórico...';
+  document.getElementById('prod-modal-body').innerHTML = '';
+  document.getElementById('prod-overlay').style.display = 'flex';
+
+  try {
+    const snap = await getDoc(doc(db, 'base_volume_veiculos', placaKey));
+    if (!snap.exists() || !(snap.data().historico || []).length) {
+      document.getElementById('prod-modal-meta').textContent = '';
+      document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhum histórico encontrado para este veículo.</div>';
+      return;
+    }
+
+    const historicoTodo = snap.data().historico.slice().sort((a,b) => {
+      const da = a.data.split('/').reverse().join(''); const db = b.data.split('/').reverse().join('');
+      return da.localeCompare(db);
+    });
+
+    const ultimo = historicoTodo[historicoTodo.length - 1];
+    const volumeTotal = historicoTodo.reduce((s,l) => s + l.volume, 0);
+    const viagensTotal = historicoTodo.reduce((s,l) => s + l.viagens, 0);
+    const aderenciaMedia = historicoTodo.reduce((s,l) => s + l.aderencia, 0) / historicoTodo.length;
+    const cores = corProdutividade(aderenciaMedia);
+
+    const ofensores = {};
+    historicoTodo.forEach(l => { if (l.ofensor) ofensores[l.ofensor] = (ofensores[l.ofensor] || 0) + 1; });
+
+    document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${historicoTodo[0].data} a ${ultimo.data}`;
+
+    const body = document.getElementById('prod-modal-body');
+    let html = `<div class="viagens-kpis">
+      <div class="viagens-kpi">
+        <div class="viagens-kpi-num" style="color:${cores.cor};">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div>
+        <div class="viagens-kpi-lbl">Toneladas</div>
+      </div>
+      <div class="viagens-kpi">
+        <div class="viagens-kpi-num" style="color:#3fb950;">${viagensTotal}</div>
+        <div class="viagens-kpi-lbl">Viagens</div>
+      </div>
+      <div class="viagens-kpi">
+        <div class="viagens-kpi-num" style="color:#388bfd;font-size:14px;">${aderenciaMedia.toFixed(0)}%</div>
+        <div class="viagens-kpi-lbl">Aderência</div>
+      </div>
+    </div>`;
+
+    const ofensoresList = Object.entries(ofensores).sort((a,b) => b[1]-a[1]);
+    if (ofensoresList.length > 0) {
+      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;">
+        ${ofensoresList.slice(0,6).map(([mot,n]) => `<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(248,81,73,0.10);border:1px solid rgba(248,81,73,0.3);color:#f85149;">${mot} · ${n}x</span>`).join('')}
+      </div>`;
+    }
+
+    html += `<div style="overflow-x:auto;">
+      <table class="viagens-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Motivo / Justificativa</th>
+            <th style="text-align:right;">Viagens</th>
+            <th style="text-align:right;">Volume (t)</th>
+            <th style="text-align:right;">Aderência</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${historicoTodo.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${d.data}</td>
+            <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
+            <td class="td-km">${d.viagens}</td>
+            <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+            <td class="td-fat" style="color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td class="td-km">${viagensTotal}</td>
+            <td class="td-km">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
+
+    body.innerHTML = html;
+  } catch (err) {
+    console.error('Erro ao abrir detalhe do veículo:', err);
+    document.getElementById('prod-modal-meta').textContent = '';
+    document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Erro ao carregar histórico.</div>';
+  }
+}
+
+window.importarVolume = async function importarVolume(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const usaProd = input.id === 'import-file-prod-input';
+  const label = document.getElementById(usaProd ? 'import-btn-prod-label' : 'import-btn-vol-label');
+  const progress = document.getElementById(usaProd ? 'import-progress-prod' : 'import-progress-vol');
+  const progressText = document.getElementById(usaProd ? 'import-progress-prod-text' : 'import-progress-vol-text');
+  const progressFill = document.getElementById(usaProd ? 'import-progress-prod-fill' : 'import-progress-vol-fill');
+
+  label.style.pointerEvents = 'none';
+  label.style.opacity = '0.6';
+  progress.classList.add('show');
+
+  try {
+    progressText.textContent = 'Lendo arquivo Excel...';
+    progressFill.style.width = '5%';
+
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type: 'array', cellDates: true });
+
+    if (!wb.SheetNames.includes('ADERENCIA')) throw new Error('Aba "ADERENCIA" não encontrada no arquivo.');
+    if (!wb.SheetNames.includes('VOLUME POÇOS')) throw new Error('Aba "VOLUME POÇOS" não encontrada no arquivo.');
+    if (!wb.SheetNames.includes('VEIC POÇOS')) throw new Error('Aba "VEIC POÇOS" não encontrada no arquivo.');
+
+    function excelSerialToDate(n) { return new Date(Math.round((n - 25569) * 86400 * 1000)); }
+
+    // ════════════════════════════════════════════════════════
+    // PARTE 1 — ADERENCIA (alimenta a tela Produtividade)
+    // ════════════════════════════════════════════════════════
+    progressText.textContent = 'Processando aderência...';
+    progressFill.style.width = '15%';
+
+    const rowsAder = XLSX.utils.sheet_to_json(wb.Sheets['ADERENCIA'], { header: 1, defval: null });
+    if (rowsAder.length < 2) throw new Error('Aba "ADERENCIA" está vazia.');
+    const headerAder = rowsAder[0] || [];
+    const COLA = {};
+    headerAder.forEach((h,i) => { if (h) COLA[String(h).trim()] = i; });
+
+    const IDX_DATA = COLA['DATA'] ?? 1;
+    const IDX_FR = COLA['FR'] ?? 2;
+    const IDX_PLACA = COLA['PLACA'] ?? 3;
+    const IDX_ADER = COLA['ADERENCIA'] ?? 4;
+    const IDX_JUST = COLA['JUSTIFICATIVA'] ?? 5;
+    const IDX_PERCTON = COLA['PERC.TON.'] ?? 6;
+    const IDX_MOTORISTA = COLA['MOTORISTA'] ?? 7;
+    const IDX_OFENSOR = COLA['Ofensor'] ?? 8;
+    const IDX_TIPOOF = COLA['Tipo Ofensor'] ?? 9;
+    const IDX_RESP = COLA['Responsavel'] ?? 10;
+    const IDX_FORCA = COLA['FORÇA'] ?? 11;
+    const IDX_TIPO = COLA['TIPO'] ?? 12;
+    const IDX_VGS = COLA['VGS'] ?? 13;
+    const IDX_PESO = COLA['PESO'] ?? 14;
+    const IDX_TIPO2A = COLA['TIPO2'] ?? 15;
+    const IDX_TTPERD = COLA['TT PERD'] ?? 16;
+
+    const diarioMapAder = {}; // 'YYYY-MM-DD' -> placa -> registro do dia
+    let semData = 0;
+
+    rowsAder.slice(1).forEach(row => {
+      const placa = (row[IDX_PLACA] || '').toString().trim().toUpperCase();
+      if (!placa) return;
+      let dataReg = row[IDX_DATA];
+      if (typeof dataReg === 'number') dataReg = excelSerialToDate(dataReg);
+      if (!(dataReg instanceof Date) || isNaN(dataReg)) { semData++; return; }
+
+      const ader = parseFloat(row[IDX_ADER]);
+      if (isNaN(ader)) return;
+
+      const peso = parseFloat(row[IDX_PESO]) || 0;
+      const ttPerd = parseFloat(row[IDX_TTPERD]) || 0;
+      const volume = peso > 0 ? peso : (ttPerd > 0 ? ttPerd * ader : 0);
+      const viagens = parseInt(row[IDX_VGS], 10) || 0;
+      const percTon = parseFloat(row[IDX_PERCTON]) || 0;
+
+      const diaKey = dataReg.getFullYear() + '-' + String(dataReg.getMonth()+1).padStart(2,'0') + '-' + String(dataReg.getDate()).padStart(2,'0');
+      if (!diarioMapAder[diaKey]) diarioMapAder[diaKey] = {};
+      diarioMapAder[diaKey][placa] = {
+        placa,
+        fr: row[IDX_FR] ?? '',
+        forca: row[IDX_FORCA] || '',
+        tipo: row[IDX_TIPO] || '',
+        tipo2: row[IDX_TIPO2A] || '',
+        aderencia: ader,
+        volume,
+        viagens,
+        percTon,
+        motorista: (row[IDX_MOTORISTA] || '').toString().trim(),
+        ofensor: row[IDX_OFENSOR] || '',
+        tipoOfensor: row[IDX_TIPOOF] || '',
+        responsavel: row[IDX_RESP] || '',
+        justificativa: (row[IDX_JUST] || '').toString().trim()
+      };
+    });
+
+    const diasOrdenadosAder = Object.keys(diarioMapAder).sort();
+    if (diasOrdenadosAder.length === 0) throw new Error('Nenhum registro válido encontrado em "ADERENCIA".');
+
+    progressText.textContent = 'Montando histórico por veículo...';
+    progressFill.style.width = '30%';
+    const historicoPorVeiculo = {};
+    diasOrdenadosAder.forEach(diaKey => {
+      const doDia = diarioMapAder[diaKey] || {};
+      Object.values(doDia).forEach(r => {
+        if (!historicoPorVeiculo[r.placa]) historicoPorVeiculo[r.placa] = [];
+        historicoPorVeiculo[r.placa].push({
+          data: diaKey.split('-').reverse().join('/'),
+          fr: r.fr,
+          forca: r.forca,
+          tipo2: r.tipo2,
+          volume: Math.round(r.volume * 100) / 100,
+          viagens: r.viagens,
+          percTon: Math.round(r.percTon * 100) / 100,
+          aderencia: Math.round(r.aderencia * 100),
+          ofensor: r.ofensor,
+          tipoOfensor: r.tipoOfensor,
+          responsavel: r.responsavel,
+          justificativa: r.justificativa
+        });
+      });
+    });
+    Object.values(historicoPorVeiculo).forEach(arr => arr.sort((a,b) => {
+      const da = a.data.split('/').reverse().join(''); const db = b.data.split('/').reverse().join('');
+      return da.localeCompare(db);
+    }));
+
+    const totalViagensAder = diasOrdenadosAder.reduce((s,d) => s + Object.values(diarioMapAder[d]).reduce((s2,r) => s2+r.viagens, 0), 0);
+
+    const gravacoesAder = [];
+    diasOrdenadosAder.forEach(diaKey => {
+      const doDia = diarioMapAder[diaKey] || {};
+      const veiculosDoDia = {};
+      Object.values(doDia).forEach(r => {
+        veiculosDoDia[r.placa] = {
+          fr: r.fr, forca: r.forca, tipo: r.tipo, tipo2: r.tipo2,
+          volume: Math.round(r.volume * 100) / 100,
+          viagens: r.viagens,
+          percTon: Math.round(r.percTon * 100) / 100,
+          aderencia: Math.round(r.aderencia * 100),
+          ofensor: r.ofensor, tipoOfensor: r.tipoOfensor, responsavel: r.responsavel,
+          justificativa: r.justificativa
+        };
+      });
+      gravacoesAder.push({ ref: doc(db, 'base_volume_dias', diaKey), data: { veiculos: veiculosDoDia } });
+    });
+    Object.keys(historicoPorVeiculo).forEach(placa => {
+      gravacoesAder.push({ ref: doc(db, 'base_volume_veiculos', placa), data: { historico: historicoPorVeiculo[placa] } });
+    });
+    gravacoesAder.push({
+      ref: doc(db, 'base_volume', 'meta'),
+      data: {
+        importadoEm: new Date().toISOString(),
+        totalViagens: totalViagensAder,
+        registrosSemData: semData,
+        dias: diasOrdenadosAder.map(d => d.split('-').reverse().join('/'))
+      }
+    });
+
+    // ════════════════════════════════════════════════════════
+    // PARTE 2 — VOLUME POÇOS + VEIC POÇOS (alimenta a tela Volume)
+    // ════════════════════════════════════════════════════════
+    progressText.textContent = 'Lendo cadastro de veículos...';
+    progressFill.style.width = '45%';
+    const veicRows = XLSX.utils.sheet_to_json(wb.Sheets['VEIC POÇOS'], { header: 1, defval: null });
+    const veicHeader = veicRows[0] || [];
+    const VCOL = {};
+    veicHeader.forEach((h,i) => { if (h) VCOL[String(h).trim()] = i; });
+    const codInfo = {};
+    veicRows.slice(1).forEach(row => {
+      const cod = row[VCOL['COD'] ?? 0];
+      if (cod === null || cod === undefined || cod === '') return;
+      codInfo[cod] = {
+        placa: (row[VCOL['PLACA'] ?? 1] || '').toString().trim().toUpperCase(),
+        forca: row[VCOL['FORÇA'] ?? 2] || '',
+        tipo2: row[VCOL['TIPO2'] ?? 5] || ''
+      };
+    });
+
+    progressText.textContent = 'Processando viagens de volume...';
+    progressFill.style.width = '55%';
+    const rowsVol = XLSX.utils.sheet_to_json(wb.Sheets['VOLUME POÇOS'], { header: 1, defval: null });
+    if (rowsVol.length < 2) throw new Error('Aba "VOLUME POÇOS" está vazia.');
+    const headerVol = rowsVol[0] || [];
+    const COLV = {};
+    headerVol.forEach((h,i) => { if (h) COLV[String(h).trim()] = i; });
+    const IDX_COD = COLV['Cód.Caminhão'] ?? 1;
+    const IDX_HORA = COLV['Hora'] ?? 2;
+    const IDX_LOCAL = COLV['Cód.Concessão'] ?? 4;
+    const IDX_CORPO = COLV['Corpo Minério'] ?? 5;
+    const IDX_PESOKG = COLV['Peso Líquido'] ?? 6;
+    const IDX_PESO2 = COLV['PESO2'] ?? 11;
+    const IDX_TIPO2V = COLV['TIPO2'] ?? 12;
+
+    // Normaliza o nome do local (Cód.Concessão). Regras, nesta ordem, sem alterar uma a outra:
+    // 1) "PATIO 4_PILHA..." vira "PATIO 4", concatenado com a coluna Corpo Minério -> "FUMACA X PATIO 4"
+    //    (em 2025 o Corpo Minério ainda vem como código numérico, ex. "58 X PATIO 4" — a base será
+    //    atualizada com os nomes depois, e essa mesma regra já vai funcionar sem precisar mexer no código)
+    // 2) qualquer coisa começando com "PILHA" e terminando em "FABRICA" vira "PATIO 04 X FABRICA"
+    // 3) tudo o que não cair nas regras 1 e 2 concatena com a coluna Corpo Minério -> "SERTAOZINHO X FABRICA"
+    function _normalizarLocal(nome, corpoMinerio) {
+      const limpo = (nome || '').toString().trim();
+      const corpo = (corpoMinerio || '').toString().trim().toUpperCase();
+      if (/^PATIO\s*4_PILHA/i.test(limpo)) {
+        return corpo ? `${corpo} X PATIO 4` : 'PATIO 4';
+      }
+      if (/^PILHA.*FABRICA$/i.test(limpo)) return 'PATIO 04 X FABRICA';
+      if (limpo && corpo) return `${limpo} X ${corpo}`;
+      return limpo || corpo || '—';
+    }
+
+    // Deriva ORIGEM e DESTINO a partir do valor já normalizado da Mina/Rota (separador " X ")
+    // Ex.: "PATIO 04 X FABRICA" -> ORIGEM: "PATIO 04", DESTINO: "FABRICA"
+    function _splitOrigemDestino(minaRota) {
+      const texto = (minaRota || '').toString();
+      const partes = texto.split(' X ');
+      if (partes.length >= 2) {
+        return { origem: partes[0].trim() || '—', destino: partes.slice(1).join(' X ').trim() || '—' };
+      }
+      return { origem: texto.trim() || '—', destino: '—' };
+    }
+
+    const diarioMapVol = {}; // 'YYYY-MM-DD' -> [ {cod,placa,forca,tipo2,local,origem,destino,peso} ]
+    let semCadastro = 0;
+
+    rowsVol.slice(1).forEach(row => {
+      const cod = row[IDX_COD];
+      if (cod === null || cod === undefined || cod === '') return;
+      let dataViagem = row[IDX_HORA];
+      if (typeof dataViagem === 'number') dataViagem = excelSerialToDate(dataViagem);
+      if (!(dataViagem instanceof Date) || isNaN(dataViagem)) return;
+
+      let peso = parseFloat(row[IDX_PESO2]);
+      if (!peso) peso = (parseFloat(row[IDX_PESOKG]) || 0) / 1000;
+      if (!peso || peso <= 0) return;
+
+      const info = codInfo[cod];
+      if (!info) semCadastro++;
+      const placa = info ? info.placa : ('COD' + cod);
+      const forca = info ? info.forca : '';
+
+      let tipo2 = (row[IDX_TIPO2V] || '').toString().trim().toUpperCase();
+      if (!tipo2 || tipo2 === '0' || tipo2 === '#N/A') tipo2 = (info ? info.tipo2 : '') || '—';
+
+      const local = _normalizarLocal(row[IDX_LOCAL], row[IDX_CORPO]);
+      const { origem, destino } = _splitOrigemDestino(local);
+      const diaKey = dataViagem.getFullYear() + '-' + String(dataViagem.getMonth()+1).padStart(2,'0') + '-' + String(dataViagem.getDate()).padStart(2,'0');
+
+      if (!diarioMapVol[diaKey]) diarioMapVol[diaKey] = [];
+      diarioMapVol[diaKey].push({ cod, placa, forca, tipo2, local, origem, destino, peso: Math.round(peso*100)/100 });
+    });
+
+    const diasOrdenadosVol = Object.keys(diarioMapVol).sort();
+    if (diasOrdenadosVol.length === 0) throw new Error('Nenhuma viagem válida encontrada em "VOLUME POÇOS".');
+
+    const totalViagensVol = diasOrdenadosVol.reduce((s,d) => s + diarioMapVol[d].length, 0);
+    const totalVolumeVol = diasOrdenadosVol.reduce((s,d) => s + diarioMapVol[d].reduce((s2,v) => s2+v.peso, 0), 0);
+
+    const gravacoesVol = [];
+    diasOrdenadosVol.forEach(diaKey => {
+      gravacoesVol.push({ ref: doc(db, 'volume_dias', diaKey), data: { viagens: diarioMapVol[diaKey] } });
+    });
+    gravacoesVol.push({
+      ref: doc(db, 'volume', 'meta'),
+      data: {
+        importadoEm: new Date().toISOString(),
+        totalViagens: totalViagensVol,
+        totalVolume: Math.round(totalVolumeVol * 100) / 100,
+        veiculosSemCadastro: semCadastro,
+        dias: diasOrdenadosVol.map(d => d.split('-').reverse().join('/'))
+      }
+    });
+
+    // ════════════════════════════════════════════════════════
+    // GRAVAÇÃO — tudo junto, em lotes seguros
+    // ════════════════════════════════════════════════════════
+    progressText.textContent = 'Salvando no Firebase...';
+    progressFill.style.width = '65%';
+
+    const todasGravacoes = gravacoesAder.concat(gravacoesVol);
+    await _gravarEmLotesSeguro(todasGravacoes, (frac) => {
+      progressFill.style.width = (65 + frac * 33) + '%';
+    });
+
+    progressFill.style.width = '100%';
+    progressText.textContent = '✔ Importado com sucesso!';
+    setTimeout(() => { progress.classList.remove('show'); progressFill.style.width = '0%'; }, 2500);
+
+    _prodDiaAtual = null;
+    _volDiaAtual = null; _volMesAtual = null; _volAnoAtual = null;
+    showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
+    window.renderProdutividade();
+    window.renderVolume();
+
+  } catch (err) {
+    console.error('Erro na importação da base:', err);
+    progressText.textContent = '✖ ' + err.message;
+    setTimeout(() => { progress.classList.remove('show'); progressFill.style.width = '0%'; }, 4000);
+    showToast('✖ Erro ao importar: ' + err.message);
+  } finally {
+    label.style.pointerEvents = '';
+    label.style.opacity = '1';
+    input.value = '';
+  }
+}
+
+
+// ══════════════════════════════════════
+// VOLUME TRANSPORTADO (base: aba VOLUME POÇOS)
+// ══════════════════════════════════════
+let _volModoView = 'mes';   // 'dia' | 'mes' | 'ano'
+let _volDiaAtual = null;    // 'DD/MM/YYYY'
+let _volMesAtual = null;    // 'YYYY-MM'
+let _volAnoAtual = null;    // 'YYYY'
+let _volMeta = null;
+let _volDiasRegistros = []; // [{ dia:'DD/MM/YYYY', viagens:[{cod,placa,forca,tipo2,local,peso}] }]
+let _volAba = 'local';      // 'local' | 'veiculo' | 'tipo'
+let _volSort = { local: { col: 'volume', dir: -1 }, origem: { col: 'volume', dir: -1 }, destino: { col: 'volume', dir: -1 }, veiculo: { col: 'volume', dir: -1 }, tipo: { col: 'volume', dir: -1 } };
+
+function _volDiaParaChave(diaStr) {
+  const p = diaStr.split('/');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : diaStr;
+}
+function _volMesParaLabel(mesKey) {
+  const [ano, mes] = mesKey.split('-');
+  return `${MESES_LBL_PT[parseInt(mes,10)-1]} ${ano}`;
+}
+
+function _volFlatten() {
+  const out = [];
+  (_volDiasRegistros || []).forEach(({ dia, viagens }) => {
+    (viagens || []).forEach(v => out.push(Object.assign({ dia }, v)));
+  });
+  return out;
+}
+
+function _volAgrupar(dimensao, viagens) {
+  const grupos = {};
+  viagens.forEach(v => {
+    const chave = dimensao === 'local' ? (v.local || '—')
+      : dimensao === 'origem' ? (v.origem || '—')
+      : dimensao === 'destino' ? (v.destino || '—')
+      : dimensao === 'rota' ? `${v.origem || '—'} → ${v.destino || '—'}`
+      : dimensao === 'veiculo' ? (v.placa || '—')
+      : dimensao === 'forca' ? ((v.forca || '—').toString().trim().toUpperCase() || '—')
+      : (v.tipo2 || '—');
+    if (!grupos[chave]) grupos[chave] = { chave, viagens: 0, volume: 0, placas: new Set(), tipo2: v.tipo2 || '', forca: v.forca || '', origem: v.origem || '', destino: v.destino || '', porTipo: {} };
+    const g = grupos[chave];
+    g.viagens += 1;
+    g.volume += (v.peso || 0);
+    if (v.placa) g.placas.add(v.placa);
+    const tipo = v.tipo2 || '—';
+    if (!g.porTipo[tipo]) g.porTipo[tipo] = { volume: 0, viagens: 0 };
+    g.porTipo[tipo].volume += (v.peso || 0);
+    g.porTipo[tipo].viagens += 1;
+  });
+  return Object.values(grupos).map(g => ({
+    chave: g.chave,
+    viagens: g.viagens,
+    volume: Math.round(g.volume * 100) / 100,
+    pesoMedio: g.viagens > 0 ? Math.round((g.volume / g.viagens) * 100) / 100 : 0,
+    veiculos: g.placas.size,
+    placas: g.placas,
+    tipo2: g.tipo2,
+    forca: g.forca,
+    origem: g.origem,
+    destino: g.destino,
+    porTipo: g.porTipo
+  }));
+}
+
+const VOL_ABA_LABELS = { local: 'Mina/Rota', origem: 'Origem', destino: 'Destino', rota: 'Rota', veiculo: 'Veículo', tipo: 'Tipo', forca: 'Força' };
+const VOL_ABA_COLS = {
+  local: [
+    { key: 'chave', label: 'MINA/ROTA', align: 'left' },
+    { key: 'viagens', label: 'VIAGENS', align: 'right' },
+    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'pct', label: '% DO TOTAL', align: 'right' },
+    { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
+    { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
+  ],
+  origem: [
+    { key: 'chave', label: 'ORIGEM', align: 'left' },
+    { key: 'viagens', label: 'VIAGENS', align: 'right' },
+    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'pct', label: '% DO TOTAL', align: 'right' },
+    { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
+    { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
+  ],
+  destino: [
+    { key: 'chave', label: 'DESTINO', align: 'left' },
+    { key: 'viagens', label: 'VIAGENS', align: 'right' },
+    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'pct', label: '% DO TOTAL', align: 'right' },
+    { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
+    { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
+  ],
+  veiculo: [
+    { key: 'chave', label: 'PLACA', align: 'left' },
+    { key: 'tipo2', label: 'TIPO2', align: 'center' },
+    { key: 'forca', label: 'FORÇA', align: 'center' },
+    { key: 'viagens', label: 'VIAGENS', align: 'right' },
+    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'pct', label: '% DO TOTAL', align: 'right' },
+    { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' }
+  ],
+  tipo: [
+    { key: 'chave', label: 'TIPO2', align: 'left' },
+    { key: 'viagens', label: 'VIAGENS', align: 'right' },
+    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'pct', label: '% DO TOTAL', align: 'right' },
+    { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
+    { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
+  ]
+};
+
+function _volRenderPagina() {
+  _volRenderTabela();
+}
+
+function _volRenderTabela() {
+  const cont = document.getElementById('vol-cards-mina-rota');
+  const tabelaCard = document.getElementById('vol-tabela-card');
+  if (_volAba === 'local') {
+    cont.style.display = 'grid';
+    tabelaCard.style.display = 'none';
+    _renderCardsMinaRota();
+  } else {
+    cont.style.display = 'none';
+    tabelaCard.style.display = '';
+    _volRenderTabelaGenerica();
+  }
+}
+
+function _volRenderTabelaGenerica() {
+  const viagens = _volFlatten();
+  const grupos = _volAgrupar(_volAba, viagens);
+  const volumeTotalGeral = viagens.reduce((s,v) => s + (v.peso||0), 0) || 1;
+  grupos.forEach(g => { g.pct = Math.round((g.volume / volumeTotalGeral) * 1000) / 10; });
+
+  document.getElementById('vol-tabela-titulo').textContent = 'Volume por ' + VOL_ABA_LABELS[_volAba];
+  const VOL_ABA_PLURAL = { local: 'minas/rotas', origem: 'origens', destino: 'destinos', veiculo: 'veículos', tipo: 'tipos' };
+  document.getElementById('vol-tabela-count').textContent = grupos.length + ' ' + (VOL_ABA_PLURAL[_volAba] || 'registros');
+
+  const cols = VOL_ABA_COLS[_volAba];
+  const thead = document.getElementById('vol-tabela-thead');
+  thead.innerHTML = '<tr>' + cols.map(c => `<th data-sort="${c.key}" style="cursor:pointer;text-align:${c.align};">${c.label} <span class="prod-sort-ico"></span></th>`).join('') + '</tr>';
+
+  const { col, dir } = _volSort[_volAba];
+  const ordenado = grupos.slice().sort((a,b) => {
+    let va = a[col], vb = b[col];
+    if (typeof va === 'string' || typeof vb === 'string') {
+      va = (va||'').toString(); vb = (vb||'').toString();
+      return dir * va.localeCompare(vb);
+    }
+    return dir * ((va||0) - (vb||0));
+  });
+
+  const tbody = document.getElementById('vol-tabela-body');
+  if (ordenado.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--text3);">Nenhum registro neste período.</td></tr>`;
+  } else {
+    tbody.innerHTML = ordenado.map(g => {
+      const tds = cols.map(c => {
+        let val = g[c.key];
+        if (c.key === 'volume' || c.key === 'pesoMedio') val = (val||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+        else if (c.key === 'pct') val = (val||0).toLocaleString('pt-BR',{maximumFractionDigits:1}) + '%';
+        else if (c.key === 'viagens' || c.key === 'veiculos') val = (val||0).toLocaleString('pt-BR');
+        if (val === '' || val === undefined || val === null) val = '—';
+        return `<td style="text-align:${c.align};${c.key==='chave'?'font-weight:600;':''}">${val}</td>`;
+      }).join('');
+      const chaveAttr = String(g.chave).replace(/"/g,'&quot;');
+      return `<tr class="vol-row" data-chave="${chaveAttr}" style="cursor:pointer;">${tds}</tr>`;
+    }).join('');
+  }
+
+  document.querySelectorAll('#vol-tabela thead th[data-sort]').forEach(th => {
+    const ico = th.querySelector('.prod-sort-ico');
+    if (!ico) return;
+    ico.textContent = th.getAttribute('data-sort') === col ? (dir === 1 ? '▲' : '▼') : '';
+  });
+}
+
+window._volSetAba = function _volSetAba(aba) {
+  _volAba = aba;
+  document.querySelectorAll('.vol-aba-btn').forEach(b => {
+    const ativo = b.getAttribute('data-aba') === aba;
+    b.style.background = ativo ? '#388bfd' : 'var(--bg3)';
+    b.style.color = ativo ? '#fff' : 'var(--text3)';
+  });
+  _volRenderTabela();
+};
+
+// ---- Cards de fluxo de volume (aba "Por Mina/Rota") ----
+// Reconciliação de grafia: a regra "PILHA...→FABRICA" usa "PATIO 04" (com zero) e a regra
+// "PATIO 4_PILHA..." usa "PATIO 4" (sem zero) — é o mesmo pátio físico, então tratamos as duas
+// grafias como equivalentes aqui.
+function _volEhPatio4(valor) {
+  const v = (valor || '').toString().trim().toUpperCase();
+  return v === 'PATIO 4' || v === 'PATIO 04';
+}
+function _volOrigemDiferentePatio(v) {
+  return !(v.origem || '').toString().trim().toUpperCase().startsWith('PATIO');
+}
+function _volDestinoFabrica(v) {
+  return (v.destino || '').toString().trim().toUpperCase() === 'FABRICA';
+}
+function _volDestinoPatio4(v) { return _volEhPatio4(v.destino); }
+function _volOrigemPatio4(v) { return _volEhPatio4(v.origem); }
+
+// Quantidade de dias (dentro do período carregado) em que a filtragem teve pelo menos 1 viagem
+function _volDiasComAtividade(filtroFn) {
+  return (_volDiasRegistros || []).filter(({ viagens }) => (viagens || []).some(filtroFn)).length;
+}
+
+function _volStatsFluxo(filtroFn) {
+  const todas = _volFlatten();
+  const viagensFiltradas = filtroFn ? todas.filter(filtroFn) : todas;
+  const total = viagensFiltradas.reduce((s,v) => s + (v.peso||0), 0);
+  const nDias = filtroFn ? _volDiasComAtividade(filtroFn) : (_volDiasRegistros || []).length;
+  const mediaDia = nDias > 0 ? total / nDias : 0;
+  return { total, mediaDia, nDias, viagensFiltradas, viagens: viagensFiltradas.length };
+}
+
+// Formata uma linha de quebra no padrão: "FROTA - 76,4% - 16.250T - 677vg - 24t/vg"
+function _volLinhaTexto(chave, pct, volume, viagens, pesoMedio) {
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmtPct = pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
+    <span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${chave}</span>
+    <span style="font-size:12px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volume)}T</span>
+  </div>
+  <div style="text-align:right;font-size:10px;color:var(--text3);margin-top:1px;">${fmtPct}% · ${viagens.toLocaleString('pt-BR')} viagens · ${fmt(pesoMedio)}t/vg</div>`;
+}
+
+function _volBlocoBreakdown(stats, dimensao, cardKey) {
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const ROTULOS = { origem: 'Origem', destino: 'Destino', rota: 'Mina × Destino', forca: 'Força', tipo: 'Tipo' };
+  const rotulo = ROTULOS[dimensao] || 'Item';
+  const breakdown = _volAgrupar(dimensao, stats.viagensFiltradas).sort((a,b) => b.volume - a.volume);
+  const totalBreak = breakdown.reduce((s,b) => s+b.volume, 0) || 1;
+  const nItens = breakdown.length;
+  const mediaPorItem = nItens > 0 ? stats.total / nItens : 0;
+  if (nItens === 0) return '';
+
+  // meta por linha só faz sentido pras dimensões ligadas a Origem/Destino (é assim que a meta é cadastrada)
+  const temMeta = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
+
+  const linhas = breakdown.slice(0, 6).map(b => {
+    const pct = Math.round((b.volume / totalBreak) * 1000) / 10;
+    const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
+    const origemAttr = String(b.origem||'').replace(/"/g,'&quot;');
+    const destinoAttr = String(b.destino||'').replace(/"/g,'&quot;');
+    const metaSlot = temMeta ? `<div class="vol-meta-linha" data-meta-card="${cardKey}" data-meta-dim="${dimensao}" data-meta-chave="${chaveAttr}" data-meta-origem="${origemAttr}" data-meta-destino="${destinoAttr}" data-meta-real="${b.volume}" data-meta-viagens="${b.viagens}" data-meta-veiculos="${b.veiculos}"></div>` : '';
+    return `<div class="vol-flow-row" data-aba-alvo="${dimensao}" data-chave="${chaveAttr}" data-destino="${destinoAttr}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);">
+      ${_volLinhaTexto(b.chave, pct, b.volume, b.viagens, b.pesoMedio)}
+      ${metaSlot}
+    </div>`;
+  }).join('');
+
+  return `<div class="vol-breakdown-block" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
+        <span>Por ${rotulo} (${nItens})</span>
+        <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}t</strong></span>
+      </div>
+      ${linhas}
+      ${nItens > 6 ? `<div style="font-size:10px;color:var(--text3);text-align:center;padding-top:4px;">+${nItens-6} outros</div>` : ''}
+    </div>`;
+}
+
+function _volCardHTML(opts) {
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const dimensoes = opts.dimensoesBreakdown || [];
+  const breakdownHtml = dimensoes.map(dim => _volBlocoBreakdown(opts.stats, dim, opts.chaveMeta)).join('');
+  const pesoMedioViagem = opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0;
+
+  return `<div class="table-card" id="vol-card-${opts.chaveMeta}" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">${opts.icone}</span>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${opts.titulo}</div>
+      </div>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-${opts.chaveMeta}')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div>
+        <div style="font-size:24px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(pesoMedioViagem)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+      </div>
+    </div>
+    <div id="vol-card-meta-${opts.chaveMeta}"></div>
+    ${breakdownHtml}
+  </div>`;
+}
+
+// Card Fábrica: a Fábrica recebe de 2 fontes — Pátio 4 (estoque) ou direto das minas (Material Novo).
+// Mostra primeiro esse resumo de 2 fontes, depois a quebra do "Material Novo" por mina de origem.
+function _volCardFabricaHTML(opts) {
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const viagens = opts.stats.viagensFiltradas;
+  const doPatio4 = viagens.filter(_volOrigemPatio4);
+  const materialNovo = viagens.filter(v => !_volOrigemPatio4(v));
+
+  const totalPatio4 = doPatio4.reduce((s,v) => s+(v.peso||0), 0);
+  const totalNovo = materialNovo.reduce((s,v) => s+(v.peso||0), 0);
+  const totalFontes = totalPatio4 + totalNovo || 1;
+
+  const porMina = _volAgrupar('origem', materialNovo).sort((a,b) => b.volume - a.volume);
+  const totalMinas = porMina.reduce((s,b) => s+b.volume, 0) || 1;
+
+  const linhaFonte = (rotulo, valor, total, qtdViagens, dataAlvo) => {
+    const pct = Math.round((valor/total)*1000)/10;
+    const pesoMedio = qtdViagens > 0 ? valor / qtdViagens : 0;
+    const clicavel = !!dataAlvo;
+    const attrs = clicavel ? `class="vol-flow-row" data-aba-alvo="origem" data-chave="${dataAlvo.replace(/"/g,'&quot;')}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);"` : `style="padding:6px 0;border-bottom:1px solid var(--border2);"`;
+    const metaSlot = clicavel ? `<div class="vol-meta-linha" data-meta-card="fabrica" data-meta-dim="origem" data-meta-chave="${dataAlvo.replace(/"/g,'&quot;')}" data-meta-real="${valor}"></div>` : '';
+    return `<div ${attrs}>
+      ${_volLinhaTexto(rotulo, pct, valor, qtdViagens, pesoMedio)}
+      ${metaSlot}
+    </div>`;
+  };
+
+  const linhasMinas = porMina.slice(0, 6).map(b => {
+    const pct = Math.round((b.volume/totalMinas)*1000)/10;
+    const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
+    return `<div class="vol-flow-row" data-aba-alvo="origem" data-chave="${chaveAttr}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);">
+      ${_volLinhaTexto(b.chave, pct, b.volume, b.viagens, b.pesoMedio)}
+      <div class="vol-meta-linha" data-meta-card="fabrica" data-meta-dim="origem" data-meta-chave="${chaveAttr}" data-meta-real="${b.volume}"></div>
+    </div>`;
+  }).join('');
+
+  return `<div class="table-card" id="vol-card-fabrica" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">${opts.icone}</span>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${opts.titulo}</div>
+      </div>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-fabrica')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div>
+        <div style="font-size:24px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+      </div>
+    </div>
+    <div id="vol-card-meta-fabrica"></div>
+
+    <div class="vol-breakdown-block" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</div>
+      ${linhaFonte('Pátio 4', totalPatio4, totalFontes, doPatio4.length, 'PATIO 4')}
+      ${linhaFonte('Material Novo', totalNovo, totalFontes, materialNovo.length, '')}
+    </div>
+
+    ${porMina.length > 0 ? `<div class="vol-breakdown-block" style="margin-top:12px;padding-top:8px;border-top:2px solid var(--border2);">
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Material Novo (${porMina.length})</div>
+      ${linhasMinas}
+      ${porMina.length > 6 ? `<div style="font-size:10px;color:var(--text3);text-align:center;padding-top:4px;">+${porMina.length-6} outras</div>` : ''}
+    </div>` : ''}
+  </div>`;
+}
+
+function _renderCardsMinaRota() {
+  const cont = document.getElementById('vol-cards-mina-rota');
+  if (!_volDiasRegistros || _volDiasRegistros.length === 0) {
+    cont.innerHTML = '<div class="table-card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);">Importe a base de volume (BASE_VOLUME.xlsx) para visualizar o volume transportado.</div>';
+    return;
+  }
+
+  const geral = _volStatsFluxo(null);
+  const novo = _volStatsFluxo(_volOrigemDiferentePatio);
+  const fabrica = _volStatsFluxo(_volDestinoFabrica);
+  const patio4Entrada = _volStatsFluxo(_volDestinoPatio4);
+  const patio4Saida = _volStatsFluxo(_volOrigemPatio4);
+
+  cont.innerHTML =
+    _volCardHTML({ titulo: 'Volume Geral', icone: '📦', cor: '#388bfd', stats: geral, dimensoesBreakdown: ['forca', 'tipo'], chaveMeta: 'geral' }) +
+    _volCardHTML({ titulo: 'Volume Novo', icone: '⛏️', cor: '#2ea043', stats: novo, dimensoesBreakdown: ['rota'], chaveMeta: 'novo' }) +
+    _volCardFabricaHTML({ titulo: 'Volume Fábrica', icone: '🏭', cor: '#d29922', stats: fabrica }) +
+    _volCardHTML({ titulo: 'Volume Pátio 4 — Entrada', icone: '⬇️', cor: '#3fb950', stats: patio4Entrada, dimensoesBreakdown: ['origem'], chaveMeta: 'entrada' }) +
+    _volCardHTML({ titulo: 'Volume Pátio 4 — Saída', icone: '⬆️', cor: '#f85149', stats: patio4Saida, dimensoesBreakdown: ['destino'], chaveMeta: 'saida' }) +
+    `<div class="table-card" id="vol-card-estoque-patio4" style="padding:16px 18px;border-top:3px solid #a371f7;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:18px;">🏔️</span>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
+      </div>
+      <div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;">Calculando saldo acumulado da base inteira...</div>
+    </div>`;
+
+  _volAtualizarCardEstoque();
+  _volAtualizarMetasNosCards();
+}
+
+// Injeta a comparação Meta x Realizado dentro dos cards de fluxo (só faz sentido no modo Mês,
+// já que as metas são cadastradas por mês). Usa cache por mês pra não buscar toda hora.
+let _volMetasCardsCache = {}; // mesKey -> itens[]
+
+async function _volObterMetasParaCards(mesKey) {
+  if (_volMetasCardsCache[mesKey] !== undefined) return _volMetasCardsCache[mesKey];
+  try {
+    const snap = await getDoc(doc(db, 'volume_metas', mesKey));
+    let itens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
+    let diasOperacao = (snap.exists() && snap.data().diasOperacao) || null;
+    // ainda não foi salvo nada nesse mês — usa o padrão conhecido pra Agosto/2026 (mesmo padrão do modal)
+    if (itens.length === 0 && mesKey === '2026-08') { itens = METAS_PADRAO_2026_08.slice(); diasOperacao = diasOperacao || 26; }
+    const resultado = { itens, diasOperacao };
+    _volMetasCardsCache[mesKey] = resultado;
+    return resultado;
+  } catch (err) {
+    console.error('Erro ao buscar metas para os cards:', err);
+    return { itens: [], diasOperacao: null };
+  }
+}
+
+function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  if (totalMeta <= 0) {
+    return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2);font-size:12px;color:var(--text3);text-align:center;">🎯 Nenhuma meta cadastrada para este mês</div>`;
+  }
+  const pct = Math.round((totalReal/totalMeta)*1000)/10;
+  const cor = _corAtingimento(pct);
+  const dif = totalReal - totalMeta;
+  const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
+
+  let projecaoHtml = '';
+  if (diasOperacao > 0 && diasComDados > 0) {
+    const projecao = (totalReal / diasComDados) * diasOperacao;
+    const pctProj = Math.round((projecao/totalMeta)*1000)/10;
+    const corProj = _corAtingimento(pctProj);
+    projecaoHtml = `<div style="font-size:11px;color:var(--text2);margin-top:2px;">📈 Projeção (${diasOperacao}d): <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+  }
+
+  return `<div style="margin-top:10px;padding-top:10px;border-top:2px solid ${cor};">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:13px;">${fmt(totalMeta)}t</strong></div>
+      <div style="font-size:20px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:12px;">${difTxt}</strong></div>
+    ${projecaoHtml}
+  </div>`;
+}
+
+async function _volAtualizarMetasNosCards() {
+  const slotGeral = document.getElementById('vol-card-meta-geral');
+  const slotNovo = document.getElementById('vol-card-meta-novo');
+  const slotFabrica = document.getElementById('vol-card-meta-fabrica');
+  const slotEntrada = document.getElementById('vol-card-meta-entrada');
+  const slotSaida = document.getElementById('vol-card-meta-saida');
+  if (!slotNovo) return; // página não está mais nessa view
+
+  if (_volModoView !== 'mes' || !_volMesAtual) {
+    const msg = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:10px;color:var(--text3);text-align:center;">🎯 Metas disponíveis só no modo Mês</div>`;
+    [slotGeral, slotNovo, slotFabrica, slotEntrada, slotSaida].forEach(el => { if (el) el.innerHTML = msg; });
+    document.querySelectorAll('.vol-meta-linha').forEach(el => { el.innerHTML = ''; });
+    return;
+  }
+
+  const { itens, diasOperacao } = await _volObterMetasParaCards(_volMesAtual);
+  const diasComDados = (_volDiasRegistros || []).length;
+
+  // recalcula o realizado de cada categoria (mesmos filtros dos cards, já com os dados carregados)
+  const realNovo = _volStatsFluxo(_volOrigemDiferentePatio).total;
+  const realFabrica = _volStatsFluxo(_volDestinoFabrica).total;
+  const realEntrada = _volStatsFluxo(_volDestinoPatio4).total;
+  const realSaida = _volStatsFluxo(_volOrigemPatio4).total;
+  const realGeral = _volStatsFluxo(null).total;
+
+  const metaNovo = itens.filter(_volOrigemDiferentePatio).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaFabrica = itens.filter(_volDestinoFabrica).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaEntrada = itens.filter(_volDestinoPatio4).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaSaida = itens.filter(_volOrigemPatio4).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaGeral = itens.reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+
+  if (slotGeral) slotGeral.innerHTML = _volBlocoMetaHTML(metaGeral, realGeral, diasOperacao, diasComDados);
+  if (slotNovo) slotNovo.innerHTML = _volBlocoMetaHTML(metaNovo, realNovo, diasOperacao, diasComDados);
+  if (slotFabrica) slotFabrica.innerHTML = _volBlocoMetaHTML(metaFabrica, realFabrica, diasOperacao, diasComDados);
+  if (slotEntrada) slotEntrada.innerHTML = _volBlocoMetaHTML(metaEntrada, realEntrada, diasOperacao, diasComDados);
+  if (slotSaida) slotSaida.innerHTML = _volBlocoMetaHTML(metaSaida, realSaida, diasOperacao, diasComDados);
+
+  _volInjetarMetasNasLinhas(itens, diasOperacao, diasComDados);
+}
+
+// Preenche a metinha de cada linha de quebra (Por Origem / Por Destino / Por Rota) dentro dos
+// cards. Cada linha sabe, via atributos data-*, a qual card/dimensão/chave ela pertence — cruza
+// isso com a lista de metas do mês (já filtrada pelo mesmo critério do card) pra achar a meta
+// certa, e recalcula projeção + viabilidade de frota daquela combinação específica.
+function _volInjetarMetasNasLinhas(itens, diasOperacao, diasComDados) {
+  const filtrosCard = {
+    novo: _volOrigemDiferentePatio,
+    fabrica: _volDestinoFabrica,
+    entrada: _volDestinoPatio4,
+    saida: _volOrigemPatio4
+  };
+  const todasViagens = _volFlatten();
+
+  document.querySelectorAll('.vol-meta-linha').forEach(el => {
+    const cardKey = el.getAttribute('data-meta-card');
+    const dim = el.getAttribute('data-meta-dim');
+    const chave = (el.getAttribute('data-meta-chave') || '').trim().toUpperCase();
+    const origemAttr = (el.getAttribute('data-meta-origem') || '').trim().toUpperCase();
+    const destinoAttr = (el.getAttribute('data-meta-destino') || '').trim().toUpperCase();
+    const realizado = parseFloat(el.getAttribute('data-meta-real')) || 0;
+    const filtroCard = filtrosCard[cardKey];
+    if (!filtroCard) return;
+
+    let metaItens;
+    if (dim === 'rota') {
+      metaItens = itens.filter(filtroCard).filter(m =>
+        (m.origem||'').toString().trim().toUpperCase() === origemAttr &&
+        (m.destino||'').toString().trim().toUpperCase() === destinoAttr
+      );
+    } else {
+      metaItens = itens.filter(filtroCard).filter(m => {
+        const campo = dim === 'origem' ? m.origem : m.destino;
+        return (campo || '').toString().trim().toUpperCase() === chave;
+      });
+    }
+    const metaTotal = metaItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+
+    // dados detalhados (viagens, veículos, peso médio por tipo) dessa combinação específica
+    const filtradas = todasViagens.filter(v => {
+      if (dim === 'rota') return (v.origem||'').toString().trim().toUpperCase() === origemAttr && (v.destino||'').toString().trim().toUpperCase() === destinoAttr;
+      const campo = dim === 'origem' ? v.origem : v.destino;
+      return (campo||'').toString().trim().toUpperCase() === chave;
+    });
+    const placas = new Set();
+    const porTipo = {};
+    filtradas.forEach(v => {
+      if (v.placa) placas.add(v.placa);
+      const tipo = v.tipo2 || '—';
+      if (!porTipo[tipo]) porTipo[tipo] = { volume: 0, viagens: 0 };
+      porTipo[tipo].volume += v.peso || 0;
+      porTipo[tipo].viagens += 1;
+    });
+
+    el.innerHTML = _volLinhaMetaHTML(metaTotal, { volume: realizado, viagens: filtradas.length, placas, porTipo }, diasOperacao, diasComDados);
+  });
+}
+
+function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  if (metaTotal <= 0) {
+    return `<div style="font-size:10px;color:var(--text3);margin-top:3px;">🎯 sem meta cadastrada</div>`;
+  }
+  const realizado = dados.volume;
+  const pct = Math.round((realizado/metaTotal)*1000)/10;
+  const cor = _corAtingimento(pct);
+  const falta = metaTotal - realizado;
+  const faltaTxt = falta > 0 ? `${fmt(falta)}t restantes` : `meta batida (+${fmt(Math.abs(falta))}t)`;
+
+  let projecaoHtml = '';
+  if (diasOperacao > 0 && diasComDados > 0) {
+    const projecao = (realizado / diasComDados) * diasOperacao;
+    const pctProj = Math.round((projecao/metaTotal)*1000)/10;
+    const corProj = _corAtingimento(pctProj);
+    projecaoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">📈 Projeção: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+  }
+
+  let frotaHtml = '';
+  if (diasOperacao > 0 && diasComDados > 0 && dados.viagens > 0 && dados.placas.size > 0) {
+    const pesoMedioGeral = realizado / dados.viagens;
+    const viagensNecessarias = pesoMedioGeral > 0 ? Math.ceil(metaTotal / pesoMedioGeral) : 0;
+    const viagensPorDiaNecessarias = viagensNecessarias / diasOperacao;
+    const viagensPorVeiculoPorDia = dados.viagens / dados.placas.size / diasComDados;
+    const veiculosNecessarios = viagensPorVeiculoPorDia > 0 ? Math.ceil(viagensPorDiaNecessarias / viagensPorVeiculoPorDia) : 0;
+    const veiculosAtivos = dados.placas.size;
+    const diffVeic = veiculosNecessarios - veiculosAtivos;
+    const corFrota = diffVeic > 0 ? '#f85149' : '#2ea043';
+    const txtFrota = diffVeic > 0 ? `faltam ${diffVeic}` : 'suficiente';
+    frotaHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
+  }
+
+  return `<div style="margin-top:3px;padding-top:3px;border-top:1px dashed var(--border2);">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <span style="font-size:11px;color:var(--text2);">🎯 ${fmt(metaTotal)}t · ${faltaTxt}</span>
+      <span style="font-size:13px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</span>
+    </div>
+    ${projecaoHtml}
+    ${frotaHtml}
+  </div>`;
+}
+
+// Estoque do Pátio 4 é um saldo acumulado (entrada - saída) desde o início da base, não só do
+// período filtrado no topo da página — por isso varre TODOS os dias importados, não só os do
+// filtro Dia/Mês/Ano atual. Guarda em cache pra não refazer a varredura toda hora.
+let _volEstoquePatio4Cache = null; // { estoque, mediaSaida30d, diasRestantes, ultimoDia, importadoEm }
+
+async function _volAtualizarCardEstoque() {
+  const cardEl = document.getElementById('vol-card-estoque-patio4');
+  if (!cardEl || !_volMeta) return;
+
+  if (_volEstoquePatio4Cache && _volEstoquePatio4Cache.importadoEm === _volMeta.importadoEm) {
+    _volPintarCardEstoque(_volEstoquePatio4Cache);
+    return;
+  }
+
+  try {
+    const todosDias = (_volMeta.dias || []).slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
+      return da.localeCompare(db); // asc — cronológico
+    });
+    if (todosDias.length === 0) return;
+
+    const snaps = await Promise.all(todosDias.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
+
+    let saldo = 0;
+    const saidasDiarias = [];
+    todosDias.forEach((d, i) => {
+      const snap = snaps[i];
+      const viagensDia = snap.exists() ? (snap.data().viagens || []) : [];
+      let entradaDia = 0, saidaDia = 0;
+      viagensDia.forEach(v => {
+        if (_volEhPatio4(v.destino)) entradaDia += (v.peso || 0);
+        if (_volEhPatio4(v.origem)) saidaDia += (v.peso || 0);
+      });
+      saldo += entradaDia - saidaDia;
+      if (saidaDia > 0) saidasDiarias.push(saidaDia);
+    });
+
+    const ultimos30 = saidasDiarias.slice(-30);
+    const mediaSaida30d = ultimos30.length > 0 ? ultimos30.reduce((s,v) => s+v, 0) / ultimos30.length : 0;
+    const diasRestantes = mediaSaida30d > 0 ? saldo / mediaSaida30d : null;
+
+    _volEstoquePatio4Cache = {
+      estoque: saldo,
+      mediaSaida30d,
+      diasRestantes,
+      nDiasAmostra: ultimos30.length,
+      ultimoDia: todosDias[todosDias.length-1],
+      importadoEm: _volMeta.importadoEm
+    };
+    _volPintarCardEstoque(_volEstoquePatio4Cache);
+  } catch (err) {
+    console.error('Erro ao calcular estoque do Pátio 4:', err);
+    cardEl.innerHTML += '<div style="text-align:center;padding:10px;color:#f85149;font-size:11px;">Erro ao calcular o estoque.</div>';
+  }
+}
+
+function _volPintarCardEstoque(dados) {
+  const cardEl = document.getElementById('vol-card-estoque-patio4');
+  if (!cardEl) return;
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const cor = dados.estoque < 0 ? '#f85149' : '#a371f7';
+
+  const diasTxt = dados.diasRestantes === null
+    ? '—'
+    : Math.round(dados.diasRestantes).toLocaleString('pt-BR');
+
+  cardEl.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">🏔️</span>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
+      </div>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-estoque-patio4')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div>
+        <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.estoque)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Estoque atual (t)</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.mediaSaida30d)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média saída/dia (t)</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);text-align:center;">
+      <div style="font-size:28px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${diasTxt}</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Dias de operação estimados</div>
+    </div>
+    <div style="margin-top:8px;font-size:9px;color:var(--text3);text-align:center;">
+      Saldo acumulado desde o início da base até ${dados.ultimoDia} · média baseada nos últimos ${dados.nDiasAmostra} dia(s) com saída
+      ${dados.estoque < 0 ? '<br><span style="color:#f85149;">⚠ saldo negativo — provável estoque inicial não contabilizado antes do início da base</span>' : ''}
+    </div>`;
+}
+
+// Clique numa linha de breakdown dentro dos cards abre o detalhamento diário daquele item
+document.addEventListener('click', function(e) {
+  const row = e.target.closest('.vol-flow-row[data-chave]');
+  if (!row) return;
+  abrirVolItem(row.getAttribute('data-aba-alvo'), row.getAttribute('data-chave'));
+});
+
+// Ordenação por clique no cabeçalho
+document.addEventListener('click', function(e) {
+  const th = e.target.closest('#vol-tabela thead th[data-sort]');
+  if (!th) return;
+  const col = th.getAttribute('data-sort');
+  const s = _volSort[_volAba];
+  if (s.col === col) { s.dir *= -1; } else { s.col = col; s.dir = -1; }
+  _volRenderTabela();
+});
+
+// Clique na linha abre o detalhamento diário do item
+document.addEventListener('click', function(e) {
+  const row = e.target.closest('.vol-row[data-chave]');
+  if (!row) return;
+  abrirVolItem(_volAba, row.getAttribute('data-chave'));
+});
+
+function abrirVolItem(dimensao, chave) {
+  const diasReg = _volDiasRegistros || [];
+  const filtro = v => {
+    if (dimensao === 'local') return (v.local||'—') === chave;
+    if (dimensao === 'origem') return (v.origem||'—') === chave;
+    if (dimensao === 'destino') return (v.destino||'—') === chave;
+    if (dimensao === 'rota') return `${v.origem||'—'} → ${v.destino||'—'}` === chave;
+    if (dimensao === 'veiculo') return (v.placa||'—') === chave;
+    if (dimensao === 'forca') return ((v.forca||'—').toString().trim().toUpperCase() || '—') === chave;
+    return (v.tipo2||'—') === chave;
+  };
+  const porDia = diasReg.map(({ dia, viagens }) => {
+    const filtradas = (viagens || []).filter(filtro);
+    return { dia, viagens: filtradas.length, volume: Math.round(filtradas.reduce((s,v) => s+(v.peso||0), 0) * 100) / 100 };
+  }).filter(d => d.viagens > 0).sort((a,b) => {
+    const da = a.dia.split('/').reverse().join(''); const db = b.dia.split('/').reverse().join('');
+    return da.localeCompare(db);
+  });
+
+  const totalViagens = porDia.reduce((s,d) => s+d.viagens, 0);
+  const totalVolume = Math.round(porDia.reduce((s,d) => s+d.volume, 0) * 100) / 100;
+
+  document.getElementById('vol-item-title').textContent = chave;
+  document.getElementById('vol-item-meta').textContent = VOL_ABA_LABELS[dimensao] + ' · ' + porDia.length + (porDia.length === 1 ? ' dia com viagem' : ' dias com viagem');
+
+  const body = document.getElementById('vol-item-body');
+  let html = `<div class="viagens-kpis">
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#388bfd;">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="viagens-kpi-lbl">Toneladas</div></div>
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#3fb950;">${totalViagens}</div><div class="viagens-kpi-lbl">Viagens</div></div>
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:var(--text);font-size:14px;">${totalViagens>0 ? (totalVolume/totalViagens).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '0'}</div><div class="viagens-kpi-lbl">Peso Médio/Viagem</div></div>
+  </div>`;
+
+  if (porDia.length === 0) {
+    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhum registro encontrado neste período.</div>`;
+  } else {
+    html += `<div style="overflow-x:auto;">
+      <table class="viagens-table">
+        <thead><tr><th>Data</th><th style="text-align:right;">Viagens</th><th style="text-align:right;">Volume (t)</th></tr></thead>
+        <tbody>${porDia.map(d => `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${d.dia}</td>
+            <td class="td-km">${d.viagens}</td>
+            <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+          </tr>`).join('')}</tbody>
+        <tfoot><tr>
+            <td style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td class="td-km">${totalViagens}</td>
+            <td class="td-km">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+          </tr></tfoot>
+      </table>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+  document.getElementById('vol-item-overlay').style.display = 'flex';
+}
+
+window.fecharVolItemModal = function fecharVolItemModal(e) {
+  if (e.target === document.getElementById('vol-item-overlay'))
+    document.getElementById('vol-item-overlay').style.display = 'none';
+};
+
+// ══════════════════════════════════════
+// METAS DE VOLUME (Origem × Destino, por mês)
+// Uma meta é definida por Mês + Origem + Destino; as 4 categorias (Novo/Fábrica/Pátio4
+// Entrada/Saída) são apenas filtros sobre essa mesma lista — os mesmos filtros já usados
+// nos cards de fluxo. O "realizado" é calculado buscando as viagens reais daquele mês.
+// ══════════════════════════════════════
+let _volMetas = [];              // itens do mês atualmente selecionado no modal
+let _volMetasMesAtual = null;    // 'YYYY-MM'
+let _volMetasRealizado = {};     // 'ORIGEM|||DESTINO' -> toneladas realizadas no mês
+let _volMetasCarregando = false;
+let _volMetasDiasOperacao = null;  // dias de operação cadastrados pro mês (ex: 26)
+let _volMetasDiasComDados = 0;     // dias do mês que já têm viagens importadas (ritmo até agora)
+
+const METAS_PADRAO_2026_08 = [
+  { origem: 'SANTO ANTONIO', destino: 'FABRICA', meta: 2068 },
+  { origem: 'SANTO ANTONIO', destino: 'PATIO 4', meta: 15757 },
+  { origem: 'SERTAOZINHO', destino: 'FABRICA', meta: 2663 },
+  { origem: 'SERTAOZINHO', destino: 'PATIO 4', meta: 20291 },
+  { origem: 'CAMPO REDONDO', destino: 'FABRICA', meta: 2339 },
+  { origem: 'CAMPO REDONDO', destino: 'PATIO 4', meta: 17890 },
+  { origem: 'PATIO 4', destino: 'FABRICA', meta: 46160 }
+];
+
+function _metaChaveOD(origem, destino) {
+  return (origem||'').toString().trim().toUpperCase() + '|||' + (destino||'').toString().trim().toUpperCase();
+}
+
+// Garante que _volMeta (lista de dias disponíveis) esteja carregado, mesmo se o usuário
+// abrir o modal de Metas antes de a página Volume ter terminado de carregar.
+async function _metasGarantirVolMeta() {
+  if (_volMeta) return;
+  const snap = await getDoc(doc(db, 'volume', 'meta'));
+  if (snap.exists()) _volMeta = snap.data();
+}
+
+async function _popularSeletorMesMetas() {
+  await _metasGarantirVolMeta();
+  const select = document.getElementById('meta-mes-select');
+  const diasTodos = (_volMeta && _volMeta.dias) || [];
+  const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+  const hoje = new Date();
+  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  mesesSet.add(mesAtualKey); // garante que o mês vigente apareça mesmo sem viagens ainda importadas
+  const meses = Array.from(mesesSet).sort().reverse();
+
+  const mesPadrao = _volMetasMesAtual && meses.includes(_volMetasMesAtual) ? _volMetasMesAtual
+    : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
+
+  select.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_volMesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
+  select.value = mesPadrao;
+  return mesPadrao;
+}
+
+// Busca as viagens reais do mês (independente do filtro Dia/Mês/Ano da página principal)
+// e agrega o volume por par Origem+Destino.
+async function _volCalcularRealizadoDoMes(mesKey) {
+  if (!mesKey) return {};
+  const [ano, mes] = mesKey.split('-');
+  const diasDoMes = ((_volMeta && _volMeta.dias) || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+  if (diasDoMes.length === 0) return { mapa: {}, diasComDados: 0 };
+
+  const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
+  const mapa = {}; // 'ORIGEM|||DESTINO' -> { volume, viagens, placas:Set, porTipo:{TIPO:{volume,viagens}} }
+  snaps.forEach(snap => {
+    if (!snap.exists()) return;
+    (snap.data().viagens || []).forEach(v => {
+      const chave = _metaChaveOD(v.origem, v.destino);
+      if (!mapa[chave]) mapa[chave] = { volume: 0, viagens: 0, placas: new Set(), porTipo: {} };
+      const m = mapa[chave];
+      const peso = v.peso || 0;
+      m.volume += peso;
+      m.viagens += 1;
+      if (v.placa) m.placas.add(v.placa);
+      const tipo = v.tipo2 || '—';
+      if (!m.porTipo[tipo]) m.porTipo[tipo] = { volume: 0, viagens: 0 };
+      m.porTipo[tipo].volume += peso;
+      m.porTipo[tipo].viagens += 1;
+    });
+  });
+  return { mapa, diasComDados: diasDoMes.length };
+}
+
+function _corAtingimento(pct) {
+  if (pct === null) return 'var(--text3)';
+  if (pct >= 96) return '#2ea043';
+  if (pct >= 51) return '#d29922';
+  return '#f85149';
+}
+
+function _renderMetasCorpo() {
+  const cont = document.getElementById('metas-corpo');
+  if (!cont) return;
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const dadosDe = (m) => _volMetasRealizado[_metaChaveOD(m.origem, m.destino)] || { volume: 0, viagens: 0, placas: new Set(), porTipo: {} };
+  const realizadoDe = (m) => dadosDe(m).volume;
+
+  const linhaItem = (m) => {
+    const idxGlobal = _volMetas.indexOf(m);
+    const dados = dadosDe(m);
+    const real = dados.volume;
+    const meta = parseFloat(m.meta) || 0;
+    const dif = real - meta;
+    const pct = meta > 0 ? Math.round((real/meta)*1000)/10 : null;
+    const cor = _corAtingimento(pct);
+    const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
+
+    // Projeção de fechamento do mês, com base no ritmo diário atual x dias de operação cadastrados
+    let projecaoHtml = '';
+    if (_volMetasDiasOperacao > 0 && _volMetasDiasComDados > 0) {
+      const ritmoDiario = real / _volMetasDiasComDados;
+      const projecao = ritmoDiario * _volMetasDiasOperacao;
+      const pctProjecao = meta > 0 ? Math.round((projecao/meta)*1000)/10 : null;
+      const corProj = _corAtingimento(pctProjecao);
+      projecaoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:3px;">📈 Projeção p/ ${_volMetasDiasOperacao}d: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <span style="color:${corProj};font-weight:700;">(${pctProjecao===null?'—':pctProjecao+'%'})</span></div>`;
+    }
+
+    // Peso médio por tipo de veículo, nessa rota especificamente
+    let pesoTipoHtml = '';
+    const tipos = Object.entries(dados.porTipo || {});
+    if (tipos.length > 0) {
+      const partes = tipos.sort((a,b) => b[1].volume - a[1].volume).map(([tipo, d]) => `${tipo} ${(d.volume/d.viagens).toLocaleString('pt-BR',{maximumFractionDigits:0})}t/vg`).join(' · ');
+      pesoTipoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚛 Peso médio: ${partes}</div>`;
+    }
+
+    // Viabilidade de frota: quantos veículos essa rota precisa pra bater a meta no ritmo necessário
+    let frotaHtml = '';
+    if (_volMetasDiasOperacao > 0 && dados.viagens > 0 && dados.placas.size > 0 && _volMetasDiasComDados > 0) {
+      const pesoMedioGeral = dados.volume / dados.viagens;
+      const viagensNecessarias = pesoMedioGeral > 0 ? Math.ceil(meta / pesoMedioGeral) : 0;
+      const viagensPorDiaNecessarias = viagensNecessarias / _volMetasDiasOperacao;
+      const viagensPorVeiculoPorDia = dados.viagens / dados.placas.size / _volMetasDiasComDados;
+      const veiculosNecessarios = viagensPorVeiculoPorDia > 0 ? Math.ceil(viagensPorDiaNecessarias / viagensPorVeiculoPorDia) : 0;
+      const veiculosAtivos = dados.placas.size;
+      const diffVeic = veiculosNecessarios - veiculosAtivos;
+      const corFrota = diffVeic > 0 ? '#f85149' : '#2ea043';
+      const txtFrota = diffVeic > 0 ? `faltam ${diffVeic} veículo(s)` : 'frota suficiente';
+      frotaHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
+    }
+
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--border2);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button onclick="editarMeta(${idxGlobal})" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:13px;line-height:1;">✏️</button>
+          <button onclick="removerMeta(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:13px;line-height:1;">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px;">
+        <div style="font-size:10px;color:var(--text3);">Meta: <strong style="color:var(--text2);">${fmt(meta)}t</strong> · Realizado: <strong style="color:var(--text2);">${fmt(real)}t</strong> · Dif: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong></div>
+        <div style="font-size:13px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct===null?'—':pct+'%'}</div>
+      </div>
+      ${projecaoHtml}
+      ${pesoTipoHtml}
+      ${frotaHtml}
+    </div>`;
+  };
+
+  const secao = (titulo, itens) => {
+    const totalMeta = itens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+    const totalReal = itens.reduce((s,m) => s + realizadoDe(m), 0);
+    const pctTotal = totalMeta > 0 ? Math.round((totalReal/totalMeta)*1000)/10 : null;
+    const corTotal = _corAtingimento(pctTotal);
+    const linhas = itens.length === 0
+      ? `<div style="font-size:11px;color:var(--text3);padding:8px 0;">Nenhuma meta cadastrada nessa categoria.</div>`
+      : itens.map(linhaItem).join('');
+    return `<div style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">
+        <span>${titulo}</span>
+        <span style="font-size:11px;font-weight:700;color:${corTotal};">${fmt(totalReal)}t / ${fmt(totalMeta)}t${pctTotal!==null ? ' ('+pctTotal+'%)' : ''}</span>
+      </div>
+      ${linhas}
+    </div>`;
+  };
+
+  const novo = _volMetas.filter(_volOrigemDiferentePatio);
+  const fabrica = _volMetas.filter(_volDestinoFabrica);
+  const patio4Entrada = _volMetas.filter(_volDestinoPatio4);
+  const patio4Saida = _volMetas.filter(_volOrigemPatio4);
+
+  cont.innerHTML =
+    secao('⛏️ Volume Novo', novo) +
+    secao('🏭 Volume Fábrica', fabrica) +
+    secao('⬇️ Pátio 4 — Entrada', patio4Entrada) +
+    secao('⬆️ Pátio 4 — Saída', patio4Saida);
+}
+
+async function _volCarregarMetasDoMes(mesKey) {
+  _volMetasMesAtual = mesKey;
+  const cont = document.getElementById('metas-corpo');
+  if (!mesKey) { cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Selecione um mês.</div>'; return; }
+
+  _volMetasCarregando = true;
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando metas e volume realizado...</div>';
+
+  try {
+    const [metaSnap, realizado] = await Promise.all([
+      getDoc(doc(db, 'volume_metas', mesKey)),
+      _volCalcularRealizadoDoMes(mesKey)
+    ]);
+
+    if (metaSnap.exists() && Array.isArray(metaSnap.data().itens)) {
+      _volMetas = metaSnap.data().itens;
+      _volMetasDiasOperacao = metaSnap.data().diasOperacao || null;
+    } else if (mesKey === '2026-08') {
+      _volMetas = METAS_PADRAO_2026_08.slice();
+      _volMetasDiasOperacao = 26;
+    } else {
+      _volMetas = [];
+      _volMetasDiasOperacao = null;
+    }
+    _volMetasRealizado = realizado.mapa || {};
+    _volMetasDiasComDados = realizado.diasComDados || 0;
+
+    const inputDias = document.getElementById('meta-input-dias-operacao');
+    if (inputDias) inputDias.value = _volMetasDiasOperacao || '';
+
+    _renderMetasCorpo();
+  } catch (err) {
+    console.error('Erro ao carregar metas do mês:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:#f85149;">Erro ao carregar metas.</div>';
+  } finally {
+    _volMetasCarregando = false;
+  }
+}
+
+window._onMetaMesChange = function _onMetaMesChange(mesKey) {
+  _volCarregarMetasDoMes(mesKey);
+};
+
+window.adicionarMeta = function adicionarMeta() {
+  const origemEl = document.getElementById('meta-input-origem');
+  const destinoEl = document.getElementById('meta-input-destino');
+  const valorEl = document.getElementById('meta-input-valor');
+  const origem = origemEl.value.trim().toUpperCase();
+  const destino = destinoEl.value;
+  const valor = parseFloat(valorEl.value);
+
+  if (!_volMetasMesAtual) { showToast('✖ Selecione o mês antes de adicionar.'); return; }
+  if (!origem) { showToast('✖ Informe a origem.'); return; }
+  if (isNaN(valor) || valor <= 0) { showToast('✖ Informe uma meta válida.'); return; }
+
+  const existente = _volMetas.find(m => m.origem === origem && m.destino === destino);
+  if (existente) { existente.meta = valor; showToast(`✔ Meta de ${origem} → ${destino} atualizada.`); }
+  else { _volMetas.push({ origem, destino, meta: valor }); showToast(`✔ Meta de ${origem} → ${destino} adicionada.`); }
+
+  origemEl.value = '';
+  valorEl.value = '';
+  _renderMetasCorpo();
+};
+
+window.removerMeta = function removerMeta(idx) {
+  _volMetas.splice(idx, 1);
+  _renderMetasCorpo();
+};
+
+window.editarMeta = function editarMeta(idx) {
+  const m = _volMetas[idx];
+  if (!m) return;
+  document.getElementById('meta-input-origem').value = m.origem;
+  document.getElementById('meta-input-destino').value = m.destino;
+  const valorEl = document.getElementById('meta-input-valor');
+  valorEl.value = m.meta;
+  valorEl.focus();
+  valorEl.select();
+  showToast(`✏️ Editando ${m.origem} → ${m.destino} — ajuste o valor e clique em Adicionar para atualizar.`);
+};
+
+window._onDiasOperacaoChange = function _onDiasOperacaoChange() {
+  const valor = parseInt(document.getElementById('meta-input-dias-operacao').value, 10);
+  _volMetasDiasOperacao = (!isNaN(valor) && valor > 0) ? valor : null;
+  _renderMetasCorpo();
+};
+
+window.salvarMetas = async function salvarMetas() {
+  if (!_volMetasMesAtual) { showToast('✖ Selecione o mês antes de salvar.'); return; }
+  try {
+    await setDoc(doc(db, 'volume_metas', _volMetasMesAtual), { itens: _volMetas, diasOperacao: _volMetasDiasOperacao || null, atualizadoEm: new Date().toISOString() });
+    delete _volMetasCardsCache[_volMetasMesAtual];
+    if (_volAba === 'local' && _volModoView === 'mes' && _volMesAtual === _volMetasMesAtual) {
+      _volAtualizarMetasNosCards();
+    }
+    showToast(`✔ Metas de ${_volMesParaLabel(_volMetasMesAtual)} salvas com sucesso!`);
+  } catch (err) {
+    console.error('Erro ao salvar metas:', err);
+    showToast('✖ Erro ao salvar metas: ' + err.message);
+  }
+};
+
+window.abrirMetasModal = async function abrirMetasModal() {
+  document.getElementById('metas-overlay').style.display = 'flex';
+  const mesPadrao = await _popularSeletorMesMetas();
+  await _volCarregarMetasDoMes(mesPadrao);
+};
+
+window.fecharMetasModal = function fecharMetasModal() {
+  document.getElementById('metas-overlay').style.display = 'none';
+};
+
+// Expande um card de Volume em destaque, com fonte maior — clona o card já renderizado
+// (com metas e tudo mais já preenchido) em vez de reconstruir tudo do zero.
+window.abrirCardFoco = function abrirCardFoco(cardId) {
+  const original = document.getElementById(cardId);
+  if (!original) return;
+  const clone = original.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+  const botaoExpandir = clone.querySelector('.vol-card-expand-btn');
+  if (botaoExpandir) botaoExpandir.remove();
+
+  // Quando o card tem 2 quebras (ex.: Por Origem + Por Destino), coloca lado a lado em vez de
+  // empilhado — usa melhor a largura da tela e reduz a altura total, cabendo maior sem rolar.
+  const blocos = clone.querySelectorAll(':scope > .vol-breakdown-block');
+  let larguraReferencia = Math.min(window.innerWidth * 0.72, 900);
+  if (blocos.length === 2) {
+    const linha = document.createElement('div');
+    linha.style.cssText = 'display:flex;gap:28px;margin-top:10px;';
+    blocos[0].style.marginTop = '0';
+    blocos[0].style.flex = '1';
+    blocos[0].style.minWidth = '0';
+    blocos[1].style.marginTop = '0';
+    blocos[1].style.flex = '1';
+    blocos[1].style.minWidth = '0';
+    blocos[0].parentNode.insertBefore(linha, blocos[0]);
+    linha.appendChild(blocos[0]);
+    linha.appendChild(blocos[1]);
+    larguraReferencia = Math.min(window.innerWidth * 0.9, 1300);
+  } else if (blocos.length === 1) {
+    // Um bloco só, mas pode ter muitas linhas (ex.: 6 rotas) — divide as linhas em 2 colunas
+    // dentro do mesmo bloco pra não ficar excessivamente alto (o que forçaria um zoom pequeno).
+    const bloco = blocos[0];
+    const linhasFlow = Array.from(bloco.querySelectorAll(':scope > .vol-flow-row'));
+    if (linhasFlow.length > 3) {
+      // agrupa por Destino quando possível — muito mais intuitivo do que separar por ranking de
+      // volume, que podia jogar "SANTO ANTONIO → FABRICA" e "SANTO ANTONIO → PATIO 4" em colunas
+      // diferentes sem nenhum critério visível pro usuário.
+      const gruposPorDestino = {};
+      const ordemDestinos = [];
+      linhasFlow.forEach(linha => {
+        const destino = linha.getAttribute('data-destino') || '';
+        if (!gruposPorDestino[destino]) { gruposPorDestino[destino] = []; ordemDestinos.push(destino); }
+        gruposPorDestino[destino].push(linha);
+      });
+
+      let colunaEsquerdaLinhas, colunaDireitaLinhas;
+      if (ordemDestinos.length === 2 && ordemDestinos.every(d => d)) {
+        colunaEsquerdaLinhas = gruposPorDestino[ordemDestinos[0]];
+        colunaDireitaLinhas = gruposPorDestino[ordemDestinos[1]];
+      } else {
+        const metade = Math.ceil(linhasFlow.length / 2);
+        colunaEsquerdaLinhas = linhasFlow.slice(0, metade);
+        colunaDireitaLinhas = linhasFlow.slice(metade);
+      }
+
+      const colEsquerda = document.createElement('div');
+      const colDireita = document.createElement('div');
+      colEsquerda.style.cssText = 'flex:1;min-width:0;';
+      colDireita.style.cssText = 'flex:1;min-width:0;';
+      colunaEsquerdaLinhas.forEach(linha => colEsquerda.appendChild(linha));
+      colunaDireitaLinhas.forEach(linha => colDireita.appendChild(linha));
+      const linhaColunas = document.createElement('div');
+      linhaColunas.style.cssText = 'display:flex;gap:24px;';
+      linhaColunas.appendChild(colEsquerda);
+      linhaColunas.appendChild(colDireita);
+      bloco.appendChild(linhaColunas);
+      larguraReferencia = Math.min(window.innerWidth * 0.9, 1300);
+    }
+  }
+
+  clone.style.width = larguraReferencia + 'px';
+  clone.style.zoom = '1';
+
+  const corpo = document.getElementById('vol-card-foco-corpo');
+  corpo.innerHTML = '';
+  corpo.appendChild(clone);
+  document.getElementById('vol-card-foco-overlay').style.display = 'flex';
+
+  // Mede o card à largura de referência (zoom 1) e calcula o zoom que faz ele ocupar o máximo
+  // da tela (largura e altura) sem precisar rolar. Espera 2 frames pra garantir que o navegador
+  // já terminou de desenhar o clone antes de medir a altura real dele.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const alturaDisponivel = window.innerHeight * 0.92;
+      const larguraDisponivel = window.innerWidth * 0.94;
+
+      const alturaNatural = clone.offsetHeight;
+      if (!alturaNatural) return;
+
+      const zoomPorAltura = alturaDisponivel / alturaNatural;
+      const zoomPorLargura = larguraDisponivel / larguraReferencia;
+      const zoom = Math.min(zoomPorAltura, zoomPorLargura, 2.4);
+
+      clone.style.zoom = zoom;
+    });
+  });
+};
+
+window.fecharCardFoco = function fecharCardFoco() {
+  document.getElementById('vol-card-foco-overlay').style.display = 'none';
+};
+
+
+async function _volCarregarDia(diaStr) {
+  _volDiaAtual = diaStr;
+  const tbody = document.getElementById('vol-tabela-body');
+  if (!diaStr) { _volDiasRegistros = []; _volRenderPagina(); return; }
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  try {
+    const snap = await getDoc(doc(db, 'volume_dias', _volDiaParaChave(diaStr)));
+    _volDiasRegistros = snap.exists() ? [{ dia: diaStr, viagens: snap.data().viagens || [] }] : [];
+    _volRenderPagina();
+  } catch (err) {
+    console.error('Erro ao carregar dia (volume):', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
+  }
+}
+
+async function _volCarregarMes(mesKey) {
+  _volMesAtual = mesKey;
+  const tbody = document.getElementById('vol-tabela-body');
+  if (!mesKey) { _volDiasRegistros = []; _volRenderPagina(); return; }
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando consolidado do mês...</td></tr>';
+  try {
+    const [ano, mes] = mesKey.split('-');
+    const diasDoMes = (_volMeta.dias || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+    if (diasDoMes.length === 0) { _volDiasRegistros = []; _volRenderPagina(); return; }
+    const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
+    _volDiasRegistros = diasDoMes.map((d,i) => ({ dia: d, viagens: snaps[i].exists() ? (snaps[i].data().viagens || []) : [] }));
+    _volRenderPagina();
+  } catch (err) {
+    console.error('Erro ao carregar mês (volume):', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
+  }
+}
+
+async function _volCarregarAno(anoKey) {
+  _volAnoAtual = anoKey;
+  const tbody = document.getElementById('vol-tabela-body');
+  if (!anoKey) { _volDiasRegistros = []; _volRenderPagina(); return; }
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando consolidado do ano...</td></tr>';
+  try {
+    const diasDoAno = (_volMeta.dias || []).filter(d => d.split('/')[2] === anoKey);
+    if (diasDoAno.length === 0) { _volDiasRegistros = []; _volRenderPagina(); return; }
+    const snaps = await Promise.all(diasDoAno.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
+    _volDiasRegistros = diasDoAno.map((d,i) => ({ dia: d, viagens: snaps[i].exists() ? (snaps[i].data().viagens || []) : [] }));
+    _volRenderPagina();
+  } catch (err) {
+    console.error('Erro ao carregar ano (volume):', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
+  }
+}
+
+window._volOnDiaChange = function _volOnDiaChange(diaStr) { _volCarregarDia(diaStr); };
+window._volOnMesChange = function _volOnMesChange(mesKey) { _volCarregarMes(mesKey); };
+window._volOnAnoChange = function _volOnAnoChange(anoKey) { _volCarregarAno(anoKey); };
+
+window._volSetModoView = function _volSetModoView(modo) {
+  _volModoView = modo;
+  const btnDia = document.getElementById('vol-modo-dia-btn');
+  const btnMes = document.getElementById('vol-modo-mes-btn');
+  const btnAno = document.getElementById('vol-modo-ano-btn');
+  const selDia = document.getElementById('vol-dia-select');
+  const selMes = document.getElementById('vol-mes-select');
+  const selAno = document.getElementById('vol-ano-select');
+
+  [btnDia, btnMes, btnAno].forEach(b => { b.style.background = 'var(--bg3)'; b.style.color = 'var(--text3)'; });
+  [selDia, selMes, selAno].forEach(s => { s.style.display = 'none'; });
+
+  if (modo === 'dia') {
+    btnDia.style.background = '#388bfd'; btnDia.style.color = '#fff';
+    selDia.style.display = '';
+    _volCarregarDia(selDia.value || _volDiaAtual);
+  } else if (modo === 'ano') {
+    btnAno.style.background = '#388bfd'; btnAno.style.color = '#fff';
+    selAno.style.display = '';
+    _volCarregarAno(selAno.value || _volAnoAtual);
+  } else {
+    btnMes.style.background = '#388bfd'; btnMes.style.color = '#fff';
+    selMes.style.display = '';
+    _volCarregarMes(selMes.value || _volMesAtual);
+  }
+};
+
+window.renderVolume = async function renderVolume() {
+  const tbody = document.getElementById('vol-tabela-body');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  try {
+    const snap = await getDoc(doc(db, 'volume', 'meta'));
+    if (!snap.exists()) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma base importada.<br/>Use o botão "Importar Base de Volume" para carregar os dados.</td></tr>';
+      return;
+    }
+    _volMeta = snap.data();
+    document.getElementById('vol-ultima-import').textContent = _volMeta.importadoEm ? 'Importado em: ' + new Date(_volMeta.importadoEm).toLocaleString('pt-BR') : '';
+
+    const diasTodos = _volMeta.dias || [];
+    const dias = diasTodos.slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
+      return db.localeCompare(da);
+    });
+    const selectDia = document.getElementById('vol-dia-select');
+    const manterDia = dias.includes(_volDiaAtual) ? _volDiaAtual : (dias[0] || '');
+    selectDia.innerHTML = dias.length ? dias.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">—</option>';
+    selectDia.value = manterDia;
+
+    const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+    const meses = Array.from(mesesSet).sort().reverse();
+    const hoje = new Date();
+    const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+    const mesPadrao = meses.includes(_volMesAtual) ? _volMesAtual : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
+    const selectMes = document.getElementById('vol-mes-select');
+    selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_volMesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
+    selectMes.value = mesPadrao;
+
+    const anosSet = new Set(diasTodos.map(d => d.split('/')[2]));
+    const anos = Array.from(anosSet).sort().reverse();
+    const anoAtualKey = String(hoje.getFullYear());
+    const anoPadrao = anos.includes(_volAnoAtual) ? _volAnoAtual : (anos.includes(anoAtualKey) ? anoAtualKey : (anos[0] || ''));
+    const selectAno = document.getElementById('vol-ano-select');
+    selectAno.innerHTML = anos.length ? anos.map(a => `<option value="${a}">${a}</option>`).join('') : '<option value="">—</option>';
+    selectAno.value = anoPadrao;
+
+    if (_volModoView === 'ano') await _volCarregarAno(anoPadrao);
+    else if (_volModoView === 'mes') await _volCarregarMes(mesPadrao);
+    else await _volCarregarDia(manterDia);
+  } catch (err) {
+    console.error('Erro volume:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
+  }
+};
+
 // EXPORT PDF (simulado)
 // ══════════════════════════════════════
 window.exportarPDF = function exportarPDF() {
@@ -1663,6 +4363,7 @@ function init() {
 }
 
 init();
+window.renderVolume();
 </script>
 </body>
 </html>
