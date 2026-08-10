@@ -2949,7 +2949,7 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
     </div>`;
   }).join('');
 
-  return `<div class="vol-breakdown-block" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+  return `<div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
       <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
         <span>Por ${rotulo} (${nItens})</span>
         <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}t</strong></span>
@@ -3064,13 +3064,13 @@ function _volCardFabricaHTML(opts) {
     </div>
     <div id="vol-card-meta-fabrica"></div>
 
-    <div class="vol-breakdown-block" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+    <div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
       <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</div>
       ${linhaFonte('Pátio 4', totalPatio4, totalFontes, doPatio4.length, 'PATIO 4')}
       ${linhaFonte('Material Novo', totalNovo, totalFontes, materialNovo.length, '')}
     </div>
 
-    ${porMina.length > 0 ? `<div class="vol-breakdown-block" style="margin-top:12px;padding-top:8px;border-top:2px solid var(--border2);">
+    ${porMina.length > 0 ? `<div class="vol-breakdown-block" style="display:none;margin-top:12px;padding-top:8px;border-top:2px solid var(--border2);">
       <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Material Novo (${porMina.length})</div>
       ${linhasMinas}
       ${porMina.length > 6 ? `<div style="font-size:10px;color:var(--text3);text-align:center;padding-top:4px;">+${porMina.length-6} outras</div>` : ''}
@@ -3785,6 +3785,10 @@ window.abrirCardFoco = function abrirCardFoco(cardId) {
   clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
   const botaoExpandir = clone.querySelector('.vol-card-expand-btn');
   if (botaoExpandir) botaoExpandir.remove();
+
+  // As quebras (Por Origem/Destino/Rota/Força/Tipo) ficam escondidas no card compacto —
+  // só aparecem quando o usuário expande.
+  clone.querySelectorAll('.vol-breakdown-block').forEach(el => { el.style.display = ''; });
 
   // Quando o card tem 2 quebras (ex.: Por Origem + Por Destino), coloca lado a lado em vez de
   // empilhado — usa melhor a largura da tela e reduz a altura total, cabendo maior sem rolar.
