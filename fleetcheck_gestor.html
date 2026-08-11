@@ -379,11 +379,19 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     </button>
     <button class="nav-item" onclick="showPage('produtividade')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M12 3v6M9 6h6"/></svg>
-      Produtividade
+      Aderência/Disponibilidade
     </button>
     <button class="nav-item active" onclick="showPage('volume')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
       Volume
+    </button>
+    <button class="nav-item" onclick="showPage('minas')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l6-11 4 7 3-5 5 9H3z"/><circle cx="7" cy="6" r="2"/></svg>
+      Minas
+    </button>
+    <button class="nav-item" onclick="showPage('programacao')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Programação
     </button>
   </nav>
   <div class="sidebar-user">
@@ -663,7 +671,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <button class="vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏷️ Por Tipo</button>
       </div>
 
-      <div id="vol-cards-mina-rota" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;"></div>
+      <div id="vol-cards-mina-rota" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
 
       <div class="table-card" id="vol-tabela-card">
         <div class="table-header">
@@ -681,8 +689,122 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
     </div>
 
+    <!-- PAGE: CADASTRO DE MINAS -->
+    <div class="page" id="page-minas">
+      <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:13px;color:var(--text3);">Rotas cadastradas (Origem → Destino) e a quantidade padrão de viagens/dia esperada em cada uma.</div>
+        <button onclick="abrirFormMina()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
+          ⛰️ Cadastrar Mina
+        </button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Minas Cadastradas</div>
+          <div class="table-count" id="minas-tabela-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ORIGEM</th>
+                <th>DESTINO</th>
+                <th style="text-align:right;">VIAGENS/DIA (padrão)</th>
+                <th style="text-align:right;">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="minas-tabela-body">
+              <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: PROGRAMAÇÃO DIÁRIA DE VOLUME -->
+    <div class="page" id="page-programacao">
+      <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:13px;color:var(--text3);">Dia:</div>
+          <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
+        </div>
+        <button onclick="abrirFormProgItem()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
+          📅 Cadastrar Meta do Dia
+        </button>
+      </div>
+
+      <div id="prog-corpo" style="margin-top:16px;">
+        <div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>
+      </div>
+
+      <div class="table-card" style="margin-top:16px;padding:16px 18px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Frota — Atribuição de Rotas</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Escolha a Mina (Origem) e o Destino de cada veículo. Viagens vem automaticamente do padrão cadastrado em "Minas" — pode editar se precisar. Peso = viagens × peso médio daquele veículo específico (base de Aderência).</div>
+        <div id="prog-frota-corpo">
+          <div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
+
+<!-- FORM CADASTRO/EDIÇÃO DE MINA -->
+<div id="mina-form-overlay" onclick="if(event.target===this) fecharFormMina()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);" id="mina-form-titulo">⛰️ Cadastrar Mina</div>
+      <button onclick="fecharFormMina()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
+        <input type="text" id="mina-form-origem" placeholder="ex: SANTO ANTONIO" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
+        <select id="mina-form-destino" class="filter-input" style="width:100%;">
+          <option value="FABRICA">FABRICA</option>
+          <option value="PATIO 4">PATIO 4</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Viagens/dia (padrão dessa rota)</label>
+        <input type="number" id="mina-form-viagens" placeholder="ex: 8" class="filter-input" style="width:100%;">
+      </div>
+      <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORM CADASTRO DE ITEM DA PROGRAMAÇÃO DO DIA -->
+<div id="prog-form-overlay" onclick="if(event.target===this) fecharFormProgItem()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);">📅 Meta do Dia</div>
+      <button onclick="fecharFormProgItem()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:11px;color:var(--text3);" id="prog-form-dia-label"></div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
+        <input type="text" id="prog-form-origem" placeholder="ex: SERTAOZINHO" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
+        <select id="prog-form-destino" class="filter-input" style="width:100%;">
+          <option value="FABRICA">FABRICA</option>
+          <option value="PATIO 4">PATIO 4</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Volume (t)</label>
+        <input type="number" id="prog-form-volume" placeholder="ex: 1224" class="filter-input" style="width:100%;">
+      </div>
+      <button onclick="adicionarItemProg()" style="margin-top:6px;padding:10px 16px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">+ Adicionar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL FAROL -->
 <div class="detail-overlay" id="farol-overlay" onclick="fecharModalFarol(event)" style="display:none;">
@@ -1336,7 +1458,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Produtividade de Veículos', volume: 'Volume Transportado' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume' };
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -1457,6 +1579,8 @@ window.showPage = function showPage(id) {
   if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
   if (id === 'produtividade') setTimeout(() => window.renderProdutividade(), 0);
   if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
+  if (id === 'minas') setTimeout(() => window.renderMinas(), 0);
+  if (id === 'programacao') setTimeout(() => window.renderProgramacao(), 0);
 }
 
 // ══════════════════════════════════════
@@ -3880,6 +4004,445 @@ window.abrirCardFoco = function abrirCardFoco(cardId) {
 window.fecharCardFoco = function fecharCardFoco() {
   document.getElementById('vol-card-foco-overlay').style.display = 'none';
 };
+
+// ══════════════════════════════════════
+// CADASTRO DE MINAS (Origem × Destino × Viagens/dia padrão)
+// ══════════════════════════════════════
+let _minasCadastro = [];       // [{ id, origem, destino, viagensDia }]
+let _minasCarregado = false;
+let _minaEditandoId = null;    // id da mina sendo editada (null = cadastro novo)
+
+async function _carregarMinas() {
+  try {
+    const snap = await getDocs(collection(db, 'minas_cadastro'));
+    _minasCadastro = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    _minasCarregado = true;
+  } catch (err) {
+    console.error('Erro ao carregar minas:', err);
+    _minasCadastro = [];
+  }
+}
+
+function _renderMinasTabela() {
+  const body = document.getElementById('minas-tabela-body');
+  const count = document.getElementById('minas-tabela-count');
+  if (!body) return;
+  count.textContent = _minasCadastro.length + (_minasCadastro.length === 1 ? ' registro' : ' registros');
+
+  if (_minasCadastro.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
+    return;
+  }
+
+  const ordenadas = _minasCadastro.slice().sort((a,b) => (a.origem||'').localeCompare(b.origem||'') || (a.destino||'').localeCompare(b.destino||''));
+  body.innerHTML = ordenadas.map(m => `<tr>
+      <td class="text-primary">${m.origem}</td>
+      <td>${m.destino}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${m.viagensDia ?? '—'}</td>
+      <td style="text-align:right;">
+        <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:14px;margin-right:8px;">✏️</button>
+        <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.renderMinas = async function renderMinas() {
+  const body = document.getElementById('minas-tabela-body');
+  if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  await _carregarMinas();
+  _renderMinasTabela();
+};
+
+window.abrirFormMina = function abrirFormMina(id) {
+  _minaEditandoId = id || null;
+  const titulo = document.getElementById('mina-form-titulo');
+  const origemEl = document.getElementById('mina-form-origem');
+  const destinoEl = document.getElementById('mina-form-destino');
+  const viagensEl = document.getElementById('mina-form-viagens');
+
+  if (id) {
+    const mina = _minasCadastro.find(m => m.id === id);
+    if (!mina) return;
+    titulo.textContent = '✏️ Editar Mina';
+    origemEl.value = mina.origem || '';
+    destinoEl.value = mina.destino || 'FABRICA';
+    viagensEl.value = mina.viagensDia ?? '';
+  } else {
+    titulo.textContent = '⛰️ Cadastrar Mina';
+    origemEl.value = '';
+    destinoEl.value = 'FABRICA';
+    viagensEl.value = '';
+  }
+
+  document.getElementById('mina-form-overlay').style.display = 'flex';
+  origemEl.focus();
+};
+
+window.fecharFormMina = function fecharFormMina() {
+  document.getElementById('mina-form-overlay').style.display = 'none';
+  _minaEditandoId = null;
+};
+
+window.salvarMina = async function salvarMina() {
+  const origem = document.getElementById('mina-form-origem').value.trim().toUpperCase();
+  const destino = document.getElementById('mina-form-destino').value;
+  const viagensDia = parseInt(document.getElementById('mina-form-viagens').value, 10);
+
+  if (!origem) { showToast('✖ Informe a origem.'); return; }
+  if (isNaN(viagensDia) || viagensDia <= 0) { showToast('✖ Informe a quantidade de viagens/dia.'); return; }
+
+  try {
+    if (_minaEditandoId) {
+      await setDoc(doc(db, 'minas_cadastro', _minaEditandoId), { origem, destino, viagensDia }, { merge: true });
+      showToast(`✔ Mina ${origem} → ${destino} atualizada.`);
+    } else {
+      const novoDoc = doc(collection(db, 'minas_cadastro'));
+      await setDoc(novoDoc, { origem, destino, viagensDia });
+      showToast(`✔ Mina ${origem} → ${destino} cadastrada.`);
+    }
+    fecharFormMina();
+    await _carregarMinas();
+    _renderMinasTabela();
+  } catch (err) {
+    console.error('Erro ao salvar mina:', err);
+    showToast('✖ Erro ao salvar mina: ' + err.message);
+  }
+};
+
+window.excluirMina = async function excluirMina(id) {
+  const mina = _minasCadastro.find(m => m.id === id);
+  if (!mina) return;
+  try {
+    await deleteDoc(doc(db, 'minas_cadastro', id));
+    _minasCadastro = _minasCadastro.filter(m => m.id !== id);
+    _renderMinasTabela();
+    showToast(`✔ Mina ${mina.origem} → ${mina.destino} removida.`);
+  } catch (err) {
+    console.error('Erro ao excluir mina:', err);
+    showToast('✖ Erro ao excluir mina: ' + err.message);
+  }
+};
+
+// ══════════════════════════════════════
+// PROGRAMAÇÃO DIÁRIA DE VOLUME (meta do dia, por Origem × Destino)
+// Reaproveita os mesmos filtros de categoria (Novo/Fábrica/Pátio4 Entrada/Saída) já usados
+// nos cards e nas Metas mensais — só que aqui o cadastro é por DIA específico, não por mês.
+// ══════════════════════════════════════
+let _progDataAtual = null; // 'YYYY-MM-DD'
+let _progItens = [];       // [{ origem, destino, meta }] do dia carregado
+
+function _progChaveParaLabel(dataISO) {
+  if (!dataISO) return '';
+  const [ano, mes, dia] = dataISO.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
+async function _carregarProgDia(dataISO) {
+  _progDataAtual = dataISO;
+  const cont = document.getElementById('prog-corpo');
+  if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando...</div>';
+  try {
+    const snap = await getDoc(doc(db, 'programacao_dias', dataISO));
+    _progItens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
+    _progAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+    _renderProgCorpo();
+    _progRenderFrotaTabela();
+  } catch (err) {
+    console.error('Erro ao carregar programação do dia:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar a programação desse dia.</div>';
+  }
+}
+
+function _renderProgCorpo() {
+  const cont = document.getElementById('prog-corpo');
+  if (!cont) return;
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+
+  const card = (titulo, icone, cor, itens) => {
+    const total = itens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+    const linhas = itens.length === 0
+      ? `<div style="font-size:11px;color:var(--text3);padding:8px 0;">Nada programado nessa categoria.</div>`
+      : itens.map(m => {
+          const idxGlobal = _progItens.indexOf(m);
+          const meta = parseFloat(m.meta) || 0;
+          const programado = _progProgramadoPara(m.origem, m.destino);
+          const pct = meta > 0 ? Math.round((programado/meta)*1000)/10 : 0;
+          const corProg = pct >= 96 ? '#2ea043' : pct >= 51 ? '#d29922' : '#f85149';
+          return `<div style="padding:6px 0;border-bottom:1px solid var(--border2);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <div style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}t</div>
+                <button onclick="removerItemProg(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:13px;line-height:1;">🗑</button>
+              </div>
+            </div>
+            <div style="font-size:10px;color:${corProg};margin-top:1px;">Programado: <strong>${fmt(programado)}t / ${fmt(meta)}t</strong> (${pct}%)</div>
+          </div>`;
+        }).join('');
+    return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${cor};">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:18px;">${icone}</span>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${titulo}</div>
+      </div>
+      <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Total (t) · ${itens.length} item(ns)</div>
+      <div style="border-top:1px solid var(--border2);padding-top:8px;">${linhas}</div>
+    </div>`;
+  };
+
+  if (_progItens.length === 0) {
+    cont.innerHTML = `<div class="table-card" style="text-align:center;padding:40px;color:var(--text3);">
+      Nenhuma meta cadastrada pra ${_progChaveParaLabel(_progDataAtual)}. Clique em "Cadastrar Meta do Dia" pra começar.
+    </div>`;
+    return;
+  }
+
+  // "Volume Fábrica" aqui é só o que vai DIRETO da mina pra fábrica (sem passar pelo Pátio 4) —
+  // o que sai do Pátio 4 rumo à fábrica já está contabilizado em "Pátio 4 — Saída", então não
+  // duplicamos ele aqui (diferente do card da tela Volume, que soma as duas origens de propósito).
+  const novo = _progItens.filter(_volOrigemDiferentePatio);
+  const fabrica = _progItens.filter(m => _volOrigemDiferentePatio(m) && _volDestinoFabrica(m));
+  const entrada = _progItens.filter(_volDestinoPatio4);
+  const saida = _progItens.filter(_volOrigemPatio4);
+  const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+
+  cont.innerHTML =
+    `<div class="table-card" style="padding:16px 18px;margin-bottom:14px;border-top:3px solid #388bfd;display:flex;justify-content:space-between;align-items:baseline;">
+      <div style="font-size:12px;color:var(--text3);">Total programado para ${_progChaveParaLabel(_progDataAtual)} (${_progItens.length} item(ns))</div>
+      <div style="font-size:22px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;">${fmt(totalGeral)}t</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
+    card('Volume Novo', '⛏️', '#2ea043', novo) +
+    card('Volume Fábrica (direto da mina)', '🏭', '#d29922', fabrica) +
+    card('Pátio 4 — Entrada', '⬇️', '#3fb950', entrada) +
+    card('Pátio 4 — Saída', '⬆️', '#f85149', saida) +
+    `</div>`;
+}
+
+window._onProgDataChange = function _onProgDataChange(dataISO) {
+  _carregarProgDia(dataISO);
+};
+
+window.renderProgramacao = async function renderProgramacao() {
+  const input = document.getElementById('prog-data-input');
+  if (!_progDataAtual) {
+    const hoje = new Date();
+    _progDataAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+  }
+  input.value = _progDataAtual;
+  await _carregarProgDia(_progDataAtual);
+  await _progRenderSecaoFrota();
+};
+
+window.abrirFormProgItem = function abrirFormProgItem() {
+  if (!_progDataAtual) { showToast('✖ Selecione o dia antes de cadastrar.'); return; }
+  document.getElementById('prog-form-dia-label').textContent = `Cadastrando para: ${_progChaveParaLabel(_progDataAtual)}`;
+  document.getElementById('prog-form-origem').value = '';
+  document.getElementById('prog-form-destino').value = 'FABRICA';
+  document.getElementById('prog-form-volume').value = '';
+  document.getElementById('prog-form-overlay').style.display = 'flex';
+  document.getElementById('prog-form-origem').focus();
+};
+
+window.fecharFormProgItem = function fecharFormProgItem() {
+  document.getElementById('prog-form-overlay').style.display = 'none';
+};
+
+window.adicionarItemProg = async function adicionarItemProg() {
+  const origem = document.getElementById('prog-form-origem').value.trim().toUpperCase();
+  const destino = document.getElementById('prog-form-destino').value;
+  const volume = parseFloat(document.getElementById('prog-form-volume').value);
+
+  if (!origem) { showToast('✖ Informe a origem.'); return; }
+  if (isNaN(volume) || volume <= 0) { showToast('✖ Informe um volume válido.'); return; }
+
+  const existente = _progItens.find(m => m.origem === origem && m.destino === destino);
+  if (existente) existente.meta = volume;
+  else _progItens.push({ origem, destino, meta: volume });
+
+  try {
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() });
+    showToast(`✔ ${origem} → ${destino}: ${volume.toLocaleString('pt-BR')}t programado(a) para ${_progChaveParaLabel(_progDataAtual)}.`);
+    fecharFormProgItem();
+    _renderProgCorpo();
+  } catch (err) {
+    console.error('Erro ao salvar programação:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+};
+
+window.removerItemProg = async function removerItemProg(idx) {
+  _progItens.splice(idx, 1);
+  try {
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() });
+    _renderProgCorpo();
+    showToast('✔ Item removido da programação do dia.');
+  } catch (err) {
+    console.error('Erro ao remover item da programação:', err);
+    showToast('✖ Erro ao remover: ' + err.message);
+  }
+};
+
+// ══════════════════════════════════════
+// ATRIBUIÇÃO DE ROTAS POR VEÍCULO
+// O usuário escolhe, veículo por veículo, qual Mina (Origem) e Destino ele vai fazer no dia.
+// Ao escolher os dois, o sistema puxa automaticamente:
+//   - Viagens: o padrão cadastrado em "Minas" pra aquela combinação Origem×Destino
+//   - Peso: a média de peso por viagem daquele veículo específico (histórico da base de
+//     Aderência), multiplicada pelas viagens
+// O progresso de cada rota (quanto já foi programado x quanto falta da meta) aparece nos
+// cards de Volume Novo/Fábrica/Pátio4.
+// ══════════════════════════════════════
+let _progRosterVeiculos = null;  // [{placa, fr, tipo2, forca, pesoMedio}]
+let _progAtribuicoes = [];       // [{placa, fr, tipo2, forca, origem, destino, viagens, pesoMedio, peso}]
+
+async function _progCarregarRoster() {
+  if (_progRosterVeiculos) return _progRosterVeiculos;
+  try {
+    const snap = await getDocs(collection(db, 'base_volume_veiculos'));
+    const roster = [];
+    snap.docs.forEach(d => {
+      const hist = d.data().historico || [];
+      if (hist.length === 0) return;
+      const ultimo = hist[hist.length - 1];
+      const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
+      const somaViagens = hist.reduce((s,h) => s + (h.viagens||0), 0);
+      roster.push({
+        placa: d.id,
+        fr: ultimo.fr ?? '',
+        tipo2: (ultimo.tipo2 || '').toString().trim().toUpperCase(),
+        forca: (ultimo.forca || '').toString().trim().toUpperCase(),
+        pesoMedio: somaViagens > 0 ? somaVolume / somaViagens : 0
+      });
+    });
+    roster.sort((a,b) => (a.fr||0) - (b.fr||0));
+    _progRosterVeiculos = roster;
+  } catch (err) {
+    console.error('Erro ao carregar frota da base de Aderência:', err);
+    _progRosterVeiculos = [];
+  }
+  return _progRosterVeiculos;
+}
+
+function _progBuscarViagensPadrao(origem, destino) {
+  const mina = (_minasCadastro || []).find(m =>
+    (m.origem||'').toString().trim().toUpperCase() === origem.trim().toUpperCase() &&
+    (m.destino||'').toString().trim().toUpperCase() === destino.trim().toUpperCase()
+  );
+  return mina ? (mina.viagensDia || 0) : 0;
+}
+
+function _progAtribuicaoDoVeiculo(placa) {
+  return _progAtribuicoes.find(a => a.placa === placa);
+}
+
+async function _progSalvarAtribuicoes() {
+  try {
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { atribuicoes: _progAtribuicoes, atualizadoEm: new Date().toISOString() }, { merge: true });
+  } catch (err) {
+    console.error('Erro ao salvar atribuições de veículos:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+}
+
+// Soma o peso já programado (atribuído a veículos) para uma combinação Origem×Destino específica
+function _progProgramadoPara(origem, destino) {
+  return _progAtribuicoes
+    .filter(a => a.origem === origem && a.destino === destino)
+    .reduce((s,a) => s + (a.peso||0), 0);
+}
+
+window._onProgOrigemVeiculo = async function _onProgOrigemVeiculo(placa, origem) {
+  await _progAtualizarAtribuicao(placa, { origem });
+};
+
+window._onProgDestinoVeiculo = async function _onProgDestinoVeiculo(placa, destino) {
+  await _progAtualizarAtribuicao(placa, { destino });
+};
+
+window._onProgViagensVeiculo = async function _onProgViagensVeiculo(placa, viagens) {
+  await _progAtualizarAtribuicao(placa, { viagens: parseInt(viagens,10) || 0, viagensManual: true });
+};
+
+async function _progAtualizarAtribuicao(placa, mudancas) {
+  const roster = await _progCarregarRoster();
+  const veiculo = roster.find(v => v.placa === placa);
+  if (!veiculo) return;
+
+  let atrib = _progAtribuicaoDoVeiculo(placa);
+  if (!atrib) {
+    atrib = { placa: veiculo.placa, fr: veiculo.fr, tipo2: veiculo.tipo2, forca: veiculo.forca, origem: '', destino: '', viagens: 0, viagensManual: false, pesoMedio: veiculo.pesoMedio, peso: 0 };
+    _progAtribuicoes.push(atrib);
+  }
+  Object.assign(atrib, mudancas);
+
+  // se origem+destino estão definidos e o usuário não sobrescreveu viagens manualmente,
+  // puxa o padrão cadastrado em Minas automaticamente
+  if (atrib.origem && atrib.destino && !atrib.viagensManual) {
+    atrib.viagens = _progBuscarViagensPadrao(atrib.origem, atrib.destino);
+  }
+  atrib.peso = Math.round((atrib.viagens||0) * atrib.pesoMedio * 100) / 100;
+
+  // remove a atribuição se ficou vazia (sem origem nem destino) pra não poluir a base
+  if (!atrib.origem && !atrib.destino) {
+    _progAtribuicoes = _progAtribuicoes.filter(a => a.placa !== placa);
+  }
+
+  await _progSalvarAtribuicoes();
+  _progRenderFrotaTabela();
+  _renderProgCorpo();
+}
+
+function _progRenderFrotaTabela() {
+  const cont = document.getElementById('prog-frota-corpo');
+  if (!cont || !_progRosterVeiculos) return;
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+
+  const origensDisponiveis = Array.from(new Set((_minasCadastro||[]).map(m => (m.origem||'').toString().trim().toUpperCase()))).sort();
+
+  const linha = (v) => {
+    const atrib = _progAtribuicaoDoVeiculo(v.placa) || { origem: '', destino: '', viagens: '', peso: 0 };
+    const optOrigem = ['<option value="">—</option>'].concat(
+      origensDisponiveis.map(o => `<option value="${o}" ${atrib.origem===o?'selected':''}>${o}</option>`)
+    ).join('');
+    return `<tr>
+      <td>${v.fr || '—'}</td>
+      <td class="text-primary">${v.placa}</td>
+      <td>${v.tipo2}</td>
+      <td>${v.forca}</td>
+      <td><select class="filter-input" style="min-width:150px;font-size:11px;padding:4px 6px;" onchange="_onProgOrigemVeiculo('${v.placa}', this.value)">${optOrigem}</select></td>
+      <td>
+        <select class="filter-input" style="min-width:110px;font-size:11px;padding:4px 6px;" onchange="_onProgDestinoVeiculo('${v.placa}', this.value)">
+          <option value="">—</option>
+          <option value="PATIO 4" ${atrib.destino==='PATIO 4'?'selected':''}>PATIO 4</option>
+          <option value="FABRICA" ${atrib.destino==='FABRICA'?'selected':''}>FABRICA</option>
+        </select>
+      </td>
+      <td style="text-align:right;"><input type="number" min="0" value="${atrib.viagens||''}" style="width:56px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);text-align:right;padding:3px 5px;font-family:'DM Mono',monospace;font-size:12px;" onchange="_onProgViagensVeiculo('${v.placa}', this.value)"></td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;">${atrib.peso ? fmt(atrib.peso)+'t' : '—'}</td>
+    </tr>`;
+  };
+
+  cont.innerHTML = `<div style="overflow-x:auto;">
+    <table style="width:100%;font-size:12px;">
+      <thead><tr>
+        <th>FR</th><th>PLACA</th><th>TIPO2</th><th>FORÇA</th><th>ORIGEM</th><th>DESTINO</th>
+        <th style="text-align:right;">VIAGENS</th><th style="text-align:right;">PESO</th>
+      </tr></thead>
+      <tbody>${_progRosterVeiculos.map(linha).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+async function _progRenderSecaoFrota() {
+  const cont = document.getElementById('prog-frota-corpo');
+  if (!cont) return;
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
+  await _progCarregarRoster();
+  if (!_minasCadastro || !_minasCarregado) await _carregarMinas();
+  _progRenderFrotaTabela();
+}
 
 
 async function _volCarregarDia(diaStr) {
