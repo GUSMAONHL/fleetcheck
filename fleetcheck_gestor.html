@@ -6,6 +6,8 @@
 <title>Novo Horizonte Logística — Painel do Gestor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #0d1117;
@@ -36,14 +38,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ── SIDEBAR ── */
 .sidebar {
-  position: fixed; top: 0; left: 0; width: 240px; height: 100vh;
+  position: fixed; top: 0; left: 0; width: 64px; height: 100vh;
   background: var(--bg2); border-right: 1px solid var(--border);
   display: flex; flex-direction: column; z-index: 10;
 }
 .sidebar-logo {
-  padding: 16px 16px 12px;
+  padding: 16px 8px 12px;
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; justify-content: center;
 }
 .logo-mark {
   width: 32px; height: 32px; background: var(--accent);
@@ -51,25 +53,31 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   flex-shrink: 0;
 }
 .logo-mark svg { width: 18px; height: 18px; }
-.logo-text { font-size:18px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-.logo-sub { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+.logo-text { display: none; }
+.logo-sub { display: none; }
 
-.sidebar-nav { flex: 1; padding: 12px 10px; }
-.nav-label { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px 4px; }
+.sidebar-nav { flex: 1; padding: 12px 8px; }
+.nav-label { display: none; }
 .nav-item {
-  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  display: flex; align-items: center; justify-content: center; padding: 11px;
   border-radius: 8px; cursor: pointer; font-size:16px; color: var(--text2);
-  transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+  transition: all 0.15s; margin-bottom: 4px; border: none; background: none; width: 100%; text-align: left;
+  position: relative;
 }
+.nav-item span { display: none; }
 .nav-item:hover { background: var(--bg3); color: var(--text); }
 .nav-item.active { background: var(--bg4); color: var(--text); font-weight: 500; }
-.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item svg { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.7; }
 .nav-item.active svg { opacity: 1; }
-.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size:13px; font-weight: 600; padding: 2px 6px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+.nav-badge {
+  position: absolute; top: 4px; right: 4px; background: var(--red); color: #fff;
+  font-size:10px; font-weight: 600; min-width: 15px; height: 15px; padding: 0 3px;
+  border-radius: 10px; font-family: 'DM Mono', monospace; display: flex; align-items: center; justify-content: center;
+}
 
 .sidebar-user {
-  padding: 14px 16px; border-top: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
+  padding: 14px 8px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
 }
 .user-avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -77,11 +85,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   display: flex; align-items: center; justify-content: center;
   font-size:15px; font-weight: 600; color: #fff; flex-shrink: 0;
 }
-.user-name { font-size:16px; font-weight: 500; color: var(--text); }
-.user-role { font-size:14px; color: var(--text3); }
+.user-name { display: none; }
+.user-role { display: none; }
 
 /* ── MAIN ── */
-.main { margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+.main { margin-left: 64px; min-height: 100vh; display: flex; flex-direction: column; }
 
 /* ── TOPBAR ── */
 .topbar {
@@ -104,6 +112,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .content { padding: 28px; flex: 1; }
 .page { display: none; }
 .page.active { display: block; }
+
+/* Ativado só durante a exportação de PDF — esconde tudo que é controle interativo (botões de
+   cadastrar/editar/remover, inputs, selects) dentro da área capturada, pra não aparecer no PDF. */
+body.pdf-exporting .page.active button,
+body.pdf-exporting .page.active input,
+body.pdf-exporting .page.active select { visibility: hidden !important; }
 
 /* ── KPI CARDS ── */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
@@ -377,24 +391,24 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Desempenho KM
     </button>
-    <button class="nav-item" onclick="showPage('produtividade')">
+    <button class="nav-item" title="Aderência/Disponibilidade" onclick="showPage('produtividade')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M12 3v6M9 6h6"/></svg>
-      Aderência/Disponibilidade
+      <span>Aderência/Disponibilidade</span>
     </button>
-    <button class="nav-item active" onclick="showPage('volume')">
+    <button class="nav-item active" title="Volume" onclick="showPage('volume')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
-      Volume
+      <span>Volume</span>
     </button>
-    <button class="nav-item" onclick="showPage('minas')">
+    <button class="nav-item" title="Minas" onclick="showPage('minas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l6-11 4 7 3-5 5 9H3z"/><circle cx="7" cy="6" r="2"/></svg>
-      Minas
+      <span>Minas</span>
     </button>
-    <button class="nav-item" onclick="showPage('programacao')">
+    <button class="nav-item" title="Programação" onclick="showPage('programacao')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Programação
+      <span>Programação</span>
     </button>
   </nav>
-  <div class="sidebar-user">
+  <div class="sidebar-user" title="Gestor — Novo Horizonte Logística">
     <div class="user-avatar">GR</div>
     <div>
       <div class="user-name">Gestor</div>
@@ -413,7 +427,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
         Exportar PDF
       </button>
-      <label class="import-btn" id="import-btn-label" title="Importar JORNADA_NH.xlsx">
+      <label class="import-btn" id="import-btn-label" title="Importar JORNADA_NH.xlsx" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Importar Base
         <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarBase(this)" id="import-file-input"/>
@@ -4289,7 +4303,7 @@ function _renderProgCorpo() {
           const corProg = pct >= 96 ? '#2ea043' : pct >= 51 ? '#d29922' : '#f85149';
           const veic = _progVeiculosProgramadosPara(m.origem, m.destino);
           const veicTxt = veic.total > 0
-            ? [veic.caminhoes > 0 ? `🚚 ${veic.caminhoes} caminhão${veic.caminhoes>1?'ões':''}` : null, veic.cavalos > 0 ? `🐎 ${veic.cavalos} cavalo${veic.cavalos>1?'s':''}` : null].filter(Boolean).join(' · ')
+            ? [veic.caminhoes > 0 ? `${veic.caminhoes} ${veic.caminhoes>1?'caminhões':'caminhão'}` : null, veic.cavalos > 0 ? `${veic.cavalos} ${veic.cavalos>1?'cavalos':'cavalo'}` : null].filter(Boolean).join(' · ')
             : '<span style="color:var(--text3);">nenhum veículo atribuído ainda</span>';
           return `<div style="padding:6px 0;border-bottom:1px solid var(--border2);">
             <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -4331,6 +4345,9 @@ function _renderProgCorpo() {
   const saida = _progItens.filter(_volOrigemPatio4);
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
   const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
+  const veiculosProgramados = _progAtribuicoes.filter(a => (a.viagens||0) > 0);
+  const totalCaminhoes = veiculosProgramados.filter(a => _progEhCaminhao(a.tipo2)).length;
+  const totalCavalos = veiculosProgramados.filter(a => _progEhCavalo(a.tipo2)).length;
   const pctGeral = totalGeral > 0 ? Math.round((totalNHL/totalGeral)*1000)/10 : 0;
   const corGeral = pctGeral >= 96 ? '#2ea043' : pctGeral >= 51 ? '#d29922' : '#f85149';
 
@@ -4345,6 +4362,10 @@ function _renderProgCorpo() {
         <div>
           <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)}t</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programação NHL · ${pctGeral}%</div>
+        </div>
+        <div>
+          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Veículos Programados · ${totalCaminhoes} caminhões · ${totalCavalos} cavalos</div>
         </div>
       </div>
     </div>
@@ -4725,8 +4746,101 @@ window.renderVolume = async function renderVolume() {
 
 // EXPORT PDF (simulado)
 // ══════════════════════════════════════
-window.exportarPDF = function exportarPDF() {
-  showToast('&#x1F4C4; Gerando relatório PDF... (integração com backend necessária)');
+window.exportarPDF = async function exportarPDF() {
+  const paginaAtiva = document.querySelector('.page.active');
+  if (!paginaAtiva) { showToast('✖ Não encontrei o conteúdo dessa tela pra exportar.'); return; }
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    showToast('✖ Biblioteca de exportação não carregou. Verifique sua conexão e tente de novo.');
+    return;
+  }
+
+  // Em Programação, exporta só os cards (totalizador + metas) — não a tabela de frota nem os
+  // controles de cadastro. Nas demais telas, exporta a tela toda.
+  const alvo = paginaAtiva.id === 'page-programacao'
+    ? (document.getElementById('prog-corpo') || paginaAtiva)
+    : paginaAtiva;
+
+  showToast('📄 Gerando PDF...');
+
+  // Esconde temporariamente tudo que é controle interativo (botões de cadastrar/editar/remover,
+  // inputs, selects) — isso não deve aparecer num PDF pra compartilhar.
+  document.body.classList.add('pdf-exporting');
+
+  try {
+    const canvas = await html2canvas(alvo, {
+      backgroundColor: getComputedStyle(document.body).backgroundColor || '#0d1117',
+      scale: 2,
+      useCORS: true
+    });
+
+    const { jsPDF } = window.jspdf;
+    const larguraPagina = 210; // A4 retrato, em mm
+    const margem = 10;
+    const larguraUtil = larguraPagina - margem * 2;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    // Cabeçalho profissional (texto de verdade, não capturado da tela — evita herdar o formato
+    // de data americano do widget nativo do navegador)
+    const tituloPagina = (document.getElementById('page-title')?.textContent || 'FleetCheck').trim();
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    pdf.setFillColor(13, 17, 23);
+    pdf.rect(0, 0, larguraPagina, 28, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(15);
+    pdf.text('Novo Horizonte Logística', margem, 12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    pdf.setTextColor(180, 190, 200);
+    pdf.text(tituloPagina, margem, 20);
+    pdf.setFontSize(9);
+    pdf.text(`Gerado em ${dataFormatada} às ${horaFormatada}`, larguraPagina - margem, 20, { align: 'right' });
+
+    let cursorY = 34;
+    const alturaUtilPrimeiraPagina = 297 - cursorY - margem;
+    const alturaUtilOutrasPaginas = 297 - margem * 2;
+    const alturaImagemTotalMM = (canvas.height * larguraUtil) / canvas.width;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+    if (alturaImagemTotalMM <= alturaUtilPrimeiraPagina) {
+      pdf.addImage(imgData, 'JPEG', margem, cursorY, larguraUtil, alturaImagemTotalMM);
+    } else {
+      // conteúdo mais alto que uma página — fatia em várias páginas de A4
+      const pxPorMM = canvas.width / larguraUtil;
+      let offsetPx = 0;
+      let primeiraFatia = true;
+      while (offsetPx < canvas.height) {
+        const alturaDisponivelMM = primeiraFatia ? alturaUtilPrimeiraPagina : alturaUtilOutrasPaginas;
+        const alturaFatiaPx = Math.min(Math.floor(alturaDisponivelMM * pxPorMM), canvas.height - offsetPx);
+
+        const fatiaCanvas = document.createElement('canvas');
+        fatiaCanvas.width = canvas.width;
+        fatiaCanvas.height = alturaFatiaPx;
+        const ctx = fatiaCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, offsetPx, canvas.width, alturaFatiaPx, 0, 0, canvas.width, alturaFatiaPx);
+        const fatiaData = fatiaCanvas.toDataURL('image/jpeg', 0.92);
+        const alturaFatiaMM = (alturaFatiaPx * larguraUtil) / canvas.width;
+
+        if (!primeiraFatia) { pdf.addPage(); cursorY = margem; }
+        pdf.addImage(fatiaData, 'JPEG', margem, cursorY, larguraUtil, alturaFatiaMM);
+        offsetPx += alturaFatiaPx;
+        primeiraFatia = false;
+      }
+    }
+
+    const dataArquivo = agora.toISOString().slice(0,10);
+    const nomeArquivo = `${tituloPagina.replace(/[^\w\s-]/g,'').replace(/\s+/g,'_')}_${dataArquivo}.pdf`;
+    pdf.save(nomeArquivo);
+    showToast('✔ PDF exportado com sucesso!');
+  } catch (err) {
+    console.error('Erro ao exportar PDF:', err);
+    showToast('✖ Erro ao gerar PDF: ' + err.message);
+  } finally {
+    document.body.classList.remove('pdf-exporting');
+  }
 }
 window.exportarPDFChecklist = function exportarPDFChecklist() {
   if (!checklistAtivo) return;
