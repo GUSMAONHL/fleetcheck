@@ -4433,6 +4433,10 @@ window.removerItemProg = async function removerItemProg(idx) {
 let _progRosterVeiculos = null;  // [{placa, fr, tipo2, forca, pesoMedio}]
 let _progAtribuicoes = [];       // [{placa, fr, tipo2, forca, origem, destino, viagens, pesoMedio, peso}]
 
+// CAMINHÃO = tipos BT (Bitruck) e TR (Truck) juntos; CAVALO = tipo CV (cavalo mecânico)
+function _progEhCaminhao(tipo2) { return ['BT','TR'].includes((tipo2||'').toString().trim().toUpperCase()); }
+function _progEhCavalo(tipo2) { return (tipo2||'').toString().trim().toUpperCase() === 'CV'; }
+
 async function _progCarregarRoster() {
   if (_progRosterVeiculos) return _progRosterVeiculos;
   try {
