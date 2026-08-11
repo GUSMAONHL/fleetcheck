@@ -51,21 +51,21 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   flex-shrink: 0;
 }
 .logo-mark svg { width: 18px; height: 18px; }
-.logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-.logo-sub { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
+.logo-text { font-size:18px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-top: 1px; }
 
 .sidebar-nav { flex: 1; padding: 12px 10px; }
-.nav-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px 4px; }
+.nav-label { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 10px; padding: 9px 12px;
-  border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text2);
+  border-radius: 8px; cursor: pointer; font-size:16px; color: var(--text2);
   transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
 }
 .nav-item:hover { background: var(--bg3); color: var(--text); }
 .nav-item.active { background: var(--bg4); color: var(--text); font-weight: 500; }
 .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
 .nav-item.active svg { opacity: 1; }
-.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size:13px; font-weight: 600; padding: 2px 6px; border-radius: 10px; font-family: 'DM Mono', monospace; }
 
 .sidebar-user {
   padding: 14px 16px; border-top: 1px solid var(--border);
@@ -75,10 +75,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   width: 32px; height: 32px; border-radius: 50%;
   background: linear-gradient(135deg, #388bfd, #8b5cf6);
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0;
+  font-size:15px; font-weight: 600; color: #fff; flex-shrink: 0;
 }
-.user-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.user-role { font-size: 11px; color: var(--text3); }
+.user-name { font-size:16px; font-weight: 500; color: var(--text); }
+.user-role { font-size:14px; color: var(--text3); }
 
 /* ── MAIN ── */
 .main { margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
@@ -89,11 +89,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 28px; position: sticky; top: 0; z-index: 9;
 }
-.topbar-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.topbar-title { font-size:18px; font-weight: 500; color: var(--text); }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
-.topbar-date { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.topbar-date { font-size:15px; color: var(--text3); font-family: 'DM Mono', monospace; }
 
-.btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size:16px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
 .btn-primary { background: var(--green); color: #fff; }
 .btn-primary:hover { background: #3fb950; }
 .btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
@@ -116,13 +116,13 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .kpi-card.red::before { background: var(--red); }
 .kpi-card.yellow::before { background: var(--yellow); }
 .kpi-card.blue::before { background: var(--blue); }
-.kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-.kpi-value { font-size: 32px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 8px; }
+.kpi-label { font-size:14px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.kpi-value { font-size:34px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 8px; }
 .kpi-card.green .kpi-value { color: #3fb950; }
 .kpi-card.red .kpi-value { color: #f85149; }
 .kpi-card.yellow .kpi-value { color: var(--yellow); }
 .kpi-card.blue .kpi-value { color: var(--blue); }
-.kpi-sub { font-size: 11px; color: var(--text3); }
+.kpi-sub { font-size:14px; color: var(--text3); }
 .kpi-icon { position: absolute; top: 18px; right: 18px; opacity: 0.4; }
 .kpi-icon svg { width: 22px; height: 22px; }
 
@@ -132,10 +132,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   padding: 14px 18px; margin-bottom: 20px;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
-.filter-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+.filter-label { font-size:15px; color: var(--text3); white-space: nowrap; }
 .filter-input {
   background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
-  padding: 7px 12px; color: var(--text); font-size: 13px; outline: none;
+  padding: 7px 12px; color: var(--text); font-size:16px; outline: none;
   font-family: 'DM Sans', sans-serif; min-width: 150px;
   transition: border-color 0.15s;
 }
@@ -143,7 +143,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .filter-input::placeholder { color: var(--text3); }
 .filter-sep { width: 1px; height: 24px; background: var(--border); }
 .filter-tag {
-  padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+  padding: 5px 12px; border-radius: 20px; font-size:15px; cursor: pointer;
   border: 1px solid var(--border2); background: transparent; color: var(--text2);
   font-family: 'DM Sans', sans-serif; transition: all 0.15s;
 }
@@ -156,19 +156,19 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 /* ── TABLE ── */
 .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .table-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.table-title { font-size: 13px; font-weight: 500; color: var(--text); }
-.table-count { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.table-title { font-size:16px; font-weight: 500; color: var(--text); }
+.table-count { font-size:15px; color: var(--text3); font-family: 'DM Mono', monospace; }
 table { width: 100%; border-collapse: collapse; }
-thead th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
+thead th { padding: 10px 20px; text-align: left; font-size:14px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--bg3); }
-tbody td { padding: 13px 20px; font-size: 13px; color: var(--text2); }
+tbody td { padding: 13px 20px; font-size:16px; color: var(--text2); }
 tbody td.text-primary { color: var(--text); font-weight: 500; }
-.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+.mono { font-family: 'DM Mono', monospace; font-size:15px; }
 
 /* STATUS BADGES */
-.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size:14px; font-weight: 500; }
 .badge-green { background: var(--green-bg); color: #3fb950; border: 1px solid var(--green-border); }
 .badge-red { background: var(--red-bg); color: #f85149; border: 1px solid var(--red-border); }
 .badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
@@ -181,8 +181,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   background: rgba(0,0,0,0.6);
 }
 #prod-overlay { z-index: 80; }
-#prod-quadro-tabela thead th { padding: 6px 10px; font-size: 10px; }
-#prod-quadro-tabela tbody td { padding: 6px 10px; font-size: 11px; }
+#prod-quadro-tabela thead th { padding: 6px 10px; font-size:13px; }
+#prod-quadro-tabela tbody td { padding: 6px 10px; font-size:14px; }
 .detail-overlay.open { display: flex; justify-content: flex-end; }
 .detail-panel {
   width: 520px; height: 100vh; background: var(--bg2);
@@ -195,29 +195,29 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   display: flex; align-items: flex-start; justify-content: space-between;
   flex-shrink: 0;
 }
-.panel-title { font-size: 16px; font-weight: 600; color: var(--text); }
-.panel-meta { font-size: 12px; color: var(--text3); margin-top: 4px; }
-.panel-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; line-height: 1; font-size: 20px; }
+.panel-title { font-size:19px; font-weight: 600; color: var(--text); }
+.panel-meta { font-size:15px; color: var(--text3); margin-top: 4px; }
+.panel-close { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; line-height: 1; font-size:23px; }
 .panel-close:hover { color: var(--text); }
 .panel-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
 .panel-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
 
 .panel-kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .panel-kpi { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
-.panel-kpi-num { font-size: 22px; font-weight: 600; font-family: 'DM Mono', monospace; }
-.panel-kpi-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.panel-kpi-num { font-size:25px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.panel-kpi-lbl { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 .panel-kpi.ok .panel-kpi-num { color: #3fb950; }
 .panel-kpi.rep .panel-kpi-num { color: #f85149; }
 .panel-kpi.tot .panel-kpi-num { color: var(--blue); }
 
 .panel-info { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
-.panel-info-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+.panel-info-row { display: flex; justify-content: space-between; padding: 5px 0; font-size:16px; border-bottom: 1px solid var(--border); }
 .panel-info-row:last-child { border-bottom: none; }
 .panel-info-row span:first-child { color: var(--text3); }
-.panel-info-row span:last-child { color: var(--text); font-weight: 500; font-family: 'DM Mono', monospace; font-size: 12px; }
+.panel-info-row span:last-child { color: var(--text); font-weight: 500; font-family: 'DM Mono', monospace; font-size:15px; }
 
 .repair-section-title {
-  font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px;
+  font-size:14px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px;
   font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
 .repair-item {
@@ -225,33 +225,33 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   border-radius: 10px; padding: 13px 15px; margin-bottom: 8px;
 }
 .repair-item.resolved { border-color: var(--green-border); opacity: 0.7; }
-.repair-cat { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-.repair-q { font-size: 13px; color: #f0c0b0; margin-bottom: 6px; line-height: 1.4; }
+.repair-cat { font-size:13px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.repair-q { font-size:16px; color: #f0c0b0; margin-bottom: 6px; line-height: 1.4; }
 .repair-item.resolved .repair-q { color: var(--text2); }
-.repair-obs { font-size: 12px; color: var(--text3); font-style: italic; padding: 6px 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; }
+.repair-obs { font-size:15px; color: var(--text3); font-style: italic; padding: 6px 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; }
 .repair-actions { display: flex; align-items: center; justify-content: space-between; }
 .resolve-btn {
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
   background: var(--green-bg); border: 1px solid var(--green-border);
-  border-radius: 7px; color: #3fb950; font-size: 12px; font-weight: 500;
+  border-radius: 7px; color: #3fb950; font-size:15px; font-weight: 500;
   cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
 }
 .resolve-btn:hover { background: rgba(46,160,67,0.2); }
 .resolve-btn.done { background: transparent; border-color: var(--border); color: var(--text3); cursor: default; }
 .resolve-btn svg { width: 13px; height: 13px; }
-.resolved-tag { font-size: 11px; color: #3fb950; display: flex; align-items: center; gap: 4px; }
+.resolved-tag { font-size:14px; color: #3fb950; display: flex; align-items: center; gap: 4px; }
 
-.ok-section-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; margin: 18px 0 10px; }
+.ok-section-title { font-size:14px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; margin: 18px 0 10px; }
 .ok-list { display: flex; flex-direction: column; gap: 4px; }
-.ok-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--text2); }
+.ok-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; font-size:15px; color: var(--text2); }
 .ok-dot { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; flex-shrink: 0; }
-.ok-cat { font-size: 10px; color: var(--text3); margin-right: 4px; }
+.ok-cat { font-size:13px; color: var(--text3); margin-right: 4px; }
 
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 24px; right: 24px; z-index: 999;
   background: var(--bg4); border: 1px solid var(--green-border);
-  border-radius: 10px; padding: 12px 18px; font-size: 13px; color: #3fb950;
+  border-radius: 10px; padding: 12px 18px; font-size:16px; color: #3fb950;
   display: flex; align-items: center; gap: 8px;
   animation: toastIn 0.2s ease-out;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
@@ -260,15 +260,15 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
 /* ── PAINEL DE FARÓIS ── */
 .farois-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; }
-.farois-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-.farois-subtitle { font-size: 11px; color: var(--text3); font-weight: 400; }
+.farois-title { font-size:16px; font-weight: 500; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.farois-subtitle { font-size:14px; color: var(--text3); font-weight: 400; }
 .farois-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .farol-card { border-radius: 10px; padding: 14px 12px; text-align: center; border: 1px solid; position: relative; overflow: hidden; transition: transform 0.15s; cursor: default; }
 .farol-card:hover { transform: translateY(-2px); }
-.farol-num { font-size: 28px; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 6px; }
-.farol-lbl { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
-.farol-sub { font-size: 10px; opacity: 0.7; }
-.farol-icon { font-size: 20px; margin-bottom: 6px; }
+.farol-num { font-size:30px; font-weight: 700; font-family: 'DM Mono', monospace; line-height: 1; margin-bottom: 6px; }
+.farol-lbl { font-size:14px; font-weight: 500; margin-bottom: 3px; }
+.farol-sub { font-size:13px; opacity: 0.7; }
+.farol-icon { font-size:23px; margin-bottom: 6px; }
 .farol-hoje { background: rgba(56,139,253,0.1); border-color: rgba(56,139,253,0.3); }
 .farol-hoje .farol-num { color: #388bfd; }
 .farol-hoje .farol-lbl { color: #388bfd; }
@@ -286,66 +286,66 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 .farol-critico .farol-lbl { color: #ff6b6b; }
 .farol-critico::after { content:''; position:absolute; inset:0; background:rgba(255,50,50,0.04); animation: pulso-critico 1.8s ease-in-out infinite; }
 @keyframes pulso-critico { 0%,100%{opacity:0} 50%{opacity:1} }
-.farois-zero { text-align:center; padding: 20px; color: var(--text3); font-size: 13px; }
+.farois-zero { text-align:center; padding: 20px; color: var(--text3); font-size:16px; }
 
 /* ── IMPORTAR BASE ── */
-.import-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--green-border); background:var(--green-bg); color:#3fb950; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+.import-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:8px; font-size:16px; font-weight:500; cursor:pointer; border:1px solid var(--green-border); background:var(--green-bg); color:#3fb950; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
 .import-btn:hover { background:rgba(46,160,67,0.2); }
 .import-btn svg { width:14px; height:14px; }
 .import-btn:disabled { opacity:0.5; cursor:not-allowed; }
-.import-progress { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--bg4); border:1px solid var(--border2); border-radius:12px; padding:14px 20px; font-size:13px; color:var(--text); z-index:999; min-width:280px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+.import-progress { display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--bg4); border:1px solid var(--border2); border-radius:12px; padding:14px 20px; font-size:16px; color:var(--text); z-index:999; min-width:280px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 .import-progress.show { display:block; }
 .import-progress-bar { height:4px; background:var(--bg3); border-radius:2px; margin-top:10px; overflow:hidden; }
 .import-progress-fill { height:100%; background:#3fb950; border-radius:2px; transition:width 0.3s; }
 
 /* ── KM MOTORISTAS ── */
 .km-page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-.km-periodo-badge { background:var(--blue-bg); border:1px solid var(--blue-border); color:var(--blue); font-size:12px; padding:5px 14px; border-radius:20px; font-family:'DM Mono',monospace; }
+.km-periodo-badge { background:var(--blue-bg); border:1px solid var(--blue-border); color:var(--blue); font-size:15px; padding:5px 14px; border-radius:20px; font-family:'DM Mono',monospace; }
 .km-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:16px; }
 .km-card { border-radius:14px; padding:20px; border:2px solid; position:relative; overflow:hidden; transition:transform 0.15s; cursor:default; }
 .km-card:hover { transform:translateY(-2px); }
-.km-card-rank { position:absolute; top:12px; right:14px; font-size:11px; font-weight:700; font-family:'DM Mono',monospace; opacity:0.6; }
-.km-card-nome { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; font-family:'DM Sans',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.km-card-placa { font-size:11px; font-family:'DM Mono',monospace; margin-bottom:14px; opacity:0.6; }
-.km-card-valor { font-size:36px; font-weight:700; font-family:'DM Mono',monospace; line-height:1; margin-bottom:4px; }
-.km-card-unit { font-size:12px; opacity:0.7; font-family:'DM Sans',sans-serif; margin-bottom:12px; }
-.km-card-badge { display:inline-block; font-size:11px; font-weight:600; padding:3px 12px; border-radius:20px; font-family:'DM Sans',sans-serif; }
+.km-card-rank { position:absolute; top:12px; right:14px; font-size:14px; font-weight:700; font-family:'DM Mono',monospace; opacity:0.6; }
+.km-card-nome { font-size:16px; font-weight:600; color:var(--text); margin-bottom:2px; font-family:'DM Sans',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.km-card-placa { font-size:14px; font-family:'DM Mono',monospace; margin-bottom:14px; opacity:0.6; }
+.km-card-valor { font-size:38px; font-weight:700; font-family:'DM Mono',monospace; line-height:1; margin-bottom:4px; }
+.km-card-unit { font-size:15px; opacity:0.7; font-family:'DM Sans',sans-serif; margin-bottom:12px; }
+.km-card-badge { display:inline-block; font-size:14px; font-weight:600; padding:3px 12px; border-radius:20px; font-family:'DM Sans',sans-serif; }
 .km-card-bar { height:4px; border-radius:2px; margin-top:14px; opacity:0.3; background:currentColor; }
 .km-card-bar-fill { height:100%; border-radius:2px; background:currentColor; transition:width 0.6s; }
 .km-card { cursor:pointer; }
-.viagens-table { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10px; margin-top:4px; }
-.viagens-table thead th { padding:8px 12px; font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.6px; border-bottom:1px solid var(--border); background:var(--bg3); text-align:left; white-space:nowrap; font-family:Arial,sans-serif; font-weight:400; }
+.viagens-table { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:13px; margin-top:4px; }
+.viagens-table thead th { padding:8px 12px; font-size:13px; color:var(--text3); text-transform:uppercase; letter-spacing:0.6px; border-bottom:1px solid var(--border); background:var(--bg3); text-align:left; white-space:nowrap; font-family:Arial,sans-serif; font-weight:400; }
 .viagens-table thead th:last-child { text-align:right; }
 .viagens-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
 .viagens-table tbody tr:last-child { border-bottom:none; }
 .viagens-table tbody tr:hover { background:var(--bg3); }
-.viagens-table tbody td { padding:9px 12px; font-size:10px; color:var(--text2); font-family:Arial,sans-serif; font-weight:400; }
+.viagens-table tbody td { padding:9px 12px; font-size:13px; color:var(--text2); font-family:Arial,sans-serif; font-weight:400; }
 .viagens-table tbody td.td-orig { color:var(--text); font-weight:400; max-width:160px; font-family:Arial,sans-serif; }
 .viagens-table tbody td.td-dest { color:var(--text2); max-width:160px; font-family:Arial,sans-serif; font-weight:400; }
-.viagens-table tbody td.td-km { text-align:right; color:#3fb950; font-family:Arial,sans-serif; font-weight:400; white-space:nowrap; font-size:10px; }
-.viagens-table tbody td.td-fat { text-align:right; font-family:Arial,sans-serif; font-size:10px; white-space:nowrap; font-weight:400; }
-.viagens-table tfoot td { padding:9px 12px; font-size:10px; font-weight:500; border-top:2px solid var(--border2); font-family:Arial,sans-serif; }
+.viagens-table tbody td.td-km { text-align:right; color:#3fb950; font-family:Arial,sans-serif; font-weight:400; white-space:nowrap; font-size:13px; }
+.viagens-table tbody td.td-fat { text-align:right; font-family:Arial,sans-serif; font-size:13px; white-space:nowrap; font-weight:400; }
+.viagens-table tfoot td { padding:9px 12px; font-size:13px; font-weight:500; border-top:2px solid var(--border2); font-family:Arial,sans-serif; }
 .viagens-table tfoot td.td-km { text-align:right; color:#3fb950; font-family:Arial,sans-serif; font-weight:500; }
-.viagens-table tfoot td.td-fat { text-align:right; font-family:Arial,sans-serif; font-size:10px; font-weight:500; }
+.viagens-table tfoot td.td-fat { text-align:right; font-family:Arial,sans-serif; font-size:13px; font-weight:500; }
 .viagens-panel-header { margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
 .viagens-kpis { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
 .viagens-kpi { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
-.viagens-kpi-num { font-size:18px; font-weight:600; font-family:'DM Mono',monospace; }
-.viagens-kpi-lbl { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+.viagens-kpi-num { font-size:21px; font-weight:600; font-family:'DM Mono',monospace; }
+.viagens-kpi-lbl { font-size:13px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
 .km-empty { text-align:center; padding:60px 20px; color:var(--text3); }
-.km-periodo-btn { padding:8px 18px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); }
+.km-periodo-btn { padding:8px 18px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); }
 .km-periodo-btn:hover { background:var(--bg4); color:var(--text); }
 .km-periodo-btn.ativo { background:var(--blue-bg); border-color:var(--blue-border); color:var(--blue); }
-.km-periodo-btn .btn-periodo-sub { font-size:10px; font-weight:400; opacity:0.7; display:block; margin-top:2px; font-family:'DM Mono',monospace; }
+.km-periodo-btn .btn-periodo-sub { font-size:13px; font-weight:400; opacity:0.7; display:block; margin-top:2px; font-family:'DM Mono',monospace; }
 .km-resumo { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
 .km-resumo-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
-.km-resumo-num { font-size:20px; font-weight:600; font-family:'DM Mono',monospace; }
-.km-resumo-lbl { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+.km-resumo-num { font-size:23px; font-weight:600; font-family:'DM Mono',monospace; }
+.km-resumo-lbl { font-size:13px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
 
 /* ── EMPTY ── */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
 .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
-.empty-state p { font-size: 14px; }
+.empty-state p { font-size:17px; }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
@@ -565,8 +565,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <div class="page" id="page-desempenho">
       <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-          <div style="font-size:13px;color:var(--text3);">Selecione o período:</div>
-          <div id="km-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+          <div style="font-size:16px;color:var(--text3);">Selecione o período:</div>
+          <div id="km-ultima-import" style="font-size:14px;color:var(--text3);"></div>
         </div>
         <div id="km-periodo-btns" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
       </div>
@@ -582,9 +582,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
-              <button id="prod-modo-dia-btn" onclick="_setModoView('dia')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
-              <button id="prod-modo-mes-btn" onclick="_setModoView('mes')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
-              <button id="prod-modo-ano-btn" onclick="_setModoView('ano')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
+              <button id="prod-modo-dia-btn" onclick="_setModoView('dia')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
+              <button id="prod-modo-mes-btn" onclick="_setModoView('mes')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
+              <button id="prod-modo-ano-btn" onclick="_setModoView('ano')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
             </div>
             <select id="prod-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_onProdDiaChange(this.value)">
               <option value="">—</option>
@@ -597,7 +597,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div id="prod-ultima-import" style="font-size:11px;color:var(--text3);"></div>
+            <div id="prod-ultima-import" style="font-size:14px;color:var(--text3);"></div>
             <label class="import-btn" id="import-btn-prod-label" title="Importar BASE_VOLUME.xlsx">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Importar Base de Volume
@@ -612,14 +612,14 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
       <div class="km-resumo" id="prod-resumo"></div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="font-size:12px;color:var(--text3);">Categoria:</div>
+        <div style="font-size:15px;color:var(--text3);">Categoria:</div>
         <div id="prod-categoria-btns-principal" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
       </div>
       <div id="prod-cards-trabalho"></div>
 
       <div id="prod-grafico-df" style="margin-bottom:20px;"></div>
 
-      <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;border:1px dashed var(--border2);border-radius:10px;">
+      <div style="text-align:center;padding:24px;color:var(--text3);font-size:15px;border:1px dashed var(--border2);border-radius:10px;">
         Clique em <strong style="color:var(--text2);">FROTA</strong>, <strong style="color:var(--text2);">TERCEIRO</strong> ou num dos cards de tipo acima para abrir o quadro completo.
       </div>
     </div>
@@ -630,9 +630,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
-              <button id="vol-modo-dia-btn" onclick="_volSetModoView('dia')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
-              <button id="vol-modo-mes-btn" onclick="_volSetModoView('mes')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
-              <button id="vol-modo-ano-btn" onclick="_volSetModoView('ano')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
+              <button id="vol-modo-dia-btn" onclick="_volSetModoView('dia')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
+              <button id="vol-modo-mes-btn" onclick="_volSetModoView('mes')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
+              <button id="vol-modo-ano-btn" onclick="_volSetModoView('ano')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
             </div>
             <select id="vol-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_volOnDiaChange(this.value)">
               <option value="">—</option>
@@ -645,8 +645,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div id="vol-ultima-import" style="font-size:11px;color:var(--text3);"></div>
-            <button onclick="abrirMetasModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);">
+            <div id="vol-ultima-import" style="font-size:14px;color:var(--text3);"></div>
+            <button onclick="abrirMetasModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);">
               🎯 Metas
             </button>
             <label class="import-btn" id="import-btn-vol-label" title="Importar BASE_VOLUME.xlsx">
@@ -664,11 +664,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
       
       <div style="display:flex;gap:10px;margin:4px 0 14px;">
-        <button class="vol-aba-btn" data-aba="local" onclick="_volSetAba('local')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:#388bfd;color:#fff;">📍 Por Mina/Rota</button>
-        <button class="vol-aba-btn" data-aba="origem" onclick="_volSetAba('origem')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚩 Por Origem</button>
-        <button class="vol-aba-btn" data-aba="destino" onclick="_volSetAba('destino')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏁 Por Destino</button>
-        <button class="vol-aba-btn" data-aba="veiculo" onclick="_volSetAba('veiculo')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚛 Por Veículo</button>
-        <button class="vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" style="padding:8px 16px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏷️ Por Tipo</button>
+        <button class="vol-aba-btn" data-aba="local" onclick="_volSetAba('local')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:#388bfd;color:#fff;">📍 Por Mina/Rota</button>
+        <button class="vol-aba-btn" data-aba="origem" onclick="_volSetAba('origem')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚩 Por Origem</button>
+        <button class="vol-aba-btn" data-aba="destino" onclick="_volSetAba('destino')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏁 Por Destino</button>
+        <button class="vol-aba-btn" data-aba="veiculo" onclick="_volSetAba('veiculo')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚛 Por Veículo</button>
+        <button class="vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏷️ Por Tipo</button>
       </div>
 
       <div id="vol-cards-mina-rota" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
@@ -692,8 +692,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <!-- PAGE: CADASTRO DE MINAS -->
     <div class="page" id="page-minas">
       <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13px;color:var(--text3);">Rotas cadastradas (Origem → Destino) e a quantidade padrão de viagens/dia esperada em cada uma.</div>
-        <button onclick="abrirFormMina()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
+        <div style="font-size:16px;color:var(--text3);">Rotas cadastradas (Origem → Destino) e a quantidade padrão de viagens/dia esperada em cada uma.</div>
+        <button onclick="abrirFormMina()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
           ⛰️ Cadastrar Mina
         </button>
       </div>
@@ -725,10 +725,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <div class="page" id="page-programacao">
       <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-size:13px;color:var(--text3);">Dia:</div>
+          <div style="font-size:16px;color:var(--text3);">Dia:</div>
           <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
         </div>
-        <button onclick="abrirFormProgItem()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
+        <button onclick="abrirFormProgItem()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
           📅 Cadastrar Meta do Dia
         </button>
       </div>
@@ -738,8 +738,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
 
       <div class="table-card" style="margin-top:16px;padding:16px 18px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Frota — Atribuição de Rotas</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Escolha a Mina (Origem) e o Destino de cada veículo. Viagens vem automaticamente do padrão cadastrado em "Minas" — pode editar se precisar. Peso = viagens × peso médio daquele veículo específico (base de Aderência).</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Frota — Atribuição de Rotas</div>
+        <div style="font-size:14px;color:var(--text3);margin-bottom:12px;">Escolha a Mina (Origem) e o Destino de cada veículo. Viagens vem automaticamente do padrão cadastrado em "Minas" — pode editar se precisar. Peso = viagens × peso médio daquele veículo específico (base de Aderência).</div>
         <div id="prog-frota-corpo">
           <div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>
         </div>
@@ -753,26 +753,26 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <div id="mina-form-overlay" onclick="if(event.target===this) fecharFormMina()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:15px;font-weight:700;color:var(--text);" id="mina-form-titulo">⛰️ Cadastrar Mina</div>
-      <button onclick="fecharFormMina()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px;">&#x2715;</button>
+      <div style="font-size:18px;font-weight:700;color:var(--text);" id="mina-form-titulo">⛰️ Cadastrar Mina</div>
+      <button onclick="fecharFormMina()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
     </div>
     <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
         <input type="text" id="mina-form-origem" placeholder="ex: SANTO ANTONIO" class="filter-input" style="width:100%;">
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
         <select id="mina-form-destino" class="filter-input" style="width:100%;">
           <option value="FABRICA">FABRICA</option>
           <option value="PATIO 4">PATIO 4</option>
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Viagens/dia (padrão dessa rota)</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Viagens/dia (padrão dessa rota)</label>
         <input type="number" id="mina-form-viagens" placeholder="ex: 8" class="filter-input" style="width:100%;">
       </div>
-      <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
+      <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
     </div>
   </div>
 </div>
@@ -781,27 +781,27 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <div id="prog-form-overlay" onclick="if(event.target===this) fecharFormProgItem()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:15px;font-weight:700;color:var(--text);">📅 Meta do Dia</div>
-      <button onclick="fecharFormProgItem()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px;">&#x2715;</button>
+      <div style="font-size:18px;font-weight:700;color:var(--text);">📅 Meta do Dia</div>
+      <button onclick="fecharFormProgItem()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
     </div>
     <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
-      <div style="font-size:11px;color:var(--text3);" id="prog-form-dia-label"></div>
+      <div style="font-size:14px;color:var(--text3);" id="prog-form-dia-label"></div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
         <input type="text" id="prog-form-origem" placeholder="ex: SERTAOZINHO" class="filter-input" style="width:100%;">
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
         <select id="prog-form-destino" class="filter-input" style="width:100%;">
           <option value="FABRICA">FABRICA</option>
           <option value="PATIO 4">PATIO 4</option>
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Volume (t)</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Volume (t)</label>
         <input type="number" id="prog-form-volume" placeholder="ex: 1224" class="filter-input" style="width:100%;">
       </div>
-      <button onclick="adicionarItemProg()" style="margin-top:6px;padding:10px 16px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">+ Adicionar</button>
+      <button onclick="adicionarItemProg()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">+ Adicionar</button>
     </div>
   </div>
 </div>
@@ -853,18 +853,18 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   <div style="width:100%;height:100%;max-width:1700px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:10px;">
       <div>
-        <div id="prod-quadro-title" style="font-size:17px;font-weight:700;color:var(--text);">Quadro</div>
-        <div id="prod-quadro-meta" style="font-size:11px;color:var(--text3);margin-top:2px;"></div>
+        <div id="prod-quadro-title" style="font-size:20px;font-weight:700;color:var(--text);">Quadro</div>
+        <div id="prod-quadro-meta" style="font-size:14px;color:var(--text3);margin-top:2px;"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <div id="prod-quadro-categoria-btns" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
-        <button onclick="fecharQuadroModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+        <button onclick="fecharQuadroModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:25px;line-height:1;padding:4px;">&#x2715;</button>
       </div>
     </div>
     <div id="prod-quadro-cards" style="padding:12px 22px 0;flex-shrink:0;"></div>
     <div style="flex:1;min-height:0;overflow-y:auto;padding:10px 22px 16px;">
       <div style="overflow-x:auto;">
-        <table id="prod-quadro-tabela" style="font-size:11px;">
+        <table id="prod-quadro-tabela" style="font-size:14px;">
           <thead>
             <tr>
               <th data-sort="fr" style="cursor:pointer;padding:6px 10px;text-align:center;">FR <span class="prod-sort-ico"></span></th>
@@ -903,8 +903,19 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <!-- METAS DE VOLUME (Origem x Destino) -->
 <!-- CARD EM DESTAQUE (clique no ⤢ de qualquer card de Volume) -->
 <div id="vol-card-foco-overlay" onclick="if(event.target===this) fecharCardFoco()" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;overflow:hidden;">
-  <button onclick="fecharCardFoco()" style="position:fixed;top:18px;right:22px;background:none;border:none;color:#fff;font-size:30px;line-height:1;cursor:pointer;z-index:1;">&#x2715;</button>
+  <button onclick="fecharCardFoco()" style="position:fixed;top:18px;right:22px;background:none;border:none;color:#fff;font-size:32px;line-height:1;cursor:pointer;z-index:1;">&#x2715;</button>
   <div id="vol-card-foco-corpo"></div>
+</div>
+
+<!-- DETALHAMENTO DA TENDÊNCIA (menu separado, aberto pelo 🔍 ao lado da seta no card) -->
+<div id="vol-tendencia-overlay" onclick="if(event.target===this) fecharTendenciaModal()" style="display:none;position:fixed;inset:0;z-index:82;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:3vh 3vw;">
+  <div style="width:100%;max-width:760px;max-height:90vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:17px;font-weight:700;color:var(--text);" id="vol-tendencia-titulo">📉 Tendência</div>
+      <button onclick="fecharTendenciaModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 22px;" id="vol-tendencia-corpo"></div>
+  </div>
 </div>
 
 <div id="metas-overlay" onclick="if(event.target===this) fecharMetasModal()" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
@@ -912,40 +923,40 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   <div style="width:100%;height:100%;max-width:900px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:10px;">
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--text);">🎯 Metas de Volume</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Meta do mês × realizado, por combinação Origem × Destino</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);">🎯 Metas de Volume</div>
+        <div style="font-size:14px;color:var(--text3);margin-top:2px;">Meta do mês × realizado, por combinação Origem × Destino</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <select id="meta-mes-select" class="filter-input" style="min-width:150px;" onchange="_onMetaMesChange(this.value)">
           <option value="">—</option>
         </select>
-        <button onclick="fecharMetasModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+        <button onclick="fecharMetasModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:25px;line-height:1;padding:4px;">&#x2715;</button>
       </div>
     </div>
 
     <div style="padding:14px 22px;border-bottom:1px solid var(--border2);flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Dias de operação no mês</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Dias de operação no mês</label>
         <input type="number" id="meta-input-dias-operacao" placeholder="ex: 26" class="filter-input" style="width:110px;" onchange="_onDiasOperacaoChange()">
       </div>
       <div style="border-left:1px solid var(--border2);height:36px;margin:0 4px;"></div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</label>
         <input type="text" id="meta-input-origem" placeholder="ex: SANTO ANTONIO" class="filter-input" style="width:180px;">
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Destino</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Destino</label>
         <select id="meta-input-destino" class="filter-input" style="width:140px;">
           <option value="FABRICA">FABRICA</option>
           <option value="PATIO 4">PATIO 4</option>
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Meta mensal (t)</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Meta mensal (t)</label>
         <input type="number" id="meta-input-valor" placeholder="ex: 15757" class="filter-input" style="width:130px;">
       </div>
-      <button onclick="adicionarMeta()" style="padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">+ Adicionar</button>
-      <button onclick="salvarMetas()" style="padding:9px 16px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;margin-left:auto;">💾 Salvar Metas</button>
+      <button onclick="adicionarMeta()" style="padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">+ Adicionar</button>
+      <button onclick="salvarMetas()" style="padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;margin-left:auto;">💾 Salvar Metas</button>
     </div>
 
     <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 22px;" id="metas-corpo">
@@ -1176,7 +1187,7 @@ function renderRow(cl, tbody_id) {
       <td style="color:#3fb950;font-family:'DM Mono',monospace;">${ok}</td>
       <td style="color:${rTot>0?'#f85149':'#3fb950'};font-family:'DM Mono',monospace;">${rTot}</td>
       <td>${statusBadge(cl)}</td>
-      <td><span style="color:var(--text3);font-size:18px;">›</span></td>
+      <td><span style="color:var(--text3);font-size:21px;">›</span></td>
     </tr>`;
   }
   return `<tr onclick="abrirPainel('${cl.id}')" style="cursor:pointer;">
@@ -1187,7 +1198,7 @@ function renderRow(cl, tbody_id) {
     <td style="color:#3fb950;font-family:'DM Mono',monospace;">${ok}</td>
     <td style="color:${rTot>0?'#f85149':'#3fb950'};font-family:'DM Mono',monospace;">${rTot}</td>
     <td>${statusBadge(cl)}</td>
-    <td><span style="color:var(--text3);font-size:18px;">›</span></td>
+    <td><span style="color:var(--text3);font-size:21px;">›</span></td>
   </tr>`;
 }
 
@@ -1212,7 +1223,7 @@ function renderDashTable() {
   ).slice().reverse();
 
   if (filtrados.length === 0) {
-    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Nenhum checklist registrado hoje ou ontem.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);font-size:16px;">Nenhum checklist registrado hoje ou ontem.</td></tr>`;
     countEl.textContent = '0 registros';
     return;
   }
@@ -1224,12 +1235,12 @@ function renderDashTable() {
   let html = '';
 
   if (hojeItems.length > 0) {
-    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Hoje — ${hoje.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
+    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Hoje — ${hoje.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
     html += hojeItems.map(cl => renderRow(cl, 'dash-table-body')).join('');
   }
 
   if (ontemItems.length > 0) {
-    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Ontem — ${ontem.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
+    html += `<tr><td colspan="8" style="padding:8px 20px 4px;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;background:var(--bg3);">Ontem — ${ontem.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'})}</td></tr>`;
     html += ontemItems.map(cl => renderRow(cl, 'dash-table-body')).join('');
   }
 
@@ -1300,7 +1311,7 @@ function renderFrotaTable() {
 
   if (veiculos.length === 0) {
     document.getElementById('frota-table-body').innerHTML =
-      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Nenhum veículo vistoriado ainda.</td></tr>`;
+      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);font-size:16px;">Nenhum veículo vistoriado ainda.</td></tr>`;
     return;
   }
 
@@ -1331,7 +1342,7 @@ function renderFrotaTable() {
     }
 
     return `<tr onclick="abrirPainel('${v.ultimoId}')" style="cursor:pointer;">
-      <td class="text-primary mono" style="font-size:14px;letter-spacing:1px;font-weight:600;">${v.placa}</td>
+      <td class="text-primary mono" style="font-size:17px;letter-spacing:1px;font-weight:600;">${v.placa}</td>
       <td class="mono">${formatDataHora(v.ultimoHorario)}</td>
       <td>${v.motorista}</td>
       <td class="mono" style="color:#3fb950;font-weight:500;">${totalChecklists}</td>
@@ -1525,11 +1536,11 @@ function _renderKmCards(dados, idxPeriodo) {
       <div class="km-card-unit" style="color:${cores.cor};">km carregado</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
         <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
-        <div style="font-size:11px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
+        <div style="font-size:14px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
       </div>
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${cores.border};display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:10px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
-        <div style="font-size:13px;font-weight:600;color:${cores.cor};font-family:'DM Mono',monospace;">R$ ${(m.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div style="font-size:13px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
+        <div style="font-size:16px;font-weight:600;color:${cores.cor};font-family:'DM Mono',monospace;">R$ ${(m.faturamento||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
       </div>
       <div class="km-card-bar" style="color:${cores.cor};margin-top:10px;">
         <div class="km-card-bar-fill" style="width:${pct}%;"></div>
@@ -1633,13 +1644,13 @@ function abrirViagensMotorista(motKey, periodo, dados) {
       <div class="viagens-kpi-lbl">KM Carregado</div>
     </div>
     <div class="viagens-kpi">
-      <div class="viagens-kpi-num" style="color:#388bfd;font-size:14px;">R$ ${totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="viagens-kpi-num" style="color:#388bfd;font-size:17px;">R$ ${totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
       <div class="viagens-kpi-lbl">Faturamento</div>
     </div>
   </div>`;
 
   if (viagens.length === 0) {
-    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhuma viagem encontrada neste período.</div>`;
+    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Nenhuma viagem encontrada neste período.</div>`;
   } else {
     html += `<div style="overflow-x:auto;">
       <table class="viagens-table">
@@ -1654,7 +1665,7 @@ function abrirViagensMotorista(motKey, periodo, dados) {
         </thead>
         <tbody>
           ${viagens.map(v => `<tr>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${v.data ? v.data.slice(0,5) : '—'} <span style="color:var(--text3);">${v.dsem||''}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${v.data ? v.data.slice(0,5) : '—'} <span style="color:var(--text3);">${v.dsem||''}</span></td>
             <td class="td-orig">${v.origem || '—'}</td>
             <td class="td-dest">${v.destino || '—'}</td>
             <td class="td-km">${(v.kmcg||0).toLocaleString('pt-BR')}</td>
@@ -1663,7 +1674,7 @@ function abrirViagensMotorista(motKey, periodo, dados) {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="3" style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td colspan="3" style="color:var(--text3);font-size:14px;">TOTAL</td>
             <td class="td-km">${totalKm.toLocaleString('pt-BR')}</td>
             <td class="td-fat" style="color:${totalFat>0?'#388bfd':'var(--text3)'};">${totalFat>0 ? 'R$ '+totalFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
           </tr>
@@ -1778,17 +1789,17 @@ function _cardTrabalho(label, total, verdes, vermelhos, opts) {
     const coresAdr = corProdutividade(opts.aderenciaMedia);
     const linhaPesoAdr = (transportadoTxt || perdidoTxt)
       ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px;border-top:1px solid var(--border2);">
-          <span style="flex:1;text-align:left;font-size:14px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;">${transportadoTxt || '—'}</span>
-          <span style="flex:1.2;text-align:center;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">ADR (ADERÊNCIA)<br><span style="font-size:14px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span></span>
-          <span style="flex:1;text-align:right;font-size:14px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;">${perdidoTxt || '—'}</span>
+          <span style="flex:1;text-align:left;font-size:17px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;">${transportadoTxt || '—'}</span>
+          <span style="flex:1.2;text-align:center;font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">ADR (ADERÊNCIA)<br><span style="font-size:17px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span></span>
+          <span style="flex:1;text-align:right;font-size:17px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;">${perdidoTxt || '—'}</span>
         </div>`
       : `<div style="padding:5px 8px;text-align:center;border-top:1px solid var(--border2);">
-          <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">ADR (ADERÊNCIA) </span><span style="font-size:15px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span>
+          <span style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">ADR (ADERÊNCIA) </span><span style="font-size:18px;font-weight:700;color:${coresAdr.cor};font-family:'DM Mono',monospace;">${opts.aderenciaMedia.toFixed(0)}%</span>
         </div>`;
     const linhaMedio = medioTxt
       ? `<div style="padding:8px;text-align:center;border-top:1px solid var(--border2);">
-          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">MÉDIO/VEÍC</div>
-          <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.3;">${medioTxt}</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">MÉDIO/VEÍC</div>
+          <div style="font-size:23px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.3;">${medioTxt}</div>
         </div>`
       : '';
     rodapeAderencia = linhaPesoAdr + linhaMedio;
@@ -1797,16 +1808,16 @@ function _cardTrabalho(label, total, verdes, vermelhos, opts) {
   return `<div ${attrs} class="${classe}" style="${cursor}display:flex;flex-direction:column;border:${borda};border-radius:10px;overflow:hidden;background:var(--bg2);${sombra}transition:box-shadow .15s,border-color .15s;">
     <div style="display:flex;">
       <div style="flex:1;background:rgba(46,160,67,0.14);padding:10px 8px;text-align:center;">
-        <div style="font-size:20px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;line-height:1.1;">${vTxt}</div>
-        <div style="font-size:15px;color:#2ea043;font-weight:700;">${vPct}</div>
+        <div style="font-size:23px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;line-height:1.1;">${vTxt}</div>
+        <div style="font-size:18px;color:#2ea043;font-weight:700;">${vPct}</div>
       </div>
       <div style="flex:1.3;background:var(--bg3);padding:8px 10px;text-align:center;display:flex;flex-direction:column;justify-content:center;">
-        <div style="font-size:10px;color:${ativo?'#388bfd':'var(--text3)'};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;white-space:nowrap;font-weight:${ativo?'700':'400'};">${label}${ativo ? ' ✓' : ''}</div>
-        <div style="font-size:22px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${total}</div>
+        <div style="font-size:13px;color:${ativo?'#388bfd':'var(--text3)'};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;white-space:nowrap;font-weight:${ativo?'700':'400'};">${label}${ativo ? ' ✓' : ''}</div>
+        <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${total}</div>
       </div>
       <div style="flex:1;background:rgba(248,81,73,0.14);padding:10px 8px;text-align:center;">
-        <div style="font-size:20px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;line-height:1.1;">${rTxt}</div>
-        <div style="font-size:15px;color:#f85149;font-weight:700;">${rPct}</div>
+        <div style="font-size:23px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;line-height:1.1;">${rTxt}</div>
+        <div style="font-size:18px;color:#f85149;font-weight:700;">${rPct}</div>
       </div>
     </div>
     ${rodapeAderencia}
@@ -1858,7 +1869,7 @@ function _renderCardsTrabalho(linhasOriginais) {
   const cont = document.getElementById('prod-cards-trabalho');
   _renderBotoesCategoria('prod-categoria-btns-principal');
   const linhas = _filtrarCategoria(linhasOriginais || []);
-  if (!linhas || linhas.length === 0) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">Nenhum veículo nessa categoria.</div>'; return; }
+  if (!linhas || linhas.length === 0) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:15px;">Nenhum veículo nessa categoria.</div>'; return; }
 
   const modoMes = _prodModoView !== 'dia';
   const { frota, terceiro } = _dividirFrotaTerceiro(linhas);
@@ -1982,7 +1993,7 @@ function _renderBotoesCategoria(containerId) {
   if (!cont) return;
   const btnCat = (valor, rotulo) => {
     const ativo = _prodCategoria === valor;
-    return `<button onclick="_setCategoria('${valor}')" style="padding:7px 12px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:${ativo?'#388bfd':'var(--bg3)'};color:${ativo?'#fff':'var(--text3)'};">${rotulo}</button>`;
+    return `<button onclick="_setCategoria('${valor}')" style="padding:7px 12px;font-size:14px;font-weight:600;border:none;cursor:pointer;background:${ativo?'#388bfd':'var(--bg3)'};color:${ativo?'#fff':'var(--text3)'};">${rotulo}</button>`;
   };
   cont.innerHTML = btnCat('todos','Todos') + btnCat('caminhao','Caminhão') + btnCat('cavalo','Cavalo');
 }
@@ -2133,7 +2144,7 @@ function _renderGraficoDF() {
   }).join('');
 
   cont.innerHTML = `<div class="table-card" style="padding:16px 18px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">${titulo}</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:10px;">${titulo}</div>
       <div style="overflow-x:auto;">
         <svg viewBox="0 0 ${larguraTotal} ${alturaTotal}" style="width:100%;min-width:${larguraTotal}px;height:${alturaTotal}px;display:block;">
           <line x1="0" y1="${margemTopo + alturaGrafico}" x2="${larguraTotal}" y2="${margemTopo + alturaGrafico}" stroke="var(--border2)" stroke-width="1"/>
@@ -2433,7 +2444,7 @@ async function abrirDetalheVeiculo(placaKey) {
     const snap = await getDoc(doc(db, 'base_volume_veiculos', placaKey));
     if (!snap.exists() || !(snap.data().historico || []).length) {
       document.getElementById('prod-modal-meta').textContent = '';
-      document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhum histórico encontrado para este veículo.</div>';
+      document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Nenhum histórico encontrado para este veículo.</div>';
       return;
     }
 
@@ -2464,7 +2475,7 @@ async function abrirDetalheVeiculo(placaKey) {
         <div class="viagens-kpi-lbl">Viagens</div>
       </div>
       <div class="viagens-kpi">
-        <div class="viagens-kpi-num" style="color:#388bfd;font-size:14px;">${aderenciaMedia.toFixed(0)}%</div>
+        <div class="viagens-kpi-num" style="color:#388bfd;font-size:17px;">${aderenciaMedia.toFixed(0)}%</div>
         <div class="viagens-kpi-lbl">Aderência</div>
       </div>
     </div>`;
@@ -2472,7 +2483,7 @@ async function abrirDetalheVeiculo(placaKey) {
     const ofensoresList = Object.entries(ofensores).sort((a,b) => b[1]-a[1]);
     if (ofensoresList.length > 0) {
       html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;">
-        ${ofensoresList.slice(0,6).map(([mot,n]) => `<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(248,81,73,0.10);border:1px solid rgba(248,81,73,0.3);color:#f85149;">${mot} · ${n}x</span>`).join('')}
+        ${ofensoresList.slice(0,6).map(([mot,n]) => `<span style="font-size:14px;padding:3px 10px;border-radius:20px;background:rgba(248,81,73,0.10);border:1px solid rgba(248,81,73,0.3);color:#f85149;">${mot} · ${n}x</span>`).join('')}
       </div>`;
     }
 
@@ -2489,7 +2500,7 @@ async function abrirDetalheVeiculo(placaKey) {
         </thead>
         <tbody>
           ${historicoTodo.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${d.data}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
             <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
             <td class="td-km">${d.viagens}</td>
             <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
@@ -2498,7 +2509,7 @@ async function abrirDetalheVeiculo(placaKey) {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td colspan="2" style="color:var(--text3);font-size:14px;">TOTAL</td>
             <td class="td-km">${viagensTotal}</td>
             <td class="td-km">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
             <td></td>
@@ -2511,7 +2522,7 @@ async function abrirDetalheVeiculo(placaKey) {
   } catch (err) {
     console.error('Erro ao abrir detalhe do veículo:', err);
     document.getElementById('prod-modal-meta').textContent = '';
-    document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Erro ao carregar histórico.</div>';
+    document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Erro ao carregar histórico.</div>';
   }
 }
 
@@ -3028,13 +3039,112 @@ function _volDiasComAtividade(filtroFn) {
   return (_volDiasRegistros || []).filter(({ viagens }) => (viagens || []).some(filtroFn)).length;
 }
 
+// Compara o ritmo diário recente com o ritmo diário anterior, dentro do mesmo período carregado,
+// pra saber se está melhorando ou piorando ao longo do mês. Divide os dias com dados ao meio
+// (metade mais recente x metade mais antiga) e compara as médias.
+function _volCalcularTendencia(filtroFn) {
+  const diasComVolume = (_volDiasRegistros || []).map(({ dia, viagens }) => {
+    const filtradas = filtroFn ? (viagens||[]).filter(filtroFn) : (viagens||[]);
+    return { dia, volume: filtradas.reduce((s,v) => s+(v.peso||0), 0) };
+  });
+  const ordenados = diasComVolume.slice().sort((a,b) => {
+    const da = a.dia.split('/').reverse().join(''); const db = b.dia.split('/').reverse().join('');
+    return da.localeCompare(db);
+  });
+  if (ordenados.length < 4) return null; // poucos dias pra uma tendência confiável
+
+  const metadeRecente = ordenados.slice(-Math.ceil(ordenados.length/2));
+  const metadeAnterior = ordenados.slice(0, ordenados.length - metadeRecente.length);
+  if (metadeAnterior.length === 0) return null;
+
+  const mediaRecente = metadeRecente.reduce((s,d) => s+d.volume, 0) / metadeRecente.length;
+  const mediaAnterior = metadeAnterior.reduce((s,d) => s+d.volume, 0) / metadeAnterior.length;
+  if (mediaAnterior <= 0) return null;
+
+  const variacaoPct = ((mediaRecente - mediaAnterior) / mediaAnterior) * 100;
+  return { variacaoPct, mediaRecente, mediaAnterior, metadeAnterior, metadeRecente, dias: ordenados };
+}
+
+function _volSetaTendenciaHTML(tendencia, chaveMeta) {
+  if (!tendencia) return '';
+  const { variacaoPct } = tendencia;
+  let seta, cor;
+  if (variacaoPct > 5) { seta = '▲'; cor = '#2ea043'; }
+  else if (variacaoPct < -5) { seta = '▼'; cor = '#f85149'; }
+  else { seta = '▬'; cor = 'var(--text3)'; }
+  const sinal = variacaoPct >= 0 ? '+' : '';
+  return ` <span style="color:${cor};font-weight:700;" title="Ritmo diário recente vs anterior no mês">${seta} ${sinal}${Math.round(variacaoPct)}%</span><button onclick="event.stopPropagation();abrirTendenciaModal('${chaveMeta}')" title="Ver detalhamento da tendência" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 0 0 3px;line-height:1;vertical-align:middle;">🔍</button>`;
+}
+
+// Detalhamento dia a dia da tendência — só aparece no card expandido (⤢), pra explicar de onde
+// vem a variação sem poluir a visão compacta.
+let _volTendenciasCache = {}; // chaveMeta -> { titulo, tendencia }
+
+function _volConteudoTendenciaHTML(titulo, tendencia) {
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  if (!tendencia) return `<div style="text-align:center;padding:40px;color:var(--text3);">Dados insuficientes nesse período pra calcular uma tendência.</div>`;
+
+  const { variacaoPct, mediaAnterior, mediaRecente, metadeAnterior, metadeRecente } = tendencia;
+  const cor = variacaoPct > 5 ? '#2ea043' : variacaoPct < -5 ? '#f85149' : 'var(--text3)';
+
+  const linhaDia = (d, mediaRef) => {
+    const corBarra = d.volume >= mediaRef ? '#2ea043' : '#f85149';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+      <div style="font-size:12px;color:var(--text3);width:50px;flex-shrink:0;font-family:'DM Mono',monospace;">${d.dia.slice(0,5)}</div>
+      <div style="flex:1;background:var(--bg3);border-radius:4px;overflow:hidden;height:10px;">
+        <div style="width:${mediaRef>0 ? Math.min(100, Math.round((d.volume/(mediaRef*2))*100)) : 0}%;height:100%;background:${corBarra};"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);width:70px;text-align:right;font-family:'DM Mono',monospace;">${fmt(d.volume)}t</div>
+    </div>`;
+  };
+
+  const maiorMedia = Math.max(mediaAnterior, mediaRecente) || 1;
+
+  return `<div>
+    <div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:18px;">
+      <div class="table-card" style="flex:1;padding:14px 16px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">1ª metade (${metadeAnterior.length} dias)</div>
+        <div style="font-size:22px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;margin-top:4px;">${fmt(mediaAnterior)}t/dia</div>
+      </div>
+      <div class="table-card" style="flex:1;padding:14px 16px;text-align:center;border-top:3px solid ${cor};">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">2ª metade (${metadeRecente.length} dias)</div>
+        <div style="font-size:22px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;margin-top:4px;">${fmt(mediaRecente)}t/dia</div>
+        <div style="font-size:12px;font-weight:700;color:${cor};margin-top:2px;">${variacaoPct>=0?'+':''}${Math.round(variacaoPct)}%</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">1ª metade — mais antiga</div>
+        ${metadeAnterior.map(d => linhaDia(d, maiorMedia/2)).join('')}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">2ª metade — mais recente</div>
+        ${metadeRecente.map(d => linhaDia(d, maiorMedia/2)).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.abrirTendenciaModal = function abrirTendenciaModal(chaveMeta) {
+  const dados = _volTendenciasCache[chaveMeta];
+  if (!dados) return;
+  document.getElementById('vol-tendencia-titulo').textContent = `📉 Tendência — ${dados.titulo}`;
+  document.getElementById('vol-tendencia-corpo').innerHTML = _volConteudoTendenciaHTML(dados.titulo, dados.tendencia);
+  document.getElementById('vol-tendencia-overlay').style.display = 'flex';
+};
+
+window.fecharTendenciaModal = function fecharTendenciaModal() {
+  document.getElementById('vol-tendencia-overlay').style.display = 'none';
+};
+
 function _volStatsFluxo(filtroFn) {
   const todas = _volFlatten();
   const viagensFiltradas = filtroFn ? todas.filter(filtroFn) : todas;
   const total = viagensFiltradas.reduce((s,v) => s + (v.peso||0), 0);
   const nDias = filtroFn ? _volDiasComAtividade(filtroFn) : (_volDiasRegistros || []).length;
   const mediaDia = nDias > 0 ? total / nDias : 0;
-  return { total, mediaDia, nDias, viagensFiltradas, viagens: viagensFiltradas.length };
+  const tendencia = _volCalcularTendencia(filtroFn);
+  return { total, mediaDia, nDias, viagensFiltradas, viagens: viagensFiltradas.length, tendencia };
 }
 
 // Formata uma linha de quebra no padrão: "FROTA - 76,4% - 16.250T - 677vg - 24t/vg"
@@ -3042,10 +3152,10 @@ function _volLinhaTexto(chave, pct, volume, viagens, pesoMedio) {
   const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   const fmtPct = pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
-    <span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${chave}</span>
-    <span style="font-size:12px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volume)}T</span>
+    <span style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${chave}</span>
+    <span style="font-size:15px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volume)}T</span>
   </div>
-  <div style="text-align:right;font-size:10px;color:var(--text3);margin-top:1px;">${fmtPct}% · ${viagens.toLocaleString('pt-BR')} viagens · ${fmt(pesoMedio)}t/vg</div>`;
+  <div style="text-align:right;font-size:13px;color:var(--text3);margin-top:1px;">${fmtPct}% · ${viagens.toLocaleString('pt-BR')} viagens · ${fmt(pesoMedio)}t/vg</div>`;
 }
 
 function _volBlocoBreakdown(stats, dimensao, cardKey) {
@@ -3074,12 +3184,12 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   }).join('');
 
   return `<div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
         <span>Por ${rotulo} (${nItens})</span>
         <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}t</strong></span>
       </div>
       ${linhas}
-      ${nItens > 6 ? `<div style="font-size:10px;color:var(--text3);text-align:center;padding-top:4px;">+${nItens-6} outros</div>` : ''}
+      ${nItens > 6 ? `<div style="font-size:13px;color:var(--text3);text-align:center;padding-top:4px;">+${nItens-6} outros</div>` : ''}
     </div>`;
 }
 
@@ -3092,29 +3202,29 @@ function _volCardHTML(opts) {
   return `<div class="table-card" id="vol-card-${opts.chaveMeta}" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:18px;">${opts.icone}</span>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">${opts.titulo}</div>
+        <span style="font-size:21px;">${opts.icone}</span>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">${opts.titulo}</div>
       </div>
-      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-${opts.chaveMeta}')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-${opts.chaveMeta}')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:2px;">⤢</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
-        <div style="font-size:24px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+        <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d</div>
+        <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, opts.chaveMeta)}</div>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
       <div>
-        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(pesoMedioViagem)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(pesoMedioViagem)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
       </div>
     </div>
     <div id="vol-card-meta-${opts.chaveMeta}"></div>
@@ -3161,43 +3271,43 @@ function _volCardFabricaHTML(opts) {
   return `<div class="table-card" id="vol-card-fabrica" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:18px;">${opts.icone}</span>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">${opts.titulo}</div>
+        <span style="font-size:21px;">${opts.icone}</span>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">${opts.titulo}</div>
       </div>
-      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-fabrica')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-fabrica')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:2px;">⤢</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
-        <div style="font-size:24px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+        <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d</div>
+        <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, 'fabrica')}</div>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
       <div>
-        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${opts.stats.viagens.toLocaleString('pt-BR')}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Viagens</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:14px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+        <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
       </div>
     </div>
     <div id="vol-card-meta-fabrica"></div>
 
     <div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</div>
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</div>
       ${linhaFonte('Pátio 4', totalPatio4, totalFontes, doPatio4.length, 'PATIO 4')}
       ${linhaFonte('Material Novo', totalNovo, totalFontes, materialNovo.length, '')}
     </div>
 
     ${porMina.length > 0 ? `<div class="vol-breakdown-block" style="display:none;margin-top:12px;padding-top:8px;border-top:2px solid var(--border2);">
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Material Novo (${porMina.length})</div>
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Material Novo (${porMina.length})</div>
       ${linhasMinas}
-      ${porMina.length > 6 ? `<div style="font-size:10px;color:var(--text3);text-align:center;padding-top:4px;">+${porMina.length-6} outras</div>` : ''}
+      ${porMina.length > 6 ? `<div style="font-size:13px;color:var(--text3);text-align:center;padding-top:4px;">+${porMina.length-6} outras</div>` : ''}
     </div>` : ''}
   </div>`;
 }
@@ -3215,6 +3325,14 @@ function _renderCardsMinaRota() {
   const patio4Entrada = _volStatsFluxo(_volDestinoPatio4);
   const patio4Saida = _volStatsFluxo(_volOrigemPatio4);
 
+  _volTendenciasCache = {
+    geral: { titulo: 'Volume Geral', tendencia: geral.tendencia },
+    novo: { titulo: 'Volume Novo', tendencia: novo.tendencia },
+    fabrica: { titulo: 'Volume Fábrica', tendencia: fabrica.tendencia },
+    entrada: { titulo: 'Pátio 4 — Entrada', tendencia: patio4Entrada.tendencia },
+    saida: { titulo: 'Pátio 4 — Saída', tendencia: patio4Saida.tendencia }
+  };
+
   cont.innerHTML =
     _volCardHTML({ titulo: 'Volume Geral', icone: '📦', cor: '#388bfd', stats: geral, dimensoesBreakdown: ['forca', 'tipo'], chaveMeta: 'geral' }) +
     _volCardHTML({ titulo: 'Volume Novo', icone: '⛏️', cor: '#2ea043', stats: novo, dimensoesBreakdown: ['rota'], chaveMeta: 'novo' }) +
@@ -3223,10 +3341,10 @@ function _renderCardsMinaRota() {
     _volCardHTML({ titulo: 'Volume Pátio 4 — Saída', icone: '⬆️', cor: '#f85149', stats: patio4Saida, dimensoesBreakdown: ['destino'], chaveMeta: 'saida' }) +
     `<div class="table-card" id="vol-card-estoque-patio4" style="padding:16px 18px;border-top:3px solid #a371f7;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:18px;">🏔️</span>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
+        <span style="font-size:21px;">🏔️</span>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
       </div>
-      <div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;">Calculando saldo acumulado da base inteira...</div>
+      <div style="text-align:center;padding:20px 0;color:var(--text3);font-size:15px;">Calculando saldo acumulado da base inteira...</div>
     </div>`;
 
   _volAtualizarCardEstoque();
@@ -3257,7 +3375,7 @@ async function _volObterMetasParaCards(mesKey) {
 function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
   const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
   if (totalMeta <= 0) {
-    return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2);font-size:12px;color:var(--text3);text-align:center;">🎯 Nenhuma meta cadastrada para este mês</div>`;
+    return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2);font-size:15px;color:var(--text3);text-align:center;">🎯 Nenhuma meta cadastrada para este mês</div>`;
   }
   const pct = Math.round((totalReal/totalMeta)*1000)/10;
   const cor = _corAtingimento(pct);
@@ -3269,15 +3387,15 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     const projecao = (totalReal / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/totalMeta)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="font-size:11px;color:var(--text2);margin-top:2px;">📈 Projeção (${diasOperacao}d): <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+    projecaoHtml = `<div style="font-size:14px;color:var(--text2);margin-top:2px;">📈 Projeção (${diasOperacao}d): <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
   }
 
   return `<div style="margin-top:10px;padding-top:10px;border-top:2px solid ${cor};">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:13px;">${fmt(totalMeta)}t</strong></div>
-      <div style="font-size:20px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
+      <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}t</strong></div>
+      <div style="font-size:23px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
     </div>
-    <div style="font-size:11px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:12px;">${difTxt}</strong></div>
+    <div style="font-size:14px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:15px;">${difTxt}</strong></div>
     ${projecaoHtml}
   </div>`;
 }
@@ -3291,7 +3409,7 @@ async function _volAtualizarMetasNosCards() {
   if (!slotNovo) return; // página não está mais nessa view
 
   if (_volModoView !== 'mes' || !_volMesAtual) {
-    const msg = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:10px;color:var(--text3);text-align:center;">🎯 Metas disponíveis só no modo Mês</div>`;
+    const msg = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:13px;color:var(--text3);text-align:center;">🎯 Metas disponíveis só no modo Mês</div>`;
     [slotGeral, slotNovo, slotFabrica, slotEntrada, slotSaida].forEach(el => { if (el) el.innerHTML = msg; });
     document.querySelectorAll('.vol-meta-linha').forEach(el => { el.innerHTML = ''; });
     return;
@@ -3382,7 +3500,7 @@ function _volInjetarMetasNasLinhas(itens, diasOperacao, diasComDados) {
 function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
   const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
   if (metaTotal <= 0) {
-    return `<div style="font-size:10px;color:var(--text3);margin-top:3px;">🎯 sem meta cadastrada</div>`;
+    return `<div style="font-size:13px;color:var(--text3);margin-top:3px;">🎯 sem meta cadastrada</div>`;
   }
   const realizado = dados.volume;
   const pct = Math.round((realizado/metaTotal)*1000)/10;
@@ -3395,7 +3513,7 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
     const projecao = (realizado / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/metaTotal)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">📈 Projeção: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+    projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">📈 Projeção: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
   }
 
   let frotaHtml = '';
@@ -3409,13 +3527,13 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
     const diffVeic = veiculosNecessarios - veiculosAtivos;
     const corFrota = diffVeic > 0 ? '#f85149' : '#2ea043';
     const txtFrota = diffVeic > 0 ? `faltam ${diffVeic}` : 'suficiente';
-    frotaHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
+    frotaHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
   }
 
   return `<div style="margin-top:3px;padding-top:3px;border-top:1px dashed var(--border2);">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <span style="font-size:11px;color:var(--text2);">🎯 ${fmt(metaTotal)}t · ${faltaTxt}</span>
-      <span style="font-size:13px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</span>
+      <span style="font-size:14px;color:var(--text2);">🎯 ${fmt(metaTotal)}t · ${faltaTxt}</span>
+      <span style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</span>
     </div>
     ${projecaoHtml}
     ${frotaHtml}
@@ -3474,7 +3592,7 @@ async function _volAtualizarCardEstoque() {
     _volPintarCardEstoque(_volEstoquePatio4Cache);
   } catch (err) {
     console.error('Erro ao calcular estoque do Pátio 4:', err);
-    cardEl.innerHTML += '<div style="text-align:center;padding:10px;color:#f85149;font-size:11px;">Erro ao calcular o estoque.</div>';
+    cardEl.innerHTML += '<div style="text-align:center;padding:10px;color:#f85149;font-size:14px;">Erro ao calcular o estoque.</div>';
   }
 }
 
@@ -3491,26 +3609,26 @@ function _volPintarCardEstoque(dados) {
   cardEl.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:18px;">🏔️</span>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
+        <span style="font-size:21px;">🏔️</span>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">Estoque Pátio 4</div>
       </div>
-      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-estoque-patio4')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;line-height:1;padding:2px;">⤢</button>
+      <button class="vol-card-expand-btn" onclick="abrirCardFoco('vol-card-estoque-patio4')" title="Expandir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:2px;">⤢</button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
-        <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.estoque)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Estoque atual (t)</div>
+        <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.estoque)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Estoque atual (t)</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.mediaSaida30d)}</div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média saída/dia (t)</div>
+        <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.mediaSaida30d)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média saída/dia (t)</div>
       </div>
     </div>
     <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);text-align:center;">
-      <div style="font-size:28px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${diasTxt}</div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Dias de operação estimados</div>
+      <div style="font-size:30px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${diasTxt}</div>
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Dias de operação estimados</div>
     </div>
-    <div style="margin-top:8px;font-size:9px;color:var(--text3);text-align:center;">
+    <div style="margin-top:8px;font-size:12px;color:var(--text3);text-align:center;">
       Saldo acumulado desde o início da base até ${dados.ultimoDia} · média baseada nos últimos ${dados.nDiasAmostra} dia(s) com saída
       ${dados.estoque < 0 ? '<br><span style="color:#f85149;">⚠ saldo negativo — provável estoque inicial não contabilizado antes do início da base</span>' : ''}
     </div>`;
@@ -3569,22 +3687,22 @@ function abrirVolItem(dimensao, chave) {
   let html = `<div class="viagens-kpis">
     <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#388bfd;">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="viagens-kpi-lbl">Toneladas</div></div>
     <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#3fb950;">${totalViagens}</div><div class="viagens-kpi-lbl">Viagens</div></div>
-    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:var(--text);font-size:14px;">${totalViagens>0 ? (totalVolume/totalViagens).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '0'}</div><div class="viagens-kpi-lbl">Peso Médio/Viagem</div></div>
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:var(--text);font-size:17px;">${totalViagens>0 ? (totalVolume/totalViagens).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '0'}</div><div class="viagens-kpi-lbl">Peso Médio/Viagem</div></div>
   </div>`;
 
   if (porDia.length === 0) {
-    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Nenhum registro encontrado neste período.</div>`;
+    html += `<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Nenhum registro encontrado neste período.</div>`;
   } else {
     html += `<div style="overflow-x:auto;">
       <table class="viagens-table">
         <thead><tr><th>Data</th><th style="text-align:right;">Viagens</th><th style="text-align:right;">Volume (t)</th></tr></thead>
         <tbody>${porDia.map(d => `<tr>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">${d.dia}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.dia}</td>
             <td class="td-km">${d.viagens}</td>
             <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
           </tr>`).join('')}</tbody>
         <tfoot><tr>
-            <td style="color:var(--text3);font-size:11px;">TOTAL</td>
+            <td style="color:var(--text3);font-size:14px;">TOTAL</td>
             <td class="td-km">${totalViagens}</td>
             <td class="td-km">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
           </tr></tfoot>
@@ -3714,7 +3832,7 @@ function _renderMetasCorpo() {
       const projecao = ritmoDiario * _volMetasDiasOperacao;
       const pctProjecao = meta > 0 ? Math.round((projecao/meta)*1000)/10 : null;
       const corProj = _corAtingimento(pctProjecao);
-      projecaoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:3px;">📈 Projeção p/ ${_volMetasDiasOperacao}d: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <span style="color:${corProj};font-weight:700;">(${pctProjecao===null?'—':pctProjecao+'%'})</span></div>`;
+      projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:3px;">📈 Projeção p/ ${_volMetasDiasOperacao}d: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <span style="color:${corProj};font-weight:700;">(${pctProjecao===null?'—':pctProjecao+'%'})</span></div>`;
     }
 
     // Peso médio por tipo de veículo, nessa rota especificamente
@@ -3722,7 +3840,7 @@ function _renderMetasCorpo() {
     const tipos = Object.entries(dados.porTipo || {});
     if (tipos.length > 0) {
       const partes = tipos.sort((a,b) => b[1].volume - a[1].volume).map(([tipo, d]) => `${tipo} ${(d.volume/d.viagens).toLocaleString('pt-BR',{maximumFractionDigits:0})}t/vg`).join(' · ');
-      pesoTipoHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚛 Peso médio: ${partes}</div>`;
+      pesoTipoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">🚛 Peso médio: ${partes}</div>`;
     }
 
     // Viabilidade de frota: quantos veículos essa rota precisa pra bater a meta no ritmo necessário
@@ -3737,20 +3855,20 @@ function _renderMetasCorpo() {
       const diffVeic = veiculosNecessarios - veiculosAtivos;
       const corFrota = diffVeic > 0 ? '#f85149' : '#2ea043';
       const txtFrota = diffVeic > 0 ? `faltam ${diffVeic} veículo(s)` : 'frota suficiente';
-      frotaHtml = `<div style="font-size:10px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
+      frotaHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">🚚 ${veiculosAtivos} ativo(s) · necessário ~${veiculosNecessarios} · <strong style="color:${corFrota};">${txtFrota}</strong></div>`;
     }
 
     return `<div style="padding:8px 0;border-bottom:1px solid var(--border2);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
-        <div style="font-size:12px;font-weight:600;color:var(--text);">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <button onclick="editarMeta(${idxGlobal})" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:13px;line-height:1;">✏️</button>
-          <button onclick="removerMeta(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:13px;line-height:1;">🗑</button>
+          <button onclick="editarMeta(${idxGlobal})" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:16px;line-height:1;">✏️</button>
+          <button onclick="removerMeta(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:16px;line-height:1;">🗑</button>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px;">
-        <div style="font-size:10px;color:var(--text3);">Meta: <strong style="color:var(--text2);">${fmt(meta)}t</strong> · Realizado: <strong style="color:var(--text2);">${fmt(real)}t</strong> · Dif: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong></div>
-        <div style="font-size:13px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct===null?'—':pct+'%'}</div>
+        <div style="font-size:13px;color:var(--text3);">Meta: <strong style="color:var(--text2);">${fmt(meta)}t</strong> · Realizado: <strong style="color:var(--text2);">${fmt(real)}t</strong> · Dif: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong></div>
+        <div style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct===null?'—':pct+'%'}</div>
       </div>
       ${projecaoHtml}
       ${pesoTipoHtml}
@@ -3764,12 +3882,12 @@ function _renderMetasCorpo() {
     const pctTotal = totalMeta > 0 ? Math.round((totalReal/totalMeta)*1000)/10 : null;
     const corTotal = _corAtingimento(pctTotal);
     const linhas = itens.length === 0
-      ? `<div style="font-size:11px;color:var(--text3);padding:8px 0;">Nenhuma meta cadastrada nessa categoria.</div>`
+      ? `<div style="font-size:14px;color:var(--text3);padding:8px 0;">Nenhuma meta cadastrada nessa categoria.</div>`
       : itens.map(linhaItem).join('');
     return `<div style="margin-bottom:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">
         <span>${titulo}</span>
-        <span style="font-size:11px;font-weight:700;color:${corTotal};">${fmt(totalReal)}t / ${fmt(totalMeta)}t${pctTotal!==null ? ' ('+pctTotal+'%)' : ''}</span>
+        <span style="font-size:14px;font-weight:700;color:${corTotal};">${fmt(totalReal)}t / ${fmt(totalMeta)}t${pctTotal!==null ? ' ('+pctTotal+'%)' : ''}</span>
       </div>
       ${linhas}
     </div>`;
@@ -4040,8 +4158,8 @@ function _renderMinasTabela() {
       <td>${m.destino}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${m.viagensDia ?? '—'}</td>
       <td style="text-align:right;">
-        <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:14px;margin-right:8px;">✏️</button>
-        <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;">🗑</button>
+        <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:17px;margin-right:8px;">✏️</button>
+        <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:17px;">🗑</button>
       </td>
     </tr>`).join('');
 }
@@ -4162,31 +4280,37 @@ function _renderProgCorpo() {
   const card = (titulo, icone, cor, itens) => {
     const total = itens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
     const linhas = itens.length === 0
-      ? `<div style="font-size:11px;color:var(--text3);padding:8px 0;">Nada programado nessa categoria.</div>`
+      ? `<div style="font-size:14px;color:var(--text3);padding:8px 0;">Nada programado nessa categoria.</div>`
       : itens.map(m => {
           const idxGlobal = _progItens.indexOf(m);
           const meta = parseFloat(m.meta) || 0;
           const programado = _progProgramadoPara(m.origem, m.destino);
           const pct = meta > 0 ? Math.round((programado/meta)*1000)/10 : 0;
           const corProg = pct >= 96 ? '#2ea043' : pct >= 51 ? '#d29922' : '#f85149';
+          const veic = _progVeiculosProgramadosPara(m.origem, m.destino);
+          const veicTxt = veic.total > 0
+            ? [veic.caminhoes > 0 ? `🚚 ${veic.caminhoes} caminhão${veic.caminhoes>1?'ões':''}` : null, veic.cavalos > 0 ? `🐎 ${veic.cavalos} cavalo${veic.cavalos>1?'s':''}` : null].filter(Boolean).join(' · ')
+            : '<span style="color:var(--text3);">nenhum veículo atribuído ainda</span>';
           return `<div style="padding:6px 0;border-bottom:1px solid var(--border2);">
             <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
+              <div style="font-size:15px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
               <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                <div style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}t</div>
-                <button onclick="removerItemProg(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:13px;line-height:1;">🗑</button>
+                <div style="font-size:16px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}t</div>
+                <button onclick="removerItemProg(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:16px;line-height:1;">🗑</button>
               </div>
             </div>
-            <div style="font-size:10px;color:${corProg};margin-top:1px;">Programado: <strong>${fmt(programado)}t / ${fmt(meta)}t</strong> (${pct}%)</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}t</div>
+            <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}t</strong> de <strong>${fmt(meta)}t</strong> (${pct}%)</div>
+            <div style="font-size:12px;margin-top:3px;">${veicTxt}</div>
           </div>`;
         }).join('');
     return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${cor};">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:18px;">${icone}</span>
-        <div style="font-size:13px;font-weight:700;color:var(--text);">${titulo}</div>
+        <span style="font-size:21px;">${icone}</span>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">${titulo}</div>
       </div>
-      <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Total (t) · ${itens.length} item(ns)</div>
+      <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Meta Alcoa (t) · ${itens.length} item(ns)</div>
       <div style="border-top:1px solid var(--border2);padding-top:8px;">${linhas}</div>
     </div>`;
   };
@@ -4206,11 +4330,23 @@ function _renderProgCorpo() {
   const entrada = _progItens.filter(_volDestinoPatio4);
   const saida = _progItens.filter(_volOrigemPatio4);
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+  const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
+  const pctGeral = totalGeral > 0 ? Math.round((totalNHL/totalGeral)*1000)/10 : 0;
+  const corGeral = pctGeral >= 96 ? '#2ea043' : pctGeral >= 51 ? '#d29922' : '#f85149';
 
   cont.innerHTML =
-    `<div class="table-card" style="padding:16px 18px;margin-bottom:14px;border-top:3px solid #388bfd;display:flex;justify-content:space-between;align-items:baseline;">
-      <div style="font-size:12px;color:var(--text3);">Total programado para ${_progChaveParaLabel(_progDataAtual)} (${_progItens.length} item(ns))</div>
-      <div style="font-size:22px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;">${fmt(totalGeral)}t</div>
+    `<div class="table-card" style="padding:16px 18px;margin-bottom:14px;border-top:3px solid #388bfd;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">${_progChaveParaLabel(_progDataAtual)} · ${_progItens.length} item(ns)</div>
+      <div style="display:flex;gap:24px;align-items:baseline;">
+        <div>
+          <div style="font-size:25px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalGeral)}t</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa</div>
+        </div>
+        <div>
+          <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)}t</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programação NHL · ${pctGeral}%</div>
+        </div>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
     card('Volume Novo', '⛏️', '#2ea043', novo) +
@@ -4353,6 +4489,15 @@ function _progProgramadoPara(origem, destino) {
     .reduce((s,a) => s + (a.peso||0), 0);
 }
 
+// Conta quantos veículos (por tipo) foram atribuídos a uma rota específica — usado pra mostrar
+// nos cards "com quantos veículos estamos atendendo essa META ALCOA"
+function _progVeiculosProgramadosPara(origem, destino) {
+  const atribs = _progAtribuicoes.filter(a => a.origem === origem && a.destino === destino && (a.viagens||0) > 0);
+  const caminhoes = atribs.filter(a => _progEhCaminhao(a.tipo2)).length;
+  const cavalos = atribs.filter(a => _progEhCavalo(a.tipo2)).length;
+  return { caminhoes, cavalos, total: atribs.length };
+}
+
 window._onProgOrigemVeiculo = async function _onProgOrigemVeiculo(placa, origem) {
   await _progAtualizarAtribuicao(placa, { origem });
 };
@@ -4411,21 +4556,21 @@ function _progRenderFrotaTabela() {
       <td class="text-primary">${v.placa}</td>
       <td>${v.tipo2}</td>
       <td>${v.forca}</td>
-      <td><select class="filter-input" style="min-width:150px;font-size:11px;padding:4px 6px;" onchange="_onProgOrigemVeiculo('${v.placa}', this.value)">${optOrigem}</select></td>
+      <td><select class="filter-input" style="min-width:150px;font-size:14px;padding:4px 6px;" onchange="_onProgOrigemVeiculo('${v.placa}', this.value)">${optOrigem}</select></td>
       <td>
-        <select class="filter-input" style="min-width:110px;font-size:11px;padding:4px 6px;" onchange="_onProgDestinoVeiculo('${v.placa}', this.value)">
+        <select class="filter-input" style="min-width:110px;font-size:14px;padding:4px 6px;" onchange="_onProgDestinoVeiculo('${v.placa}', this.value)">
           <option value="">—</option>
           <option value="PATIO 4" ${atrib.destino==='PATIO 4'?'selected':''}>PATIO 4</option>
           <option value="FABRICA" ${atrib.destino==='FABRICA'?'selected':''}>FABRICA</option>
         </select>
       </td>
-      <td style="text-align:right;"><input type="number" min="0" value="${atrib.viagens||''}" style="width:56px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);text-align:right;padding:3px 5px;font-family:'DM Mono',monospace;font-size:12px;" onchange="_onProgViagensVeiculo('${v.placa}', this.value)"></td>
+      <td style="text-align:right;"><input type="number" min="0" value="${atrib.viagens||''}" style="width:56px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);text-align:right;padding:3px 5px;font-family:'DM Mono',monospace;font-size:15px;" onchange="_onProgViagensVeiculo('${v.placa}', this.value)"></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;">${atrib.peso ? fmt(atrib.peso)+'t' : '—'}</td>
     </tr>`;
   };
 
   cont.innerHTML = `<div style="overflow-x:auto;">
-    <table style="width:100%;font-size:12px;">
+    <table style="width:100%;font-size:15px;">
       <thead><tr>
         <th>FR</th><th>PLACA</th><th>TIPO2</th><th>FORÇA</th><th>ORIGEM</th><th>DESTINO</th>
         <th style="text-align:right;">VIAGENS</th><th style="text-align:right;">PESO</th>
@@ -4597,18 +4742,18 @@ window.abrirModalFarol = function abrirModalFarol(cat, titulo, subtitulo) {
   if (items.length === 0) {
     body.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.4;"><polyline points="20 6 9 17 4 12"/></svg>
-      <p style="font-size:14px;">Nenhum reparo nesta categoria.</p>
+      <p style="font-size:17px;">Nenhum reparo nesta categoria.</p>
     </div>`;
   } else {
     body.innerHTML = items.map(r => `
       <div class="repair-item" style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
           <div class="repair-cat">${r.categoria}</div>
-          <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${r.dias === 0 ? 'Hoje' : r.dias + ' dia(s)'} · ${r.data}</span>
+          <span style="font-size:14px;color:var(--text3);font-family:'DM Mono',monospace;">${r.dias === 0 ? 'Hoje' : r.dias + ' dia(s)'} · ${r.data}</span>
         </div>
         <div class="repair-q">${r.item}</div>
         ${r.obs ? `<div class="inconf-item-obs">📝 ${r.obs}</div>` : ''}
-        <div style="margin-top:8px;font-size:12px;color:var(--text2);display:flex;gap:12px;">
+        <div style="margin-top:8px;font-size:15px;color:var(--text2);display:flex;gap:12px;">
           <span>👤 ${r.motorista}</span>
           <span>🚗 ${r.placa}</span>
         </div>
