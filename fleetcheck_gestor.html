@@ -632,10 +632,6 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div id="prod-cards-trabalho"></div>
 
       <div id="prod-grafico-df" style="margin-bottom:20px;"></div>
-
-      <div style="text-align:center;padding:24px;color:var(--text3);font-size:15px;border:1px dashed var(--border2);border-radius:10px;">
-        Clique em <strong style="color:var(--text2);">FROTA</strong>, <strong style="color:var(--text2);">TERCEIRO</strong> ou num dos cards de tipo acima para abrir o quadro completo.
-      </div>
     </div>
 
     <!-- PAGE: VOLUME TRANSPORTADO -->
@@ -2828,6 +2824,7 @@ window.importarVolume = async function importarVolume(input) {
 
     _prodDiaAtual = null;
     _volDiaAtual = null; _volMesAtual = null; _volAnoAtual = null;
+    _progRosterVeiculos = null; // força a tela de Programação a buscar a frota atualizada de novo
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
     window.renderVolume();
@@ -3642,10 +3639,7 @@ function _volPintarCardEstoque(dados) {
       <div style="font-size:30px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${diasTxt}</div>
       <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Dias de operação estimados</div>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:var(--text3);text-align:center;">
-      Saldo acumulado desde o início da base até ${dados.ultimoDia} · média baseada nos últimos ${dados.nDiasAmostra} dia(s) com saída
-      ${dados.estoque < 0 ? '<br><span style="color:#f85149;">⚠ saldo negativo — provável estoque inicial não contabilizado antes do início da base</span>' : ''}
-    </div>`;
+    ${dados.estoque < 0 ? '<div style="margin-top:8px;font-size:12px;color:#f85149;text-align:center;">⚠ saldo negativo — provável estoque inicial não contabilizado antes do início da base</div>' : ''}`;
 }
 
 // Clique numa linha de breakdown dentro dos cards abre o detalhamento diário daquele item
@@ -4068,7 +4062,7 @@ window.abrirCardFoco = function abrirCardFoco(cardId) {
     // dentro do mesmo bloco pra não ficar excessivamente alto (o que forçaria um zoom pequeno).
     const bloco = blocos[0];
     const linhasFlow = Array.from(bloco.querySelectorAll(':scope > .vol-flow-row'));
-    if (linhasFlow.length > 3) {
+    if (linhasFlow.length >= 3) {
       // agrupa por Destino quando possível — muito mais intuitivo do que separar por ranking de
       // volume, que podia jogar "SANTO ANTONIO → FABRICA" e "SANTO ANTONIO → PATIO 4" em colunas
       // diferentes sem nenhum critério visível pro usuário.
@@ -4291,8 +4285,25 @@ function _renderProgCorpo() {
   if (!cont) return;
   const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
 
+  const pluralCaminhao = (n) => n > 1 ? `${n} caminhões` : `${n} caminhão`;
+  const pluralCavalo = (n) => n > 1 ? `${n} cavalos` : `${n} cavalo`;
+
+  // Peso médio de um veículo por viagem, por categoria — média entre os veículos daquele tipo
+  // conhecidos na frota (base de Aderência)
+  const pesoMedioCategoria = (categoria) => {
+    if (!_progRosterVeiculos || _progRosterVeiculos.length === 0) return 0;
+    const filtro = categoria === 'caminhao' ? _progEhCaminhao : _progEhCavalo;
+    const veiculos = _progRosterVeiculos.filter(v => filtro(v.tipo2) && v.pesoMedio > 0);
+    if (veiculos.length === 0) return 0;
+    return veiculos.reduce((s,v) => s + v.pesoMedio, 0) / veiculos.length;
+  };
+
   const card = (titulo, icone, cor, itens) => {
     const total = itens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+    const totalProgramado = itens.reduce((s,m) => s + _progProgramadoPara(m.origem, m.destino), 0);
+    const pctCard = total > 0 ? Math.round((totalProgramado/total)*1000)/10 : 0;
+    const corCard = pctCard >= 96 ? '#2ea043' : pctCard >= 51 ? '#d29922' : '#f85149';
+
     const linhas = itens.length === 0
       ? `<div style="font-size:14px;color:var(--text3);padding:8px 0;">Nada programado nessa categoria.</div>`
       : itens.map(m => {
@@ -4303,8 +4314,26 @@ function _renderProgCorpo() {
           const corProg = pct >= 96 ? '#2ea043' : pct >= 51 ? '#d29922' : '#f85149';
           const veic = _progVeiculosProgramadosPara(m.origem, m.destino);
           const veicTxt = veic.total > 0
-            ? [veic.caminhoes > 0 ? `${veic.caminhoes} ${veic.caminhoes>1?'caminhões':'caminhão'}` : null, veic.cavalos > 0 ? `${veic.cavalos} ${veic.cavalos>1?'cavalos':'cavalo'}` : null].filter(Boolean).join(' · ')
+            ? [veic.caminhoes > 0 ? pluralCaminhao(veic.caminhoes) : null, veic.cavalos > 0 ? pluralCavalo(veic.cavalos) : null].filter(Boolean).join(' · ')
             : '<span style="color:var(--text3);">nenhum veículo atribuído ainda</span>';
+
+          // Quanto falta pra fechar a meta, em veículos — usa o padrão de viagens/dia cadastrado
+          // em Minas × o peso médio por viagem de cada categoria, pra estimar quantos veículos
+          // a mais (de cada tipo) fechariam essa diferença
+          let faltaTxt = '';
+          const gap = meta - programado;
+          if (gap > 0.5) {
+            const viagensPadrao = _progBuscarViagensPadrao(m.origem, m.destino);
+            const capacidadeCaminhao = viagensPadrao * pesoMedioCategoria('caminhao');
+            const capacidadeCavalo = viagensPadrao * pesoMedioCategoria('cavalo');
+            const opcoes = [];
+            if (capacidadeCaminhao > 0) opcoes.push(pluralCaminhao(Math.ceil(gap/capacidadeCaminhao)));
+            if (capacidadeCavalo > 0) opcoes.push(pluralCavalo(Math.ceil(gap/capacidadeCavalo)));
+            if (opcoes.length > 0) {
+              faltaTxt = `<div style="font-size:11px;color:#f85149;margin-top:2px;">Faltam ~${fmt(gap)}t (${opcoes.join(' ou ')})</div>`;
+            }
+          }
+
           return `<div style="padding:6px 0;border-bottom:1px solid var(--border2);">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <div style="font-size:15px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
@@ -4316,6 +4345,7 @@ function _renderProgCorpo() {
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}t</div>
             <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}t</strong> de <strong>${fmt(meta)}t</strong> (${pct}%)</div>
             <div style="font-size:12px;margin-top:3px;">${veicTxt}</div>
+            ${faltaTxt}
           </div>`;
         }).join('');
     return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${cor};">
@@ -4323,9 +4353,17 @@ function _renderProgCorpo() {
         <span style="font-size:21px;">${icone}</span>
         <div style="font-size:16px;font-weight:700;color:var(--text);">${titulo}</div>
       </div>
-      <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
-      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Meta Alcoa (t) · ${itens.length} item(ns)</div>
-      <div style="border-top:1px solid var(--border2);padding-top:8px;">${linhas}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
+        <div>
+          <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa (t) · ${itens.length} item(ns)</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:20px;font-weight:700;color:${corCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalProgramado)}</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Prog. NHL (t) · ${pctCard}%</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border2);margin-top:10px;padding-top:8px;">${linhas}</div>
     </div>`;
   };
 
