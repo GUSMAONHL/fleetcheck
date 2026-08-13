@@ -2012,8 +2012,7 @@ window._setCategoria = function _setCategoria(valor) {
   _prodCategoria = valor;
   _renderBotoesCategoria('prod-categoria-btns-principal');
   if (_prodLinhasAtual && _prodLinhasAtual.length) {
-    _renderCardsTrabalho(_prodLinhasAtual);
-    _renderGraficoDF();
+    _renderProdResumoEBlocos(_prodLinhasAtual);
   }
   if (_prodQuadroForca && document.getElementById('prod-quadro-overlay').style.display === 'flex') {
     _renderQuadro();
@@ -2175,13 +2174,15 @@ function _renderProdResumoEBlocos(linhas) {
   }
 
   const linhasCat = _filtrarCategoria(linhas);
-  const volumeTotal = linhasCat.reduce((s,l) => s + l.volume, 0);
-  const viagensTotal = linhasCat.reduce((s,l) => s + l.viagens, 0);
+  const toneladasPerdidas = linhasCat.reduce((s,l) => s + (l.percTon||0), 0);
+  const modoMes = _prodModoView !== 'dia';
+  const geralC = modoMes ? _mediaDiariaPorGrupo(null) : _contagemTrabalho(linhasCat);
+  const disponibilidadeMedia = geralC.total > 0 ? (geralC.verdes / geralC.total) * 100 : 0;
   const aderenciaMedia = linhasCat.length ? linhasCat.reduce((s,l) => s + l.aderencia, 0) / linhasCat.length : 0;
 
   document.getElementById('prod-resumo').innerHTML = `
-    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#388bfd;">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="km-resumo-lbl">Toneladas</div></div>
-    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#2ea043;">${viagensTotal.toLocaleString('pt-BR')}</div><div class="km-resumo-lbl">Viagens</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${toneladasPerdidas.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="km-resumo-lbl">Toneladas Perdidas</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:${disponibilidadeMedia<70?'#f85149':'#2ea043'};">${disponibilidadeMedia.toFixed(0)}%</div><div class="km-resumo-lbl">Disponibilidade Média</div></div>
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:${aderenciaMedia<70?'#f85149':'#d29922'};">${aderenciaMedia.toFixed(0)}%</div><div class="km-resumo-lbl">Aderência Média</div></div>
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:var(--text);">${linhasCat.length}</div><div class="km-resumo-lbl">Veículos Ativos</div></div>`;
 
@@ -2806,6 +2807,30 @@ window.importarVolume = async function importarVolume(input) {
         dias: diasOrdenadosVol.map(d => d.split('-').reverse().join('/'))
       }
     });
+
+    // ════════════════════════════════════════════════════════
+    // LIMPEZA — remove veículos que existiam numa importação anterior mas não aparecem mais
+    // nesta (ex.: cadastrados com grafia errada e depois corrigidos). Sem isso, ficam "presos"
+    // pra sempre na base e continuam aparecendo em telas que listam a frota, como a Programação.
+    // ════════════════════════════════════════════════════════
+    progressText.textContent = 'Limpando veículos desatualizados...';
+    progressFill.style.width = '62%';
+    try {
+      const snapVeiculosExistentes = await getDocs(collection(db, 'base_volume_veiculos'));
+      const placasNovas = new Set(Object.keys(historicoPorVeiculo));
+      const placasParaRemover = snapVeiculosExistentes.docs.map(d => d.id).filter(placa => !placasNovas.has(placa));
+      if (placasParaRemover.length > 0) {
+        for (let i = 0; i < placasParaRemover.length; i += 450) {
+          const lote = placasParaRemover.slice(i, i + 450);
+          const batchRemover = writeBatch(db);
+          lote.forEach(placa => batchRemover.delete(doc(db, 'base_volume_veiculos', placa)));
+          await batchRemover.commit();
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao limpar veículos desatualizados:', err);
+      // não interrompe o import por causa disso — só loga o erro
+    }
 
     // ════════════════════════════════════════════════════════
     // GRAVAÇÃO — tudo junto, em lotes seguros
@@ -4256,11 +4281,41 @@ window.excluirMina = async function excluirMina(id) {
 // ══════════════════════════════════════
 let _progDataAtual = null; // 'YYYY-MM-DD'
 let _progItens = [];       // [{ origem, destino, meta }] do dia carregado
+let _progRealizadoDia = {}; // 'ORIGEM|||DESTINO' -> toneladas realmente transportadas nesse dia (dado real, base Volume)
 
 function _progChaveParaLabel(dataISO) {
   if (!dataISO) return '';
   const [ano, mes, dia] = dataISO.split('-');
   return `${dia}/${mes}/${ano}`;
+}
+
+// "PATIO 4" (regra PATIO4_PILHA...) e "PATIO 04" (regra PILHA...FABRICA) são o mesmo pátio
+// físico, mas com grafias diferentes — normaliza pra uma só antes de montar a chave de
+// comparação, senão o Realizado nunca casa com metas registradas como "PATIO 4 → FABRICA".
+function _progNormalizarOD(valor) {
+  return _volEhPatio4(valor) ? 'PATIO 4' : (valor||'').toString().trim().toUpperCase();
+}
+
+async function _progCalcularRealizadoDoDia(dataISO) {
+  if (!dataISO) return {};
+  try {
+    const snap = await getDoc(doc(db, 'volume_dias', dataISO));
+    const mapa = {};
+    if (snap.exists()) {
+      (snap.data().viagens || []).forEach(v => {
+        const chave = _metaChaveOD(_progNormalizarOD(v.origem), _progNormalizarOD(v.destino));
+        mapa[chave] = (mapa[chave] || 0) + (v.peso || 0);
+      });
+    }
+    return mapa;
+  } catch (err) {
+    console.error('Erro ao calcular realizado do dia:', err);
+    return {};
+  }
+}
+
+function _progRealizadoPara(origem, destino) {
+  return _progRealizadoDia[_metaChaveOD(_progNormalizarOD(origem), _progNormalizarOD(destino))] || 0;
 }
 
 async function _carregarProgDia(dataISO) {
@@ -4269,9 +4324,13 @@ async function _carregarProgDia(dataISO) {
   if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
   cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando...</div>';
   try {
-    const snap = await getDoc(doc(db, 'programacao_dias', dataISO));
+    const [snap, realizado] = await Promise.all([
+      getDoc(doc(db, 'programacao_dias', dataISO)),
+      _progCalcularRealizadoDoDia(dataISO)
+    ]);
     _progItens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
     _progAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+    _progRealizadoDia = realizado;
     _renderProgCorpo();
     _progRenderFrotaTabela();
   } catch (err) {
@@ -4301,8 +4360,12 @@ function _renderProgCorpo() {
   const card = (titulo, icone, cor, itens) => {
     const total = itens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
     const totalProgramado = itens.reduce((s,m) => s + _progProgramadoPara(m.origem, m.destino), 0);
+    const totalRealizado = itens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0);
     const pctCard = total > 0 ? Math.round((totalProgramado/total)*1000)/10 : 0;
     const corCard = pctCard >= 96 ? '#2ea043' : pctCard >= 51 ? '#d29922' : '#f85149';
+    const pctRealizadoCard = total > 0 ? Math.round((totalRealizado/total)*1000)/10 : 0;
+    const corRealizadoCard = pctRealizadoCard >= 96 ? '#2ea043' : pctRealizadoCard >= 51 ? '#d29922' : '#f85149';
+    const difCard = totalRealizado - total;
 
     const linhas = itens.length === 0
       ? `<div style="font-size:14px;color:var(--text3);padding:8px 0;">Nada programado nessa categoria.</div>`
@@ -4312,6 +4375,11 @@ function _renderProgCorpo() {
           const programado = _progProgramadoPara(m.origem, m.destino);
           const pct = meta > 0 ? Math.round((programado/meta)*1000)/10 : 0;
           const corProg = pct >= 96 ? '#2ea043' : pct >= 51 ? '#d29922' : '#f85149';
+          const realizado = _progRealizadoPara(m.origem, m.destino);
+          const dif = realizado - meta;
+          const pctReal = meta > 0 ? Math.round((realizado/meta)*1000)/10 : 0;
+          const corReal = pctReal >= 96 ? '#2ea043' : pctReal >= 51 ? '#d29922' : '#f85149';
+          const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
           const veic = _progVeiculosProgramadosPara(m.origem, m.destino);
           const veicTxt = veic.total > 0
             ? [veic.caminhoes > 0 ? pluralCaminhao(veic.caminhoes) : null, veic.cavalos > 0 ? pluralCavalo(veic.cavalos) : null].filter(Boolean).join(' · ')
@@ -4344,6 +4412,7 @@ function _renderProgCorpo() {
             </div>
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}t</div>
             <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}t</strong> de <strong>${fmt(meta)}t</strong> (${pct}%)</div>
+            <div style="font-size:13px;color:${corReal};margin-top:1px;">Realizado: <strong>${fmt(realizado)}t</strong> · Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong> (${pctReal}%)</div>
             <div style="font-size:12px;margin-top:3px;">${veicTxt}</div>
             ${faltaTxt}
           </div>`;
@@ -4353,14 +4422,18 @@ function _renderProgCorpo() {
         <span style="font-size:21px;">${icone}</span>
         <div style="font-size:16px;font-weight:700;color:var(--text);">${titulo}</div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
         <div>
           <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
           <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa (t) · ${itens.length} item(ns)</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:20px;font-weight:700;color:${corCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalProgramado)}</div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Prog. NHL (t) · ${pctCard}%</div>
+          <div style="font-size:20px;font-weight:700;color:${corCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalProgramado)} <span style="font-size:14px;">(${pctCard}%)</span></div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Prog. NHL (t)</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:20px;font-weight:700;color:${corRealizadoCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalRealizado)} <span style="font-size:14px;">(${pctRealizadoCard}%)</span></div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado (t) · <span style="color:${difCard>=0?'#2ea043':'#f85149'};">${difCard>=0?'+':'−'}${fmt(Math.abs(difCard))}t</span></div>
         </div>
       </div>
       <div style="border-top:1px solid var(--border2);margin-top:10px;padding-top:8px;">${linhas}</div>
@@ -4383,23 +4456,31 @@ function _renderProgCorpo() {
   const saida = _progItens.filter(_volOrigemPatio4);
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
   const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
+  const totalRealizadoGeral = _progItens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0);
   const veiculosProgramados = _progAtribuicoes.filter(a => (a.viagens||0) > 0);
   const totalCaminhoes = veiculosProgramados.filter(a => _progEhCaminhao(a.tipo2)).length;
   const totalCavalos = veiculosProgramados.filter(a => _progEhCavalo(a.tipo2)).length;
   const pctGeral = totalGeral > 0 ? Math.round((totalNHL/totalGeral)*1000)/10 : 0;
   const corGeral = pctGeral >= 96 ? '#2ea043' : pctGeral >= 51 ? '#d29922' : '#f85149';
+  const pctRealizadoGeral = totalGeral > 0 ? Math.round((totalRealizadoGeral/totalGeral)*1000)/10 : 0;
+  const corRealizadoGeral = pctRealizadoGeral >= 96 ? '#2ea043' : pctRealizadoGeral >= 51 ? '#d29922' : '#f85149';
+  const difGeral = totalRealizadoGeral - totalGeral;
 
   cont.innerHTML =
     `<div class="table-card" style="padding:16px 18px;margin-bottom:14px;border-top:3px solid #388bfd;">
       <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">${_progChaveParaLabel(_progDataAtual)} · ${_progItens.length} item(ns)</div>
-      <div style="display:flex;gap:24px;align-items:baseline;">
+      <div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap;">
         <div>
           <div style="font-size:25px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalGeral)}t</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa</div>
         </div>
         <div>
-          <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)}t</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programação NHL · ${pctGeral}%</div>
+          <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)}t <span style="font-size:16px;">(${pctGeral}%)</span></div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programação NHL</div>
+        </div>
+        <div>
+          <div style="font-size:25px;font-weight:700;color:${corRealizadoGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalRealizadoGeral)}t <span style="font-size:16px;">(${pctRealizadoGeral}%)</span></div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}t</span></div>
         </div>
         <div>
           <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}</div>
