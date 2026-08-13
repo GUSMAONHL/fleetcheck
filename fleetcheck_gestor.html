@@ -3207,7 +3207,7 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   // meta por linha só faz sentido pras dimensões ligadas a Origem/Destino (é assim que a meta é cadastrada)
   const temMeta = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
 
-  const linhas = breakdown.slice(0, 6).map(b => {
+  const linhas = breakdown.map(b => {
     const pct = Math.round((b.volume / totalBreak) * 1000) / 10;
     const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
     const origemAttr = String(b.origem||'').replace(/"/g,'&quot;');
@@ -3225,7 +3225,6 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
         <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}t</strong></span>
       </div>
       ${linhas}
-      ${nItens > 6 ? `<div style="font-size:13px;color:var(--text3);text-align:center;padding-top:4px;">+${nItens-6} outros</div>` : ''}
     </div>`;
 }
 
@@ -3295,7 +3294,7 @@ function _volCardFabricaHTML(opts) {
     </div>`;
   };
 
-  const linhasMinas = porMina.slice(0, 6).map(b => {
+  const linhasMinas = porMina.map(b => {
     const pct = Math.round((b.volume/totalMinas)*1000)/10;
     const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
     return `<div class="vol-flow-row" data-aba-alvo="origem" data-chave="${chaveAttr}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);">
@@ -3343,7 +3342,6 @@ function _volCardFabricaHTML(opts) {
     ${porMina.length > 0 ? `<div class="vol-breakdown-block" style="display:none;margin-top:12px;padding-top:8px;border-top:2px solid var(--border2);">
       <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Material Novo (${porMina.length})</div>
       ${linhasMinas}
-      ${porMina.length > 6 ? `<div style="font-size:13px;color:var(--text3);text-align:center;padding-top:4px;">+${porMina.length-6} outras</div>` : ''}
     </div>` : ''}
   </div>`;
 }
