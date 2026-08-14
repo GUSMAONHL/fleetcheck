@@ -680,7 +680,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         </div>
       </div>
       <div class="est-kpi-grid">
-        <div class="est-kpi"><div class="est-kpi-lbl">Itens cadastrados</div><div class="est-kpi-val" style="color:#185FA5;" id="est-kpi-itens">—</div><div class="est-kpi-sub">tipos distintos</div></div>
+        <div class="est-kpi"><div class="est-kpi-lbl">Grupos cadastrados</div><div class="est-kpi-val" style="color:#185FA5;" id="est-kpi-itens">—</div><div class="est-kpi-sub">tipos distintos</div></div>
         <div class="est-kpi"><div class="est-kpi-lbl">Unidades em estoque</div><div class="est-kpi-val" style="color:#27500A;" id="est-kpi-unidades">—</div><div class="est-kpi-sub">disponíveis</div></div>
         <div class="est-kpi"><div class="est-kpi-lbl">Estoque baixo</div><div class="est-kpi-val" style="color:#BA7517;" id="est-kpi-baixo">—</div><div class="est-kpi-sub">itens ≤ 2</div></div>
         <div class="est-kpi"><div class="est-kpi-lbl">Valor total</div><div class="est-kpi-val" style="font-size:20px;" id="est-kpi-valor">—</div><div class="est-kpi-sub">em estoque</div></div>
@@ -689,7 +689,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="est-tbl-wrap">
         <div class="est-tbl-hdr"><div class="est-tbl-title">Entradas de estoque</div></div>
         <table class="est-tbl">
-          <thead><tr><th>Item</th><th>Tipo</th><th>Modelo</th><th>Marca</th><th>Filial</th><th>Medida</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th></th></tr></thead>
+          <thead><tr><th>Grupo</th><th>Tipo</th><th>Código</th><th>Marca</th><th>Aplicação/Veíc</th><th>Filial</th><th>Medida</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th></th></tr></thead>
           <tbody id="est-tbl-body"></tbody>
         </table>
       </div>
@@ -704,20 +704,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             <i class="ti ti-list-check" aria-hidden="true" style="font-size:18px;color:var(--text2);"></i>Cadastros de estoque
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
-            <button class="est-btn-cad item" onclick="estAbrirCad('item')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Item</button>
+            <button class="est-btn-cad item" onclick="estAbrirCad('item')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Grupo</button>
             <button class="est-btn-cad tipo" onclick="estAbrirCad('tipo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Tipo</button>
-            <button class="est-btn-cad modelo" onclick="estAbrirCad('modelo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Modelo</button>
+            <button class="est-btn-cad modelo" onclick="estAbrirCad('modelo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Código</button>
             <button class="est-btn-cad marca" onclick="estAbrirCad('marca')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Marca</button>
+            <button class="est-btn-cad" style="border-color:#0C6E4F;color:#064D37;background:#E0F4EE;" onclick="estAbrirCad('aplicacao')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Aplicação/Veíc</button>
             <button class="est-btn-cad filial" onclick="estAbrirCad('filial')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Filial</button>
             <button onclick="document.getElementById('modal-est-cadastros-ov').style.display='none'" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;margin-left:8px;">✕</button>
           </div>
         </div>
         <div style="overflow-y:auto;flex:1;padding:16px 18px;">
           <div class="est-lists-grid">
-            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#0C447C;">Itens</span><span style="font-size:10px;color:var(--text3);" id="cnt-item">0</span></div><div class="est-list-body" id="list-item"></div></div>
+            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#0C447C;">Grupos</span><span style="font-size:10px;color:var(--text3);" id="cnt-item">0</span></div><div class="est-list-body" id="list-item"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#27500A;">Tipos</span><span style="font-size:10px;color:var(--text3);" id="cnt-tipo">0</span></div><div class="est-list-body" id="list-tipo"></div></div>
-            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#633806;">Modelos</span><span style="font-size:10px;color:var(--text3);" id="cnt-modelo">0</span></div><div class="est-list-body" id="list-modelo"></div></div>
+            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#633806;">Códigos</span><span style="font-size:10px;color:var(--text3);" id="cnt-modelo">0</span></div><div class="est-list-body" id="list-modelo"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#26215C;">Marcas</span><span style="font-size:10px;color:var(--text3);" id="cnt-marca">0</span></div><div class="est-list-body" id="list-marca"></div></div>
+            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#064D37;">Aplicação/Veíc</span><span style="font-size:10px;color:var(--text3);" id="cnt-aplicacao">0</span></div><div class="est-list-body" id="list-aplicacao"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#444441;">Filiais</span><span style="font-size:10px;color:var(--text3);" id="cnt-filial">0</span></div><div class="est-list-body" id="list-filial"></div></div>
           </div>
         </div>
@@ -740,14 +742,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="est-mhdr"><div class="est-mhdr-t"><i class="ti ti-arrow-bar-to-down" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;"></i>Dar entrada no estoque</div><button onclick="estFecharEntrada()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button></div>
         <div class="est-mbody">
           <div class="est-field-row">
-            <div class="est-field"><label>Item</label><select id="ent-item"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Grupo</label><select id="ent-item"><option value="">— selecione —</option></select></div>
             <div class="est-field"><label>Tipo</label><select id="ent-tipo"><option value="">— selecione —</option></select></div>
           </div>
           <div class="est-field-row">
-            <div class="est-field"><label>Modelo</label><select id="ent-modelo"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Código</label><select id="ent-modelo"><option value="">— selecione —</option></select></div>
             <div class="est-field"><label>Marca</label><select id="ent-marca"><option value="">— selecione —</option></select></div>
           </div>
           <div class="est-field-row">
+            <div class="est-field"><label>Aplicação/Veíc</label><select id="ent-aplicacao"><option value="">— selecione —</option></select></div>
             <div class="est-field"><label>Filial</label><select id="ent-filial"><option value="">— selecione —</option></select></div>
             <div class="est-field"><label>Unidade de medida</label>
               <div class="est-unit-toggle">
@@ -758,8 +761,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             </div>
           </div>
           <div class="est-field-row">
-            <div class="est-field"><label id="ent-qty-lbl">Quantidade</label><input type="number" id="ent-qty" min="0" placeholder="0"></div>
-            <div class="est-field"><label>Valor unitário (R$)</label><input type="number" id="ent-valor" min="0" step="0.01" placeholder="0,00"></div>
+            <div class="est-field"><label id="ent-qty-lbl">Quantidade</label><input type="number" id="ent-qty" min="0" placeholder="0" oninput="estCalcValorUnit()"></div>
+            <div class="est-field">
+              <label>Valor total (R$)</label>
+              <input type="number" id="ent-valor" min="0" step="0.01" placeholder="0,00" oninput="estCalcValorUnit()">
+              <div style="font-size:11px;color:var(--text3);margin-top:4px;">Valor unit.: <span id="ent-valor-unit-preview">R$ 0,00</span></div>
+            </div>
           </div>
         </div>
         <div class="est-mfooter"><button class="est-btn-c" onclick="estFecharEntrada()">Cancelar</button><button class="est-btn-s" onclick="estSalvarEntrada()">Confirmar entrada</button></div>
@@ -2887,9 +2894,10 @@ const EST_CAD_INFO = {
   tipo:   { label:'Tipo',          titulo:'Cadastrar Tipo',   cor:'#27500A' },
   modelo: { label:'Modelo',        titulo:'Cadastrar Modelo', cor:'#633806' },
   marca:  { label:'Marca',         titulo:'Cadastrar Marca',  cor:'#26215C' },
+  aplicacao: { label:'Aplicação / Veículo', titulo:'Cadastrar Aplicação/Veíc', cor:'#064D37' },
   filial: { label:'Filial / Local',titulo:'Cadastrar Filial', cor:'#444441' },
 };
-const EST_COLS = ['item','tipo','modelo','marca','filial'];
+const EST_COLS = ['item','tipo','modelo','marca','aplicacao','filial'];
 
 async function carregarEstoque() {
   try {
@@ -2943,7 +2951,7 @@ function renderEstoqueTbl() {
     const qtd=parseFloat(e.qtd)||0;
     const cls=qtd===0?'zt':qtd<=2?'lw':'ok';
     const medida=e.unidade==='litros'?'Litros':'Unid.';
-    return `<tr><td>${e.item||'—'}</td><td>${estBadge(e.tipo)}</td><td style="color:var(--text2);">${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.filial||'—'}</td><td style="font-size:12px;color:var(--text2);">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="text-align:center;"><button onclick="estDelEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
+    return `<tr><td>${e.item||'—'}</td><td>${estBadge(e.tipo)}</td><td style="color:var(--text2);">${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.aplicacao||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.filial||'—'}</td><td style="font-size:12px;color:var(--text2);">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="text-align:center;"><button onclick="estDelEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
   }).join('');
 }
 
@@ -2994,6 +3002,7 @@ function estAbrirEntrada() {
   estSetEntUnidade('unid');
   document.getElementById('ent-qty').value='';
   document.getElementById('ent-valor').value='';
+  const prev = document.getElementById('ent-valor-unit-preview'); if(prev) prev.textContent='R$ 0,00';
   document.getElementById('modal-entrada-ov').style.display='flex';
 }
 function estFecharEntrada() { document.getElementById('modal-entrada-ov').style.display='none'; }
@@ -3009,14 +3018,16 @@ async function estSalvarEntrada() {
   const tipo   = document.getElementById('ent-tipo').value;
   const modelo = document.getElementById('ent-modelo').value;
   const marca  = document.getElementById('ent-marca').value;
+  const aplicacao = document.getElementById('ent-aplicacao').value;
   const filial = document.getElementById('ent-filial').value;
-  const qtd    = parseFloat(document.getElementById('ent-qty').value)||0;
-  const valor  = parseFloat(document.getElementById('ent-valor').value)||0;
+  const qtd       = parseFloat(document.getElementById('ent-qty').value)||0;
+  const valorTotal= parseFloat(document.getElementById('ent-valor').value)||0;
+  const valor     = qtd > 0 ? valorTotal / qtd : 0; // valor unitário calculado
   const unidade= document.getElementById('ent-unidade').value;
   if (!item||!tipo||!modelo||!marca||!filial){ alert('Preencha todos os campos.'); return; }
   if (qtd<=0){ alert('Informe uma quantidade maior que zero.'); return; }
   try {
-    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{item,tipo,modelo,marca,filial,unidade,qtd,valorUnit:valor,entradaEm:new Date().toISOString()});
+    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{item,tipo,modelo,marca,aplicacao,filial,unidade,qtd,valorTotal,valorUnit:valor,entradaEm:new Date().toISOString()});
     estFecharEntrada();
     await carregarEstoque();
     showToast('Entrada registrada!');
@@ -3035,7 +3046,16 @@ document.addEventListener('keydown', e => {
 function estAbrirModalCadastros(){document.getElementById("modal-est-cadastros-ov").style.display="flex";}
 window.estAbrirModalCadastros=estAbrirModalCadastros;
 window.estAbrirCad=estAbrirCad; window.estFecharCad=estFecharCad; window.estSalvarCad=estSalvarCad; window.estDelCad=estDelCad;
-window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
+window.estAbrirEntrada=estAbrirEntrada; window.estFecharEntrada=estFecharEntrada; window.estSetEntUnidade=estSetEntUnidade;
+
+function estCalcValorUnit() {
+  const qtd   = parseFloat(document.getElementById('ent-qty')?.value) || 0;
+  const total = parseFloat(document.getElementById('ent-valor')?.value) || 0;
+  const unit  = qtd > 0 ? total / qtd : 0;
+  const preview = document.getElementById('ent-valor-unit-preview');
+  if (preview) preview.textContent = 'R$ ' + unit.toFixed(2).replace('.', ',');
+}
+window.estCalcValorUnit = estCalcValorUnit; window.estSalvarEntrada=estSalvarEntrada; window.estDelEntrada=estDelEntrada;
 
 // ══ HISTÓRICO ══
 let _histDe = null, _histAte = null;
