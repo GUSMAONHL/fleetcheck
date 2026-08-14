@@ -846,7 +846,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
 <!-- PAINEL PRODUTIVIDADE VEÍCULO -->
 <div class="detail-overlay" id="prod-overlay" onclick="fecharProdModal(event)" style="display:none;">
-  <div class="detail-panel" style="width:560px;">
+  <div class="detail-panel" style="width:920px;">
     <div class="panel-header">
       <div>
         <div class="panel-title" id="prod-modal-title">Veículo</div>
@@ -2445,97 +2445,132 @@ window.fecharProdModal = function fecharProdModal(e) {
     document.getElementById('prod-overlay').style.display = 'none';
 }
 
+let _prodVeiculoCache = null; // { historicoCronologico, placaKey } — guardado pra poder refiltrar sem rebuscar
+let _prodVeiculoOfensorFiltro = null; // ofensor selecionado como filtro da tabela (null = mostra tudo)
+
 async function abrirDetalheVeiculo(placaKey) {
   document.getElementById('prod-modal-title').textContent = placaKey;
   document.getElementById('prod-modal-meta').textContent = 'Carregando histórico...';
   document.getElementById('prod-modal-body').innerHTML = '';
   document.getElementById('prod-overlay').style.display = 'flex';
+  _prodVeiculoOfensorFiltro = null;
 
   try {
     const snap = await getDoc(doc(db, 'base_volume_veiculos', placaKey));
     if (!snap.exists() || !(snap.data().historico || []).length) {
+      _prodVeiculoCache = null;
       document.getElementById('prod-modal-meta').textContent = '';
       document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Nenhum histórico encontrado para este veículo.</div>';
       return;
     }
 
-    const historicoTodo = snap.data().historico.slice().sort((a,b) => {
+    const historicoCronologico = snap.data().historico.slice().sort((a,b) => {
       const da = a.data.split('/').reverse().join(''); const db = b.data.split('/').reverse().join('');
       return da.localeCompare(db);
     });
 
-    const ultimo = historicoTodo[historicoTodo.length - 1];
-    const volumeTotal = historicoTodo.reduce((s,l) => s + l.volume, 0);
-    const viagensTotal = historicoTodo.reduce((s,l) => s + l.viagens, 0);
-    const aderenciaMedia = historicoTodo.reduce((s,l) => s + l.aderencia, 0) / historicoTodo.length;
-    const cores = corProdutividade(aderenciaMedia);
-
-    const ofensores = {};
-    historicoTodo.forEach(l => { if (l.ofensor) ofensores[l.ofensor] = (ofensores[l.ofensor] || 0) + 1; });
-
-    document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${historicoTodo[0].data} a ${ultimo.data}`;
-
-    const body = document.getElementById('prod-modal-body');
-    let html = `<div class="viagens-kpis">
-      <div class="viagens-kpi">
-        <div class="viagens-kpi-num" style="color:${cores.cor};">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div>
-        <div class="viagens-kpi-lbl">Toneladas</div>
-      </div>
-      <div class="viagens-kpi">
-        <div class="viagens-kpi-num" style="color:#3fb950;">${viagensTotal}</div>
-        <div class="viagens-kpi-lbl">Viagens</div>
-      </div>
-      <div class="viagens-kpi">
-        <div class="viagens-kpi-num" style="color:#388bfd;font-size:17px;">${aderenciaMedia.toFixed(0)}%</div>
-        <div class="viagens-kpi-lbl">Aderência</div>
-      </div>
-    </div>`;
-
-    const ofensoresList = Object.entries(ofensores).sort((a,b) => b[1]-a[1]);
-    if (ofensoresList.length > 0) {
-      html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;">
-        ${ofensoresList.slice(0,6).map(([mot,n]) => `<span style="font-size:14px;padding:3px 10px;border-radius:20px;background:rgba(248,81,73,0.10);border:1px solid rgba(248,81,73,0.3);color:#f85149;">${mot} · ${n}x</span>`).join('')}
-      </div>`;
-    }
-
-    html += `<div style="overflow-x:auto;">
-      <table class="viagens-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Motivo / Justificativa</th>
-            <th style="text-align:right;">Viagens</th>
-            <th style="text-align:right;">Volume (t)</th>
-            <th style="text-align:right;">Aderência</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${historicoTodo.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
-            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
-            <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
-            <td class="td-km">${d.viagens}</td>
-            <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
-            <td class="td-fat" style="color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
-          </tr>`).join('')}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" style="color:var(--text3);font-size:14px;">TOTAL</td>
-            <td class="td-km">${viagensTotal}</td>
-            <td class="td-km">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>`;
-
-    body.innerHTML = html;
+    _prodVeiculoCache = { historicoCronologico, placaKey };
+    _prodRenderDetalheVeiculo();
   } catch (err) {
     console.error('Erro ao abrir detalhe do veículo:', err);
+    _prodVeiculoCache = null;
     document.getElementById('prod-modal-meta').textContent = '';
     document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Erro ao carregar histórico.</div>';
   }
 }
+
+// Reaproveitado tanto na abertura do modal quanto ao clicar num filtro de ofensor — refiltra e
+// redesenha sem precisar buscar o histórico de novo no Firestore.
+function _prodRenderDetalheVeiculo() {
+  if (!_prodVeiculoCache) return;
+  const { historicoCronologico, placaKey } = _prodVeiculoCache;
+
+  const ultimo = historicoCronologico[historicoCronologico.length - 1];
+  const primeiro = historicoCronologico[0];
+  const volumeTotal = historicoCronologico.reduce((s,l) => s + l.volume, 0);
+  const viagensTotal = historicoCronologico.reduce((s,l) => s + l.viagens, 0);
+  const aderenciaMedia = historicoCronologico.reduce((s,l) => s + l.aderencia, 0) / historicoCronologico.length;
+  const cores = corProdutividade(aderenciaMedia);
+
+  const ofensores = {};
+  historicoCronologico.forEach(l => { if (l.ofensor) ofensores[l.ofensor] = (ofensores[l.ofensor] || 0) + 1; });
+
+  document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${primeiro.data} a ${ultimo.data}`;
+
+  // histórico mais recente primeiro na tabela; filtra por ofensor se algum estiver selecionado
+  const historicoExibido = historicoCronologico.slice().reverse()
+    .filter(d => !_prodVeiculoOfensorFiltro || d.ofensor === _prodVeiculoOfensorFiltro);
+
+  const body = document.getElementById('prod-modal-body');
+  let html = `<div class="viagens-kpis">
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:${cores.cor};">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div>
+      <div class="viagens-kpi-lbl">Toneladas</div>
+    </div>
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:#3fb950;">${viagensTotal}</div>
+      <div class="viagens-kpi-lbl">Viagens</div>
+    </div>
+    <div class="viagens-kpi">
+      <div class="viagens-kpi-num" style="color:#388bfd;font-size:17px;">${aderenciaMedia.toFixed(0)}%</div>
+      <div class="viagens-kpi-lbl">Aderência</div>
+    </div>
+  </div>`;
+
+  const ofensoresList = Object.entries(ofensores).sort((a,b) => b[1]-a[1]);
+  if (ofensoresList.length > 0) {
+    const chip = (rotulo, ativo, onclick) => `<button onclick="${onclick}" style="cursor:pointer;font-size:14px;padding:3px 10px;border-radius:20px;background:${ativo?'#f85149':'rgba(248,81,73,0.10)'};border:1px solid rgba(248,81,73,0.3);color:${ativo?'#fff':'#f85149'};font-weight:${ativo?'700':'400'};">${rotulo}</button>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;align-items:center;">
+      <span style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-right:2px;">Filtrar por ofensor:</span>
+      ${chip('Todos', !_prodVeiculoOfensorFiltro, `_prodFiltrarOfensorVeiculo(null)`)}
+      ${ofensoresList.map(([mot,n]) => chip(`${mot} · ${n}x`, _prodVeiculoOfensorFiltro === mot, `_prodFiltrarOfensorVeiculo('${mot.replace(/'/g,"\\'")}')`)).join('')}
+    </div>`;
+  }
+
+  html += `<div style="overflow-x:auto;">
+    <table class="viagens-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Motivo / Justificativa</th>
+          <th style="text-align:right;">Aderência</th>
+          <th style="text-align:right;">Viagens</th>
+          <th style="text-align:right;">Volume (t)</th>
+          <th style="text-align:right;">Perc. Ton.</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${historicoExibido.length === 0
+          ? `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);">Nenhum registro com esse ofensor.</td></tr>`
+          : historicoExibido.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
+              <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
+              <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
+              <td class="td-fat" style="color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
+              <td class="td-km">${d.viagens}</td>
+              <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+              <td class="td-km">${(d.percTon||0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+            </tr>`).join('')
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="color:var(--text3);font-size:14px;">TOTAL${_prodVeiculoOfensorFiltro ? ' (filtrado)' : ''}</td>
+          <td></td>
+          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.viagens,0)}</td>
+          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.volume,0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+          <td class="td-km">${historicoExibido.reduce((s,l)=>s+(l.percTon||0),0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+window._prodFiltrarOfensorVeiculo = function _prodFiltrarOfensorVeiculo(ofensor) {
+  _prodVeiculoOfensorFiltro = ofensor;
+  _prodRenderDetalheVeiculo();
+};
 
 window.importarVolume = async function importarVolume(input) {
   if (!input.files || !input.files[0]) return;
