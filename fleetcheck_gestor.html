@@ -4661,22 +4661,43 @@ function _progEhCavalo(tipo2) { return (tipo2||'').toString().trim().toUpperCase
 async function _progCarregarRoster() {
   if (_progRosterVeiculos) return _progRosterVeiculos;
   try {
-    const snap = await getDocs(collection(db, 'base_volume_veiculos'));
-    const roster = [];
-    snap.docs.forEach(d => {
+    // Descobre o último dia de Aderência disponível na base — a frota "atual" é definida por
+    // quem aparece nesse dia, não pelo histórico acumulado inteiro (que pode ter veículo antigo
+    // já fora de operação).
+    const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
+    const diasDisponiveis = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+    if (diasDisponiveis.length === 0) { _progRosterVeiculos = []; return _progRosterVeiculos; }
+
+    const ultimoDia = diasDisponiveis.slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+      return da.localeCompare(db_);
+    }).pop();
+
+    const [diaSnap, veiculosSnap] = await Promise.all([
+      getDoc(doc(db, 'base_volume_dias', _diaParaChave(ultimoDia))),
+      getDocs(collection(db, 'base_volume_veiculos'))
+    ]);
+
+    const placasDoUltimoDia = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
+
+    // peso médio de cada veículo vem do histórico completo dele (média mais estável), mas só
+    // entram no roster os veículos que realmente aparecem no último dia importado
+    const pesoMedioPorPlaca = {};
+    veiculosSnap.docs.forEach(d => {
       const hist = d.data().historico || [];
       if (hist.length === 0) return;
-      const ultimo = hist[hist.length - 1];
       const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
       const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
-      roster.push({
-        placa: d.id,
-        fr: ultimo.fr ?? '',
-        tipo2: (ultimo.tipo2 || '').toString().trim().toUpperCase(),
-        forca: (ultimo.forca || '').toString().trim().toUpperCase(),
-        pesoMedio: somaViagens > 0 ? somaVolume / somaViagens : 0
-      });
+      pesoMedioPorPlaca[d.id] = somaViagens > 0 ? somaVolume / somaViagens : 0;
     });
+
+    const roster = Object.entries(placasDoUltimoDia).map(([placa, v]) => ({
+      placa,
+      fr: v.fr ?? '',
+      tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
+      forca: (v.forca || '').toString().trim().toUpperCase(),
+      pesoMedio: pesoMedioPorPlaca[placa] || 0
+    }));
     roster.sort((a,b) => (a.fr||0) - (b.fr||0));
     _progRosterVeiculos = roster;
   } catch (err) {
