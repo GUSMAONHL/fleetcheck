@@ -816,6 +816,20 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- SELEÇÃO DE VEÍCULOS POR ROTA (cards) -->
+<div id="prog-selecionar-veiculos-overlay" onclick="if(event.target===this) fecharSelecionarVeiculos()" style="display:none;position:fixed;inset:0;z-index:78;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:1000px;max-height:92vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text);" id="prog-selveic-titulo">🚛 Selecionar Veículos</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="prog-selveic-meta"></div>
+      </div>
+      <button onclick="fecharSelecionarVeiculos()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 22px;" id="prog-selveic-corpo"></div>
+  </div>
+</div>
+
 <!-- MODAL FAROL -->
 <div class="detail-overlay" id="farol-overlay" onclick="fecharModalFarol(event)" style="display:none;">
   <div class="detail-panel" style="width:480px;">
@@ -1546,7 +1560,7 @@ function _renderKmCards(dados, idxPeriodo) {
       <div class="km-card-unit" style="color:${cores.cor};">km carregado</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
         <div class="km-card-badge" style="background:${cores.border};color:${cores.cor};">${cores.label}</div>
-        <div style="font-size:14px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(m.viagens||0)} viagens</div>
+        <div style="font-size:14px;color:${cores.cor};opacity:0.7;font-family:'DM Mono',monospace;">${(Number(m.viagens)||0)} viagens</div>
       </div>
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid ${cores.border};display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:13px;color:${cores.cor};opacity:0.6;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Faturamento</div>
@@ -1837,14 +1851,14 @@ function _cardTrabalho(label, total, verdes, vermelhos, opts) {
 // Peso transportado (só quem trabalhou) e peso perdido (soma de PERC.TON.) do grupo.
 // O peso médio/veículo é calculado no próprio card: transportado ÷ quantidade que trabalhou.
 function _statsPeso(arr) {
-  const transportado = arr.reduce((s,l) => s + ((l.viagens||0) >= 1 ? (l.volume||0) : 0), 0);
+  const transportado = arr.reduce((s,l) => s + ((Number(l.viagens)||0) >= 1 ? (l.volume||0) : 0), 0);
   const perdido = arr.reduce((s,l) => s + (l.percTon||0), 0);
   return { transportado, perdido };
 }
 
 function _contagemTrabalho(arr) {
   const total = arr.length;
-  const verdes = arr.filter(l => (l.viagens||0) >= 1).length;
+  const verdes = arr.filter(l => (Number(l.viagens)||0) >= 1).length;
   const vermelhos = total - verdes;
   const aderenciaMedia = total > 0 ? arr.reduce((s,l) => s + (l.aderencia||0), 0) / total : null;
   return { total, verdes, vermelhos, aderenciaMedia };
@@ -1859,14 +1873,25 @@ function _mediaDiariaPorGrupo(filtroFn) {
   diasReg.forEach(({ linhas }) => {
     let filtradas = _filtrarCategoria(linhas);
     if (filtroFn) filtradas = filtradas.filter(filtroFn);
-    somaVerdes += filtradas.filter(l => (l.viagens||0) >= 1).length;
-    somaVermelhos += filtradas.filter(l => (l.viagens||0) === 0).length;
+    somaVerdes += filtradas.filter(l => (Number(l.viagens)||0) >= 1).length;
+    somaVermelhos += filtradas.filter(l => (Number(l.viagens)||0) === 0).length;
     filtradas.forEach(l => { somaAderencia += (l.aderencia||0); nAderencia++; });
   });
   const nDias = diasReg.length;
   const verdes = somaVerdes / nDias;
   const vermelhos = somaVermelhos / nDias;
   return { total: verdes + vermelhos, verdes, vermelhos, aderenciaMedia: nAderencia > 0 ? somaAderencia / nAderencia : null };
+}
+
+// _mediaDiariaPorGrupo dá uma MÉDIA diária de veículos ativos (pode ser bem menor que o total
+// real de veículos distintos daquele tipo, se nem todos rodam todo dia). Pro card não mostrar um
+// "total" que não bate com a quantidade real de veículos listados na tabela, escala verdes/
+// vermelhos proporcionalmente pra somar exatamente o total real de veículos distintos.
+function _escalarParaTotalReal(c, totalReal) {
+  if (!totalReal || totalReal <= 0) return { total: 0, verdes: 0, vermelhos: 0, aderenciaMedia: c.aderenciaMedia };
+  if (!c.total || c.total <= 0) return { total: totalReal, verdes: 0, vermelhos: totalReal, aderenciaMedia: c.aderenciaMedia };
+  const verdes = Math.min(totalReal, Math.round(totalReal * (c.verdes / c.total)));
+  return { total: totalReal, verdes, vermelhos: totalReal - verdes, aderenciaMedia: c.aderenciaMedia };
 }
 
 function _porTipo2(arr) {
@@ -1886,9 +1911,14 @@ function _renderCardsTrabalho(linhasOriginais) {
   const ehTerceiro = l => (l.forca||'').toString().trim().toUpperCase() === 'TERCEIRO';
   const ehFrota = l => !ehTerceiro(l);
 
-  const geralC = modoMes ? _mediaDiariaPorGrupo(null) : _contagemTrabalho(linhas);
-  const frotaC = modoMes ? _mediaDiariaPorGrupo(ehFrota) : _contagemTrabalho(frota);
-  const terceiroC = modoMes ? _mediaDiariaPorGrupo(ehTerceiro) : _contagemTrabalho(terceiro);
+  let geralC = modoMes ? _mediaDiariaPorGrupo(null) : _contagemTrabalho(linhas);
+  let frotaC = modoMes ? _mediaDiariaPorGrupo(ehFrota) : _contagemTrabalho(frota);
+  let terceiroC = modoMes ? _mediaDiariaPorGrupo(ehTerceiro) : _contagemTrabalho(terceiro);
+  if (modoMes) {
+    geralC = _escalarParaTotalReal(geralC, linhas.length);
+    frotaC = _escalarParaTotalReal(frotaC, frota.length);
+    terceiroC = _escalarParaTotalReal(terceiroC, terceiro.length);
+  }
 
   let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:12px;">
     ${_cardTrabalho('VEÍCULOS', geralC.total, geralC.verdes, geralC.vermelhos, { clicavel: false, aderenciaMedia: geralC.aderenciaMedia, pesoStats: _statsPeso(linhas) })}
@@ -1899,9 +1929,10 @@ function _renderCardsTrabalho(linhasOriginais) {
   const tiposFrota = _porTipo2(frota);
   const tiposTerceiro = _porTipo2(terceiro);
   const subCardsHtml = (tiposObj, forcaGrupo) => Object.entries(tiposObj).map(([tipo, arr]) => {
-    const c = modoMes
+    let c = modoMes
       ? _mediaDiariaPorGrupo(l => (forcaGrupo === 'TERCEIRO' ? ehTerceiro(l) : ehFrota(l)) && (l.tipo2||'—') === tipo)
       : _contagemTrabalho(arr);
+    if (modoMes) c = _escalarParaTotalReal(c, arr.length);
     return _cardTrabalho(tipo, c.total, c.verdes, c.vermelhos, { forca: forcaGrupo, tipo2: tipo, aderenciaMedia: c.aderenciaMedia, pesoStats: _statsPeso(arr) });
   }).join('');
 
@@ -1987,10 +2018,12 @@ function _renderQuadro() {
 
   const modoMes = _prodModoView !== 'dia';
   const ehForca = l => (l.forca||'').toString().trim().toUpperCase() === forca;
-  const c = modoMes ? _mediaDiariaPorGrupo(ehForca) : _contagemTrabalho(base);
+  let c = modoMes ? _mediaDiariaPorGrupo(ehForca) : _contagemTrabalho(base);
+  if (modoMes) c = _escalarParaTotalReal(c, base.length);
   let html = _cardTrabalho(forca, c.total, c.verdes, c.vermelhos, { forca, tipo2: null, ativo: !_prodQuadroTipo2, aderenciaMedia: c.aderenciaMedia, pesoStats: _statsPeso(base) });
   const subs = Object.entries(tiposObj).map(([tipo, arr]) => {
-    const cc = modoMes ? _mediaDiariaPorGrupo(l => ehForca(l) && (l.tipo2||'—') === tipo) : _contagemTrabalho(arr);
+    let cc = modoMes ? _mediaDiariaPorGrupo(l => ehForca(l) && (l.tipo2||'—') === tipo) : _contagemTrabalho(arr);
+    if (modoMes) cc = _escalarParaTotalReal(cc, arr.length);
     return _cardTrabalho(tipo, cc.total, cc.verdes, cc.vermelhos, { forca, tipo2: tipo, ativo: _prodQuadroTipo2 === tipo, aderenciaMedia: cc.aderenciaMedia, pesoStats: _statsPeso(arr) });
   }).join('');
   document.getElementById('prod-quadro-cards').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">${html}${subs}</div>`;
@@ -2088,7 +2121,7 @@ function _renderGraficoDF() {
       diasDoMes.forEach(({ linhas }) => {
         const linhasCat = _filtrarCategoria(linhas);
         somaTotal += linhasCat.length;
-        somaVermelhos += linhasCat.filter(l => (l.viagens||0) === 0).length;
+        somaVermelhos += linhasCat.filter(l => (Number(l.viagens)||0) === 0).length;
       });
       const nDias = diasDoMes.length;
       const vermelhosMedia = somaVermelhos / nDias;
@@ -2105,7 +2138,7 @@ function _renderGraficoDF() {
     dados = _prodDiasRegistrosPeriodo.map(({ dia, linhas }) => {
       const linhasCat = _filtrarCategoria(linhas);
       const total = linhasCat.length;
-      const vermelhos = linhasCat.filter(l => (l.viagens||0) === 0).length;
+      const vermelhos = linhasCat.filter(l => (Number(l.viagens)||0) === 0).length;
       const pct = total > 0 ? Math.round((vermelhos/total)*100) : 0;
       return { diaLbl: dia.slice(0,2), diaCompleto: dia, vermelhos, pct, total, dfPct: 100 - pct };
     });
@@ -2243,7 +2276,7 @@ function _agregarRegistrosDiarios(diasReg) {
       }
       const a = acumulado[placa];
       a.volume += v.volume || 0;
-      a.viagens += v.viagens || 0;
+      a.viagens += Number(v.viagens) || 0;
       a.percTon += v.percTon || 0;
       a.somaAderencia += v.aderencia || 0;
       a.diasRegistrados += 1;
@@ -4446,7 +4479,10 @@ function _renderProgCorpo() {
             <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}t</div>
             <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}t</strong> de <strong>${fmt(meta)}t</strong> (${pct}%)</div>
             <div style="font-size:13px;color:${corReal};margin-top:1px;">Realizado: <strong>${fmt(realizado)}t</strong> · Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong> (${pctReal}%)</div>
-            <div style="font-size:12px;margin-top:3px;">${veicTxt}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
+              <div style="font-size:12px;">${veicTxt}</div>
+              <button onclick="abrirSelecionarVeiculos(${idxGlobal})" style="flex-shrink:0;display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;">🚛 Selecionar Veículos</button>
+            </div>
             ${faltaTxt}
           </div>`;
         }).join('');
@@ -4490,9 +4526,12 @@ function _renderProgCorpo() {
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
   const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
   const totalRealizadoGeral = _progItens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0);
-  const veiculosProgramados = _progAtribuicoes.filter(a => (a.viagens||0) > 0);
+  const veiculosProgramados = _progAtribuicoes.filter(a => (Number(a.viagens)||0) > 0);
   const totalCaminhoes = veiculosProgramados.filter(a => _progEhCaminhao(a.tipo2)).length;
   const totalCavalos = veiculosProgramados.filter(a => _progEhCavalo(a.tipo2)).length;
+  const rosterTotal = (_progRosterVeiculos || []).length;
+  const rosterCaminhoes = (_progRosterVeiculos || []).filter(v => _progEhCaminhao(v.tipo2)).length;
+  const rosterCavalos = (_progRosterVeiculos || []).filter(v => _progEhCavalo(v.tipo2)).length;
   const pctGeral = totalGeral > 0 ? Math.round((totalNHL/totalGeral)*1000)/10 : 0;
   const corGeral = pctGeral >= 96 ? '#2ea043' : pctGeral >= 51 ? '#d29922' : '#f85149';
   const pctRealizadoGeral = totalGeral > 0 ? Math.round((totalRealizadoGeral/totalGeral)*1000)/10 : 0;
@@ -4516,8 +4555,16 @@ function _renderProgCorpo() {
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}t</span></div>
         </div>
         <div>
-          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Veículos Programados · ${totalCaminhoes} caminhões · ${totalCavalos} cavalos</div>
+          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}/${rosterTotal}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
+        </div>
+        <div>
+          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCaminhoes}/${rosterCaminhoes}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Caminhões</div>
+        </div>
+        <div>
+          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCavalos}/${rosterCavalos}</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Cavalos</div>
         </div>
       </div>
     </div>
@@ -4542,6 +4589,7 @@ window.renderProgramacao = async function renderProgramacao() {
   input.value = _progDataAtual;
   await _carregarProgDia(_progDataAtual);
   await _progRenderSecaoFrota();
+  _renderProgCorpo(); // refaz agora que a frota já está carregada, pra corrigir os totais/N por categoria
 };
 
 window.abrirFormProgItem = function abrirFormProgItem() {
@@ -4620,7 +4668,7 @@ async function _progCarregarRoster() {
       if (hist.length === 0) return;
       const ultimo = hist[hist.length - 1];
       const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
-      const somaViagens = hist.reduce((s,h) => s + (h.viagens||0), 0);
+      const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
       roster.push({
         placa: d.id,
         fr: ultimo.fr ?? '',
@@ -4669,7 +4717,7 @@ function _progProgramadoPara(origem, destino) {
 // Conta quantos veículos (por tipo) foram atribuídos a uma rota específica — usado pra mostrar
 // nos cards "com quantos veículos estamos atendendo essa META ALCOA"
 function _progVeiculosProgramadosPara(origem, destino) {
-  const atribs = _progAtribuicoes.filter(a => a.origem === origem && a.destino === destino && (a.viagens||0) > 0);
+  const atribs = _progAtribuicoes.filter(a => a.origem === origem && a.destino === destino && (Number(a.viagens)||0) > 0);
   const caminhoes = atribs.filter(a => _progEhCaminhao(a.tipo2)).length;
   const cavalos = atribs.filter(a => _progEhCavalo(a.tipo2)).length;
   return { caminhoes, cavalos, total: atribs.length };
@@ -4704,7 +4752,7 @@ async function _progAtualizarAtribuicao(placa, mudancas) {
   if (atrib.origem && atrib.destino && !atrib.viagensManual) {
     atrib.viagens = _progBuscarViagensPadrao(atrib.origem, atrib.destino);
   }
-  atrib.peso = Math.round((atrib.viagens||0) * atrib.pesoMedio * 100) / 100;
+  atrib.peso = Math.round((Number(atrib.viagens)||0) * atrib.pesoMedio * 100) / 100;
 
   // remove a atribuição se ficou vazia (sem origem nem destino) pra não poluir a base
   if (!atrib.origem && !atrib.destino) {
@@ -4765,6 +4813,126 @@ async function _progRenderSecaoFrota() {
   if (!_minasCadastro || !_minasCarregado) await _carregarMinas();
   _progRenderFrotaTabela();
 }
+
+// ══════════════════════════════════════
+// SELEÇÃO DE VEÍCULOS POR ROTA (cards) — aberta pelo botão "🚛 Selecionar Veículos" em cada
+// rota cadastrada. Mostra a frota em cards, já com viagens/peso calculados pra aquela rota
+// específica, e avisa se o veículo já está em uso em outra rota do dia.
+// ══════════════════════════════════════
+let _progSelVeicItemIdx = null;
+
+window.abrirSelecionarVeiculos = async function abrirSelecionarVeiculos(itemIdx) {
+  const item = _progItens[itemIdx];
+  if (!item) return;
+  _progSelVeicItemIdx = itemIdx;
+  document.getElementById('prog-selveic-titulo').textContent = `🚛 Selecionar Veículos — ${item.origem} → ${item.destino}`;
+  document.getElementById('prog-selecionar-veiculos-overlay').style.display = 'flex';
+  document.getElementById('prog-selveic-corpo').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
+  if (!_minasCadastro || !_minasCarregado) await _carregarMinas();
+  await _progCarregarRoster();
+  _progRenderSelecaoVeiculos();
+};
+
+window.fecharSelecionarVeiculos = function fecharSelecionarVeiculos() {
+  document.getElementById('prog-selecionar-veiculos-overlay').style.display = 'none';
+  _progSelVeicItemIdx = null;
+};
+
+function _progRenderSelecaoVeiculos() {
+  const cont = document.getElementById('prog-selveic-corpo');
+  if (!cont || _progSelVeicItemIdx === null) return;
+  const item = _progItens[_progSelVeicItemIdx];
+  if (!item) return;
+
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const viagensPadrao = _progBuscarViagensPadrao(item.origem, item.destino);
+  document.getElementById('prog-selveic-meta').textContent =
+    `Meta Alcoa: ${fmt(item.meta)}t · Viagens/dia padrão dessa rota: ${viagensPadrao || '—'} (cadastrado em Minas)`;
+
+  const roster = _progRosterVeiculos || [];
+  if (roster.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhum veículo encontrado na base de Aderência.</div>';
+    return;
+  }
+
+  const cardVeiculo = (v) => {
+    const atrib = _progAtribuicaoDoVeiculo(v.placa);
+    const nestaRota = !!atrib && atrib.origem === item.origem && atrib.destino === item.destino;
+    const emOutraRota = !!atrib && !nestaRota && atrib.origem && atrib.destino && (Number(atrib.viagens)||0) > 0;
+
+    const viagens = nestaRota ? (Number(atrib.viagens)||0) : viagensPadrao;
+    const pesoEstimado = viagens * v.pesoMedio;
+
+    let corBorda = 'var(--border2)';
+    if (nestaRota) corBorda = '#2ea043';
+    else if (emOutraRota) corBorda = '#d29922';
+
+    const avisoOutraRota = emOutraRota
+      ? `<div style="font-size:10px;color:#d29922;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border2);">⚠ Em uso em: <strong>${atrib.origem} → ${atrib.destino}</strong> (${atrib.viagens}vg)</div>`
+      : '';
+
+    const viagensInput = nestaRota
+      ? `<input type="number" min="0" value="${atrib.viagens}" onclick="event.stopPropagation()" onchange="_onProgViagensVeiculo('${v.placa}', this.value); _progRenderSelecaoVeiculos();" style="width:52px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;color:var(--text);text-align:center;padding:3px;font-family:'DM Mono',monospace;font-size:12px;">`
+      : `<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);">${viagens||'—'}</span>`;
+
+    return `<div onclick="toggleVeiculoRota('${v.placa}')" style="cursor:pointer;background:var(--bg3);border:2px solid ${corBorda};border-radius:10px;padding:12px;transition:border-color .15s;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="font-size:20px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--text);">${v.placa}</span>
+        </div>
+        ${nestaRota ? '<span style="font-size:16px;color:#2ea043;">✓</span>' : ''}
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:1px;">${v.tipo2} · ${v.forca}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);">
+        <div style="font-size:10px;color:var(--text3);">Viagens</div>
+        ${viagensInput}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;">
+        <div style="font-size:10px;color:var(--text3);">Peso médio</div>
+        <div style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;">${v.pesoMedio.toFixed(1)}t/vg</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;">
+        <div style="font-size:10px;color:var(--text3);">Total estimado</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(pesoEstimado)}t</div>
+      </div>
+      ${avisoOutraRota}
+    </div>`;
+  };
+
+  const ehDaRota = (v) => {
+    const a = _progAtribuicaoDoVeiculo(v.placa);
+    return !!a && a.origem === item.origem && a.destino === item.destino;
+  };
+  const selecionados = roster.filter(ehDaRota);
+  const disponiveis = roster.filter(v => !ehDaRota(v));
+
+  cont.innerHTML = `
+    ${selecionados.length > 0 ? `<div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:#2ea043;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">✓ Selecionados (${selecionados.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">${selecionados.map(cardVeiculo).join('')}</div>
+    </div>` : ''}
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Disponíveis (${disponiveis.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">${disponiveis.map(cardVeiculo).join('')}</div>
+    </div>
+  `;
+}
+
+window.toggleVeiculoRota = async function toggleVeiculoRota(placa) {
+  if (_progSelVeicItemIdx === null) return;
+  const item = _progItens[_progSelVeicItemIdx];
+  if (!item) return;
+  const atrib = _progAtribuicaoDoVeiculo(placa);
+  const nestaRota = !!atrib && atrib.origem === item.origem && atrib.destino === item.destino;
+
+  if (nestaRota) {
+    await _progAtualizarAtribuicao(placa, { origem: '', destino: '' });
+  } else {
+    await _progAtualizarAtribuicao(placa, { origem: item.origem, destino: item.destino, viagensManual: false });
+  }
+  _progRenderSelecaoVeiculos();
+};
 
 
 async function _volCarregarDia(diaStr) {
