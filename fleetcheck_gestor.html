@@ -578,8 +578,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <!-- PAGE: DESEMPENHO KM -->
     <div class="page" id="page-desempenho">
       <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-          <div style="font-size:16px;color:var(--text3);">Selecione o período:</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;width:100%;">
           <div id="km-ultima-import" style="font-size:14px;color:var(--text3);"></div>
         </div>
         <div id="km-periodo-btns" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
@@ -702,7 +701,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <!-- PAGE: CADASTRO DE MINAS -->
     <div class="page" id="page-minas">
       <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:16px;color:var(--text3);">Rotas cadastradas (Origem → Destino) e a quantidade padrão de viagens/dia esperada em cada uma.</div>
+        <div></div>
         <button onclick="abrirFormMina()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
           ⛰️ Cadastrar Mina
         </button>
@@ -749,7 +748,6 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
       <div class="table-card" style="margin-top:16px;padding:16px 18px;">
         <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Frota — Atribuição de Rotas</div>
-        <div style="font-size:14px;color:var(--text3);margin-bottom:12px;">Escolha a Mina (Origem) e o Destino de cada veículo. Viagens vem automaticamente do padrão cadastrado em "Minas" — pode editar se precisar. Peso = viagens × peso médio daquele veículo específico (base de Aderência).</div>
         <div id="prog-frota-corpo">
           <div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>
         </div>
@@ -959,7 +957,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:10px;">
       <div>
         <div style="font-size:20px;font-weight:700;color:var(--text);">🎯 Metas de Volume</div>
-        <div style="font-size:14px;color:var(--text3);margin-top:2px;">Meta do mês × realizado, por combinação Origem × Destino</div>
+        <div style="font-size:14px;color:var(--text3);margin-top:2px;"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <select id="meta-mes-select" class="filter-input" style="min-width:150px;" onchange="_onMetaMesChange(this.value)">
@@ -1602,7 +1600,7 @@ window.renderDesempenhoKm = async function renderDesempenhoKm(idxPeriodo) {
   try {
     const snap = await getDoc(doc(db, 'base_jornada', 'desempenho'));
     if (!snap.exists()) {
-      grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhuma base importada.<br/>Use o botão "Importar Base" para carregar os dados.</div>';
+      grid.innerHTML = '<div class="km-empty" style="grid-column:1/-1;">Nenhuma base importada.</div>';
       return;
     }
     _kmDados = snap.data();
@@ -2433,7 +2431,7 @@ window.renderProdutividade = async function renderProdutividade() {
   try {
     const snap = await getDoc(doc(db, 'base_volume', 'meta'));
     if (!snap.exists()) {
-      cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhuma base importada.<br/>Use o botão "Importar Base de Volume" para carregar os dados.</div>';
+      cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhuma base importada.</div>';
       return;
     }
     _prodMeta = snap.data();
@@ -3500,16 +3498,23 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     const projecao = (totalReal / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/totalMeta)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="font-size:14px;color:var(--text2);margin-top:2px;">📈 Projeção (${diasOperacao}d): <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+    projecaoHtml = `<div style="text-align:right;margin-top:6px;">
+      <div style="font-size:23px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(projecao)}t</div>
+      <div style="font-size:12px;color:var(--text3);">📈 Projeção (${diasOperacao}d) · <strong style="color:${corProj};">${pctProj}%</strong></div>
+    </div>`;
   }
 
   return `<div style="margin-top:10px;padding-top:10px;border-top:2px solid ${cor};">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}t</strong></div>
-      <div style="font-size:23px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}t</strong></div>
+        <div style="font-size:14px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:15px;">${difTxt}</strong></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:23px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
+        ${projecaoHtml}
+      </div>
     </div>
-    <div style="font-size:14px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:15px;">${difTxt}</strong></div>
-    ${projecaoHtml}
   </div>`;
 }
 
@@ -4505,7 +4510,7 @@ function _renderProgCorpo() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
         <div>
           <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa (t) · ${itens.length} item(ns)</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa (t)</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:${corCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalProgramado)} <span style="font-size:14px;">(${pctCard}%)</span></div>
@@ -4551,7 +4556,7 @@ function _renderProgCorpo() {
 
   cont.innerHTML =
     `<div class="table-card" style="padding:16px 18px;margin-bottom:14px;border-top:3px solid #388bfd;">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">${_progChaveParaLabel(_progDataAtual)} · ${_progItens.length} item(ns)</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">${_progChaveParaLabel(_progDataAtual)}</div>
       <div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap;">
         <div>
           <div style="font-size:25px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalGeral)}t</div>
@@ -4565,18 +4570,20 @@ function _renderProgCorpo() {
           <div style="font-size:25px;font-weight:700;color:${corRealizadoGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalRealizadoGeral)}t <span style="font-size:16px;">(${pctRealizadoGeral}%)</span></div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}t</span></div>
         </div>
-        <button onclick="abrirNaoProgramados('todos')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
-          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}/${rosterTotal}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
-        </button>
-        <button onclick="abrirNaoProgramados('caminhao')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
-          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCaminhoes}/${rosterCaminhoes}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Caminhões</div>
-        </button>
-        <button onclick="abrirNaoProgramados('cavalo')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
-          <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCavalos}/${rosterCavalos}</div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Cavalos</div>
-        </button>
+        <div style="display:flex;gap:24px;align-items:baseline;margin-left:auto;">
+          <button onclick="abrirNaoProgramados('todos')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
+            <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}/${rosterTotal}</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
+          </button>
+          <button onclick="abrirNaoProgramados('caminhao')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
+            <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCaminhoes}/${rosterCaminhoes}</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Caminhões</div>
+          </button>
+          <button onclick="abrirNaoProgramados('cavalo')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
+            <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCavalos}/${rosterCavalos}</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Cavalos</div>
+          </button>
+        </div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
@@ -5099,7 +5106,7 @@ window.renderVolume = async function renderVolume() {
   try {
     const snap = await getDoc(doc(db, 'volume', 'meta'));
     if (!snap.exists()) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma base importada.<br/>Use o botão "Importar Base de Volume" para carregar os dados.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma base importada.</td></tr>';
       return;
     }
     _volMeta = snap.data();
