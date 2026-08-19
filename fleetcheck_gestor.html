@@ -830,6 +830,17 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- VEÍCULOS AINDA NÃO PROGRAMADOS -->
+<div id="prog-nao-programados-overlay" onclick="if(event.target===this) fecharNaoProgramados()" style="display:none;position:fixed;inset:0;z-index:78;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:900px;max-height:88vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:18px;font-weight:700;color:var(--text);" id="prog-naoprog-titulo">🚛 Veículos não programados</div>
+      <button onclick="fecharNaoProgramados()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 22px;" id="prog-naoprog-corpo"></div>
+  </div>
+</div>
+
 <!-- MODAL FAROL -->
 <div class="detail-overlay" id="farol-overlay" onclick="fecharModalFarol(event)" style="display:none;">
   <div class="detail-panel" style="width:480px;">
@@ -4554,18 +4565,18 @@ function _renderProgCorpo() {
           <div style="font-size:25px;font-weight:700;color:${corRealizadoGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalRealizadoGeral)}t <span style="font-size:16px;">(${pctRealizadoGeral}%)</span></div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}t</span></div>
         </div>
-        <div>
+        <button onclick="abrirNaoProgramados('todos')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
           <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${veiculosProgramados.length}/${rosterTotal}</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
-        </div>
-        <div>
+        </button>
+        <button onclick="abrirNaoProgramados('caminhao')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
           <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCaminhoes}/${rosterCaminhoes}</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Caminhões</div>
-        </div>
-        <div>
+        </button>
+        <button onclick="abrirNaoProgramados('cavalo')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
           <div style="font-size:25px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${totalCavalos}/${rosterCavalos}</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Cavalos</div>
-        </div>
+        </button>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
@@ -4953,6 +4964,51 @@ window.toggleVeiculoRota = async function toggleVeiculoRota(placa) {
     await _progAtualizarAtribuicao(placa, { origem: item.origem, destino: item.destino, viagensManual: false });
   }
   _progRenderSelecaoVeiculos();
+};
+
+// ══════════════════════════════════════
+// VEÍCULOS NÃO PROGRAMADOS — aberto clicando nos totais (Total/Caminhões/Cavalos) do topo.
+// Mostra quem da frota do último dia ainda não tem nenhuma viagem atribuída em nenhuma rota hoje.
+// ══════════════════════════════════════
+window.abrirNaoProgramados = async function abrirNaoProgramados(categoria) {
+  const titulos = { todos: '🚛 Veículos não programados', caminhao: '🚚 Caminhões não programados', cavalo: '🐎 Cavalos não programados' };
+  document.getElementById('prog-naoprog-titulo').textContent = titulos[categoria] || titulos.todos;
+  document.getElementById('prog-nao-programados-overlay').style.display = 'flex';
+  document.getElementById('prog-naoprog-corpo').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
+
+  await _progCarregarRoster();
+  const roster = _progRosterVeiculos || [];
+  const rosterFiltrado = categoria === 'caminhao' ? roster.filter(v => _progEhCaminhao(v.tipo2))
+    : categoria === 'cavalo' ? roster.filter(v => _progEhCavalo(v.tipo2))
+    : roster;
+
+  const naoProgramados = rosterFiltrado.filter(v => {
+    const a = _progAtribuicaoDoVeiculo(v.placa);
+    return !a || !((Number(a.viagens)||0) > 0);
+  });
+
+  const cont = document.getElementById('prog-naoprog-corpo');
+  if (naoProgramados.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:#2ea043;font-size:14px;">✔ Todos os veículos dessa categoria já estão programados.</div>';
+    return;
+  }
+
+  cont.innerHTML = `
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px;">${naoProgramados.length} veículo(s) sem nenhuma viagem atribuída hoje</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;">
+      ${naoProgramados.map(v => `<div style="background:var(--bg3);border:2px solid var(--border2);border-radius:10px;padding:12px;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="font-size:20px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--text);">${v.placa}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo2} · ${v.forca}</div>
+        <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);">Peso médio: ${v.pesoMedio.toFixed(1)}t/vg</div>
+      </div>`).join('')}
+    </div>`;
+};
+
+window.fecharNaoProgramados = function fecharNaoProgramados() {
+  document.getElementById('prog-nao-programados-overlay').style.display = 'none';
 };
 
 
