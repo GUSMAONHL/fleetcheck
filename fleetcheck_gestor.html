@@ -4364,6 +4364,7 @@ window.excluirMina = async function excluirMina(id) {
 let _progDataAtual = null; // 'YYYY-MM-DD'
 let _progItens = [];       // [{ origem, destino, meta }] do dia carregado
 let _progRealizadoDia = {}; // 'ORIGEM|||DESTINO' -> toneladas realmente transportadas nesse dia (dado real, base Volume)
+let _progJustificativas = {}; // placa -> { motivo, observacao } — por que o veículo não foi escalado nesse dia
 
 function _progChaveParaLabel(dataISO) {
   if (!dataISO) return '';
@@ -4412,6 +4413,7 @@ async function _carregarProgDia(dataISO) {
     ]);
     _progItens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
     _progAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+    _progJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
     _progRealizadoDia = realizado;
     _renderProgCorpo();
     _progRenderFrotaTabela();
@@ -4977,13 +4979,23 @@ window.toggleVeiculoRota = async function toggleVeiculoRota(placa) {
 // VEÍCULOS NÃO PROGRAMADOS — aberto clicando nos totais (Total/Caminhões/Cavalos) do topo.
 // Mostra quem da frota do último dia ainda não tem nenhuma viagem atribuída em nenhuma rota hoje.
 // ══════════════════════════════════════
+let _progNaoProgCategoriaAtual = 'todos';
+
 window.abrirNaoProgramados = async function abrirNaoProgramados(categoria) {
+  _progNaoProgCategoriaAtual = categoria;
   const titulos = { todos: '🚛 Veículos não programados', caminhao: '🚚 Caminhões não programados', cavalo: '🐎 Cavalos não programados' };
   document.getElementById('prog-naoprog-titulo').textContent = titulos[categoria] || titulos.todos;
   document.getElementById('prog-nao-programados-overlay').style.display = 'flex';
   document.getElementById('prog-naoprog-corpo').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
 
   await _progCarregarRoster();
+  _progRenderNaoProgramados();
+};
+
+const PROG_MOTIVOS_NAO_ESCALADO = ['MANUTENÇÃO', 'FOLGA', 'QUEBRADO', 'SEM MOTORISTA', 'PNEU', 'DOCUMENTAÇÃO', 'OUTRO'];
+
+function _progRenderNaoProgramados() {
+  const categoria = _progNaoProgCategoriaAtual;
   const roster = _progRosterVeiculos || [];
   const rosterFiltrado = categoria === 'caminhao' ? roster.filter(v => _progEhCaminhao(v.tipo2))
     : categoria === 'cavalo' ? roster.filter(v => _progEhCavalo(v.tipo2))
@@ -5000,18 +5012,55 @@ window.abrirNaoProgramados = async function abrirNaoProgramados(categoria) {
     return;
   }
 
+  const cardVeiculo = (v) => {
+    const just = _progJustificativas[v.placa] || {};
+    const temMotivo = !!just.motivo;
+    const corBorda = temMotivo ? '#2ea043' : '#f85149';
+    const opcoesMotivo = ['<option value="">— selecione —</option>'].concat(
+      PROG_MOTIVOS_NAO_ESCALADO.map(m => `<option value="${m}" ${just.motivo===m?'selected':''}>${m}</option>`)
+    ).join('');
+    const obsAttr = (just.observacao||'').toString().replace(/"/g,'&quot;');
+
+    return `<div style="background:var(--bg3);border:2px solid ${corBorda};border-radius:10px;padding:12px;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span style="font-size:20px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text);">${v.placa}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo2} · ${v.forca}</div>
+      <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);">Peso médio: ${v.pesoMedio.toFixed(1)}t/vg</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);">
+        <label style="font-size:10px;color:${temMotivo?'var(--text3)':'#f85149'};text-transform:uppercase;letter-spacing:0.5px;">${temMotivo?'Motivo':'⚠ Justificar ausência'}</label>
+        <select class="filter-input" style="width:100%;font-size:11px;padding:4px 6px;margin-top:3px;" onchange="_progSalvarJustificativa('${v.placa}', this.value, null)">
+          ${opcoesMotivo}
+        </select>
+        <input type="text" placeholder="Observação (opcional)" value="${obsAttr}" class="filter-input" style="width:100%;font-size:11px;padding:4px 6px;margin-top:5px;" onchange="_progSalvarJustificativa('${v.placa}', null, this.value)">
+      </div>
+    </div>`;
+  };
+
   cont.innerHTML = `
     <div style="font-size:13px;color:var(--text3);margin-bottom:14px;">${naoProgramados.length} veículo(s) sem nenhuma viagem atribuída hoje</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;">
-      ${naoProgramados.map(v => `<div style="background:var(--bg3);border:2px solid var(--border2);border-radius:10px;padding:12px;">
-        <div style="display:flex;align-items:baseline;gap:6px;">
-          <span style="font-size:20px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
-          <span style="font-size:12px;font-weight:700;color:var(--text);">${v.placa}</span>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo2} · ${v.forca}</div>
-        <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);">Peso médio: ${v.pesoMedio.toFixed(1)}t/vg</div>
-      </div>`).join('')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+      ${naoProgramados.map(cardVeiculo).join('')}
     </div>`;
+}
+
+window._progSalvarJustificativa = async function _progSalvarJustificativa(placa, motivo, observacao) {
+  if (!_progJustificativas[placa]) _progJustificativas[placa] = {};
+  if (motivo !== null) _progJustificativas[placa].motivo = motivo;
+  if (observacao !== null) _progJustificativas[placa].observacao = observacao;
+  if (!_progJustificativas[placa].motivo && !_progJustificativas[placa].observacao) {
+    delete _progJustificativas[placa];
+  }
+  try {
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { justificativas: _progJustificativas, atualizadoEm: new Date().toISOString() }, { merge: true });
+    showToast('✔ Justificativa salva.');
+  } catch (err) {
+    console.error('Erro ao salvar justificativa:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+    return;
+  }
+  _progRenderNaoProgramados();
 };
 
 window.fecharNaoProgramados = function fecharNaoProgramados() {
