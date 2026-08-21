@@ -40,7 +40,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .sidebar {
   position: fixed; top: 0; left: 0; width: 64px; height: 100vh;
   background: var(--bg2); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; z-index: 10;
+  display: flex; flex-direction: column; z-index: 10; overflow-y: auto;
 }
 .sidebar-logo {
   padding: 16px 8px 12px;
@@ -56,7 +56,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .logo-text { display: none; }
 .logo-sub { display: none; }
 
-.sidebar-nav { flex: 1; padding: 12px 8px; }
+.sidebar-nav { padding: 12px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .nav-label { display: none; }
 .nav-item {
   display: flex; align-items: center; justify-content: center; padding: 11px;
@@ -77,7 +77,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 .sidebar-user {
   padding: 14px 8px; border-top: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .user-avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -87,6 +87,28 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 }
 .user-name { display: none; }
 .user-role { display: none; }
+
+/* ── AÇÕES/ABAS DE CADA TELA (ícones, abaixo dos ícones de navegação, mesma barra) ── */
+.sidebar-filtros { flex: 1; padding: 8px; overflow-y: auto; }
+.filtros-painel { display: none; flex-direction: column; gap: 4px; }
+.filtros-painel.active { display: flex; }
+.filtros-titulo { display: none; }
+.filtros-modo-toggle { display: none; } /* movido pra barra superior */
+.filtros-aba-btn, .filtros-acao-btn {
+  display: flex; align-items: center; justify-content: center; padding: 11px;
+  border-radius: 8px; cursor: pointer; font-size:18px; border: none;
+  background: none; color: var(--text2); width: 100%; text-align: center;
+}
+.filtros-aba-btn.ativo { background: var(--bg4); color: var(--text); }
+.filtros-aba-btn:hover, .filtros-acao-btn:hover { background: var(--bg3); color: var(--text); }
+.filtros-acao-btn svg { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.8; }
+.filtros-acao-global { padding: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+
+/* ── FILTROS DE PERÍODO NA BARRA SUPERIOR (Dia/Mês/Ano, seletores, data) ── */
+.topbar-filtros-painel { display: none; align-items: center; gap: 8px; }
+.topbar-filtros-painel.active { display: flex; }
+.topbar-modo-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.topbar-modo-toggle button { padding: 6px 12px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; background: var(--bg3); color: var(--text3); }
 
 /* ── MAIN ── */
 .main { margin-left: 64px; min-height: 100vh; display: flex; flex-direction: column; }
@@ -408,6 +430,42 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <span>Programação</span>
     </button>
   </nav>
+
+  <div class="filtros-acao-global">
+    <button class="filtros-acao-btn" onclick="exportarPDF()" title="Exportar PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
+    </button>
+  </div>
+
+  <div class="sidebar-filtros">
+    <div class="filtros-painel" id="filtros-produtividade">
+      <div id="prod-categoria-btns-principal"></div>
+      <label class="filtros-acao-btn" id="import-btn-prod-label" title="Importar Base de Volume">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-prod-input"/>
+      </label>
+      <div id="prod-ultima-import" style="display:none;"></div>
+    </div>
+
+    <div class="filtros-painel active" id="filtros-volume">
+      <button class="filtros-aba-btn vol-aba-btn ativo" data-aba="local" onclick="_volSetAba('local')" title="Por Mina/Rota">📍</button>
+      <button class="filtros-aba-btn vol-aba-btn" data-aba="origem" onclick="_volSetAba('origem')" title="Por Origem">🚩</button>
+      <button class="filtros-aba-btn vol-aba-btn" data-aba="destino" onclick="_volSetAba('destino')" title="Por Destino">🏁</button>
+      <button class="filtros-aba-btn vol-aba-btn" data-aba="veiculo" onclick="_volSetAba('veiculo')" title="Por Veículo">🚛</button>
+      <button class="filtros-aba-btn vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" title="Por Tipo">🏷️</button>
+      <button class="filtros-acao-btn" onclick="abrirMetasModal()" title="Metas">🎯</button>
+      <label class="filtros-acao-btn" id="import-btn-vol-label" title="Importar Base de Volume">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-vol-input"/>
+      </label>
+      <div id="vol-ultima-import" style="display:none;"></div>
+    </div>
+
+    <div class="filtros-painel" id="filtros-programacao">
+      <button class="filtros-acao-btn" onclick="abrirFormProgItem()" title="Cadastrar Meta do Dia" style="color:#388bfd;">📅</button>
+    </div>
+  </div>
+
   <div class="sidebar-user" title="Gestor — Novo Horizonte Logística">
     <div class="user-avatar">GR</div>
     <div>
@@ -420,13 +478,49 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <!-- MAIN -->
 <main class="main">
   <header class="topbar">
-    <div class="topbar-title" id="page-title">Volume Transportado</div>
+    <div style="display:flex;align-items:center;gap:20px;min-width:0;">
+      <div class="topbar-title" id="page-title">Volume Transportado</div>
+
+      <div class="topbar-filtros-painel" id="topbar-filtros-produtividade">
+        <div class="topbar-modo-toggle">
+          <button id="prod-modo-dia-btn" onclick="_setModoView('dia')">Dia</button>
+          <button id="prod-modo-mes-btn" onclick="_setModoView('mes')" style="background:#388bfd;color:#fff;">Mês</button>
+          <button id="prod-modo-ano-btn" onclick="_setModoView('ano')">Ano</button>
+        </div>
+        <select id="prod-dia-select" class="filter-input" style="display:none;" onchange="_onProdDiaChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <select id="prod-mes-select" class="filter-input" onchange="_onProdMesChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <select id="prod-ano-select" class="filter-input" style="display:none;" onchange="_onProdAnoChange(this.value)">
+          <option value="">—</option>
+        </select>
+      </div>
+
+      <div class="topbar-filtros-painel active" id="topbar-filtros-volume">
+        <div class="topbar-modo-toggle">
+          <button id="vol-modo-dia-btn" onclick="_volSetModoView('dia')">Dia</button>
+          <button id="vol-modo-mes-btn" onclick="_volSetModoView('mes')" style="background:#388bfd;color:#fff;">Mês</button>
+          <button id="vol-modo-ano-btn" onclick="_volSetModoView('ano')">Ano</button>
+        </div>
+        <select id="vol-dia-select" class="filter-input" style="display:none;" onchange="_volOnDiaChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <select id="vol-mes-select" class="filter-input" onchange="_volOnMesChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <select id="vol-ano-select" class="filter-input" style="display:none;" onchange="_volOnAnoChange(this.value)">
+          <option value="">—</option>
+        </select>
+      </div>
+
+      <div class="topbar-filtros-painel" id="topbar-filtros-programacao">
+        <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
+      </div>
+    </div>
     <div class="topbar-right">
       <span class="topbar-date" id="topbar-date"></span>
-      <button class="btn btn-outline" onclick="exportarPDF()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg>
-        Exportar PDF
-      </button>
       <label class="import-btn" id="import-btn-label" title="Importar JORNADA_NH.xlsx" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Importar Base
@@ -591,43 +685,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: PRODUTIVIDADE DE VEÍCULOS -->
     <div class="page" id="page-produtividade">
-      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
-              <button id="prod-modo-dia-btn" onclick="_setModoView('dia')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
-              <button id="prod-modo-mes-btn" onclick="_setModoView('mes')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
-              <button id="prod-modo-ano-btn" onclick="_setModoView('ano')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
-            </div>
-            <select id="prod-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_onProdDiaChange(this.value)">
-              <option value="">—</option>
-            </select>
-            <select id="prod-mes-select" class="filter-input" style="min-width:170px;" onchange="_onProdMesChange(this.value)">
-              <option value="">—</option>
-            </select>
-            <select id="prod-ano-select" class="filter-input" style="min-width:120px;display:none;" onchange="_onProdAnoChange(this.value)">
-              <option value="">—</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div id="prod-ultima-import" style="font-size:14px;color:var(--text3);"></div>
-            <label class="import-btn" id="import-btn-prod-label" title="Importar BASE_VOLUME.xlsx">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Importar Base de Volume
-              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-prod-input"/>
-            </label>
-          </div>
-        </div>
-      </div>
       <div class="import-progress" id="import-progress-prod">
         <span id="import-progress-prod-text">Lendo arquivo...</span>
         <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-prod-fill" style="width:0%"></div></div>
       </div>
       <div class="km-resumo" id="prod-resumo"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="font-size:15px;color:var(--text3);">Categoria:</div>
-        <div id="prod-categoria-btns-principal" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
-      </div>
       <div id="prod-cards-trabalho"></div>
 
       <div id="prod-grafico-df" style="margin-bottom:20px;"></div>
@@ -635,49 +697,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: VOLUME TRANSPORTADO -->
     <div class="page active" id="page-volume">
-      <div class="km-page-header" style="flex-direction:column;align-items:flex-start;gap:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px;">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
-              <button id="vol-modo-dia-btn" onclick="_volSetModoView('dia')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Dia</button>
-              <button id="vol-modo-mes-btn" onclick="_volSetModoView('mes')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:#388bfd;color:#fff;">Mês</button>
-              <button id="vol-modo-ano-btn" onclick="_volSetModoView('ano')" style="padding:7px 14px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:var(--bg3);color:var(--text3);">Ano</button>
-            </div>
-            <select id="vol-dia-select" class="filter-input" style="min-width:170px;display:none;" onchange="_volOnDiaChange(this.value)">
-              <option value="">—</option>
-            </select>
-            <select id="vol-mes-select" class="filter-input" style="min-width:170px;" onchange="_volOnMesChange(this.value)">
-              <option value="">—</option>
-            </select>
-            <select id="vol-ano-select" class="filter-input" style="min-width:120px;display:none;" onchange="_volOnAnoChange(this.value)">
-              <option value="">—</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div id="vol-ultima-import" style="font-size:14px;color:var(--text3);"></div>
-            <button onclick="abrirMetasModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);">
-              🎯 Metas
-            </button>
-            <label class="import-btn" id="import-btn-vol-label" title="Importar BASE_VOLUME.xlsx">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Importar Base de Volume
-              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importarVolume(this)" id="import-file-vol-input"/>
-            </label>
-          </div>
-        </div>
-      </div>
       <div class="import-progress" id="import-progress-vol">
         <span id="import-progress-vol-text">Lendo arquivo...</span>
         <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-vol-fill" style="width:0%"></div></div>
-      </div>
-
-      
-      <div style="display:flex;gap:10px;margin:4px 0 14px;">
-        <button class="vol-aba-btn" data-aba="local" onclick="_volSetAba('local')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:#388bfd;color:#fff;">📍 Por Mina/Rota</button>
-        <button class="vol-aba-btn" data-aba="origem" onclick="_volSetAba('origem')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚩 Por Origem</button>
-        <button class="vol-aba-btn" data-aba="destino" onclick="_volSetAba('destino')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏁 Por Destino</button>
-        <button class="vol-aba-btn" data-aba="veiculo" onclick="_volSetAba('veiculo')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🚛 Por Veículo</button>
-        <button class="vol-aba-btn" data-aba="tipo" onclick="_volSetAba('tipo')" style="padding:8px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text3);">🏷️ Por Tipo</button>
       </div>
 
       <div id="vol-cards-mina-rota" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
@@ -732,16 +754,6 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: PROGRAMAÇÃO DIÁRIA DE VOLUME -->
     <div class="page" id="page-programacao">
-      <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-size:16px;color:var(--text3);">Dia:</div>
-          <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
-        </div>
-        <button onclick="abrirFormProgItem()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
-          📅 Cadastrar Meta do Dia
-        </button>
-      </div>
-
       <div id="prog-corpo" style="margin-top:16px;">
         <div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>
       </div>
@@ -1618,6 +1630,12 @@ window.showPage = function showPage(id) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   event.currentTarget.classList.add('active');
   document.getElementById('page-title').textContent = pageTitles[id];
+  document.querySelectorAll('.filtros-painel').forEach(p => p.classList.remove('active'));
+  const painelFiltros = document.getElementById('filtros-' + id);
+  if (painelFiltros) painelFiltros.classList.add('active');
+  document.querySelectorAll('.topbar-filtros-painel').forEach(p => p.classList.remove('active'));
+  const painelTopbar = document.getElementById('topbar-filtros-' + id);
+  if (painelTopbar) painelTopbar.classList.add('active');
   if (id === 'checklists') renderListTable();
   if (id === 'frotas') renderFrotaTable();
   if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
@@ -2043,11 +2061,11 @@ function _renderQuadro() {
 function _renderBotoesCategoria(containerId) {
   const cont = document.getElementById(containerId);
   if (!cont) return;
-  const btnCat = (valor, rotulo) => {
+  const btnCat = (valor, rotulo, icone) => {
     const ativo = _prodCategoria === valor;
-    return `<button onclick="_setCategoria('${valor}')" style="padding:7px 12px;font-size:14px;font-weight:600;border:none;cursor:pointer;background:${ativo?'#388bfd':'var(--bg3)'};color:${ativo?'#fff':'var(--text3)'};">${rotulo}</button>`;
+    return `<button class="filtros-aba-btn${ativo?' ativo':''}" title="${rotulo}" onclick="_setCategoria('${valor}')">${icone}</button>`;
   };
-  cont.innerHTML = btnCat('todos','Todos') + btnCat('caminhao','Caminhão') + btnCat('cavalo','Cavalo');
+  cont.innerHTML = btnCat('todos','Todos','🔘') + btnCat('caminhao','Caminhão','🚚') + btnCat('cavalo','Cavalo','🐎');
 }
 
 window._setCategoria = function _setCategoria(valor) {
@@ -3123,9 +3141,7 @@ function _volRenderTabelaGenerica() {
 window._volSetAba = function _volSetAba(aba) {
   _volAba = aba;
   document.querySelectorAll('.vol-aba-btn').forEach(b => {
-    const ativo = b.getAttribute('data-aba') === aba;
-    b.style.background = ativo ? '#388bfd' : 'var(--bg3)';
-    b.style.color = ativo ? '#fff' : 'var(--text3)';
+    b.classList.toggle('ativo', b.getAttribute('data-aba') === aba);
   });
   _volRenderTabela();
 };
