@@ -429,6 +429,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span>Programação</span>
     </button>
+    <button class="nav-item" title="Gestão do Dia" onclick="showPage('gestao')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+      <span>Gestão do Dia</span>
+    </button>
   </nav>
 
   <div class="filtros-acao-global">
@@ -464,6 +468,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <div class="filtros-painel" id="filtros-programacao">
       <button class="filtros-acao-btn" onclick="abrirFormProgItem()" title="Cadastrar Meta do Dia" style="color:#388bfd;">📅</button>
     </div>
+    <div class="filtros-painel" id="filtros-gestao"></div>
   </div>
 
   <div class="sidebar-user" title="Gestor — Novo Horizonte Logística">
@@ -517,6 +522,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
       <div class="topbar-filtros-painel" id="topbar-filtros-programacao">
         <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
+      </div>
+      <div class="topbar-filtros-painel" id="topbar-filtros-gestao">
+        <input type="date" id="gestao-data-input" class="filter-input" onchange="_onGestaoDataChange(this.value)">
       </div>
     </div>
     <div class="topbar-right">
@@ -768,6 +776,13 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
     </div>
 
+    <!-- PAGE: GESTÃO DO DIA -->
+    <div class="page" id="page-gestao">
+      <div id="gestao-corpo">
+        <div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>
+      </div>
+    </div>
+
   </div>
 </main>
 
@@ -850,6 +865,31 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button onclick="fecharNaoProgramados()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
     </div>
     <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 22px;" id="prog-naoprog-corpo"></div>
+  </div>
+</div>
+
+<!-- JUSTIFICATIVA — FIM / FORA DE OPERAÇÃO (Gestão do Dia) -->
+<div id="gestao-justificativa-overlay" onclick="if(event.target===this) fecharJustificativaGestao()" style="display:none;position:fixed;inset:0;z-index:79;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);" id="gestao-justif-titulo">Justificativa</div>
+      <button onclick="fecharJustificativaGestao()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Ofensor</label>
+        <select id="gestao-justif-ofensor" class="filter-input" style="width:100%;"></select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Tipo de Ofensor</label>
+        <input type="text" id="gestao-justif-tipo" class="filter-input" style="width:100%;" placeholder="Ex.: Tacógrafo, Pneu, Adequação...">
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Responsável</label>
+        <input type="text" id="gestao-justif-responsavel" class="filter-input" style="width:100%;">
+      </div>
+      <button onclick="confirmarJustificativaGestao()" style="margin-top:6px;padding:10px 16px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">Confirmar</button>
+    </div>
   </div>
 </div>
 
@@ -1516,7 +1556,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia' };
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -1645,6 +1685,7 @@ window.showPage = function showPage(id) {
   if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
   if (id === 'minas') setTimeout(() => window.renderMinas(), 0);
   if (id === 'programacao') setTimeout(() => window.renderProgramacao(), 0);
+  if (id === 'gestao') setTimeout(() => window.renderGestaoDia(), 0);
 }
 
 // ══════════════════════════════════════
@@ -4034,6 +4075,11 @@ async function _popularSeletorMesMetas() {
   const hoje = new Date();
   const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
   mesesSet.add(mesAtualKey); // garante que o mês vigente apareça mesmo sem viagens ainda importadas
+  // permite cadastrar meta pra meses futuros também (planejamento antecipado) — próximos 12 meses
+  for (let i = 1; i <= 12; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    mesesSet.add(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+  }
   const meses = Array.from(mesesSet).sort().reverse();
 
   const mesPadrao = _volMetasMesAtual && meses.includes(_volMetasMesAtual) ? _volMetasMesAtual
@@ -4793,6 +4839,286 @@ window.renderProgramacao = async function renderProgramacao() {
   await _carregarProgDia(_progDataAtual);
   await _progRenderSecaoFrota();
   _renderProgCorpo(); // refaz agora que a frota já está carregada, pra corrigir os totais/N por categoria
+};
+
+// ══════════════════════════════════════
+// GESTÃO DO DIA — grade com todos os veículos (Caminhões e Cavalos separados), cada um com sua
+// rota programada e uma linha do tempo de viagens, onde cada viagem planejada vira uma célula
+// clicável pra marcar como realizada ao longo do dia.
+// ══════════════════════════════════════
+let _gestaoDataAtual = null; // 'YYYY-MM-DD'
+let _gestaoRoster = null;    // [{placa, fr, tipo2, forca, pesoMedio}] — frota do dia (mesma lógica de fallback da Programação)
+let _gestaoAtribuicoes = []; // atribuicoes do dia (mesmo shape de _progAtribuicoes, com + campo "realizacoes")
+let _gestaoRosterCacheDia = null;
+
+async function _gestaoCarregarRoster(diaISO) {
+  if (_gestaoRoster && _gestaoRosterCacheDia === diaISO) return _gestaoRoster;
+  try {
+    const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
+    const diasDisponiveis = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+    if (diasDisponiveis.length === 0) { _gestaoRoster = []; _gestaoRosterCacheDia = diaISO; return _gestaoRoster; }
+
+    const diasOrdenados = diasDisponiveis.slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+      return da.localeCompare(db_);
+    });
+    let diaEscolhido = null;
+    for (let i = diasOrdenados.length - 1; i >= 0; i--) {
+      if (_diaParaChave(diasOrdenados[i]) <= diaISO) { diaEscolhido = diasOrdenados[i]; break; }
+    }
+    if (!diaEscolhido) diaEscolhido = diasOrdenados[0];
+
+    const [diaSnap, veiculosSnap] = await Promise.all([
+      getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaEscolhido))),
+      getDocs(collection(db, 'base_volume_veiculos'))
+    ]);
+    const placasDoDia = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
+
+    const pesoMedioPorPlaca = {};
+    veiculosSnap.docs.forEach(d => {
+      const hist = d.data().historico || [];
+      if (hist.length === 0) return;
+      const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
+      const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
+      pesoMedioPorPlaca[d.id] = somaViagens > 0 ? somaVolume / somaViagens : 0;
+    });
+
+    const roster = Object.entries(placasDoDia).map(([placa, v]) => ({
+      placa,
+      fr: v.fr ?? '',
+      tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
+      forca: (v.forca || '').toString().trim().toUpperCase(),
+      pesoMedio: pesoMedioPorPlaca[placa] || 0
+    }));
+    roster.sort((a,b) => (a.fr||0) - (b.fr||0));
+    _gestaoRoster = roster;
+    _gestaoRosterCacheDia = diaISO;
+  } catch (err) {
+    console.error('Erro ao carregar frota da base de Aderência (Gestão do Dia):', err);
+    _gestaoRoster = [];
+  }
+  return _gestaoRoster;
+}
+
+window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
+  _gestaoCarregarDia(dataISO);
+};
+
+async function _gestaoCarregarDia(dataISO) {
+  _gestaoDataAtual = dataISO;
+  const cont = document.getElementById('gestao-corpo');
+  if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando...</div>';
+  try {
+    const [snap] = await Promise.all([
+      getDoc(doc(db, 'programacao_dias', dataISO)),
+      _gestaoCarregarRoster(dataISO)
+    ]);
+    _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+    _gestaoRenderGrade();
+  } catch (err) {
+    console.error('Erro ao carregar Gestão do Dia:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados desse dia.</div>';
+  }
+}
+
+function _gestaoAtribuicaoDoVeiculo(placa) {
+  return _gestaoAtribuicoes.find(a => a.placa === placa);
+}
+
+// Garante um array de booleans do tamanho certo (viagens), sem perder marcações já feitas caso
+// as viagens programadas tenham mudado depois (a mais ou a menos) desde a última vez.
+function _gestaoRealizacoes(atrib) {
+  const n = Number(atrib.viagens) || 0;
+  const atual = Array.isArray(atrib.realizacoes) ? atrib.realizacoes : [];
+  const resultado = [];
+  for (let i = 0; i < n; i++) resultado.push(!!atual[i]);
+  return resultado;
+}
+
+async function _gestaoSalvarAtribuicoes() {
+  try {
+    await setDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { atribuicoes: _gestaoAtribuicoes, atualizadoEm: new Date().toISOString() }, { merge: true });
+  } catch (err) {
+    console.error('Erro ao salvar realização de viagem:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+}
+
+window.toggleRealizacaoViagem = async function toggleRealizacaoViagem(placa, indice) {
+  const atrib = _gestaoAtribuicaoDoVeiculo(placa);
+  if (!atrib) return;
+  const realizacoes = _gestaoRealizacoes(atrib);
+  realizacoes[indice] = !realizacoes[indice];
+  atrib.realizacoes = realizacoes;
+  await _gestaoSalvarAtribuicoes();
+  _gestaoRenderGrade();
+};
+
+const GESTAO_OFENSORES = ['MANUTENÇÃO', 'FOLGA', 'QUEBRADO', 'SEM MOTORISTA', 'PNEU', 'DOCUMENTAÇÃO', 'OUTRO'];
+
+function _gestaoObterOuCriarAtribuicao(placa) {
+  let atrib = _gestaoAtribuicaoDoVeiculo(placa);
+  if (!atrib) {
+    const v = (_gestaoRoster || []).find(x => x.placa === placa) || {};
+    atrib = { placa, fr: v.fr || '', tipo2: v.tipo2 || '', forca: v.forca || '', origem: '', destino: '', viagens: 0, pesoMedio: v.pesoMedio || 0, peso: 0 };
+    _gestaoAtribuicoes.push(atrib);
+  }
+  return atrib;
+}
+
+window.iniciarOperacaoGestao = async function iniciarOperacaoGestao(placa) {
+  const atrib = _gestaoObterOuCriarAtribuicao(placa);
+  atrib.status = 'operando';
+  await _gestaoSalvarAtribuicoes();
+  _gestaoRenderGrade();
+};
+
+window.reabrirOperacaoGestao = async function reabrirOperacaoGestao(placa) {
+  const atrib = _gestaoAtribuicaoDoVeiculo(placa);
+  if (!atrib) return;
+  atrib.status = null;
+  await _gestaoSalvarAtribuicoes();
+  _gestaoRenderGrade();
+};
+
+let _gestaoJustifPlaca = null;
+let _gestaoJustifStatusAlvo = null;
+
+window.abrirJustificativaGestao = function abrirJustificativaGestao(placa, statusAlvo) {
+  _gestaoJustifPlaca = placa;
+  _gestaoJustifStatusAlvo = statusAlvo;
+  const atrib = _gestaoObterOuCriarAtribuicao(placa);
+  const j = atrib.justificativa || {};
+  document.getElementById('gestao-justif-titulo').textContent = statusAlvo === 'fora' ? '⛔ Fora de Operação' : '⏹ Fim de Operação';
+  const select = document.getElementById('gestao-justif-ofensor');
+  select.innerHTML = ['<option value="">— selecione —</option>'].concat(
+    GESTAO_OFENSORES.map(m => `<option value="${m}" ${j.ofensor===m?'selected':''}>${m}</option>`)
+  ).join('');
+  document.getElementById('gestao-justif-tipo').value = j.tipoOfensor || '';
+  document.getElementById('gestao-justif-responsavel').value = j.responsavel || 'NHL';
+  document.getElementById('gestao-justificativa-overlay').style.display = 'flex';
+};
+
+window.fecharJustificativaGestao = function fecharJustificativaGestao() {
+  document.getElementById('gestao-justificativa-overlay').style.display = 'none';
+};
+
+window.confirmarJustificativaGestao = async function confirmarJustificativaGestao() {
+  const ofensor = document.getElementById('gestao-justif-ofensor').value;
+  const tipoOfensor = document.getElementById('gestao-justif-tipo').value;
+  const responsavel = document.getElementById('gestao-justif-responsavel').value;
+  if (!ofensor) { showToast('✖ Selecione o ofensor.'); return; }
+  const atrib = _gestaoObterOuCriarAtribuicao(_gestaoJustifPlaca);
+  atrib.status = _gestaoJustifStatusAlvo;
+  atrib.justificativa = { ofensor, tipoOfensor, responsavel };
+  await _gestaoSalvarAtribuicoes();
+  fecharJustificativaGestao();
+  _gestaoRenderGrade();
+};
+
+function _gestaoBotoesStatusHTML(v, atrib) {
+  const status = atrib ? atrib.status : null;
+  const botaoToggle = status === 'operando'
+    ? `<button onclick="abrirJustificativaGestao('${v.placa}','finalizado')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #d29922;background:rgba(210,153,34,0.12);color:#d29922;cursor:pointer;white-space:nowrap;">⏹ Fim de Operação</button>`
+    : `<button onclick="iniciarOperacaoGestao('${v.placa}')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #388bfd;background:rgba(56,139,253,0.12);color:#388bfd;cursor:pointer;white-space:nowrap;">▶ Início de Operação</button>`;
+  const botaoFora = `<button onclick="abrirJustificativaGestao('${v.placa}','fora')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #f85149;background:rgba(248,81,73,0.10);color:#f85149;cursor:pointer;white-space:nowrap;">⛔ Fora de Operação</button>`;
+
+  let badge = '';
+  if (status === 'finalizado' || status === 'fora') {
+    const j = atrib.justificativa || {};
+    const cor = status === 'fora' ? '#f85149' : '#d29922';
+    const rotulo = status === 'fora' ? '⛔ Fora' : '⏹ Finalizado';
+    badge = `<div style="font-size:10px;color:${cor};margin-top:4px;text-align:right;">
+      ${rotulo} — ${j.ofensor||'—'}${j.tipoOfensor?' · '+j.tipoOfensor:''}${j.responsavel?' · '+j.responsavel:''}
+      <button onclick="reabrirOperacaoGestao('${v.placa}')" title="Reabrir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;margin-left:4px;">↺</button>
+    </div>`;
+  }
+
+  return `<div style="flex-shrink:0;">
+    <div style="display:flex;gap:6px;">${botaoToggle}${botaoFora}</div>
+    ${badge}
+  </div>`;
+}
+
+function _gestaoLinhaVeiculo(v) {
+  const atrib = _gestaoAtribuicaoDoVeiculo(v.placa);
+  const temRota = !!atrib && atrib.origem && atrib.destino && (Number(atrib.viagens)||0) > 0;
+
+  const infoRota = temRota
+    ? `<div style="font-size:13px;color:var(--text2);white-space:nowrap;">${atrib.origem} <span style="color:var(--text3);">→</span> ${atrib.destino}</div>`
+    : `<div style="font-size:13px;color:var(--text3);">Sem programação</div>`;
+
+  let timeline = '';
+  let aderenciaHTML = `<div style="width:56px;flex-shrink:0;text-align:center;font-size:13px;color:var(--text3);">—</div>`;
+  if (temRota) {
+    const realizacoes = _gestaoRealizacoes(atrib);
+    const feitas = realizacoes.filter(Boolean).length;
+    const celulas = realizacoes.map((feita, i) => `<button
+        onclick="toggleRealizacaoViagem('${v.placa}', ${i})"
+        title="Viagem ${i+1}${feita?' — realizada':''}"
+        style="width:26px;height:26px;flex-shrink:0;border-radius:6px;border:1px solid ${feita?'#2ea043':'var(--border2)'};background:${feita?'#2ea043':'var(--bg3)'};color:${feita?'#fff':'var(--text3)'};font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">${feita?'✓':i+1}</button>`
+    ).join('');
+    timeline = `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;">
+      ${celulas}
+      <div style="font-size:11px;color:var(--text3);margin-left:6px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
+    </div>`;
+
+    const pctAderencia = realizacoes.length > 0 ? Math.round((feitas/realizacoes.length)*1000)/10 : 0;
+    const corAderencia = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
+    aderenciaHTML = `<div style="width:56px;flex-shrink:0;text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:${corAderencia};font-family:'DM Mono',monospace;">${pctAderencia}%</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Aderência</div>
+    </div>`;
+  } else {
+    timeline = `<div style="flex:1;font-size:12px;color:var(--text3);">—</div>`;
+  }
+
+  return `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border2);">
+    <div style="width:150px;flex-shrink:0;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span style="font-size:24px;font-weight:700;color:var(--text);">${v.fr||'—'}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text3);">${v.placa}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);">${v.tipo2} · ${v.forca}</div>
+    </div>
+    ${aderenciaHTML}
+    <div style="width:170px;flex-shrink:0;">${infoRota}</div>
+    ${timeline}
+    ${_gestaoBotoesStatusHTML(v, atrib)}
+  </div>`;
+}
+
+function _gestaoRenderGrade() {
+  const cont = document.getElementById('gestao-corpo');
+  if (!cont) return;
+  const roster = _gestaoRoster || [];
+  if (roster.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo encontrado na base de Aderência pra esse dia.</div>';
+    return;
+  }
+
+  const caminhoes = roster.filter(v => _progEhCaminhao(v.tipo2));
+  const cavalos = roster.filter(v => _progEhCavalo(v.tipo2));
+
+  const secao = (titulo, icone, lista) => `<div class="table-card" style="padding:0;margin-bottom:16px;overflow:hidden;">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text);">${icone} ${titulo} (${lista.length})</div>
+    <div>${lista.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Nenhum veículo dessa categoria.</div>' : lista.map(_gestaoLinhaVeiculo).join('')}</div>
+  </div>`;
+
+  cont.innerHTML = secao('Caminhões', '🚚', caminhoes) + secao('Cavalos', '🐎', cavalos);
+}
+
+window.renderGestaoDia = async function renderGestaoDia() {
+  const input = document.getElementById('gestao-data-input');
+  if (!_gestaoDataAtual) {
+    _gestaoDataAtual = _progDataAtual || (() => {
+      const hoje = new Date();
+      return hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+    })();
+  }
+  input.value = _gestaoDataAtual;
+  await _gestaoCarregarDia(_gestaoDataAtual);
 };
 
 window.abrirFormProgItem = function abrirFormProgItem() {
