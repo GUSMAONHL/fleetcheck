@@ -778,6 +778,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: GESTÃO DO DIA -->
     <div class="page" id="page-gestao">
+      <div id="gestao-indicadores"></div>
+      <div id="gestao-rotas"></div>
       <div id="gestao-corpo">
         <div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>
       </div>
@@ -1557,6 +1559,10 @@ window.fecharPainelForce = function fecharPainelForce() {
 // NAVEGAÇÃO
 // ══════════════════════════════════════
 const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia' };
+
+// Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
+// diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
+const ICONE_CAVALO = '<svg viewBox="0 0 32 20" width="15" height="15" fill="currentColor" style="vertical-align:-3px;display:inline-block;"><path d="M1 4a1 1 0 011-1h9a4 4 0 014 4v5H2a1 1 0 01-1-1V4z"/><path d="M16 8h6.5a1 1 0 01.8.4l3 4a1 1 0 01.2.6v1a1 1 0 01-1 1H16V8z" opacity="0.75"/><circle cx="7" cy="16" r="3.2" fill="#0d1117" stroke="currentColor" stroke-width="1.6"/><circle cx="24" cy="16" r="3.2" fill="#0d1117" stroke="currentColor" stroke-width="1.6"/></svg>';
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -2108,7 +2114,7 @@ function _renderBotoesCategoria(containerId) {
     const ativo = _prodCategoria === valor;
     return `<button class="filtros-aba-btn${ativo?' ativo':''}" title="${rotulo}" onclick="_setCategoria('${valor}')">${icone}</button>`;
   };
-  cont.innerHTML = btnCat('todos','Todos','🔘') + btnCat('caminhao','Caminhão','🚚') + btnCat('cavalo','Cavalo','🐎');
+  cont.innerHTML = btnCat('todos','Todos','🔘') + btnCat('caminhao','Caminhão','🚚') + btnCat('cavalo','Cavalo',ICONE_CAVALO);
 }
 
 window._setCategoria = function _setCategoria(valor) {
@@ -3127,6 +3133,7 @@ window.importarVolume = async function importarVolume(input) {
     _prodDiaAtual = null;
     _volDiaAtual = null; _volMesAtual = null; _volAnoAtual = null;
     _progRosterVeiculos = null; // força a tela de Programação a buscar a frota atualizada de novo
+    _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
     window.renderVolume();
@@ -5089,14 +5096,180 @@ function _gestaoLinhaVeiculo(v) {
   </div>`;
 }
 
+// ══════════════════════════════════════
+// CARDS INDICADORES — Total de Veículos / Caminhões / Cavalos na Operação
+// ══════════════════════════════════════
+function _gestaoContarCategoria(filtroTipo) {
+  const rosterCategoria = (_gestaoRoster || []).filter(v => filtroTipo(v.tipo2));
+  const placasCategoria = new Set(rosterCategoria.map(v => v.placa));
+  const atribsCategoria = _gestaoAtribuicoes.filter(a => placasCategoria.has(a.placa));
+
+  const total = rosterCategoria.length;
+  const programados = atribsCategoria.filter(a => a.origem && a.destino && (Number(a.viagens)||0) > 0).length;
+  const emOperacao = atribsCategoria.filter(a => a.status === 'operando').length;
+  const foraOperacao = atribsCategoria.filter(a => a.status === 'fora').length;
+
+  return { total, programados, emOperacao, foraOperacao };
+}
+
+function _gestaoPct(num, den) {
+  return den > 0 ? Math.round((num/den)*1000)/10 : 0;
+}
+
+function _gestaoCorPct(p) {
+  return p >= 96 ? '#2ea043' : p >= 51 ? '#d29922' : '#f85149';
+}
+
+function _gestaoSubCard(rotulo, num, den, corBarra) {
+  const p = _gestaoPct(num, den);
+  return `<div style="flex:1;min-width:110px;">
+    <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${num} <span style="font-size:13px;color:${corBarra||_gestaoCorPct(p)};">(${p}%)</span></div>
+    <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${rotulo}</div>
+  </div>`;
+}
+
+function _gestaoCardCategoria(titulo, icone, cor, dados) {
+  return `<div class="table-card" style="padding:16px 18px;text-align:center;">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${icone} ${titulo}</div>
+    <div style="font-size:32px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;margin-bottom:10px;">${dados.total}</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;border-top:1px solid var(--border2);padding-top:10px;">
+      ${_gestaoSubCard('Programados', dados.programados, dados.total)}
+      ${_gestaoSubCard('Em Operação', dados.emOperacao, dados.programados)}
+      ${_gestaoSubCard('Fora de Operação', dados.foraOperacao, dados.total, '#f85149')}
+    </div>
+  </div>`;
+}
+
+let _gestaoTotalUltimoDiaCache = null;
+
+async function _gestaoObterTotalUltimoDia() {
+  if (_gestaoTotalUltimoDiaCache !== null) return _gestaoTotalUltimoDiaCache;
+  try {
+    const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
+    const dias = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+    if (dias.length === 0) { _gestaoTotalUltimoDiaCache = 0; return 0; }
+    const ultimoDia = dias.slice().sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+      return da.localeCompare(db_);
+    }).pop();
+    const diaSnap = await getDoc(doc(db, 'base_volume_dias', _diaParaChave(ultimoDia)));
+    const veiculos = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
+    _gestaoTotalUltimoDiaCache = Object.keys(veiculos).length;
+  } catch (err) {
+    console.error('Erro ao obter total de veículos do último dia:', err);
+    _gestaoTotalUltimoDiaCache = 0;
+  }
+  return _gestaoTotalUltimoDiaCache;
+}
+
+async function _gestaoRenderIndicadores() {
+  const cont = document.getElementById('gestao-indicadores');
+  if (!cont) return;
+  const roster = _gestaoRoster || [];
+  if (roster.length === 0) { cont.innerHTML = ''; return; }
+
+  const dadosCaminhoes = _gestaoContarCategoria(_progEhCaminhao);
+  const dadosCavalos = _gestaoContarCategoria(_progEhCavalo);
+  const totalEmOperacaoGeral = dadosCaminhoes.emOperacao + dadosCavalos.emOperacao;
+  const totalUltimoDia = await _gestaoObterTotalUltimoDia();
+
+  cont.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;">
+    <div class="table-card" style="padding:16px 18px;text-align:center;">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Veículos</div>
+      <div style="font-size:32px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;margin-bottom:10px;">${totalUltimoDia}</div>
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid var(--border2);padding-top:10px;">${totalEmOperacaoGeral} em operação</div>
+    </div>
+    ${_gestaoCardCategoria('Total de Caminhões na Operação', '🚚', '#388bfd', dadosCaminhoes)}
+    ${_gestaoCardCategoria('Total de Cavalos na Operação', ICONE_CAVALO, '#388bfd', dadosCavalos)}
+  </div>`;
+}
+
+// ══════════════════════════════════════
+// CARDS POR ROTA — agrupa as atribuições do dia por Origem×Destino, mostrando programado x
+// já em andamento pra cada rota.
+// ══════════════════════════════════════
+function _gestaoAgruparPorRota() {
+  const grupos = {};
+  _gestaoAtribuicoes
+    .filter(a => a.origem && a.destino && (Number(a.viagens)||0) > 0)
+    .forEach(a => {
+      const chave = `${a.origem}|||${a.destino}`;
+      if (!grupos[chave]) grupos[chave] = { origem: a.origem, destino: a.destino, atribs: [] };
+      grupos[chave].atribs.push(a);
+    });
+  const ehPatioFabrica = (g) => _volEhPatio4(g.origem) && (g.destino||'').toString().trim().toUpperCase() === 'FABRICA';
+  return Object.values(grupos).sort((a,b) => {
+    const patioA = ehPatioFabrica(a), patioB = ehPatioFabrica(b);
+    if (patioA && !patioB) return 1;
+    if (!patioA && patioB) return -1;
+    return b.atribs.length - a.atribs.length;
+  });
+}
+
+function _gestaoCardRota(grupo) {
+  const veiculosProgramados = grupo.atribs.length;
+  const viagensProgramadas = grupo.atribs.reduce((s,a) => s + (Number(a.viagens)||0), 0);
+  const pesoProgramado = grupo.atribs.reduce((s,a) => s + (Number(a.peso) || (Number(a.viagens)||0) * (Number(a.pesoMedio)||0)), 0);
+
+  const veiculosEmOperacao = grupo.atribs.filter(a => a.status === 'operando').length;
+  let viagensRealizadas = 0, pesoEstimado = 0;
+  grupo.atribs.forEach(a => {
+    const realizacoes = _gestaoRealizacoes(a);
+    const feitas = realizacoes.filter(Boolean).length;
+    viagensRealizadas += feitas;
+    pesoEstimado += feitas * (Number(a.pesoMedio)||0);
+  });
+
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const pctVeiculos = _gestaoPct(veiculosEmOperacao, veiculosProgramados);
+  const pctViagens = _gestaoPct(viagensRealizadas, viagensProgramadas);
+  const pctPeso = _gestaoPct(pesoEstimado, pesoProgramado);
+  const plural = (n, singular, pluralForma) => n === 1 ? singular : pluralForma;
+
+  return `<div class="table-card" style="padding:18px 20px;">
+    <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">${grupo.origem} <span style="color:var(--text3);">→</span> ${grupo.destino}</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:150px;">
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Programado</div>
+        <div style="font-size:15px;color:var(--text2);margin-bottom:4px;">🚛 ${veiculosProgramados} ${plural(veiculosProgramados,'veículo','veículos')}</div>
+        <div style="font-size:15px;color:var(--text2);margin-bottom:4px;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
+        <div style="font-size:15px;color:var(--text2);">⚖️ ${fmt(pesoProgramado)}t</div>
+      </div>
+      <div style="flex:1;min-width:150px;">
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Em Andamento</div>
+        <div style="font-size:15px;color:${_gestaoCorPct(pctVeiculos)};margin-bottom:4px;">🚛 ${veiculosEmOperacao} ${plural(veiculosEmOperacao,'veículo','veículos')} <strong>${pctVeiculos}%</strong></div>
+        <div style="font-size:15px;color:${_gestaoCorPct(pctViagens)};margin-bottom:4px;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
+        <div style="font-size:15px;color:${_gestaoCorPct(pctPeso)};">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _gestaoRenderCardsRotas() {
+  const cont = document.getElementById('gestao-rotas');
+  if (!cont) return;
+  const grupos = _gestaoAgruparPorRota();
+  if (grupos.length === 0) { cont.innerHTML = ''; return; }
+
+  cont.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">📍 Rotas Programadas do Dia</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px;">
+      ${grupos.map(_gestaoCardRota).join('')}
+    </div>`;
+}
+
 function _gestaoRenderGrade() {
   const cont = document.getElementById('gestao-corpo');
   if (!cont) return;
   const roster = _gestaoRoster || [];
   if (roster.length === 0) {
     cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo encontrado na base de Aderência pra esse dia.</div>';
+    document.getElementById('gestao-indicadores').innerHTML = '';
+    document.getElementById('gestao-rotas').innerHTML = '';
     return;
   }
+
+  _gestaoRenderIndicadores();
+  _gestaoRenderCardsRotas();
 
   const caminhoes = roster.filter(v => _progEhCaminhao(v.tipo2));
   const cavalos = roster.filter(v => _progEhCavalo(v.tipo2));
@@ -5106,7 +5279,7 @@ function _gestaoRenderGrade() {
     <div>${lista.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Nenhum veículo dessa categoria.</div>' : lista.map(_gestaoLinhaVeiculo).join('')}</div>
   </div>`;
 
-  cont.innerHTML = secao('Caminhões', '🚚', caminhoes) + secao('Cavalos', '🐎', cavalos);
+  cont.innerHTML = secao('Caminhões', '🚚', caminhoes) + secao('Cavalos', ICONE_CAVALO, cavalos);
 }
 
 window.renderGestaoDia = async function renderGestaoDia() {
@@ -5498,8 +5671,8 @@ let _progNaoProgCategoriaAtual = 'todos';
 
 window.abrirNaoProgramados = async function abrirNaoProgramados(categoria) {
   _progNaoProgCategoriaAtual = categoria;
-  const titulos = { todos: '🚛 Veículos não programados', caminhao: '🚚 Caminhões não programados', cavalo: '🐎 Cavalos não programados' };
-  document.getElementById('prog-naoprog-titulo').textContent = titulos[categoria] || titulos.todos;
+  const titulos = { todos: '🚛 Veículos não programados', caminhao: '🚚 Caminhões não programados', cavalo: ICONE_CAVALO + ' Cavalos não programados' };
+  document.getElementById('prog-naoprog-titulo').innerHTML = titulos[categoria] || titulos.todos;
   document.getElementById('prog-nao-programados-overlay').style.display = 'flex';
   document.getElementById('prog-naoprog-corpo').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
 
