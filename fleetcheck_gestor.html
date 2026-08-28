@@ -3484,7 +3484,14 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   const totalBreak = breakdown.reduce((s,b) => s+b.volume, 0) || 1;
   const nItens = breakdown.length;
   const mediaPorItem = nItens > 0 ? stats.total / nItens : 0;
-  if (nItens === 0) return '';
+  if (nItens === 0) {
+    const temMetaAntesDeSaber = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
+    if (!temMetaAntesDeSaber) return '';
+    return `<div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Por ${rotulo} — metas cadastradas</div>
+      <div id="vol-linhas-metaonly-${cardKey}-${dimensao}"></div>
+    </div>`;
+  }
 
   // meta por linha só faz sentido pras dimensões ligadas a Origem/Destino (é assim que a meta é cadastrada)
   const temMeta = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
@@ -3630,10 +3637,13 @@ function _volCardFabricaHTML(opts) {
 
 function _renderCardsMinaRota() {
   const cont = document.getElementById('vol-cards-mina-rota');
-  if (!_volDiasRegistros || _volDiasRegistros.length === 0) {
+  const nuncaImportouNada = !_volMeta || !Array.isArray(_volMeta.dias) || _volMeta.dias.length === 0;
+  if (nuncaImportouNada) {
     cont.innerHTML = '<div class="table-card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);">Importe a base de volume (BASE_VOLUME.xlsx) para visualizar o volume transportado.</div>';
     return;
   }
+  // Mesmo sem nenhum dia com viagem no período selecionado (ex.: mês futuro só com Meta
+  // cadastrada), segue e desenha os cards — ficam com Realizado 0t, mas mostram a Meta certinho.
 
   const geral = _volStatsFluxo(null);
   const novo = _volStatsFluxo(_volOrigemDiferentePatio);
@@ -3761,6 +3771,7 @@ async function _volAtualizarMetasNosCards() {
   if (slotSaida) slotSaida.innerHTML = _volBlocoMetaHTML(metaSaida, realSaida, diasOperacao, diasComDados);
 
   _volInjetarMetasNasLinhas(itens, diasOperacao, diasComDados);
+  _volInjetarLinhasMetaOnly(itens, diasOperacao, diasComDados);
 }
 
 // Preenche a metinha de cada linha de quebra (Por Origem / Por Destino / Por Rota) dentro dos
@@ -3817,6 +3828,44 @@ function _volInjetarMetasNasLinhas(itens, diasOperacao, diasComDados) {
     });
 
     el.innerHTML = _volLinhaMetaHTML(metaTotal, { volume: realizado, viagens: filtradas.length, placas, porTipo }, diasOperacao, diasComDados);
+  });
+}
+
+// Preenche as linhas "só de meta" — usadas quando o período (ex.: mês futuro) não tem nenhuma
+// viagem real ainda, mas já existem metas cadastradas por Origem/Destino. Sem isso, o bloco de
+// quebra ficaria vazio e a meta cadastrada nunca apareceria no card expandido.
+function _volInjetarLinhasMetaOnly(itens, diasOperacao, diasComDados) {
+  const filtrosCard = {
+    novo: _volOrigemDiferentePatio,
+    fabrica: _volDestinoFabrica,
+    entrada: _volDestinoPatio4,
+    saida: _volOrigemPatio4
+  };
+  Object.keys(filtrosCard).forEach(cardKey => {
+    ['origem', 'destino', 'rota'].forEach(dim => {
+      const cont = document.getElementById(`vol-linhas-metaonly-${cardKey}-${dim}`);
+      if (!cont) return;
+      const metasFiltradas = itens.filter(filtrosCard[cardKey]);
+
+      const grupos = {};
+      metasFiltradas.forEach(m => {
+        const chave = dim === 'rota'
+          ? `${(m.origem||'').toString().trim().toUpperCase()}|||${(m.destino||'').toString().trim().toUpperCase()}`
+          : ((dim === 'origem' ? m.origem : m.destino) || '').toString().trim().toUpperCase();
+        if (!grupos[chave]) grupos[chave] = { origem: m.origem, destino: m.destino, metaTotal: 0 };
+        grupos[chave].metaTotal += parseFloat(m.meta) || 0;
+      });
+
+      const linhasHTML = Object.values(grupos).map(g => {
+        const rotuloLinha = dim === 'rota' ? `${g.origem} <span style="color:var(--text3);">→</span> ${g.destino}` : (dim === 'origem' ? g.origem : g.destino);
+        return `<div style="padding:6px 0;border-bottom:1px solid var(--border2);">
+          <div style="font-size:15px;color:var(--text2);">${rotuloLinha}</div>
+          ${_volLinhaMetaHTML(g.metaTotal, { volume: 0, viagens: 0, placas: new Set(), porTipo: {} }, diasOperacao, diasComDados)}
+        </div>`;
+      }).join('');
+
+      cont.innerHTML = linhasHTML || '<div style="font-size:13px;color:var(--text3);padding:8px 0;">Nenhuma meta cadastrada para essa combinação ainda.</div>';
+    });
   });
 }
 
@@ -5886,8 +5935,14 @@ window.renderVolume = async function renderVolume() {
     selectDia.value = manterDia;
 
     const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
-    const meses = Array.from(mesesSet).sort().reverse();
     const hoje = new Date();
+    // inclui os próximos 12 meses mesmo sem viagem importada ainda — pra dar pra ver a Meta
+    // cadastrada de um mês futuro (ex.: Setembro) antes de ele começar a ter dados reais
+    for (let i = 1; i <= 12; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      mesesSet.add(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+    }
+    const meses = Array.from(mesesSet).sort().reverse();
     const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
     const mesPadrao = meses.includes(_volMesAtual) ? _volMesAtual : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
     const selectMes = document.getElementById('vol-mes-select');
