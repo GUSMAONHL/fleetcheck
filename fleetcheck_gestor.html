@@ -5340,19 +5340,18 @@ function _gestaoCardRota(grupo) {
 
   return `<div class="table-card" style="padding:18px 20px;">
     <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">${grupo.origem} <span style="color:var(--text3);">→</span> ${grupo.destino}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-      <div>
-        <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:9px;">Programado</div>
-        <div style="font-size:17px;color:var(--text2);margin-bottom:6px;">🚛 ${veiculosProgramados} ${plural(veiculosProgramados,'veículo','veículos')}</div>
-        <div style="font-size:17px;color:var(--text2);margin-bottom:6px;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
-        <div style="font-size:17px;color:var(--text2);">⚖️ ${fmt(pesoProgramado)}t</div>
-      </div>
-      <div>
-        <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:9px;">Em Andamento</div>
-        <div style="font-size:17px;color:${_gestaoCorPct(pctVeiculos)};margin-bottom:6px;">🚛 ${veiculosEmOperacao} ${plural(veiculosEmOperacao,'veículo','veículos')} <strong>${pctVeiculos}%</strong></div>
-        <div style="font-size:17px;color:${_gestaoCorPct(pctViagens)};margin-bottom:6px;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
-        <div style="font-size:17px;color:${_gestaoCorPct(pctPeso)};">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
-      </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:20px;row-gap:9px;align-items:baseline;">
+      <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programado</div>
+      <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Em Andamento</div>
+
+      <div style="font-size:17px;color:var(--text2);white-space:nowrap;">🚛 ${veiculosProgramados} ${plural(veiculosProgramados,'veículo','veículos')}</div>
+      <div style="font-size:17px;color:${_gestaoCorPct(pctVeiculos)};white-space:nowrap;">🚛 ${veiculosEmOperacao} ${plural(veiculosEmOperacao,'veículo','veículos')} <strong>${pctVeiculos}%</strong></div>
+
+      <div style="font-size:17px;color:var(--text2);white-space:nowrap;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
+      <div style="font-size:17px;color:${_gestaoCorPct(pctViagens)};white-space:nowrap;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
+
+      <div style="font-size:17px;color:var(--text2);white-space:nowrap;">⚖️ ${fmt(pesoProgramado)}t</div>
+      <div style="font-size:17px;color:${_gestaoCorPct(pctPeso)};white-space:nowrap;">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
     </div>
   </div>`;
 }
@@ -5364,7 +5363,7 @@ function _gestaoRenderCardsRotas() {
   if (grupos.length === 0) { cont.innerHTML = ''; return; }
 
   cont.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">📍 Rotas Programadas do Dia</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:16px;">
       ${grupos.map(_gestaoCardRota).join('')}
     </div>`;
 }
