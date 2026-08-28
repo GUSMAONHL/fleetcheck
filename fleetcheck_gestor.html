@@ -5119,8 +5119,12 @@ function _gestaoLinhaVeiculo(v) {
   const temRota = !!atrib && atrib.origem && atrib.destino && (Number(atrib.viagens)||0) > 0;
 
   const infoRota = temRota
-    ? `<div style="font-size:13px;color:var(--text2);white-space:nowrap;">${atrib.origem} <span style="color:var(--text3);">→</span> ${atrib.destino}</div>`
-    : `<div style="font-size:13px;color:var(--text3);">Sem programação</div>`;
+    ? `<div style="width:180px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:14px;color:var(--text2);text-align:center;white-space:nowrap;">${atrib.origem} <span style="color:var(--text3);">→</span> ${atrib.destino}</div>
+      </div>`
+    : `<div style="width:180px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:14px;color:var(--text3);">Sem programação</div>
+      </div>`;
 
   let timeline = '';
   let pctAderencia = null;
@@ -5135,7 +5139,7 @@ function _gestaoLinhaVeiculo(v) {
         title="Viagem ${i+1}${feita?' — realizada':''}"
         style="width:38px;height:38px;flex-shrink:0;border-radius:8px;border:1px solid ${feita?'#2ea043':'var(--border2)'};background:${feita?'#2ea043':'var(--bg3)'};color:${feita?'#fff':'var(--text3)'};font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">${feita?'✓':i+1}</button>`
     ).join('');
-    timeline = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
+    timeline = `<div style="flex:1;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       ${celulas}
       <div style="font-size:14px;font-weight:600;color:var(--text2);margin-left:8px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
     </div>`;
@@ -5146,7 +5150,9 @@ function _gestaoLinhaVeiculo(v) {
     corFaixaAderencia = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
     textoAderencia = `${pctAderencia}%`;
   } else {
-    timeline = `<div style="flex:1;font-size:12px;color:var(--text3);">—</div>`;
+    timeline = `<div style="flex:1;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:center;">
+      <div style="font-size:14px;color:var(--text3);">—</div>
+    </div>`;
   }
 
   // Um único mini card contendo FR, Placa, Tipo e Aderência — mesmo padrão do "vcell-id" do
@@ -5168,7 +5174,7 @@ function _gestaoLinhaVeiculo(v) {
 
   return `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border2);">
     ${cardVeiculo}
-    <div style="width:170px;flex-shrink:0;">${infoRota}</div>
+    ${infoRota}
     ${timeline}
     ${_gestaoBotoesStatusHTML(v, atrib, pctAderencia)}
   </div>`;
@@ -5220,7 +5226,7 @@ function _gestaoSubCard(rotulo, num, den, corBarra, volumeTxt, volumePct) {
   return `<div style="flex:1;min-width:110px;">
     <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${num} <span style="font-size:16px;font-weight:700;color:${corBarra||_gestaoCorPct(p)};">(${p}%)</span></div>
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${rotulo}</div>
-    ${volumeTxt ? `<div style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:4px;white-space:nowrap;">${volumeTxt}${volumePct !== null ? ` <span style="font-size:15px;font-weight:700;color:${corBarra||_gestaoCorPct(volumePct)};">(${volumePct}%)</span>` : ''}</div>` : ''}
+    ${volumeTxt ? `<div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;margin-top:4px;white-space:nowrap;">${volumeTxt}${volumePct !== null ? ` <span style="font-size:15px;font-weight:700;color:${corBarra||_gestaoCorPct(volumePct)};">(${volumePct}%)</span>` : ''}</div>` : ''}
   </div>`;
 }
 
@@ -5282,11 +5288,11 @@ async function _gestaoRenderIndicadores() {
       <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid var(--border2);padding-top:10px;margin-bottom:8px;">${totalEmOperacaoGeral} em operação</div>
       <div style="display:flex;justify-content:center;gap:18px;border-top:1px solid var(--border2);padding-top:8px;">
         <div>
-          <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;">${fmt(volumeProgramadoGeral)}t</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;">${fmt(volumeProgramadoGeral)}t</div>
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Programado</div>
         </div>
         <div>
-          <div style="font-size:16px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volumeTransportadoGeral)}t <span style="font-size:15px;color:#2ea043;">(${_gestaoPct(volumeTransportadoGeral, volumeProgramadoGeral)}%)</span></div>
+          <div style="font-size:20px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volumeTransportadoGeral)}t <span style="font-size:18px;color:#2ea043;">(${_gestaoPct(volumeTransportadoGeral, volumeProgramadoGeral)}%)</span></div>
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Realizado</div>
         </div>
       </div>
