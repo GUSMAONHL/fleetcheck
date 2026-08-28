@@ -5030,6 +5030,16 @@ window.iniciarOperacaoGestao = async function iniciarOperacaoGestao(placa) {
   _gestaoRenderGrade();
 };
 
+// Fecha a operação direto, sem pedir justificativa — só é chamada quando o veículo já bateu
+// 100% de aderência (todas as viagens programadas realizadas), então não há nada a justificar.
+window.finalizarOperacaoGestao = async function finalizarOperacaoGestao(placa) {
+  const atrib = _gestaoObterOuCriarAtribuicao(placa);
+  atrib.status = 'finalizado';
+  delete atrib.justificativa;
+  await _gestaoSalvarAtribuicoes();
+  _gestaoRenderGrade();
+};
+
 window.reabrirOperacaoGestao = async function reabrirOperacaoGestao(placa) {
   const atrib = _gestaoAtribuicaoDoVeiculo(placa);
   if (!atrib) return;
@@ -5073,10 +5083,14 @@ window.confirmarJustificativaGestao = async function confirmarJustificativaGesta
   _gestaoRenderGrade();
 };
 
-function _gestaoBotoesStatusHTML(v, atrib) {
+function _gestaoBotoesStatusHTML(v, atrib, pctAderencia) {
   const status = atrib ? atrib.status : null;
+  const atingiu100 = pctAderencia !== null && pctAderencia >= 100;
+  const acaoFim = atingiu100
+    ? `finalizarOperacaoGestao('${v.placa}')`
+    : `abrirJustificativaGestao('${v.placa}','finalizado')`;
   const botaoToggle = status === 'operando'
-    ? `<button onclick="abrirJustificativaGestao('${v.placa}','finalizado')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #d29922;background:rgba(210,153,34,0.12);color:#d29922;cursor:pointer;white-space:nowrap;">⏹ Fim de Operação</button>`
+    ? `<button onclick="${acaoFim}" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #d29922;background:rgba(210,153,34,0.12);color:#d29922;cursor:pointer;white-space:nowrap;">⏹ Fim de Operação</button>`
     : `<button onclick="iniciarOperacaoGestao('${v.placa}')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #388bfd;background:rgba(56,139,253,0.12);color:#388bfd;cursor:pointer;white-space:nowrap;">▶ Início de Operação</button>`;
   const botaoFora = `<button onclick="abrirJustificativaGestao('${v.placa}','fora')" style="padding:5px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #f85149;background:rgba(248,81,73,0.10);color:#f85149;cursor:pointer;white-space:nowrap;">⛔ Fora de Operação</button>`;
 
@@ -5085,8 +5099,11 @@ function _gestaoBotoesStatusHTML(v, atrib) {
     const j = atrib.justificativa || {};
     const cor = status === 'fora' ? '#f85149' : '#d29922';
     const rotulo = status === 'fora' ? '⛔ Fora' : '⏹ Finalizado';
+    const detalheJustif = (j.ofensor || j.tipoOfensor || j.responsavel)
+      ? ` — ${j.ofensor||'—'}${j.tipoOfensor?' · '+j.tipoOfensor:''}${j.responsavel?' · '+j.responsavel:''}`
+      : ' — 100% de aderência, sem pendência';
     badge = `<div style="font-size:10px;color:${cor};margin-top:4px;text-align:right;">
-      ${rotulo} — ${j.ofensor||'—'}${j.tipoOfensor?' · '+j.tipoOfensor:''}${j.responsavel?' · '+j.responsavel:''}
+      ${rotulo}${detalheJustif}
       <button onclick="reabrirOperacaoGestao('${v.placa}')" title="Reabrir" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;margin-left:4px;">↺</button>
     </div>`;
   }
@@ -5106,11 +5123,10 @@ function _gestaoLinhaVeiculo(v) {
     : `<div style="font-size:13px;color:var(--text3);">Sem programação</div>`;
 
   let timeline = '';
-  const MINI_CARD_BASE = 'flex-shrink:0;width:64px;height:48px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;';
-  let badgeAderencia = `<div style="${MINI_CARD_BASE}background:var(--bg3);border:1px solid var(--border2);">
-    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Aderência</div>
-    <div style="font-size:15px;font-weight:700;color:var(--text3);">—</div>
-  </div>`;
+  let pctAderencia = null;
+  let corFaixaAderencia = 'var(--bg4)';
+  let textoAderencia = '—';
+
   if (temRota) {
     const realizacoes = _gestaoRealizacoes(atrib);
     const feitas = realizacoes.filter(Boolean).length;
@@ -5124,30 +5140,37 @@ function _gestaoLinhaVeiculo(v) {
       <div style="font-size:11px;color:var(--text3);margin-left:6px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
     </div>`;
 
-    const pctAderencia = realizacoes.length > 0 ? Math.round((feitas/realizacoes.length)*1000)/10 : 0;
-    const corFundo = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
-    badgeAderencia = `<div style="${MINI_CARD_BASE}background:${corFundo};">
-      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</div>
-      <div style="font-size:16px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;line-height:1.2;">${pctAderencia}%</div>
-    </div>`;
+    // Mesma régua de 3 faixas usada nos prazos de inspeção do painel de Manutenção — verde
+    // (dentro do esperado), amarelo (atenção) e vermelho (crítico) — aplicada aqui pra aderência.
+    pctAderencia = realizacoes.length > 0 ? Math.round((feitas/realizacoes.length)*1000)/10 : 0;
+    corFaixaAderencia = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
+    textoAderencia = `${pctAderencia}%`;
   } else {
     timeline = `<div style="flex:1;font-size:12px;color:var(--text3);">—</div>`;
   }
 
-  return `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border2);">
-    <div style="display:flex;align-items:center;gap:10px;width:220px;flex-shrink:0;">
-      <div>
-        <div style="display:flex;align-items:baseline;gap:6px;">
-          <span style="font-size:24px;font-weight:700;color:var(--text);">${v.fr||'—'}</span>
-          <span style="font-size:12px;font-weight:600;color:var(--text3);">${v.placa}</span>
-        </div>
-        <div style="font-size:10px;color:var(--text3);">${v.tipo2} · ${v.forca}</div>
+  // Um único mini card contendo FR, Placa, Tipo e Aderência — mesmo padrão do "vcell-id" do
+  // painel de Manutenção (bloco de identificação em cima, faixa de status colorida embaixo,
+  // tudo dentro de uma única borda arredondada).
+  const cardVeiculo = `<div style="width:190px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg3);">
+    <div style="padding:7px 12px 5px;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span style="font-size:20px;font-weight:700;color:var(--text);line-height:1;">${v.fr||'—'}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text3);">${v.placa}</span>
       </div>
-      ${badgeAderencia}
+      <div style="font-size:10px;color:var(--text3);margin-top:1px;">${v.tipo2} · ${v.forca}</div>
     </div>
+    <div style="border-top:1px solid var(--border2);padding:4px 12px;background:${corFaixaAderencia};display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</span>
+      <span style="font-size:14px;font-weight:700;color:#fff;">${textoAderencia}</span>
+    </div>
+  </div>`;
+
+  return `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border2);">
+    ${cardVeiculo}
     <div style="width:170px;flex-shrink:0;">${infoRota}</div>
     ${timeline}
-    ${_gestaoBotoesStatusHTML(v, atrib)}
+    ${_gestaoBotoesStatusHTML(v, atrib, pctAderencia)}
   </div>`;
 }
 
