@@ -5106,7 +5106,11 @@ function _gestaoLinhaVeiculo(v) {
     : `<div style="font-size:13px;color:var(--text3);">Sem programação</div>`;
 
   let timeline = '';
-  let aderenciaHTML = `<div style="width:56px;flex-shrink:0;text-align:center;font-size:13px;color:var(--text3);">—</div>`;
+  const MINI_CARD_BASE = 'flex-shrink:0;width:64px;height:48px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;';
+  let badgeAderencia = `<div style="${MINI_CARD_BASE}background:var(--bg3);border:1px solid var(--border2);">
+    <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Aderência</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text3);">—</div>
+  </div>`;
   if (temRota) {
     const realizacoes = _gestaoRealizacoes(atrib);
     const feitas = realizacoes.filter(Boolean).length;
@@ -5121,24 +5125,26 @@ function _gestaoLinhaVeiculo(v) {
     </div>`;
 
     const pctAderencia = realizacoes.length > 0 ? Math.round((feitas/realizacoes.length)*1000)/10 : 0;
-    const corAderencia = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
-    aderenciaHTML = `<div style="width:56px;flex-shrink:0;text-align:center;">
-      <div style="font-size:16px;font-weight:700;color:${corAderencia};font-family:'DM Mono',monospace;">${pctAderencia}%</div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;">Aderência</div>
+    const corFundo = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
+    badgeAderencia = `<div style="${MINI_CARD_BASE}background:${corFundo};">
+      <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;line-height:1.2;">${pctAderencia}%</div>
     </div>`;
   } else {
     timeline = `<div style="flex:1;font-size:12px;color:var(--text3);">—</div>`;
   }
 
   return `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border2);">
-    <div style="width:150px;flex-shrink:0;">
-      <div style="display:flex;align-items:baseline;gap:6px;">
-        <span style="font-size:24px;font-weight:700;color:var(--text);">${v.fr||'—'}</span>
-        <span style="font-size:12px;font-weight:600;color:var(--text3);">${v.placa}</span>
+    <div style="display:flex;align-items:center;gap:10px;width:220px;flex-shrink:0;">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="font-size:24px;font-weight:700;color:var(--text);">${v.fr||'—'}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text3);">${v.placa}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text3);">${v.tipo2} · ${v.forca}</div>
       </div>
-      <div style="font-size:10px;color:var(--text3);">${v.tipo2} · ${v.forca}</div>
+      ${badgeAderencia}
     </div>
-    ${aderenciaHTML}
     <div style="width:170px;flex-shrink:0;">${infoRota}</div>
     ${timeline}
     ${_gestaoBotoesStatusHTML(v, atrib)}
