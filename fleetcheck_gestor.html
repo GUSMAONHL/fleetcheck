@@ -5184,7 +5184,9 @@ function _gestaoContarCategoria(filtroTipo) {
 
   const total = rosterCategoria.length;
   const programados = atribsCategoria.filter(a => a.origem && a.destino && (Number(a.viagens)||0) > 0).length;
-  const emOperacao = atribsCategoria.filter(a => a.status === 'operando').length;
+  // "Em Operação" é cumulativo: quem já entrou em operação hoje, esteja operando agora ou já
+  // tenha finalizado — encerrar não deve fazer o veículo "desaparecer" da contagem do dia.
+  const emOperacao = atribsCategoria.filter(a => a.status === 'operando' || a.status === 'finalizado').length;
   const foraOperacao = atribsCategoria.filter(a => a.status === 'fora').length;
 
   return { total, programados, emOperacao, foraOperacao };
@@ -5289,7 +5291,9 @@ function _gestaoCardRota(grupo) {
   const viagensProgramadas = grupo.atribs.reduce((s,a) => s + (Number(a.viagens)||0), 0);
   const pesoProgramado = grupo.atribs.reduce((s,a) => s + (Number(a.peso) || (Number(a.viagens)||0) * (Number(a.pesoMedio)||0)), 0);
 
-  const veiculosEmOperacao = grupo.atribs.filter(a => a.status === 'operando').length;
+  // Mesmo raciocínio do card geral: conta quem esteve em operação nessa rota hoje, operando
+  // agora ou já finalizado — não regride quando o veículo encerra a viagem.
+  const veiculosEmOperacao = grupo.atribs.filter(a => a.status === 'operando' || a.status === 'finalizado').length;
   let viagensRealizadas = 0, pesoEstimado = 0;
   grupo.atribs.forEach(a => {
     const realizacoes = _gestaoRealizacoes(a);
