@@ -5133,11 +5133,11 @@ function _gestaoLinhaVeiculo(v) {
     const celulas = realizacoes.map((feita, i) => `<button
         onclick="toggleRealizacaoViagem('${v.placa}', ${i})"
         title="Viagem ${i+1}${feita?' — realizada':''}"
-        style="width:26px;height:26px;flex-shrink:0;border-radius:6px;border:1px solid ${feita?'#2ea043':'var(--border2)'};background:${feita?'#2ea043':'var(--bg3)'};color:${feita?'#fff':'var(--text3)'};font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">${feita?'✓':i+1}</button>`
+        style="width:38px;height:38px;flex-shrink:0;border-radius:8px;border:1px solid ${feita?'#2ea043':'var(--border2)'};background:${feita?'#2ea043':'var(--bg3)'};color:${feita?'#fff':'var(--text3)'};font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">${feita?'✓':i+1}</button>`
     ).join('');
-    timeline = `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;">
+    timeline = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
       ${celulas}
-      <div style="font-size:11px;color:var(--text3);margin-left:6px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text2);margin-left:8px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
     </div>`;
 
     // Mesma régua de 3 faixas usada nos prazos de inspeção do painel de Manutenção — verde
@@ -5181,15 +5181,30 @@ function _gestaoContarCategoria(filtroTipo) {
   const rosterCategoria = (_gestaoRoster || []).filter(v => filtroTipo(v.tipo2));
   const placasCategoria = new Set(rosterCategoria.map(v => v.placa));
   const atribsCategoria = _gestaoAtribuicoes.filter(a => placasCategoria.has(a.placa));
+  const programadosArr = atribsCategoria.filter(a => a.origem && a.destino && (Number(a.viagens)||0) > 0);
 
   const total = rosterCategoria.length;
-  const programados = atribsCategoria.filter(a => a.origem && a.destino && (Number(a.viagens)||0) > 0).length;
+  const programados = programadosArr.length;
   // "Em Operação" é cumulativo: quem já entrou em operação hoje, esteja operando agora ou já
   // tenha finalizado — encerrar não deve fazer o veículo "desaparecer" da contagem do dia.
-  const emOperacao = atribsCategoria.filter(a => a.status === 'operando' || a.status === 'finalizado').length;
-  const foraOperacao = atribsCategoria.filter(a => a.status === 'fora').length;
+  const emOperacaoArr = atribsCategoria.filter(a => a.status === 'operando' || a.status === 'finalizado');
+  const emOperacao = emOperacaoArr.length;
+  const foraOperacaoArr = atribsCategoria.filter(a => a.status === 'fora');
+  const foraOperacao = foraOperacaoArr.length;
 
-  return { total, programados, emOperacao, foraOperacao };
+  const pesoDoAtrib = (a) => Number(a.peso) || (Number(a.viagens)||0) * (Number(a.pesoMedio)||0);
+  const volumeProgramado = programadosArr.reduce((s,a) => s + pesoDoAtrib(a), 0);
+  // volume já transportado — soma só as viagens efetivamente marcadas como feitas, não o
+  // programado inteiro de quem está em operação
+  const volumeTransportado = emOperacaoArr.reduce((s,a) => {
+    const feitas = _gestaoRealizacoes(a).filter(Boolean).length;
+    return s + feitas * (Number(a.pesoMedio)||0);
+  }, 0);
+  // volume que deixamos de fazer — o programado inteiro de quem foi marcado fora de operação
+  // (nenhuma viagem dessas vai mais acontecer hoje)
+  const volumePerdido = foraOperacaoArr.reduce((s,a) => s + pesoDoAtrib(a), 0);
+
+  return { total, programados, emOperacao, foraOperacao, volumeProgramado, volumeTransportado, volumePerdido };
 }
 
 function _gestaoPct(num, den) {
@@ -5200,22 +5215,24 @@ function _gestaoCorPct(p) {
   return p >= 96 ? '#2ea043' : p >= 51 ? '#d29922' : '#f85149';
 }
 
-function _gestaoSubCard(rotulo, num, den, corBarra) {
+function _gestaoSubCard(rotulo, num, den, corBarra, volumeTxt) {
   const p = _gestaoPct(num, den);
   return `<div style="flex:1;min-width:110px;">
     <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;line-height:1.1;">${num} <span style="font-size:13px;color:${corBarra||_gestaoCorPct(p)};">(${p}%)</span></div>
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${rotulo}</div>
+    ${volumeTxt ? `<div style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:4px;">${volumeTxt}</div>` : ''}
   </div>`;
 }
 
 function _gestaoCardCategoria(titulo, icone, cor, dados) {
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
   return `<div class="table-card" style="padding:16px 18px;text-align:center;">
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${icone} ${titulo}</div>
     <div style="font-size:32px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;margin-bottom:10px;">${dados.total}</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;border-top:1px solid var(--border2);padding-top:10px;">
-      ${_gestaoSubCard('Programados', dados.programados, dados.total)}
-      ${_gestaoSubCard('Em Operação', dados.emOperacao, dados.programados)}
-      ${_gestaoSubCard('Fora de Operação', dados.foraOperacao, dados.total, '#f85149')}
+      ${_gestaoSubCard('Programados', dados.programados, dados.total, null, `${fmt(dados.volumeProgramado)}t`)}
+      ${_gestaoSubCard('Em Operação', dados.emOperacao, dados.programados, null, `${fmt(dados.volumeTransportado)}t`)}
+      ${_gestaoSubCard('Fora de Operação', dados.foraOperacao, dados.total, '#f85149', `${fmt(dados.volumePerdido)}t`)}
     </div>
   </div>`;
 }
@@ -5248,16 +5265,29 @@ async function _gestaoRenderIndicadores() {
   const roster = _gestaoRoster || [];
   if (roster.length === 0) { cont.innerHTML = ''; return; }
 
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
   const dadosCaminhoes = _gestaoContarCategoria(_progEhCaminhao);
   const dadosCavalos = _gestaoContarCategoria(_progEhCavalo);
   const totalEmOperacaoGeral = dadosCaminhoes.emOperacao + dadosCavalos.emOperacao;
   const totalUltimoDia = await _gestaoObterTotalUltimoDia();
+  const volumeProgramadoGeral = dadosCaminhoes.volumeProgramado + dadosCavalos.volumeProgramado;
+  const volumeTransportadoGeral = dadosCaminhoes.volumeTransportado + dadosCavalos.volumeTransportado;
 
   cont.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;">
     <div class="table-card" style="padding:16px 18px;text-align:center;">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">🚛 Veículos</div>
       <div style="font-size:32px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;margin-bottom:10px;">${totalUltimoDia}</div>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid var(--border2);padding-top:10px;">${totalEmOperacaoGeral} em operação</div>
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid var(--border2);padding-top:10px;margin-bottom:8px;">${totalEmOperacaoGeral} em operação</div>
+      <div style="display:flex;justify-content:center;gap:18px;border-top:1px solid var(--border2);padding-top:8px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;">${fmt(volumeProgramadoGeral)}t</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Programado</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;">${fmt(volumeTransportadoGeral)}t</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Realizado</div>
+        </div>
+      </div>
     </div>
     ${_gestaoCardCategoria('Total de Caminhões na Operação', '🚚', '#388bfd', dadosCaminhoes)}
     ${_gestaoCardCategoria('Total de Cavalos na Operação', ICONE_CAVALO, '#388bfd', dadosCavalos)}
@@ -5310,18 +5340,18 @@ function _gestaoCardRota(grupo) {
 
   return `<div class="table-card" style="padding:18px 20px;">
     <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">${grupo.origem} <span style="color:var(--text3);">→</span> ${grupo.destino}</div>
-    <div style="display:flex;gap:20px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:150px;">
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Programado</div>
-        <div style="font-size:15px;color:var(--text2);margin-bottom:4px;">🚛 ${veiculosProgramados} ${plural(veiculosProgramados,'veículo','veículos')}</div>
-        <div style="font-size:15px;color:var(--text2);margin-bottom:4px;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
-        <div style="font-size:15px;color:var(--text2);">⚖️ ${fmt(pesoProgramado)}t</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:9px;">Programado</div>
+        <div style="font-size:17px;color:var(--text2);margin-bottom:6px;">🚛 ${veiculosProgramados} ${plural(veiculosProgramados,'veículo','veículos')}</div>
+        <div style="font-size:17px;color:var(--text2);margin-bottom:6px;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
+        <div style="font-size:17px;color:var(--text2);">⚖️ ${fmt(pesoProgramado)}t</div>
       </div>
-      <div style="flex:1;min-width:150px;">
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Em Andamento</div>
-        <div style="font-size:15px;color:${_gestaoCorPct(pctVeiculos)};margin-bottom:4px;">🚛 ${veiculosEmOperacao} ${plural(veiculosEmOperacao,'veículo','veículos')} <strong>${pctVeiculos}%</strong></div>
-        <div style="font-size:15px;color:${_gestaoCorPct(pctViagens)};margin-bottom:4px;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
-        <div style="font-size:15px;color:${_gestaoCorPct(pctPeso)};">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
+      <div>
+        <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:9px;">Em Andamento</div>
+        <div style="font-size:17px;color:${_gestaoCorPct(pctVeiculos)};margin-bottom:6px;">🚛 ${veiculosEmOperacao} ${plural(veiculosEmOperacao,'veículo','veículos')} <strong>${pctVeiculos}%</strong></div>
+        <div style="font-size:17px;color:${_gestaoCorPct(pctViagens)};margin-bottom:6px;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
+        <div style="font-size:17px;color:${_gestaoCorPct(pctPeso)};">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
       </div>
     </div>
   </div>`;
