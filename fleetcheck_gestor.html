@@ -4961,17 +4961,30 @@ window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
   _gestaoCarregarDia(dataISO);
 };
 
+let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (base Volume Poços) nesse dia
+
 async function _gestaoCarregarDia(dataISO) {
   _gestaoDataAtual = dataISO;
   const cont = document.getElementById('gestao-corpo');
   if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
   cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando...</div>';
   try {
-    const [snap] = await Promise.all([
+    const [snap, snapVolume] = await Promise.all([
       getDoc(doc(db, 'programacao_dias', dataISO)),
+      getDoc(doc(db, 'volume_dias', dataISO)),
       _gestaoCarregarRoster(dataISO)
     ]);
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+
+    // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
+    // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão.
+    _gestaoViagensReaisPorPlaca = {};
+    const viagensDoDia = (snapVolume.exists() && Array.isArray(snapVolume.data().viagens)) ? snapVolume.data().viagens : [];
+    viagensDoDia.forEach(v => {
+      if (!v.placa) return;
+      _gestaoViagensReaisPorPlaca[v.placa] = (_gestaoViagensReaisPorPlaca[v.placa] || 0) + 1;
+    });
+
     _gestaoRenderGrade();
   } catch (err) {
     console.error('Erro ao carregar Gestão do Dia:', err);
@@ -5115,6 +5128,17 @@ function _gestaoBotoesStatusHTML(v, atrib, pctAderencia) {
   </div>`;
 }
 
+// Compara as viagens marcadas manualmente com o que a base Volume Poços (dado real, do sistema)
+// registrou pra aquele veículo naquele dia — mostra ✓ se bater, ⚠ com os dois números se não.
+function _gestaoCheckViagensHTML(placa, feitasManual) {
+  const viagensReais = _gestaoViagensReaisPorPlaca[placa] || 0;
+  if (viagensReais === 0 && feitasManual === 0) return '';
+  const bate = viagensReais === feitasManual;
+  const cor = bate ? '#2ea043' : '#d29922';
+  const texto = bate ? `✓ Confere (${viagensReais} real)` : `⚠ Real: ${viagensReais} · Marcado: ${feitasManual}`;
+  return `<div style="font-size:11px;font-weight:600;color:${cor};white-space:nowrap;margin-left:6px;" title="Comparação com a base Volume Poços">${texto}</div>`;
+}
+
 function _gestaoLinhaVeiculo(v) {
   const atrib = _gestaoAtribuicaoDoVeiculo(v.placa);
   const temRota = !!atrib && atrib.origem && atrib.destino && (Number(atrib.viagens)||0) > 0;
@@ -5143,6 +5167,7 @@ function _gestaoLinhaVeiculo(v) {
     timeline = `<div style="flex:1;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       ${celulas}
       <div style="font-size:14px;font-weight:600;color:var(--text2);margin-left:8px;white-space:nowrap;">${feitas}/${realizacoes.length}</div>
+      ${_gestaoCheckViagensHTML(v.placa, feitas)}
     </div>`;
 
     // Mesma régua de 3 faixas usada nos prazos de inspeção do painel de Manutenção — verde
