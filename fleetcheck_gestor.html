@@ -3115,6 +3115,33 @@ window.importarVolume = async function importarVolume(input) {
       // não interrompe o import por causa disso — só loga o erro
     }
 
+    // Remove dias "órfãos" — dias que existiam numa importação anterior (inclusive testes
+    // manuais, como um dia simulado que depois foi tirado do Excel) mas não aparecem mais nesta
+    // importação, DENTRO do período coberto por ela. Não mexe em dias fora desse intervalo, pra
+    // não apagar um período diferente importado em outra ocasião.
+    async function _limparDiasOrfaos(nomeColecaoDias, nomeMetaColecao, diasNovosISO) {
+      if (diasNovosISO.length === 0) return;
+      try {
+        const metaSnap = await getDoc(doc(db, nomeMetaColecao, 'meta'));
+        const diasAntigos = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+        const diasAntigosISO = diasAntigos.map(d => d.split('/').reverse().join('-'));
+        const diasNovosSet = new Set(diasNovosISO);
+        const minNovo = diasNovosISO[0], maxNovo = diasNovosISO[diasNovosISO.length - 1];
+        const orfaos = diasAntigosISO.filter(d => d >= minNovo && d <= maxNovo && !diasNovosSet.has(d));
+        if (orfaos.length > 0) {
+          const batchDias = writeBatch(db);
+          orfaos.forEach(d => batchDias.delete(doc(db, nomeColecaoDias, d)));
+          await batchDias.commit();
+        }
+      } catch (err) {
+        console.error(`Erro ao limpar dias órfãos de ${nomeColecaoDias}:`, err);
+      }
+    }
+    progressText.textContent = 'Limpando dias desatualizados...';
+    progressFill.style.width = '63%';
+    await _limparDiasOrfaos('base_volume_dias', 'base_volume', diasOrdenadosAder);
+    await _limparDiasOrfaos('volume_dias', 'volume', diasOrdenadosVol);
+
     // ════════════════════════════════════════════════════════
     // GRAVAÇÃO — tudo junto, em lotes seguros
     // ════════════════════════════════════════════════════════
