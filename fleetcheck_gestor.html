@@ -4675,7 +4675,10 @@ function _progViagensProgramadasPara(origem, destino) {
     .reduce((s,a) => s + (Number(a.viagens)||0), 0);
 }
 
+let _progCarregarToken = 0;
+
 async function _carregarProgDia(dataISO) {
+  const meuToken = ++_progCarregarToken;
   _progDataAtual = dataISO;
   const cont = document.getElementById('prog-corpo');
   if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
@@ -4685,17 +4688,24 @@ async function _carregarProgDia(dataISO) {
       getDoc(doc(db, 'programacao_dias', dataISO)),
       _progCalcularRealizadoDoDia(dataISO)
     ]);
+    // Se o usuário já trocou de dia de novo enquanto essa busca estava em andamento, uma
+    // chamada mais nova já está rolando (ou já terminou) — descarta esse resultado desatualizado
+    // pra não sobrescrever a tela com dado de um dia que não é mais o selecionado.
+    if (meuToken !== _progCarregarToken) return;
     _progItens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
     _progAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
     _progJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
     _progRealizadoDia = realizado;
     _renderProgCorpo(); // pinta rápido com o que já tem
     await _progCarregarRoster(); // recarrega se o dia mudou (frota pode ser diferente entre dias)
+    if (meuToken !== _progCarregarToken) return;
     _renderProgCorpo(); // repinta pra corrigir os totais que dependem da frota (Total/Caminhões/Cavalos)
     _progRenderFrotaTabela();
   } catch (err) {
     console.error('Erro ao carregar programação do dia:', err);
-    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar a programação desse dia.</div>';
+    if (meuToken === _progCarregarToken) {
+      cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar a programação desse dia.</div>';
+    }
   }
 }
 
@@ -4962,8 +4972,10 @@ window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
 };
 
 let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (base Volume Poços) nesse dia
+let _gestaoCarregarToken = 0;
 
 async function _gestaoCarregarDia(dataISO) {
+  const meuToken = ++_gestaoCarregarToken;
   _gestaoDataAtual = dataISO;
   const cont = document.getElementById('gestao-corpo');
   if (!dataISO) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</div>'; return; }
@@ -4974,6 +4986,9 @@ async function _gestaoCarregarDia(dataISO) {
       getDoc(doc(db, 'volume_dias', dataISO)),
       _gestaoCarregarRoster(dataISO)
     ]);
+    // Mesma proteção contra corrida: se o dia mudou de novo enquanto essa busca ainda estava em
+    // andamento, descarta esse resultado desatualizado.
+    if (meuToken !== _gestaoCarregarToken) return;
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
 
     // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
@@ -4988,7 +5003,9 @@ async function _gestaoCarregarDia(dataISO) {
     _gestaoRenderGrade();
   } catch (err) {
     console.error('Erro ao carregar Gestão do Dia:', err);
-    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados desse dia.</div>';
+    if (meuToken === _gestaoCarregarToken) {
+      cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados desse dia.</div>';
+    }
   }
 }
 
