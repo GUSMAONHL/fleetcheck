@@ -3713,9 +3713,10 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     const projecao = (totalReal / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/totalMeta)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="text-align:right;margin-top:6px;">
-      <div style="font-size:23px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(projecao)}t</div>
-      <div style="font-size:12px;color:var(--text3);">📈 Projeção (${diasOperacao}d) · <strong style="color:${corProj};">${pctProj}%</strong></div>
+    projecaoHtml = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);">
+      <div style="font-size:16px;font-weight:600;color:var(--text2);text-align:left;">📈 Projeção (${diasOperacao}d)</div>
+      <div style="font-size:20px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;text-align:center;">${fmt(projecao)}t</div>
+      <div style="font-size:19px;font-weight:700;color:${corProj};text-align:right;">${pctProj}%</div>
     </div>`;
   }
 
@@ -3727,9 +3728,9 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
       </div>
       <div style="text-align:right;">
         <div style="font-size:23px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</div>
-        ${projecaoHtml}
       </div>
     </div>
+    ${projecaoHtml}
   </div>`;
 }
 
