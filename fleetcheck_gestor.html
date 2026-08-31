@@ -467,6 +467,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <div class="filtros-painel" id="filtros-programacao">
       <button class="filtros-acao-btn" onclick="abrirFormProgItem()" title="Cadastrar Meta do Dia" style="color:#388bfd;">📅</button>
+      <button class="filtros-acao-btn" onclick="excluirVolumeRealDoDia()" title="Excluir dado real (Volume Poços) desse dia — use pra limpar teste/dado incorreto que ficou preso" style="color:#f85149;">🗑</button>
     </div>
     <div class="filtros-painel" id="filtros-gestao"></div>
   </div>
@@ -4921,6 +4922,26 @@ function _renderProgCorpo() {
 
 window._onProgDataChange = function _onProgDataChange(dataISO) {
   _carregarProgDia(dataISO);
+};
+
+// Apaga direto o dado real (Volume Poços) do dia selecionado — útil pra limpar teste/dado
+// incorreto que ficou preso porque caiu fora do intervalo coberto pela limpeza automática do
+// import (ex.: dia simulado no futuro, além do que a base real ainda cobre).
+window.excluirVolumeRealDoDia = async function excluirVolumeRealDoDia() {
+  if (!_progDataAtual) { showToast('✖ Selecione um dia primeiro.'); return; }
+  const confirmar = window.confirm(`Isso vai apagar TODO o dado real de Volume Poços gravado pra ${_progChaveParaLabel(_progDataAtual)}.\n\nUse isso só se tiver certeza de que é um dado de teste ou incorreto — a ação não pode ser desfeita.\n\nConfirmar exclusão?`);
+  if (!confirmar) return;
+  try {
+    const ref = doc(db, 'volume_dias', _progDataAtual);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) { showToast('Nenhum dado real encontrado pra esse dia — nada pra apagar.'); return; }
+    await deleteDoc(ref);
+    showToast('✔ Dado real desse dia apagado.');
+    await _carregarProgDia(_progDataAtual);
+  } catch (err) {
+    console.error('Erro ao excluir volume real do dia:', err);
+    showToast('✖ Erro ao excluir: ' + err.message);
+  }
 };
 
 window.renderProgramacao = async function renderProgramacao() {
