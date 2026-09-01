@@ -2539,6 +2539,91 @@ function _mesParaLabel(mesKey) {
   return `${MESES_LBL_PT[parseInt(mes,10)-1]} ${ano}`;
 }
 
+// A partir dessa data (inclusive), a tela Aderência para de usar a planilha ADERENCIA importada
+// e passa a se alimentar da Programação/Gestão do Dia (viagens e status marcados pelo gestor) +
+// da planilha Volume (peso real, quando já importada pra aquele dia). Antes dessa data, tudo
+// continua vindo da ADERENCIA como sempre.
+const GESTAO_ADERENCIA_CUTOFF = '2026-09-01';
+
+// Constrói linhas no mesmo formato que a tela de Aderência sempre esperou (placa, fr, forca,
+// tipo2, tipo, volume, viagens, percTon, aderencia, ofensor, tipoOfensor, responsavel) — só que
+// sintetizadas a partir da Programação/Gestão do Dia em vez de vir de um import de planilha.
+async function _gestaoConstruirLinhasAderencia(diaISO) {
+  const [snapProg, snapVolume, roster] = await Promise.all([
+    getDoc(doc(db, 'programacao_dias', diaISO)),
+    getDoc(doc(db, 'volume_dias', diaISO)),
+    _construirRosterVeiculos(diaISO)
+  ]);
+
+  const atribuicoes = (snapProg.exists() && Array.isArray(snapProg.data().atribuicoes)) ? snapProg.data().atribuicoes : [];
+  const justificativasNaoProgramados = (snapProg.exists() && snapProg.data().justificativas && typeof snapProg.data().justificativas === 'object') ? snapProg.data().justificativas : {};
+  const atribPorPlaca = {};
+  atribuicoes.forEach(a => { atribPorPlaca[a.placa] = a; });
+
+  // volume real por placa, só existe se a planilha Volume já tiver sido importada pra esse dia
+  const temVolumeReal = snapVolume.exists();
+  const volumeRealPorPlaca = {};
+  if (temVolumeReal) {
+    (snapVolume.data().viagens || []).forEach(v => {
+      if (!v.placa) return;
+      volumeRealPorPlaca[v.placa] = (volumeRealPorPlaca[v.placa] || 0) + (Number(v.peso)||0);
+    });
+  }
+
+  return roster.map(v => {
+    const atrib = atribPorPlaca[v.placa];
+    const viagensProgramadas = atrib ? (Number(atrib.viagens)||0) : 0;
+    const realizacoes = atrib ? _gestaoRealizacoes(atrib) : [];
+    const viagensRealizadas = realizacoes.filter(Boolean).length;
+
+    // Volume: usa o dado real da planilha Volume se ela já tiver sido importada pra esse dia;
+    // senão, estima como viagens realizadas × peso médio daquele veículo específico.
+    const volume = temVolumeReal
+      ? (volumeRealPorPlaca[v.placa] || 0)
+      : viagensRealizadas * (v.pesoMedio || 0);
+
+    const aderencia = viagensProgramadas > 0
+      ? Math.round((viagensRealizadas / viagensProgramadas) * 100)
+      : (viagensRealizadas > 0 ? 100 : 0);
+    // toneladas que faltaram pra bater o programado, estimadas pelo peso médio do veículo
+    const percTon = Math.max(0, viagensProgramadas - viagensRealizadas) * (v.pesoMedio || 0);
+
+    // Ofensor/Tipo Ofensor/Responsável vêm da justificativa preenchida no Fim/Fora de Operação
+    // (quando o veículo trabalhou mas não bateu 100%), ou do motivo de não ter sido programado.
+    let ofensor = '', tipoOfensor = '', responsavel = '';
+    if (atrib && atrib.justificativa) {
+      ofensor = atrib.justificativa.ofensor || '';
+      tipoOfensor = atrib.justificativa.tipoOfensor || '';
+      responsavel = atrib.justificativa.responsavel || '';
+    } else if (!atrib || viagensProgramadas === 0) {
+      const j = justificativasNaoProgramados[v.placa];
+      if (j) { ofensor = j.motivo || ''; tipoOfensor = j.tipoOfensor || ''; responsavel = j.responsavel || ''; }
+    }
+
+    return {
+      placa: v.placa, fr: v.fr, forca: v.forca, tipo2: v.tipo2,
+      tipo: _progEhCavalo(v.tipo2) ? 'CAVALO' : 'CAMINHAO',
+      volume: Math.round(volume * 100) / 100,
+      viagens: viagensRealizadas,
+      percTon: Math.round(percTon * 100) / 100,
+      aderencia,
+      ofensor, tipoOfensor, responsavel
+    };
+  });
+}
+
+// Busca as linhas de um dia pra tela de Aderência — antes do corte, usa a ADERENCIA importada
+// (base_volume_dias); a partir do corte, sintetiza da Programação/Gestão do Dia + Volume.
+async function _obterLinhasDoDia(diaStr) {
+  const diaISO = _diaParaChave(diaStr);
+  if (diaISO >= GESTAO_ADERENCIA_CUTOFF) {
+    return await _gestaoConstruirLinhasAderencia(diaISO);
+  }
+  const snap = await getDoc(doc(db, 'base_volume_dias', diaISO));
+  const veiculosObj = snap.exists() ? (snap.data().veiculos || {}) : {};
+  return Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
+}
+
 async function _carregarDia(diaStr) {
   _prodDiaAtual = diaStr;
   const cont = document.getElementById('prod-cards-trabalho');
@@ -2549,13 +2634,7 @@ async function _carregarDia(diaStr) {
   }
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando...</div>';
   try {
-    const snap = await getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaStr)));
-    if (!snap.exists()) {
-      _renderProdResumoEBlocos([]);
-      return;
-    }
-    const veiculosObj = snap.data().veiculos || {};
-    const linhas = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
+    const linhas = await _obterLinhasDoDia(diaStr);
     _renderProdResumoEBlocos(linhas);
   } catch (err) {
     console.error('Erro ao carregar dia:', err);
@@ -2596,6 +2675,21 @@ function _agregarRegistrosDiarios(diasReg) {
   }));
 }
 
+// Pros meses a partir do corte, não tem lista de dias vinda de importação — gera os dias do mês
+// de 1 até hoje (se for o mês corrente) ou até o fim do mês (se já passou). Mês ainda no futuro
+// retorna lista vazia (nada aconteceu ainda).
+function _diasDoMesParaExibicao(mesKey) {
+  const [ano, mes] = mesKey.split('-').map(Number);
+  const hoje = new Date();
+  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  if (mesKey > mesAtualKey) return [];
+  const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+  const diaFinal = mesKey === mesAtualKey ? hoje.getDate() : ultimoDiaDoMes;
+  const dias = [];
+  for (let d = 1; d <= diaFinal; d++) dias.push(`${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`);
+  return dias;
+}
+
 async function _carregarMes(mesKey) {
   _prodMesAtual = mesKey;
   const cont = document.getElementById('prod-cards-trabalho');
@@ -2606,25 +2700,21 @@ async function _carregarMes(mesKey) {
   }
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando consolidado do mês...</div>';
   try {
-    // dias do mês selecionado, no formato de exibição 'DD/MM/YYYY'
+    // dias do mês selecionado, no formato de exibição 'DD/MM/YYYY' — antes do corte, vem da
+    // lista de dias importados da ADERENCIA; a partir do corte, gera os dias do calendário
+    // (já que não tem mais import pra saber quais dias "existem").
     const [ano, mes] = mesKey.split('-');
-    const diasDoMes = (_prodMeta.dias || []).filter(d => {
-      const p = d.split('/'); // [DD, MM, YYYY]
-      return p[1] === mes && p[2] === ano;
-    });
+    const diasDoMes = mesKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)
+      ? _diasDoMesParaExibicao(mesKey)
+      : (_prodMeta.dias || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
 
     if (diasDoMes.length === 0) { _prodDiasRegistrosPeriodo = []; _renderProdResumoEBlocos([]); return; }
 
-    // busca todos os documentos de dia do mês em paralelo
-    const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'base_volume_dias', _diaParaChave(d)))));
+    // busca as linhas de cada dia do mês em paralelo (fonte certa por dia, automaticamente)
+    const linhasPorDia = await Promise.all(diasDoMes.map(d => _obterLinhasDoDia(d)));
 
     // guarda os registros brutos por dia (usados para a média diária do DF e o gráfico)
-    _prodDiasRegistrosPeriodo = diasDoMes.map((d, i) => {
-      const snap = snaps[i];
-      const veiculosObj = snap.exists() ? (snap.data().veiculos || {}) : {};
-      const linhasDoDia = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
-      return { dia: d, linhas: linhasDoDia };
-    });
+    _prodDiasRegistrosPeriodo = diasDoMes.map((d, i) => ({ dia: d, linhas: linhasPorDia[i] }));
 
     const linhas = _agregarRegistrosDiarios(_prodDiasRegistrosPeriodo);
     _renderProdResumoEBlocos(linhas);
@@ -2644,20 +2734,30 @@ async function _carregarAno(anoKey) {
   }
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando consolidado do ano...</div>';
   try {
-    // dias do ano selecionado, no formato de exibição 'DD/MM/YYYY'
-    const diasDoAno = (_prodMeta.dias || []).filter(d => d.split('/')[2] === anoKey);
+    // dias do ano vindos da ADERENCIA importada, só os anteriores ao corte
+    const diasAntesCorte = (_prodMeta.dias || []).filter(d => d.split('/')[2] === anoKey && _diaParaChave(d) < GESTAO_ADERENCIA_CUTOFF);
 
+    // dias a partir do corte (gerados, sem depender de import) — um ano pode ter uma parte de
+    // cada lado do corte (ex.: 2026 tem Jan-Ago pela ADERENCIA e Set-Dez pela Gestão do Dia)
+    const anoNum = parseInt(anoKey, 10);
+    const [anoCorte, mesCorte] = GESTAO_ADERENCIA_CUTOFF.split('-').map(Number);
+    let diasDepoisCorte = [];
+    if (anoNum >= anoCorte) {
+      const mesInicial = anoNum === anoCorte ? mesCorte : 1;
+      const hoje = new Date();
+      for (let mes = mesInicial; mes <= 12; mes++) {
+        if (anoNum === hoje.getFullYear() && mes > hoje.getMonth()+1) break; // mês ainda no futuro
+        diasDepoisCorte = diasDepoisCorte.concat(_diasDoMesParaExibicao(`${anoNum}-${String(mes).padStart(2,'0')}`));
+      }
+    }
+
+    const diasDoAno = diasAntesCorte.concat(diasDepoisCorte);
     if (diasDoAno.length === 0) { _prodDiasRegistrosPeriodo = []; _renderProdResumoEBlocos([]); return; }
 
-    // busca todos os documentos de dia do ano em paralelo
-    const snaps = await Promise.all(diasDoAno.map(d => getDoc(doc(db, 'base_volume_dias', _diaParaChave(d)))));
+    // busca as linhas de cada dia do ano em paralelo (fonte certa por dia, automaticamente)
+    const linhasPorDia = await Promise.all(diasDoAno.map(d => _obterLinhasDoDia(d)));
 
-    _prodDiasRegistrosPeriodo = diasDoAno.map((d, i) => {
-      const snap = snaps[i];
-      const veiculosObj = snap.exists() ? (snap.data().veiculos || {}) : {};
-      const linhasDoDia = Object.entries(veiculosObj).map(([placa, v]) => Object.assign({ placa }, v));
-      return { dia: d, linhas: linhasDoDia };
-    });
+    _prodDiasRegistrosPeriodo = diasDoAno.map((d, i) => ({ dia: d, linhas: linhasPorDia[i] }));
 
     const linhas = _agregarRegistrosDiarios(_prodDiasRegistrosPeriodo);
     _renderProdResumoEBlocos(linhas);
@@ -2720,14 +2820,21 @@ window.renderProdutividade = async function renderProdutividade() {
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando...</div>';
   try {
     const snap = await getDoc(doc(db, 'base_volume', 'meta'));
-    if (!snap.exists()) {
-      cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Nenhuma base importada.</div>';
-      return;
-    }
-    _prodMeta = snap.data();
+    // A partir do corte, a tela funciona mesmo sem NENHUM import de ADERENCIA (usa a Gestão do
+    // Dia) — então "nenhuma base importada" deixou de ser um caso final, só um ponto de partida.
+    _prodMeta = snap.exists() ? snap.data() : {};
     document.getElementById('prod-ultima-import').textContent = _prodMeta.importadoEm ? 'Importado em: ' + new Date(_prodMeta.importadoEm).toLocaleString('pt-BR') : '';
 
-    const diasTodos = (_prodMeta.dias || []);
+    const diasTodos = (_prodMeta.dias || []).slice();
+    const hoje = new Date();
+    const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+
+    // a partir do corte, adiciona os dias do mês corrente (gerados, sem depender de import) pra
+    // aparecerem no seletor de Dia mesmo que nenhuma planilha ADERENCIA nunca tenha sido importada
+    if (mesAtualKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) {
+      _diasDoMesParaExibicao(mesAtualKey).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
+    }
+
     const dias = diasTodos.slice().sort((a,b) => {
       const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
       return db.localeCompare(da); // desc — mais recente primeiro
@@ -2738,19 +2845,20 @@ window.renderProdutividade = async function renderProdutividade() {
     selectDia.innerHTML = dias.length ? dias.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">—</option>';
     selectDia.value = manterDia;
 
-    // meses distintos disponíveis na base ('YYYY-MM'), mais recente primeiro
+    // meses distintos disponíveis na base ('YYYY-MM'), mais recente primeiro — sempre inclui o
+    // mês corrente, mesmo sem nenhum dia registrado nele ainda
     const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+    mesesSet.add(mesAtualKey);
     const meses = Array.from(mesesSet).sort().reverse();
-    const hoje = new Date();
-    const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
     const mesPadrao = meses.includes(_prodMesAtual) ? _prodMesAtual : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
 
     const selectMes = document.getElementById('prod-mes-select');
     selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_mesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
     selectMes.value = mesPadrao;
 
-    // anos distintos disponíveis na base ('YYYY'), mais recente primeiro
+    // anos distintos disponíveis na base ('YYYY'), mais recente primeiro — sempre inclui o ano corrente
     const anosSet = new Set(diasTodos.map(d => d.split('/')[2]));
+    anosSet.add(String(hoje.getFullYear()));
     const anos = Array.from(anosSet).sort().reverse();
     const anoAtualKey = String(hoje.getFullYear());
     const anoPadrao = anos.includes(_prodAnoAtual) ? _prodAnoAtual : (anos.includes(anoAtualKey) ? anoAtualKey : (anos[0] || ''));
@@ -5351,6 +5459,7 @@ window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
 };
 
 let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (base Volume Poços) nesse dia
+let _gestaoJustificativas = {}; // placa -> { motivo, observacao } — mesma info preenchida na Programação (veículos não programados)
 let _gestaoCarregarToken = 0;
 
 async function _gestaoCarregarDia(dataISO) {
@@ -5369,6 +5478,7 @@ async function _gestaoCarregarDia(dataISO) {
     // andamento, descarta esse resultado desatualizado.
     if (meuToken !== _gestaoCarregarToken) return;
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
+    _gestaoJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
 
     // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
     // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão.
@@ -5572,9 +5682,20 @@ function _gestaoLinhaVeiculo(v) {
     corFaixaAderencia = pctAderencia >= 96 ? '#2ea043' : pctAderencia >= 51 ? '#d29922' : '#f85149';
     textoAderencia = `${pctAderencia}%`;
   } else {
-    timeline = `<div style="flex:1;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:center;">
-      <div style="font-size:14px;color:var(--text3);">—</div>
-    </div>`;
+    const justificativa = _gestaoJustificativas[v.placa];
+    if (justificativa && justificativa.motivo) {
+      timeline = `<div style="flex:1;border:1px solid #d29922;border-radius:10px;background:rgba(210,153,34,0.10);padding:10px 14px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:14px;">⚠</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#d29922;">${justificativa.motivo}${justificativa.tipoOfensor ? ' · '+justificativa.tipoOfensor : ''}</div>
+          <div style="font-size:11px;color:var(--text3);">Motivo de não ter sido programado${justificativa.responsavel ? ' · '+justificativa.responsavel : ''}</div>
+        </div>
+      </div>`;
+    } else {
+      timeline = `<div style="flex:1;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:14px;color:var(--text3);">—</div>
+      </div>`;
+    }
   }
 
   // Um único mini card contendo FR, Placa, Tipo e Aderência — mesmo padrão do "vcell-id" do
