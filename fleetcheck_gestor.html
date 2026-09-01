@@ -425,6 +425,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l6-11 4 7 3-5 5 9H3z"/><circle cx="7" cy="6" r="2"/></svg>
       <span>Minas</span>
     </button>
+    <button class="nav-item" title="Cadastro de Veículos" onclick="showPage('veiculos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="7" width="15" height="11" rx="2"/><path d="M16 10h3.5a1 1 0 01.9.55L22 14v4h-2"/><circle cx="6" cy="18.5" r="1.8"/><circle cx="17.5" cy="18.5" r="1.8"/></svg>
+      <span>Cadastro de Veículos</span>
+    </button>
     <button class="nav-item" title="Programação" onclick="showPage('programacao')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span>Programação</span>
@@ -763,6 +767,48 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
     </div>
 
+    <!-- PAGE: CADASTRO DE VEÍCULOS -->
+    <div class="page" id="page-veiculos">
+      <div class="km-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div></div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="importarVeiculosDaAderencia()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);color:var(--text2);">
+            🔄 Importar da Base Aderência
+          </button>
+          <button onclick="abrirFormVeiculo()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">
+            🚛 Novo Veículo
+          </button>
+        </div>
+      </div>
+
+      <div id="veiculos-cards-categoria" style="margin-bottom:16px;"></div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Veículos Cadastrados</div>
+          <div class="table-count" id="veiculos-tabela-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>FR</th>
+                <th>PLACA</th>
+                <th>TIPO</th>
+                <th>TIPO2</th>
+                <th>FORÇA</th>
+                <th>STATUS</th>
+                <th style="text-align:right;">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="veiculos-tabela-body">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- PAGE: PROGRAMAÇÃO DIÁRIA DE VOLUME -->
     <div class="page" id="page-programacao">
       <div id="prog-corpo" style="margin-top:16px;">
@@ -813,6 +859,42 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <input type="number" id="mina-form-viagens" placeholder="ex: 8" class="filter-input" style="width:100%;">
       </div>
       <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORM CADASTRO DE VEÍCULO -->
+<div id="veiculo-form-overlay" onclick="if(event.target===this) fecharFormVeiculo()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:700;color:var(--text);" id="veiculo-form-titulo">🚛 Novo Veículo</div>
+      <button onclick="fecharFormVeiculo()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Placa</label>
+        <input type="text" id="veiculo-form-placa" placeholder="ex: FVZ2J61" class="filter-input" style="width:100%;text-transform:uppercase;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">FR (frota)</label>
+        <input type="text" id="veiculo-form-fr" placeholder="ex: 76" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Tipo2</label>
+        <select id="veiculo-form-tipo2" class="filter-input" style="width:100%;">
+          <option value="BT">BT (Bitruck)</option>
+          <option value="TR">TR (Truck)</option>
+          <option value="CV">CV (Cavalo Mecânico)</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Força</label>
+        <select id="veiculo-form-forca" class="filter-input" style="width:100%;">
+          <option value="FROTA">FROTA</option>
+          <option value="TERCEIRO">TERCEIRO</option>
+        </select>
+      </div>
+      <button onclick="salvarVeiculo()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Veículo</button>
     </div>
   </div>
 </div>
@@ -1559,7 +1641,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos' };
 
 // Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
 // diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
@@ -1691,6 +1773,7 @@ window.showPage = function showPage(id) {
   if (id === 'produtividade') setTimeout(() => window.renderProdutividade(), 0);
   if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
   if (id === 'minas') setTimeout(() => window.renderMinas(), 0);
+  if (id === 'veiculos') setTimeout(() => window.renderVeiculosCadastro(), 0);
   if (id === 'programacao') setTimeout(() => window.renderProgramacao(), 0);
   if (id === 'gestao') setTimeout(() => window.renderGestaoDia(), 0);
 }
@@ -4645,6 +4728,291 @@ window.excluirMina = async function excluirMina(id) {
 };
 
 // ══════════════════════════════════════
+// CADASTRO DE VEÍCULOS — base própria da frota (coleção frota_cadastro), com Incluir, Excluir,
+// Ativar e Inativar. Diferente do roster usado em Programação/Gestão do Dia (que é derivado
+// automaticamente do dia mais recente da base de Aderência) — aqui é uma lista gerenciada
+// manualmente pelo gestor.
+// ══════════════════════════════════════
+let _veiculosCadastro = [];
+let _veiculoEditandoId = null; // placa (doc id) sendo editada, ou null pra um veículo novo
+let _veiculosCadastroFiltro = { forca: null, tipo: null, status: null };
+
+async function _carregarVeiculosCadastro() {
+  try {
+    const snap = await getDocs(collection(db, 'frota_cadastro'));
+    _veiculosCadastro = snap.docs.map(d => ({ placa: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('Erro ao carregar cadastro de veículos:', err);
+    _veiculosCadastro = [];
+  }
+}
+
+// Deriva a categoria ampla (Caminhão/Cavalo) a partir do Tipo2 (BT/TR/CV) — mesma régua usada
+// no resto do sistema (_progEhCaminhao/_progEhCavalo), pra não precisar guardar um campo à parte.
+function _veiculoTipo(v) {
+  if (_progEhCaminhao(v.tipo2)) return 'CAMINHÃO';
+  if (_progEhCavalo(v.tipo2)) return 'CAVALO';
+  return '—';
+}
+
+function _veiculosCadastroFiltrados() {
+  return _veiculosCadastro.filter(v => {
+    if (_veiculosCadastroFiltro.forca && (v.forca||'').toUpperCase() !== _veiculosCadastroFiltro.forca) return false;
+    if (_veiculosCadastroFiltro.tipo && _veiculoTipo(v) !== _veiculosCadastroFiltro.tipo) return false;
+    if (_veiculosCadastroFiltro.status) {
+      const ativo = v.ativo !== false;
+      if (_veiculosCadastroFiltro.status === 'ATIVO' && !ativo) return false;
+      if (_veiculosCadastroFiltro.status === 'INATIVO' && ativo) return false;
+    }
+    return true;
+  });
+}
+
+window.filtrarVeiculosCadastro = function filtrarVeiculosCadastro(dimensao, valor) {
+  _veiculosCadastroFiltro[dimensao] = _veiculosCadastroFiltro[dimensao] === valor ? null : valor;
+  _renderVeiculosCardsCategoria();
+  _renderVeiculosCadastroTabela();
+};
+
+window.limparFiltroVeiculosCadastro = function limparFiltroVeiculosCadastro() {
+  _veiculosCadastroFiltro = { forca: null, tipo: null, status: null };
+  _renderVeiculosCardsCategoria();
+  _renderVeiculosCadastroTabela();
+};
+
+function _renderVeiculosCardsCategoria() {
+  const cont = document.getElementById('veiculos-cards-categoria');
+  if (!cont) return;
+  if (_veiculosCadastro.length === 0) { cont.innerHTML = ''; return; }
+
+  const total = _veiculosCadastro.length;
+  const frota = _veiculosCadastro.filter(v => (v.forca||'').toUpperCase()==='FROTA').length;
+  const terceiro = _veiculosCadastro.filter(v => (v.forca||'').toUpperCase()==='TERCEIRO').length;
+  const caminhoes = _veiculosCadastro.filter(v => _veiculoTipo(v)==='CAMINHÃO').length;
+  const cavalos = _veiculosCadastro.filter(v => _veiculoTipo(v)==='CAVALO').length;
+  const ativos = _veiculosCadastro.filter(v => v.ativo !== false).length;
+  const inativos = total - ativos;
+  const semFiltro = !_veiculosCadastroFiltro.forca && !_veiculosCadastroFiltro.tipo && !_veiculosCadastroFiltro.status;
+
+  const cardBase = (rotulo, valor, cor, ativoFiltro, onclick) => `<button onclick="${onclick}" style="flex:1;min-width:110px;text-align:center;padding:14px;border-radius:10px;border:2px solid ${ativoFiltro?cor:'var(--border2)'};background:${ativoFiltro?cor+'22':'var(--bg3)'};cursor:pointer;">
+      <div style="font-size:22px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${valor}</div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">${rotulo}</div>
+    </button>`;
+
+  cont.innerHTML = `<div style="display:flex;gap:12px;flex-wrap:wrap;">
+    ${cardBase('Total', total, '#388bfd', semFiltro, `limparFiltroVeiculosCadastro()`)}
+    ${cardBase('Frota', frota, '#388bfd', _veiculosCadastroFiltro.forca==='FROTA', `filtrarVeiculosCadastro('forca','FROTA')`)}
+    ${cardBase('Terceiro', terceiro, '#d29922', _veiculosCadastroFiltro.forca==='TERCEIRO', `filtrarVeiculosCadastro('forca','TERCEIRO')`)}
+    ${cardBase('Caminhões', caminhoes, '#388bfd', _veiculosCadastroFiltro.tipo==='CAMINHÃO', `filtrarVeiculosCadastro('tipo','CAMINHÃO')`)}
+    ${cardBase('Cavalos', cavalos, '#388bfd', _veiculosCadastroFiltro.tipo==='CAVALO', `filtrarVeiculosCadastro('tipo','CAVALO')`)}
+    ${cardBase('Ativos', ativos, '#2ea043', _veiculosCadastroFiltro.status==='ATIVO', `filtrarVeiculosCadastro('status','ATIVO')`)}
+    ${cardBase('Inativos', inativos, '#f85149', _veiculosCadastroFiltro.status==='INATIVO', `filtrarVeiculosCadastro('status','INATIVO')`)}
+  </div>`;
+}
+
+function _renderVeiculosCadastroTabela() {
+  const body = document.getElementById('veiculos-tabela-body');
+  const count = document.getElementById('veiculos-tabela-count');
+  if (!body) return;
+
+  const filtrados = _veiculosCadastroFiltrados();
+  count.textContent = filtrados.length + (filtrados.length === 1 ? ' registro' : ' registros') + (filtrados.length !== _veiculosCadastro.length ? ` de ${_veiculosCadastro.length}` : '');
+
+  if (_veiculosCadastro.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo cadastrado ainda. Clique em "Importar da Base Aderência" ou "Novo Veículo" pra começar.</td></tr>';
+    return;
+  }
+  if (filtrados.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo bate com esse filtro.</td></tr>';
+    return;
+  }
+
+  const ordenados = filtrados.slice().sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0));
+  body.innerHTML = ordenados.map(v => {
+    const ativo = v.ativo !== false; // por padrão, ativo (undefined também conta como ativo)
+    return `<tr style="${ativo ? '' : 'opacity:0.5;'}">
+      <td style="font-family:'DM Mono',monospace;">${v.fr || '—'}</td>
+      <td class="text-primary">${v.placa}</td>
+      <td>${_veiculoTipo(v)}</td>
+      <td>${v.tipo2 || '—'}</td>
+      <td>${v.forca || '—'}</td>
+      <td>
+        <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:${ativo ? 'rgba(46,160,67,0.15)' : 'rgba(248,81,73,0.15)'};color:${ativo ? '#2ea043' : '#f85149'};">${ativo ? 'ATIVO' : 'INATIVO'}</span>
+      </td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button onclick="toggleAtivoVeiculo('${v.placa}')" title="${ativo ? 'Inativar' : 'Ativar'}" style="background:none;border:none;color:${ativo ? '#d29922' : '#2ea043'};cursor:pointer;font-size:17px;margin-right:8px;">${ativo ? '⏸️' : '▶️'}</button>
+        <button onclick="abrirFormVeiculo('${v.placa}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:17px;margin-right:8px;">✏️</button>
+        <button onclick="excluirVeiculo('${v.placa}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:17px;">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.renderVeiculosCadastro = async function renderVeiculosCadastro() {
+  const body = document.getElementById('veiculos-tabela-body');
+  if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  await _carregarVeiculosCadastro();
+  _renderVeiculosCardsCategoria();
+  _renderVeiculosCadastroTabela();
+};
+
+window.abrirFormVeiculo = function abrirFormVeiculo(placa) {
+  _veiculoEditandoId = placa || null;
+  const titulo = document.getElementById('veiculo-form-titulo');
+  const placaEl = document.getElementById('veiculo-form-placa');
+  const frEl = document.getElementById('veiculo-form-fr');
+  const tipo2El = document.getElementById('veiculo-form-tipo2');
+  const forcaEl = document.getElementById('veiculo-form-forca');
+
+  if (placa) {
+    const v = _veiculosCadastro.find(x => x.placa === placa);
+    if (!v) return;
+    titulo.textContent = '✏️ Editar Veículo';
+    placaEl.value = v.placa || '';
+    placaEl.disabled = true; // placa é o identificador (doc id) — não dá pra trocar depois de criado
+    frEl.value = v.fr || '';
+    tipo2El.value = v.tipo2 || 'BT';
+    forcaEl.value = v.forca || 'FROTA';
+  } else {
+    titulo.textContent = '🚛 Novo Veículo';
+    placaEl.value = '';
+    placaEl.disabled = false;
+    frEl.value = '';
+    tipo2El.value = 'BT';
+    forcaEl.value = 'FROTA';
+  }
+
+  document.getElementById('veiculo-form-overlay').style.display = 'flex';
+  placaEl.focus();
+};
+
+window.fecharFormVeiculo = function fecharFormVeiculo() {
+  document.getElementById('veiculo-form-overlay').style.display = 'none';
+  _veiculoEditandoId = null;
+};
+
+// Invalida os caches de frota usados em Programação e Gestão do Dia — chamado sempre que o
+// cadastro de veículos muda (incluir/excluir/ativar/inativar/importar), pra essas telas
+// buscarem a versão atualizada na próxima vez que forem abertas.
+function _invalidarCachesRoster() {
+  _progRosterVeiculos = null;
+  _progRosterCacheDia = null;
+  _gestaoRoster = null;
+  _gestaoRosterCacheDia = null;
+}
+
+window.salvarVeiculo = async function salvarVeiculo() {
+  const placa = document.getElementById('veiculo-form-placa').value.trim().toUpperCase();
+  const fr = document.getElementById('veiculo-form-fr').value.trim();
+  const tipo2 = document.getElementById('veiculo-form-tipo2').value;
+  const forca = document.getElementById('veiculo-form-forca').value;
+
+  if (!placa) { showToast('✖ Informe a placa.'); return; }
+  if (!fr) { showToast('✖ Informe o FR.'); return; }
+
+  try {
+    if (_veiculoEditandoId) {
+      // mantém o status ativo/inativo que já existia — esse formulário só edita os dados do veículo
+      await setDoc(doc(db, 'frota_cadastro', _veiculoEditandoId), { fr, tipo2, forca }, { merge: true });
+      showToast(`✔ Veículo ${placa} atualizado.`);
+    } else {
+      const existente = _veiculosCadastro.find(v => v.placa === placa);
+      if (existente) { showToast(`✖ Já existe um veículo cadastrado com a placa ${placa}.`); return; }
+      await setDoc(doc(db, 'frota_cadastro', placa), { fr, tipo2, forca, ativo: true, criadoEm: new Date().toISOString() });
+      showToast(`✔ Veículo ${placa} cadastrado.`);
+    }
+    _invalidarCachesRoster();
+    fecharFormVeiculo();
+    await _carregarVeiculosCadastro();
+    _renderVeiculosCardsCategoria();
+    _renderVeiculosCadastroTabela();
+  } catch (err) {
+    console.error('Erro ao salvar veículo:', err);
+    showToast('✖ Erro ao salvar veículo: ' + err.message);
+  }
+};
+
+window.excluirVeiculo = async function excluirVeiculo(placa) {
+  const v = _veiculosCadastro.find(x => x.placa === placa);
+  if (!v) return;
+  const confirmar = window.confirm(`Excluir o veículo ${placa} (FR ${v.fr||'—'}) do cadastro? Essa ação não pode ser desfeita.`);
+  if (!confirmar) return;
+  try {
+    await deleteDoc(doc(db, 'frota_cadastro', placa));
+    _veiculosCadastro = _veiculosCadastro.filter(x => x.placa !== placa);
+    _invalidarCachesRoster();
+    _renderVeiculosCardsCategoria();
+    _renderVeiculosCadastroTabela();
+    showToast(`✔ Veículo ${placa} removido do cadastro.`);
+  } catch (err) {
+    console.error('Erro ao excluir veículo:', err);
+    showToast('✖ Erro ao excluir veículo: ' + err.message);
+  }
+};
+
+window.toggleAtivoVeiculo = async function toggleAtivoVeiculo(placa) {
+  const v = _veiculosCadastro.find(x => x.placa === placa);
+  if (!v) return;
+  const novoStatus = !(v.ativo !== false);
+  try {
+    await setDoc(doc(db, 'frota_cadastro', placa), { ativo: novoStatus }, { merge: true });
+    v.ativo = novoStatus;
+    _invalidarCachesRoster();
+    _renderVeiculosCardsCategoria();
+    _renderVeiculosCadastroTabela();
+    showToast(`✔ Veículo ${placa} ${novoStatus ? 'ativado' : 'inativado'}.`);
+  } catch (err) {
+    console.error('Erro ao alterar status do veículo:', err);
+    showToast('✖ Erro ao alterar status: ' + err.message);
+  }
+};
+
+// Semeia o cadastro a partir da última base de Aderência importada — usa o histórico mais
+// recente de cada veículo (FR, Tipo2, Força). Veículos que já existem no cadastro mantêm o
+// status ativo/inativo que já foi definido manualmente; só os novos entram como ativos.
+window.importarVeiculosDaAderencia = async function importarVeiculosDaAderencia() {
+  const confirmar = window.confirm('Isso vai trazer todos os veículos da base de Aderência mais recente pro cadastro (mantendo o status Ativo/Inativo de quem já estiver cadastrado). Continuar?');
+  if (!confirmar) return;
+  showToast('Importando da base de Aderência...');
+  try {
+    const snap = await getDocs(collection(db, 'base_volume_veiculos'));
+    const existentesPorPlaca = new Map(_veiculosCadastro.map(v => [v.placa, v]));
+
+    const docs = snap.docs.filter(d => (d.data().historico || []).length > 0);
+    let importados = 0;
+    for (let i = 0; i < docs.length; i += 450) {
+      const lote = docs.slice(i, i + 450);
+      const batch = writeBatch(db);
+      lote.forEach(d => {
+        const hist = d.data().historico || [];
+        const ultimo = hist[hist.length - 1];
+        const placa = d.id;
+        const dados = {
+          fr: ultimo.fr ?? '',
+          tipo2: (ultimo.tipo2 || '').toString().trim().toUpperCase(),
+          forca: (ultimo.forca || '').toString().trim().toUpperCase()
+        };
+        if (!existentesPorPlaca.has(placa)) {
+          dados.ativo = true;
+          dados.criadoEm = new Date().toISOString();
+        }
+        batch.set(doc(db, 'frota_cadastro', placa), dados, { merge: true });
+        importados++;
+      });
+      await batch.commit();
+    }
+    _invalidarCachesRoster();
+    showToast(`✔ ${importados} veículo(s) importado(s)/atualizado(s) da base de Aderência.`);
+    await _carregarVeiculosCadastro();
+    _renderVeiculosCardsCategoria();
+    _renderVeiculosCadastroTabela();
+  } catch (err) {
+    console.error('Erro ao importar veículos da Aderência:', err);
+    showToast('✖ Erro ao importar: ' + err.message);
+  }
+};
+
+// ══════════════════════════════════════
 // PROGRAMAÇÃO DIÁRIA DE VOLUME (meta do dia, por Origem × Destino)
 // Reaproveita os mesmos filtros de categoria (Novo/Fábrica/Pátio4 Entrada/Saída) já usados
 // nos cards e nas Metas mensais — só que aqui o cadastro é por DIA específico, não por mês.
@@ -4969,47 +5337,10 @@ let _gestaoRosterCacheDia = null;
 async function _gestaoCarregarRoster(diaISO) {
   if (_gestaoRoster && _gestaoRosterCacheDia === diaISO) return _gestaoRoster;
   try {
-    const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
-    const diasDisponiveis = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
-    if (diasDisponiveis.length === 0) { _gestaoRoster = []; _gestaoRosterCacheDia = diaISO; return _gestaoRoster; }
-
-    const diasOrdenados = diasDisponiveis.slice().sort((a,b) => {
-      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
-      return da.localeCompare(db_);
-    });
-    let diaEscolhido = null;
-    for (let i = diasOrdenados.length - 1; i >= 0; i--) {
-      if (_diaParaChave(diasOrdenados[i]) <= diaISO) { diaEscolhido = diasOrdenados[i]; break; }
-    }
-    if (!diaEscolhido) diaEscolhido = diasOrdenados[0];
-
-    const [diaSnap, veiculosSnap] = await Promise.all([
-      getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaEscolhido))),
-      getDocs(collection(db, 'base_volume_veiculos'))
-    ]);
-    const placasDoDia = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
-
-    const pesoMedioPorPlaca = {};
-    veiculosSnap.docs.forEach(d => {
-      const hist = d.data().historico || [];
-      if (hist.length === 0) return;
-      const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
-      const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
-      pesoMedioPorPlaca[d.id] = somaViagens > 0 ? somaVolume / somaViagens : 0;
-    });
-
-    const roster = Object.entries(placasDoDia).map(([placa, v]) => ({
-      placa,
-      fr: v.fr ?? '',
-      tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
-      forca: (v.forca || '').toString().trim().toUpperCase(),
-      pesoMedio: pesoMedioPorPlaca[placa] || 0
-    }));
-    roster.sort((a,b) => (a.fr||0) - (b.fr||0));
-    _gestaoRoster = roster;
+    _gestaoRoster = await _construirRosterVeiculos(diaISO);
     _gestaoRosterCacheDia = diaISO;
   } catch (err) {
-    console.error('Erro ao carregar frota da base de Aderência (Gestão do Dia):', err);
+    console.error('Erro ao carregar frota (Gestão do Dia):', err);
     _gestaoRoster = [];
   }
   return _gestaoRoster;
@@ -5572,60 +5903,87 @@ function _progEhCavalo(tipo2) { return (tipo2||'').toString().trim().toUpperCase
 
 let _progRosterCacheDia = null; // dia (ISO) pro qual _progRosterVeiculos foi carregado — se mudar, recarrega
 
+function _computarPesoMedioPorPlaca(veiculosSnap) {
+  const pesoMedioPorPlaca = {};
+  veiculosSnap.docs.forEach(d => {
+    const hist = d.data().historico || [];
+    if (hist.length === 0) return;
+    const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
+    const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
+    pesoMedioPorPlaca[d.id] = somaViagens > 0 ? somaVolume / somaViagens : 0;
+  });
+  return pesoMedioPorPlaca;
+}
+
+// Monta a frota usada em Programação e Gestão do Dia. Fonte principal: o cadastro gerenciado
+// manualmente (frota_cadastro), só os veículos marcados como Ativo — assim quem foi inativado
+// ou excluído lá para de aparecer nessas telas. Se o cadastro ainda estiver vazio (ninguém rodou
+// "Importar da Base Aderência" ainda), cai pro comportamento antigo: deriva a frota do dia mais
+// recente de Aderência igual ou anterior ao dia informado, pra não quebrar quem ainda não migrou.
+async function _construirRosterVeiculos(diaISO) {
+  const veiculosSnapPromise = getDocs(collection(db, 'base_volume_veiculos'));
+  const cadastroSnap = await getDocs(collection(db, 'frota_cadastro'));
+
+  if (!cadastroSnap.empty) {
+    const veiculosSnap = await veiculosSnapPromise;
+    const pesoMedioPorPlaca = _computarPesoMedioPorPlaca(veiculosSnap);
+    const roster = cadastroSnap.docs
+      .map(d => ({ placa: d.id, ...d.data() }))
+      .filter(v => v.ativo !== false)
+      .map(v => ({
+        placa: v.placa,
+        fr: v.fr ?? '',
+        tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
+        forca: (v.forca || '').toString().trim().toUpperCase(),
+        pesoMedio: pesoMedioPorPlaca[v.placa] || 0
+      }));
+    roster.sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0));
+    return roster;
+  }
+
+  // Cadastro ainda vazio — comportamento antigo, derivado da base de Aderência por dia.
+  const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
+  const diasDisponiveis = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+  if (diasDisponiveis.length === 0) return [];
+
+  const diasOrdenados = diasDisponiveis.slice().sort((a,b) => {
+    const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+    return da.localeCompare(db_);
+  });
+  const diaAlvoChave = diaISO || diasOrdenados[diasOrdenados.length - 1].split('/').reverse().join('-');
+  let diaEscolhido = null;
+  for (let i = diasOrdenados.length - 1; i >= 0; i--) {
+    if (_diaParaChave(diasOrdenados[i]) <= diaAlvoChave) { diaEscolhido = diasOrdenados[i]; break; }
+  }
+  if (!diaEscolhido) diaEscolhido = diasOrdenados[0];
+
+  const [diaSnap, veiculosSnap] = await Promise.all([
+    getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaEscolhido))),
+    veiculosSnapPromise
+  ]);
+  const placasDoDia = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
+  const pesoMedioPorPlaca = _computarPesoMedioPorPlaca(veiculosSnap);
+
+  const roster = Object.entries(placasDoDia).map(([placa, v]) => ({
+    placa,
+    fr: v.fr ?? '',
+    tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
+    forca: (v.forca || '').toString().trim().toUpperCase(),
+    pesoMedio: pesoMedioPorPlaca[placa] || 0
+  }));
+  roster.sort((a,b) => (a.fr||0) - (b.fr||0));
+  return roster;
+}
+
 async function _progCarregarRoster() {
   // Já carregado pra esse mesmo dia? Reaproveita. Se o dia da Programação mudou, recarrega —
   // cada dia pode ter uma frota diferente (veículo novo entrando na base, por exemplo).
   if (_progRosterVeiculos && _progRosterCacheDia === _progDataAtual) return _progRosterVeiculos;
   try {
-    // Usa a base de Aderência do dia sendo visualizado na Programação — não sempre o último dia
-    // disponível, senão o dia 25/08 mostraria a frota de 26/08 (que pode ter um veículo a mais).
-    // Se esse dia exato não tiver importação de Aderência, cai pro dia mais recente ANTERIOR a ele.
-    const metaSnap = await getDoc(doc(db, 'base_volume', 'meta'));
-    const diasDisponiveis = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
-    if (diasDisponiveis.length === 0) { _progRosterVeiculos = []; _progRosterCacheDia = _progDataAtual; return _progRosterVeiculos; }
-
-    const diasOrdenados = diasDisponiveis.slice().sort((a,b) => {
-      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
-      return da.localeCompare(db_);
-    });
-    const diaAlvoChave = _progDataAtual || diasOrdenados[diasOrdenados.length - 1].split('/').reverse().join('-');
-    // dia mais recente disponível que seja <= o dia visualizado na Programação; se nenhum, usa o mais antigo
-    let diaEscolhido = null;
-    for (let i = diasOrdenados.length - 1; i >= 0; i--) {
-      if (_diaParaChave(diasOrdenados[i]) <= diaAlvoChave) { diaEscolhido = diasOrdenados[i]; break; }
-    }
-    if (!diaEscolhido) diaEscolhido = diasOrdenados[0];
-
-    const [diaSnap, veiculosSnap] = await Promise.all([
-      getDoc(doc(db, 'base_volume_dias', _diaParaChave(diaEscolhido))),
-      getDocs(collection(db, 'base_volume_veiculos'))
-    ]);
-
-    const placasDoDia = diaSnap.exists() ? diaSnap.data().veiculos || {} : {};
-
-    // peso médio de cada veículo vem do histórico completo dele (média mais estável), mas só
-    // entram no roster os veículos que realmente aparecem no dia escolhido
-    const pesoMedioPorPlaca = {};
-    veiculosSnap.docs.forEach(d => {
-      const hist = d.data().historico || [];
-      if (hist.length === 0) return;
-      const somaVolume = hist.reduce((s,h) => s + (h.volume||0), 0);
-      const somaViagens = hist.reduce((s,h) => s + (Number(h.viagens)||0), 0);
-      pesoMedioPorPlaca[d.id] = somaViagens > 0 ? somaVolume / somaViagens : 0;
-    });
-
-    const roster = Object.entries(placasDoDia).map(([placa, v]) => ({
-      placa,
-      fr: v.fr ?? '',
-      tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
-      forca: (v.forca || '').toString().trim().toUpperCase(),
-      pesoMedio: pesoMedioPorPlaca[placa] || 0
-    }));
-    roster.sort((a,b) => (a.fr||0) - (b.fr||0));
-    _progRosterVeiculos = roster;
+    _progRosterVeiculos = await _construirRosterVeiculos(_progDataAtual);
     _progRosterCacheDia = _progDataAtual;
   } catch (err) {
-    console.error('Erro ao carregar frota da base de Aderência:', err);
+    console.error('Erro ao carregar frota:', err);
     _progRosterVeiculos = [];
   }
   return _progRosterVeiculos;
