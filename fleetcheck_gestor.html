@@ -757,11 +757,13 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                 <th>ORIGEM</th>
                 <th>DESTINO</th>
                 <th style="text-align:right;">VIAGENS/DIA (padrão)</th>
+                <th style="text-align:right;">PESO MÉDIO CAMINHÃO</th>
+                <th style="text-align:right;">PESO MÉDIO CAVALO</th>
                 <th style="text-align:right;">AÇÕES</th>
               </tr>
             </thead>
             <tbody id="minas-tabela-body">
-              <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -3354,6 +3356,7 @@ window.importarVolume = async function importarVolume(input) {
     _volDiaAtual = null; _volMesAtual = null; _volAnoAtual = null;
     _progRosterVeiculos = null; // força a tela de Programação a buscar a frota atualizada de novo
     _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
+    _minasPesoMedioCache = null; // idem pro peso médio por rota mostrado na tela de Minas
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
     window.renderVolume();
@@ -4725,6 +4728,53 @@ let _minasCadastro = [];       // [{ id, origem, destino, viagensDia }]
 let _minasCarregado = false;
 let _minaEditandoId = null;    // id da mina sendo editada (null = cadastro novo)
 
+// Chave normalizada Origem|||Destino, reaproveitando a mesma normalização de grafia do Pátio 4
+// (PATIO 4 / PATIO 04) já usada no resto do sistema, pra garantir que bata com o que foi
+// cadastrado na tela de Minas mesmo se a planilha gravou com uma grafia ligeiramente diferente.
+function _chaveRota(origem, destino) {
+  return `${_progNormalizarOD(origem)}|||${_progNormalizarOD(destino)}`;
+}
+
+let _minasPesoMedioCache = null; // 'ORIGEM|||DESTINO' -> { caminhao: pesoMedio|null, cavalo: pesoMedio|null }
+
+// Calcula o peso médio real por viagem, por rota, separado por Caminhão (BT+TR) e Cavalo (CV) —
+// varre todo o histórico de viagens já importado da planilha Volume Poços.
+async function _calcularPesoMedioPorRota() {
+  if (_minasPesoMedioCache) return _minasPesoMedioCache;
+  try {
+    const metaSnap = await getDoc(doc(db, 'volume', 'meta'));
+    const dias = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+    if (dias.length === 0) { _minasPesoMedioCache = {}; return _minasPesoMedioCache; }
+
+    const snaps = await Promise.all(dias.map(d => getDoc(doc(db, 'volume_dias', _diaParaChave(d)))));
+    const somas = {};
+    snaps.forEach(snap => {
+      if (!snap.exists()) return;
+      (snap.data().viagens || []).forEach(v => {
+        if (!v.origem || !v.destino) return;
+        const chave = _chaveRota(v.origem, v.destino);
+        if (!somas[chave]) somas[chave] = { caminhaoPeso: 0, caminhaoViagens: 0, cavaloPeso: 0, cavaloViagens: 0 };
+        const tipo2 = (v.tipo2 || '').toString().trim().toUpperCase();
+        if (_progEhCaminhao(tipo2)) { somas[chave].caminhaoPeso += Number(v.peso)||0; somas[chave].caminhaoViagens += 1; }
+        else if (_progEhCavalo(tipo2)) { somas[chave].cavaloPeso += Number(v.peso)||0; somas[chave].cavaloViagens += 1; }
+      });
+    });
+
+    const resultado = {};
+    Object.entries(somas).forEach(([chave, s]) => {
+      resultado[chave] = {
+        caminhao: s.caminhaoViagens > 0 ? s.caminhaoPeso / s.caminhaoViagens : null,
+        cavalo: s.cavaloViagens > 0 ? s.cavaloPeso / s.cavaloViagens : null
+      };
+    });
+    _minasPesoMedioCache = resultado;
+  } catch (err) {
+    console.error('Erro ao calcular peso médio por rota:', err);
+    _minasPesoMedioCache = {};
+  }
+  return _minasPesoMedioCache;
+}
+
 async function _carregarMinas() {
   try {
     const snap = await getDocs(collection(db, 'minas_cadastro'));
@@ -4743,26 +4793,32 @@ function _renderMinasTabela() {
   count.textContent = _minasCadastro.length + (_minasCadastro.length === 1 ? ' registro' : ' registros');
 
   if (_minasCadastro.length === 0) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
     return;
   }
 
+  const fmt = (n) => n === null || n === undefined ? '—' : `${Math.round(n*10)/10}t/vg`;
   const ordenadas = _minasCadastro.slice().sort((a,b) => (a.origem||'').localeCompare(b.origem||'') || (a.destino||'').localeCompare(b.destino||''));
-  body.innerHTML = ordenadas.map(m => `<tr>
+  body.innerHTML = ordenadas.map(m => {
+    const peso = (_minasPesoMedioCache || {})[_chaveRota(m.origem, m.destino)] || { caminhao: null, cavalo: null };
+    return `<tr>
       <td class="text-primary">${m.origem}</td>
       <td>${m.destino}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${m.viagensDia ?? '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.caminhao)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.cavalo)}</td>
       <td style="text-align:right;">
         <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:17px;margin-right:8px;">✏️</button>
         <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:17px;">🗑</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 window.renderMinas = async function renderMinas() {
   const body = document.getElementById('minas-tabela-body');
-  if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
-  await _carregarMinas();
+  if (body) body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  await Promise.all([_carregarMinas(), _calcularPesoMedioPorRota()]);
   _renderMinasTabela();
 };
 
