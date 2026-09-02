@@ -523,6 +523,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <select id="vol-ano-select" class="filter-input" style="display:none;" onchange="_volOnAnoChange(this.value)">
           <option value="">—</option>
         </select>
+        <div id="vol-cards-dias-operacao" style="display:flex;gap:8px;"></div>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-programacao">
@@ -6600,11 +6601,42 @@ window.renderVolume = async function renderVolume() {
     if (_volModoView === 'ano') await _volCarregarAno(anoPadrao);
     else if (_volModoView === 'mes') await _volCarregarMes(mesPadrao);
     else await _volCarregarDia(manterDia);
+
+    _volRenderCardsDiasOperacao();
   } catch (err) {
     console.error('Erro volume:', err);
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
   }
 };
+
+// Dois miniaturas na barra superior: quantos dias do mês vigente já tiveram operação (viagem
+// registrada) e quantos ainda faltam, considerando os dias de operação projetados pra esse mês
+// (o mesmo número cadastrado na tela de Metas).
+async function _volRenderCardsDiasOperacao() {
+  const cont = document.getElementById('vol-cards-dias-operacao');
+  if (!cont) return;
+
+  const hoje = new Date();
+  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  const [anoAtual, mesAtual] = mesAtualKey.split('-');
+
+  const diasTodos = (_volMeta && _volMeta.dias) || [];
+  const diasOperados = diasTodos.filter(d => {
+    const p = d.split('/'); // [DD, MM, YYYY]
+    return p[1] === mesAtual && p[2] === anoAtual;
+  }).length;
+
+  const { diasOperacao } = await _volObterMetasParaCards(mesAtualKey);
+  const diasRestantes = diasOperacao ? Math.max(0, diasOperacao - diasOperados) : null;
+
+  const miniCard = (valor, rotulo, cor) => `<div style="padding:5px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);text-align:center;">
+    <div style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1;">${valor}</div>
+    <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">${rotulo}</div>
+  </div>`;
+
+  cont.innerHTML = miniCard(diasOperados, 'Dias Operados', '#2ea043')
+    + (diasRestantes !== null ? miniCard(diasRestantes, 'Dias Restantes', diasRestantes > 0 ? '#d29922' : '#2ea043') : '');
+}
 
 // EXPORT PDF (simulado)
 // ══════════════════════════════════════
