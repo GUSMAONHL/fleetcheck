@@ -2563,17 +2563,21 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
   const atribPorPlaca = {};
   atribuicoes.forEach(a => { atribPorPlaca[a.placa] = a; });
 
-  // volume real por placa, só existe se a planilha Volume já tiver sido importada pra esse dia
+  // volume real por placa, só existe se a planilha Volume já tiver sido importada pra esse dia —
+  // guarda também o tipo2 de cada viagem, pra classificar corretamente um veículo que apareça
+  // aqui mas não esteja na frota cadastrada/roster do dia (ver mais abaixo).
   const temVolumeReal = snapVolume.exists();
   const volumeRealPorPlaca = {};
+  const tipo2PorPlacaReal = {};
   if (temVolumeReal) {
     (snapVolume.data().viagens || []).forEach(v => {
       if (!v.placa) return;
       volumeRealPorPlaca[v.placa] = (volumeRealPorPlaca[v.placa] || 0) + (Number(v.peso)||0);
+      if (v.tipo2) tipo2PorPlacaReal[v.placa] = (v.tipo2||'').toString().trim().toUpperCase();
     });
   }
 
-  return roster.map(v => {
+  const linhasRoster = roster.map(v => {
     const atrib = atribPorPlaca[v.placa];
     const viagensProgramadas = atrib ? (Number(atrib.viagens)||0) : 0;
     const realizacoes = atrib ? _gestaoRealizacoes(atrib) : [];
@@ -2613,6 +2617,28 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
       ofensor, tipoOfensor, responsavel
     };
   });
+
+  // Veículos com viagem real (Volume Poços) que NÃO estão na frota cadastrada/roster desse dia
+  // (não cadastrado, inativo, placa digitada errado etc.). Sem essa entrada, o volume deles
+  // some da tela de Aderência, mas continua contando no total do Volume Transportado — causando
+  // divergência entre as duas telas.
+  const placasNoRoster = new Set(roster.map(v => v.placa));
+  const linhasExtras = [];
+  if (temVolumeReal) {
+    Object.entries(volumeRealPorPlaca).forEach(([placa, volume]) => {
+      if (placasNoRoster.has(placa)) return;
+      const tipo2 = tipo2PorPlacaReal[placa] || '';
+      linhasExtras.push({
+        placa, fr: '—', forca: '—', tipo2,
+        tipo: _progEhCavalo(tipo2) ? 'CAVALO' : 'CAMINHAO',
+        volume: Math.round(volume * 100) / 100,
+        viagens: 0, percTon: 0, aderencia: 0,
+        ofensor: 'VEÍCULO NÃO CADASTRADO', tipoOfensor: '', responsavel: ''
+      });
+    });
+  }
+
+  return linhasRoster.concat(linhasExtras);
 }
 
 // Busca as linhas de um dia pra tela de Aderência — antes do corte, usa a ADERENCIA importada
@@ -5441,24 +5467,24 @@ function _renderProgCorpo() {
   const saida = _progItens.filter(_volOrigemPatio4);
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
   const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
-  const totalRealizadoGeral = _progItens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0);
-
-  // Diagnóstico: volume real (Volume Poços) transportado em rotas que NÃO têm Meta Alcoa
-  // cadastrada nesse dia. Esse volume entra no total de Aderência/Volume Transportado, mas fica
-  // de fora do "Realizado" daqui (que só soma o que foi programado) — é essa a causa mais comum
-  // de diferença entre os totais das telas.
+  // Volume/viagens reais (Volume Poços) em rotas que NÃO têm Meta Alcoa cadastrada nesse dia —
+  // precisa entrar no total de "Realizado" daqui também, senão o total nunca bate com Aderência
+  // e Volume Transportado (que somam TUDO que aconteceu no dia, sem essa restrição).
   const chavesRegistradas = new Set(_progItens.map(m => _metaChaveOD(_progNormalizarOD(m.origem), _progNormalizarOD(m.destino))));
   const rotasOrfaas = [];
-  let volumeOrfaoGeral = 0;
+  let volumeOrfaoGeral = 0, viagensOrfaoGeral = 0;
   Object.entries(_progRealizadoDia || {}).forEach(([chave, dados]) => {
     if (!chavesRegistradas.has(chave)) {
       const [origemOrfa, destinoOrfa] = chave.split('|||');
       rotasOrfaas.push({ origem: origemOrfa, destino: destinoOrfa, peso: dados.peso, viagens: dados.viagens });
       volumeOrfaoGeral += dados.peso;
+      viagensOrfaoGeral += dados.viagens;
     }
   });
+
+  const totalRealizadoGeral = _progItens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0) + volumeOrfaoGeral;
   const viagensProgGeral = _progItens.reduce((s,m) => s + _progViagensProgramadasPara(m.origem, m.destino), 0);
-  const viagensRealGeral = _progItens.reduce((s,m) => s + _progRealizadoViagensPara(m.origem, m.destino), 0);
+  const viagensRealGeral = _progItens.reduce((s,m) => s + _progRealizadoViagensPara(m.origem, m.destino), 0) + viagensOrfaoGeral;
   const veiculosProgramados = _progAtribuicoes.filter(a => (Number(a.viagens)||0) > 0);
   const totalCaminhoes = veiculosProgramados.filter(a => _progEhCaminhao(a.tipo2)).length;
   const totalCavalos = veiculosProgramados.filter(a => _progEhCavalo(a.tipo2)).length;
@@ -5504,7 +5530,7 @@ function _renderProgCorpo() {
         </div>
       </div>
       ${rotasOrfaas.length > 0 ? `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #d29922;">
-        <div style="font-size:12px;color:#d29922;font-weight:600;margin-bottom:4px;">⚠ ${fmt(volumeOrfaoGeral)}t transportados em rota(s) sem Meta Alcoa cadastrada hoje — por isso o Realizado daqui não bate com Aderência/Volume Transportado:</div>
+        <div style="font-size:12px;color:#d29922;font-weight:600;margin-bottom:4px;">⚠ ${fmt(volumeOrfaoGeral)}t já incluídos no Realizado acima, mas transportados em rota(s) sem Meta Alcoa cadastrada hoje:</div>
         ${rotasOrfaas.map(r => `<div style="font-size:11px;color:var(--text3);">${r.origem} → ${r.destino}: <strong style="color:var(--text2);">${fmt(r.peso)}t</strong> (${r.viagens} viagem${r.viagens>1?'ns':''})</div>`).join('')}
       </div>` : ''}
     </div>
@@ -5579,6 +5605,7 @@ window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
 };
 
 let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (base Volume Poços) nesse dia
+let _gestaoVolumeRealPorPlaca = null; // placa -> peso real (base Volume Poços) nesse dia — null se a planilha ainda não foi importada pra esse dia
 let _gestaoJustificativas = {}; // placa -> { motivo, observacao } — mesma info preenchida na Programação (veículos não programados)
 let _gestaoCarregarToken = 0;
 
@@ -5601,12 +5628,16 @@ async function _gestaoCarregarDia(dataISO) {
     _gestaoJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
 
     // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
-    // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão.
+    // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão,
+    // e o peso real de cada uma — usado nos cards de volume, sempre priorizado sobre a estimativa
+    // por viagens marcadas × peso médio (que só entra quando a planilha ainda não foi importada).
     _gestaoViagensReaisPorPlaca = {};
+    _gestaoVolumeRealPorPlaca = snapVolume.exists() ? {} : null;
     const viagensDoDia = (snapVolume.exists() && Array.isArray(snapVolume.data().viagens)) ? snapVolume.data().viagens : [];
     viagensDoDia.forEach(v => {
       if (!v.placa) return;
       _gestaoViagensReaisPorPlaca[v.placa] = (_gestaoViagensReaisPorPlaca[v.placa] || 0) + 1;
+      if (_gestaoVolumeRealPorPlaca) _gestaoVolumeRealPorPlaca[v.placa] = (_gestaoVolumeRealPorPlaca[v.placa] || 0) + (Number(v.peso)||0);
     });
 
     _gestaoRenderGrade();
@@ -5863,9 +5894,11 @@ function _gestaoContarCategoria(filtroTipo) {
 
   const pesoDoAtrib = (a) => Number(a.peso) || (Number(a.viagens)||0) * (Number(a.pesoMedio)||0);
   const volumeProgramado = programadosArr.reduce((s,a) => s + pesoDoAtrib(a), 0);
-  // volume já transportado — soma só as viagens efetivamente marcadas como feitas, não o
-  // programado inteiro de quem está em operação
+  // volume já transportado — usa o peso REAL (Volume Poços) por placa quando a planilha já foi
+  // importada pra esse dia; só cai pra estimativa (viagens marcadas × peso médio) quando ainda
+  // não tem dado real. Garante que esse número bata com Aderência e Volume Transportado.
   const volumeTransportado = emOperacaoArr.reduce((s,a) => {
+    if (_gestaoVolumeRealPorPlaca) return s + (_gestaoVolumeRealPorPlaca[a.placa] || 0);
     const feitas = _gestaoRealizacoes(a).filter(Boolean).length;
     return s + feitas * (Number(a.pesoMedio)||0);
   }, 0);
@@ -6000,7 +6033,9 @@ function _gestaoCardRota(grupo) {
     const realizacoes = _gestaoRealizacoes(a);
     const feitas = realizacoes.filter(Boolean).length;
     viagensRealizadas += feitas;
-    pesoEstimado += feitas * (Number(a.pesoMedio)||0);
+    // peso real (Volume Poços) por placa quando já disponível pra esse dia; senão, estimativa
+    // por viagens marcadas × peso médio — mesma prioridade usada no resto do sistema.
+    pesoEstimado += _gestaoVolumeRealPorPlaca ? (_gestaoVolumeRealPorPlaca[a.placa] || 0) : feitas * (Number(a.pesoMedio)||0);
   });
 
   const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
