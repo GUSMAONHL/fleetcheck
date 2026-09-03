@@ -5442,6 +5442,21 @@ function _renderProgCorpo() {
   const totalGeral = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
   const totalNHL = _progAtribuicoes.reduce((s,a) => s + (a.peso||0), 0);
   const totalRealizadoGeral = _progItens.reduce((s,m) => s + _progRealizadoPara(m.origem, m.destino), 0);
+
+  // Diagnóstico: volume real (Volume Poços) transportado em rotas que NÃO têm Meta Alcoa
+  // cadastrada nesse dia. Esse volume entra no total de Aderência/Volume Transportado, mas fica
+  // de fora do "Realizado" daqui (que só soma o que foi programado) — é essa a causa mais comum
+  // de diferença entre os totais das telas.
+  const chavesRegistradas = new Set(_progItens.map(m => _metaChaveOD(_progNormalizarOD(m.origem), _progNormalizarOD(m.destino))));
+  const rotasOrfaas = [];
+  let volumeOrfaoGeral = 0;
+  Object.entries(_progRealizadoDia || {}).forEach(([chave, dados]) => {
+    if (!chavesRegistradas.has(chave)) {
+      const [origemOrfa, destinoOrfa] = chave.split('|||');
+      rotasOrfaas.push({ origem: origemOrfa, destino: destinoOrfa, peso: dados.peso, viagens: dados.viagens });
+      volumeOrfaoGeral += dados.peso;
+    }
+  });
   const viagensProgGeral = _progItens.reduce((s,m) => s + _progViagensProgramadasPara(m.origem, m.destino), 0);
   const viagensRealGeral = _progItens.reduce((s,m) => s + _progRealizadoViagensPara(m.origem, m.destino), 0);
   const veiculosProgramados = _progAtribuicoes.filter(a => (Number(a.viagens)||0) > 0);
@@ -5488,6 +5503,10 @@ function _renderProgCorpo() {
           </button>
         </div>
       </div>
+      ${rotasOrfaas.length > 0 ? `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #d29922;">
+        <div style="font-size:12px;color:#d29922;font-weight:600;margin-bottom:4px;">⚠ ${fmt(volumeOrfaoGeral)}t transportados em rota(s) sem Meta Alcoa cadastrada hoje — por isso o Realizado daqui não bate com Aderência/Volume Transportado:</div>
+        ${rotasOrfaas.map(r => `<div style="font-size:11px;color:var(--text3);">${r.origem} → ${r.destino}: <strong style="color:var(--text2);">${fmt(r.peso)}t</strong> (${r.viagens} viagem${r.viagens>1?'ns':''})</div>`).join('')}
+      </div>` : ''}
     </div>
     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
     card('Volume Novo', '⛏️', '#2ea043', novo) +
