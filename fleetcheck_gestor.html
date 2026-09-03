@@ -2707,16 +2707,33 @@ function _agregarRegistrosDiarios(diasReg) {
 // Pros meses a partir do corte, não tem lista de dias vinda de importação — gera os dias do mês
 // de 1 até hoje (se for o mês corrente) ou até o fim do mês (se já passou). Mês ainda no futuro
 // retorna lista vazia (nada aconteceu ainda).
-function _diasDoMesParaExibicao(mesKey) {
-  const [ano, mes] = mesKey.split('-').map(Number);
-  const hoje = new Date();
-  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  if (mesKey > mesAtualKey) return [];
-  const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
-  const diaFinal = mesKey === mesAtualKey ? hoje.getDate() : ultimoDiaDoMes;
-  const dias = [];
-  for (let d = 1; d <= diaFinal; d++) dias.push(`${String(d).padStart(2,'0')}/${String(mes).padStart(2,'0')}/${ano}`);
-  return dias;
+let _volMetaDiasCache = null; // cache simples da lista de dias com volume real já importado
+
+async function _obterDiasVolumeReal() {
+  if (_volMetaDiasCache) return _volMetaDiasCache;
+  try {
+    const snap = await getDoc(doc(db, 'volume', 'meta'));
+    _volMetaDiasCache = (snap.exists() && Array.isArray(snap.data().dias)) ? snap.data().dias : [];
+  } catch (err) {
+    console.error('Erro ao carregar dias reais de volume:', err);
+    _volMetaDiasCache = [];
+  }
+  return _volMetaDiasCache;
+}
+
+// Pros meses a partir do corte, usa só os dias que REALMENTE têm volume já importado na base
+// principal (Volume Poços) — não gera uma sequência de calendário. Um dia com programação e
+// dado provisório na Gestão do Dia (ex.: hoje, ainda sem o volume real lançado) não deve contar
+// pra média de Aderência/Disponibilidade até o volume dele ser efetivamente importado.
+async function _diasDoMesParaExibicao(mesKey) {
+  const [ano, mes] = mesKey.split('-');
+  const diasReais = await _obterDiasVolumeReal();
+  return diasReais
+    .filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; })
+    .sort((a,b) => {
+      const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+      return da.localeCompare(db_);
+    });
 }
 
 async function _carregarMes(mesKey) {
@@ -2730,11 +2747,11 @@ async function _carregarMes(mesKey) {
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando consolidado do mês...</div>';
   try {
     // dias do mês selecionado, no formato de exibição 'DD/MM/YYYY' — antes do corte, vem da
-    // lista de dias importados da ADERENCIA; a partir do corte, gera os dias do calendário
-    // (já que não tem mais import pra saber quais dias "existem").
+    // lista de dias importados da ADERENCIA; a partir do corte, vem dos dias com volume real
+    // já importado (não uma sequência de calendário).
     const [ano, mes] = mesKey.split('-');
     const diasDoMes = mesKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)
-      ? _diasDoMesParaExibicao(mesKey)
+      ? await _diasDoMesParaExibicao(mesKey)
       : (_prodMeta.dias || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
 
     if (diasDoMes.length === 0) { _prodDiasRegistrosPeriodo = []; _renderProdResumoEBlocos([]); return; }
@@ -2766,18 +2783,22 @@ async function _carregarAno(anoKey) {
     // dias do ano vindos da ADERENCIA importada, só os anteriores ao corte
     const diasAntesCorte = (_prodMeta.dias || []).filter(d => d.split('/')[2] === anoKey && _diaParaChave(d) < GESTAO_ADERENCIA_CUTOFF);
 
-    // dias a partir do corte (gerados, sem depender de import) — um ano pode ter uma parte de
-    // cada lado do corte (ex.: 2026 tem Jan-Ago pela ADERENCIA e Set-Dez pela Gestão do Dia)
+    // dias a partir do corte — só os que realmente têm volume importado (não uma sequência de
+    // calendário). Um ano pode ter uma parte de cada lado do corte (ex.: 2026 tem Jan-Ago pela
+    // ADERENCIA e Set-Dez pela Gestão do Dia).
     const anoNum = parseInt(anoKey, 10);
     const [anoCorte, mesCorte] = GESTAO_ADERENCIA_CUTOFF.split('-').map(Number);
     let diasDepoisCorte = [];
     if (anoNum >= anoCorte) {
       const mesInicial = anoNum === anoCorte ? mesCorte : 1;
-      const hoje = new Date();
-      for (let mes = mesInicial; mes <= 12; mes++) {
-        if (anoNum === hoje.getFullYear() && mes > hoje.getMonth()+1) break; // mês ainda no futuro
-        diasDepoisCorte = diasDepoisCorte.concat(_diasDoMesParaExibicao(`${anoNum}-${String(mes).padStart(2,'0')}`));
-      }
+      const diasReais = await _obterDiasVolumeReal();
+      diasDepoisCorte = diasReais.filter(d => {
+        const p = d.split('/'); // [DD, MM, YYYY]
+        return p[2] === String(anoNum) && parseInt(p[1],10) >= mesInicial;
+      }).sort((a,b) => {
+        const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
+        return da.localeCompare(db_);
+      });
     }
 
     const diasDoAno = diasAntesCorte.concat(diasDepoisCorte);
@@ -2858,10 +2879,10 @@ window.renderProdutividade = async function renderProdutividade() {
     const hoje = new Date();
     const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
 
-    // a partir do corte, adiciona os dias do mês corrente (gerados, sem depender de import) pra
-    // aparecerem no seletor de Dia mesmo que nenhuma planilha ADERENCIA nunca tenha sido importada
+    // a partir do corte, adiciona os dias do mês corrente que já têm volume real importado pra
+    // aparecerem no seletor de Dia mesmo sem nenhuma planilha ADERENCIA jamais importada
     if (mesAtualKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) {
-      _diasDoMesParaExibicao(mesAtualKey).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
+      (await _diasDoMesParaExibicao(mesAtualKey)).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
     }
 
     const dias = diasTodos.slice().sort((a,b) => {
@@ -3383,6 +3404,7 @@ window.importarVolume = async function importarVolume(input) {
     _progRosterVeiculos = null; // força a tela de Programação a buscar a frota atualizada de novo
     _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
     _minasPesoMedioCache = null; // idem pro peso médio por rota mostrado na tela de Minas
+    _volMetaDiasCache = null; // idem pra lista de dias com volume real, usada na Aderência a partir do corte
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
     window.renderVolume();
