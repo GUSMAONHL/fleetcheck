@@ -3936,11 +3936,31 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     const projecao = (totalReal / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/totalMeta)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);">
-      <div style="font-size:16px;font-weight:600;color:var(--text2);text-align:left;">📈 Projeção (${diasOperacao}d)</div>
-      <div style="font-size:20px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;text-align:center;">${fmt(projecao)}t</div>
-      <div style="font-size:19px;font-weight:700;color:${corProj};text-align:right;">${pctProj}%</div>
+    projecaoHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);">
+      <div style="font-size:16px;font-weight:600;color:var(--text2);white-space:nowrap;">📈 Projeção (${diasOperacao}d)</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-shrink:0;">
+        <div style="font-size:20px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(projecao)}t</div>
+        <div style="font-size:19px;font-weight:700;color:${corProj};white-space:nowrap;">${pctProj}%</div>
+      </div>
     </div>`;
+  }
+
+  // Quanto precisa transportar por dia, nos dias que ainda restam, pra bater a meta do mês.
+  let necessarioHtml = '';
+  if (diasOperacao > 0) {
+    const diasRestantes = Math.max(0, diasOperacao - diasComDados);
+    const faltante = totalMeta - totalReal;
+    if (faltante <= 0) {
+      necessarioHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:14px;color:#2ea043;text-align:center;">✔ Meta já atingida</div>`;
+    } else if (diasRestantes > 0) {
+      const volumeNecessarioDia = faltante / diasRestantes;
+      necessarioHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);">
+        <div style="font-size:16px;font-weight:600;color:var(--text2);">📊 Necessário/dia (${diasRestantes}d restantes)</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;flex-shrink:0;">${fmt(volumeNecessarioDia)}t</div>
+      </div>`;
+    } else {
+      necessarioHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:13px;color:#f85149;text-align:center;">⚠ Sem dias restantes no mês pra atingir a meta</div>`;
+    }
   }
 
   return `<div style="margin-top:10px;padding-top:10px;border-top:2px solid ${cor};">
@@ -3954,6 +3974,7 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
       </div>
     </div>
     ${projecaoHtml}
+    ${necessarioHtml}
   </div>`;
 }
 
@@ -4546,6 +4567,27 @@ window._onMetaMesChange = function _onMetaMesChange(mesKey) {
   _volCarregarMetasDoMes(mesKey);
 };
 
+// Aplica silenciosamente qualquer edição/adição que ainda esteja só no formulário (preenchida
+// mas não confirmada clicando em "Adicionar") — assim "Salvar Metas" funciona mesmo se o
+// usuário editar um valor e for direto salvar, sem passar pelo botão Adicionar antes.
+function _volAplicarFormularioMetaPendente() {
+  const origemEl = document.getElementById('meta-input-origem');
+  const destinoEl = document.getElementById('meta-input-destino');
+  const valorEl = document.getElementById('meta-input-valor');
+  if (!origemEl || !valorEl) return;
+  const origem = origemEl.value.trim().toUpperCase();
+  const destino = destinoEl.value;
+  const valor = parseFloat(valorEl.value);
+  if (!origem || isNaN(valor) || valor <= 0) return; // formulário vazio/incompleto — nada pendente
+
+  const existente = _volMetas.find(m => m.origem === origem && m.destino === destino);
+  if (existente) existente.meta = valor;
+  else _volMetas.push({ origem, destino, meta: valor });
+
+  origemEl.value = '';
+  valorEl.value = '';
+}
+
 window.adicionarMeta = function adicionarMeta() {
   const origemEl = document.getElementById('meta-input-origem');
   const destinoEl = document.getElementById('meta-input-destino');
@@ -4581,7 +4623,7 @@ window.editarMeta = function editarMeta(idx) {
   valorEl.value = m.meta;
   valorEl.focus();
   valorEl.select();
-  showToast(`✏️ Editando ${m.origem} → ${m.destino} — ajuste o valor e clique em Adicionar para atualizar.`);
+  showToast(`✏️ Editando ${m.origem} → ${m.destino} — ajuste o valor e clique em Adicionar (ou vá direto em Salvar Metas).`);
 };
 
 window._onDiasOperacaoChange = function _onDiasOperacaoChange() {
@@ -4592,6 +4634,8 @@ window._onDiasOperacaoChange = function _onDiasOperacaoChange() {
 
 window.salvarMetas = async function salvarMetas() {
   if (!_volMetasMesAtual) { showToast('✖ Selecione o mês antes de salvar.'); return; }
+  _volAplicarFormularioMetaPendente();
+  _renderMetasCorpo();
   try {
     await setDoc(doc(db, 'volume_metas', _volMetasMesAtual), { itens: _volMetas, diasOperacao: _volMetasDiasOperacao || null, atualizadoEm: new Date().toISOString() });
     delete _volMetasCardsCache[_volMetasMesAtual];
