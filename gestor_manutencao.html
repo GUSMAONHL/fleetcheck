@@ -372,7 +372,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vrow:hover .btn-inativar-veiculo{display:flex;}
 .vrow .btn-inativar-veiculo:hover{border-color:#cc2222;color:#cc2222;}
 .hist-sel-veiculo{padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text);font-family:inherit;min-width:200px;}
+
+.btn-export{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:.5px solid var(--border2);background:var(--bg2);font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;}
+.btn-export:hover{border-color:#185FA5;color:#185FA5;}
+.btn-export.excel:hover{border-color:#217346;color:#217346;}
+.btn-export.pdf:hover{border-color:#cc2222;color:#cc2222;}
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -689,7 +697,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="est-tbl-wrap">
         <div class="est-tbl-hdr"><div class="est-tbl-title">Entradas de estoque</div></div>
         <table class="est-tbl">
-          <thead><tr><th>Grupo</th><th>Tipo</th><th>Código</th><th>Marca</th><th>Aplicação/Veíc</th><th>Filial</th><th>Medida</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th></th></tr></thead>
+          <thead><tr><th>N° Pedido</th><th>Data entrada</th><th>Grupo</th><th>Material</th><th>Código</th><th>Marca</th><th>Aplicação/Veíc</th><th>Filial</th><th>Medida</th><th style="text-align:center;">Qtd</th><th style="text-align:right;">Valor unit.</th><th style="text-align:right;">Valor total</th><th></th></tr></thead>
           <tbody id="est-tbl-body"></tbody>
         </table>
       </div>
@@ -705,7 +713,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <button class="est-btn-cad item" onclick="estAbrirCad('item')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Grupo</button>
-            <button class="est-btn-cad tipo" onclick="estAbrirCad('tipo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Tipo</button>
+            <button class="est-btn-cad tipo" onclick="estAbrirCad('tipo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Material</button>
             <button class="est-btn-cad modelo" onclick="estAbrirCad('modelo')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Código</button>
             <button class="est-btn-cad marca" onclick="estAbrirCad('marca')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Marca</button>
             <button class="est-btn-cad" style="border-color:#0C6E4F;color:#064D37;background:#E0F4EE;" onclick="estAbrirCad('aplicacao')"><i class="ti ti-plus" aria-hidden="true" style="font-size:12px;"></i>Aplicação/Veíc</button>
@@ -716,7 +724,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div style="overflow-y:auto;flex:1;padding:16px 18px;">
           <div class="est-lists-grid">
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#0C447C;">Grupos</span><span style="font-size:10px;color:var(--text3);" id="cnt-item">0</span></div><div class="est-list-body" id="list-item"></div></div>
-            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#27500A;">Tipos</span><span style="font-size:10px;color:var(--text3);" id="cnt-tipo">0</span></div><div class="est-list-body" id="list-tipo"></div></div>
+            <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#27500A;">Materiais</span><span style="font-size:10px;color:var(--text3);" id="cnt-tipo">0</span></div><div class="est-list-body" id="list-tipo"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#633806;">Códigos</span><span style="font-size:10px;color:var(--text3);" id="cnt-modelo">0</span></div><div class="est-list-body" id="list-modelo"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#26215C;">Marcas</span><span style="font-size:10px;color:var(--text3);" id="cnt-marca">0</span></div><div class="est-list-body" id="list-marca"></div></div>
             <div class="est-list-card"><div class="est-list-hdr"><span class="est-list-title" style="color:#064D37;">Aplicação/Veíc</span><span style="font-size:10px;color:var(--text3);" id="cnt-aplicacao">0</span></div><div class="est-list-body" id="list-aplicacao"></div></div>
@@ -741,9 +749,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="est-modal" style="width:500px;max-width:95vw;">
         <div class="est-mhdr"><div class="est-mhdr-t"><i class="ti ti-arrow-bar-to-down" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:6px;"></i>Dar entrada no estoque</div><button onclick="estFecharEntrada()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button></div>
         <div class="est-mbody">
+          <div class="est-field">
+            <label>N° Pedido</label>
+            <input type="text" id="ent-npedido" placeholder="Ex: PED-2026-001" oninput="this.value=this.value.toUpperCase()" autocomplete="off" style="font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;font-size:14px;">
+          </div>
           <div class="est-field-row">
             <div class="est-field"><label>Grupo</label><select id="ent-item"><option value="">— selecione —</option></select></div>
-            <div class="est-field"><label>Tipo</label><select id="ent-tipo"><option value="">— selecione —</option></select></div>
+            <div class="est-field"><label>Material</label><select id="ent-tipo"><option value="">— selecione —</option></select></div>
           </div>
           <div class="est-field-row">
             <div class="est-field"><label>Código</label><select id="ent-modelo"><option value="">— selecione —</option></select></div>
@@ -805,7 +817,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="hist-tbl-wrap">
           <div class="hist-tbl-hdr">
             <div class="hist-tbl-title">Inspeções por dia</div>
-            <div style="font-size:11px;color:var(--text3);" id="hist-periodo-label">—</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:var(--text3);" id="hist-periodo-label">—</span>
+              <button class="btn-export excel" onclick="exportHistExcel()" title="Exportar Excel">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Excel
+              </button>
+              <button class="btn-export pdf" onclick="exportHistPDF()" title="Exportar PDF">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15v-4"/><path d="M9 11h2.5a1.5 1.5 0 010 3H9"/><path d="M14 15v-4"/><path d="M17 11v4"/><path d="M14 13h3"/></svg>
+                PDF
+              </button>
+            </div>
           </div>
           <table class="hist-tbl">
             <thead><tr>
@@ -837,7 +859,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="reg-tbl-wrap">
           <div class="reg-tbl-hdr">
             <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);">Controle de regulagem de freio</div>
-            <div style="font-size:11px;color:var(--text3);" id="reg-periodo-label">—</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:11px;color:var(--text3);" id="reg-periodo-label">—</span>
+              <button class="btn-export excel" onclick="exportRegExcel()" title="Exportar Excel">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Excel
+              </button>
+              <button class="btn-export pdf" onclick="exportRegPDF()" title="Exportar PDF">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15v-4"/><path d="M9 11h2.5a1.5 1.5 0 010 3H9"/><path d="M14 15v-4"/><path d="M17 11v4"/><path d="M14 13h3"/></svg>
+                PDF
+              </button>
+            </div>
           </div>
           <div style="overflow-x:auto;">
             <table class="reg-tbl" id="reg-tbl">
@@ -2890,12 +2922,12 @@ let _estCadTipo = '';
 let _estEntUnidade = 'unid';
 
 const EST_CAD_INFO = {
-  item:   { label:'Nome do item',  titulo:'Cadastrar Item',   cor:'#0C447C' },
-  tipo:   { label:'Tipo',          titulo:'Cadastrar Tipo',   cor:'#27500A' },
-  modelo: { label:'Modelo',        titulo:'Cadastrar Modelo', cor:'#633806' },
-  marca:  { label:'Marca',         titulo:'Cadastrar Marca',  cor:'#26215C' },
-  aplicacao: { label:'Aplicação / Veículo', titulo:'Cadastrar Aplicação/Veíc', cor:'#064D37' },
-  filial: { label:'Filial / Local',titulo:'Cadastrar Filial', cor:'#444441' },
+  item:     { label:'Nome do grupo',        titulo:'Cadastrar Grupo',         cor:'#0C447C' },
+  tipo:     { label:'Material',             titulo:'Cadastrar Material',      cor:'#27500A' },
+  modelo:   { label:'Código',               titulo:'Cadastrar Código',        cor:'#633806' },
+  marca:    { label:'Marca',                titulo:'Cadastrar Marca',         cor:'#26215C' },
+  aplicacao:{ label:'Aplicação / Veículo',  titulo:'Cadastrar Aplicação/Veíc',cor:'#064D37' },
+  filial:   { label:'Filial / Local',       titulo:'Cadastrar Filial',        cor:'#444441' },
 };
 const EST_COLS = ['item','tipo','modelo','marca','aplicacao','filial'];
 
@@ -2951,7 +2983,10 @@ function renderEstoqueTbl() {
     const qtd=parseFloat(e.qtd)||0;
     const cls=qtd===0?'zt':qtd<=2?'lw':'ok';
     const medida=e.unidade==='litros'?'Litros':'Unid.';
-    return `<tr><td>${e.item||'—'}</td><td>${estBadge(e.tipo)}</td><td style="color:var(--text2);">${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.aplicacao||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.filial||'—'}</td><td style="font-size:12px;color:var(--text2);">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="text-align:center;"><button onclick="estDelEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
+    return `<tr>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:500;font-size:13px;">${e.nPedido||'—'}</td>
+        <td style="font-size:12px;color:var(--text2);">${e.entradaEm ? new Date(e.entradaEm).toLocaleDateString('pt-BR') : '—'}</td>
+        <td>${e.item||'—'}</td><td>${estBadge(e.tipo)}</td><td style="color:var(--text2);">${e.modelo||'—'}</td><td style="color:var(--text2);">${e.marca||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.aplicacao||'—'}</td><td style="font-size:12px;color:var(--text2);">${e.filial||'—'}</td><td style="font-size:12px;color:var(--text2);">${medida}</td><td style="text-align:center;"><span class="est-qty ${cls}">${qtd}</span></td><td style="text-align:right;font-size:12px;color:var(--text2);">R$ ${parseFloat(e.valorUnit||0).toFixed(2).replace('.',',')}</td><td style="text-align:right;font-size:12px;font-weight:500;color:var(--text);">R$ ${parseFloat(e.valorTotal||0).toFixed(2).replace('.',',')}</td><td style="text-align:center;"><button onclick="estDelEntrada('${e.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;"><i class="ti ti-trash" aria-hidden="true"></i></button></td></tr>`;
   }).join('');
 }
 
@@ -2964,7 +2999,8 @@ function renderEntradaSelects() {
     if (saved) sel.value = saved;
   };
   populate('ent-item','item'); populate('ent-tipo','tipo');
-  populate('ent-modelo','modelo'); populate('ent-marca','marca'); populate('ent-filial','filial');
+  populate('ent-modelo','modelo'); populate('ent-marca','marca');
+  populate('ent-aplicacao','aplicacao'); populate('ent-filial','filial');
 }
 
 // ── Modal cad simples ──
@@ -3000,6 +3036,7 @@ async function estDelCad(tipo, id) {
 function estAbrirEntrada() {
   renderEntradaSelects();
   estSetEntUnidade('unid');
+  document.getElementById('ent-npedido').value='';
   document.getElementById('ent-qty').value='';
   document.getElementById('ent-valor').value='';
   const prev = document.getElementById('ent-valor-unit-preview'); if(prev) prev.textContent='R$ 0,00';
@@ -3018,6 +3055,7 @@ async function estSalvarEntrada() {
   const tipo   = document.getElementById('ent-tipo').value;
   const modelo = document.getElementById('ent-modelo').value;
   const marca  = document.getElementById('ent-marca').value;
+  const nPedido   = document.getElementById('ent-npedido')?.value.trim().toUpperCase() || '';
   const aplicacao = document.getElementById('ent-aplicacao').value;
   const filial = document.getElementById('ent-filial').value;
   const qtd       = parseFloat(document.getElementById('ent-qty').value)||0;
@@ -3027,7 +3065,7 @@ async function estSalvarEntrada() {
   if (!item||!tipo||!modelo||!marca||!filial){ alert('Preencha todos os campos.'); return; }
   if (qtd<=0){ alert('Informe uma quantidade maior que zero.'); return; }
   try {
-    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{item,tipo,modelo,marca,aplicacao,filial,unidade,qtd,valorTotal,valorUnit:valor,entradaEm:new Date().toISOString()});
+    await setDoc(doc(db,'estoque_entradas',Date.now().toString()),{nPedido,item,tipo,modelo,marca,aplicacao,filial,unidade,qtd,valorTotal,valorUnit:valor,entradaEm:new Date().toISOString()});
     estFecharEntrada();
     await carregarEstoque();
     showToast('Entrada registrada!');
@@ -3254,6 +3292,135 @@ async function carregarHistorico() {
 }
 
 window.histSetPeriodo    = histSetPeriodo;
+
+// ══ EXPORTAÇÃO HISTÓRICO ══
+
+function tblParaArray(tblId) {
+  const tbl = document.getElementById(tblId) || document.querySelector('#' + tblId);
+  if (!tbl) return { headers: [], rows: [] };
+  const ths = Array.from(tbl.querySelectorAll('thead th')).map(th => th.textContent.trim());
+  const rows = Array.from(tbl.querySelectorAll('tbody tr')).map(tr =>
+    Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())
+  ).filter(r => r.length > 1);
+  return { headers: ths, rows };
+}
+
+// ── Visão Geral ──
+function exportHistExcel() {
+  const periodo = document.getElementById('hist-periodo-label')?.textContent || '';
+  const { headers, rows } = tblParaArray('hist-tbl-body');
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  // Larguras
+  ws['!cols'] = headers.map((_,i) => ({ wch: i===0 ? 18 : 12 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Inspeções por dia');
+  XLSX.writeFile(wb, `historico_inspecoes_${periodo.replace(/[^0-9/]/g,'').replace(/\//g,'-')}.xlsx`);
+}
+
+function exportHistPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const periodo = document.getElementById('hist-periodo-label')?.textContent || '';
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.text('NOVO HORIZONTE LOGÍSTICA — Histórico de Inspeções', 14, 16);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.text('Período: ' + periodo, 14, 23);
+  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), 14, 29);
+
+  const { headers, rows } = tblParaArray('hist-tbl-body');
+  // Remover coluna "Aproveitamento" (última) — contém barra visual
+  const hFilt = headers.slice(0, -1);
+  const rFilt = rows.map(r => r.slice(0, -1));
+
+  doc.autoTable({
+    startY: 34,
+    head: [hFilt],
+    body: rFilt,
+    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [24, 95, 165], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+    columnStyles: { 0: { cellWidth: 32 } }
+  });
+
+  doc.save(`historico_inspecoes_${periodo.replace(/[^0-9]/g,'_')}.pdf`);
+}
+
+// ── Controle de Regulagem ──
+function exportRegExcel() {
+  const periodo = document.getElementById('reg-periodo-label')?.textContent || '';
+  const tbl = document.getElementById('reg-tbl');
+  if (!tbl) return;
+  const ths = Array.from(tbl.querySelectorAll('thead th')).map(th => th.innerText.trim());
+  const rows = Array.from(tbl.querySelectorAll('tbody tr')).map(tr =>
+    Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim() === '✕' ? 'X' : td.textContent.trim())
+  ).filter(r => r.length > 1);
+
+  const wsData = [ths, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = ths.map((_,i) => ({ wch: i === 0 ? 20 : i === ths.length-1 ? 28 : 10 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Regulagem de Freio');
+  XLSX.writeFile(wb, `regulagem_freio_${periodo.replace(/[^0-9/]/g,'').replace(/\//g,'-')}.xlsx`);
+}
+
+function exportRegPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const periodo = document.getElementById('reg-periodo-label')?.textContent || '';
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.text('NOVO HORIZONTE LOGÍSTICA — Controle de Regulagem de Freio', 14, 16);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.text('Período: ' + periodo, 14, 23);
+  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), 14, 29);
+
+  const tbl = document.getElementById('reg-tbl');
+  if (!tbl) return;
+  const ths = Array.from(tbl.querySelectorAll('thead th')).map(th => th.innerText.trim());
+  const rows = Array.from(tbl.querySelectorAll('tbody tr')).map(tr =>
+    Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim() === '✕' ? 'X' : td.textContent.trim())
+  ).filter(r => r.length > 1);
+
+  // Calcular largura das colunas: Nº Frota fixo, dias iguais, Observações maior
+  const nCols = ths.length;
+  const colStyles = {};
+  colStyles[0] = { cellWidth: 24 }; // Nº Frota
+  colStyles[nCols-1] = { cellWidth: 40 }; // Observações
+
+  doc.autoTable({
+    startY: 34,
+    head: [ths],
+    body: rows,
+    styles: { fontSize: 8, cellPadding: 2, halign: 'center' },
+    headStyles: { fillColor: [0, 24, 84], textColor: 255, fontStyle: 'bold' },
+    columnStyles: colStyles,
+    bodyStyles: { halign: 'center' },
+    didParseCell: (data) => {
+      if (data.section === 'body') {
+        if (data.cell.raw === 'X') {
+          data.cell.styles.textColor = [39, 80, 10];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        if (data.column.index === 0) data.cell.styles.halign = 'left';
+        if (data.column.index === data.table.columns.length - 1) data.cell.styles.halign = 'left';
+      }
+    },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+  });
+
+  doc.save(`regulagem_freio_${periodo.replace(/[^0-9]/g,'_')}.pdf`);
+}
+
+window.exportHistExcel = exportHistExcel;
+window.exportHistPDF   = exportHistPDF;
+window.exportRegExcel  = exportRegExcel;
+window.exportRegPDF    = exportRegPDF;
 window.histAplicarFiltro = histAplicarFiltro;
 
 // ══ CONTROLE DE REGULAGEM ══
