@@ -3323,13 +3323,25 @@ function exportHistPDF() {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const periodo = document.getElementById('hist-periodo-label')?.textContent || '';
 
+  const pageW = doc.internal.pageSize.getWidth();
+  // ── Logo NHL ──
+  try {
+    const logoEl = document.querySelector('.sidebar-logo img');
+    if (logoEl && logoEl.src) doc.addImage(logoEl.src, 'PNG', 10, 6, 18, 18);
+  } catch(e) {}
   doc.setFont('helvetica','bold');
-  doc.setFontSize(14);
-  doc.text('NOVO HORIZONTE LOGÍSTICA — Histórico de Inspeções', 14, 16);
+  doc.setFontSize(13);
+  doc.setTextColor(0, 24, 84);
+  doc.text('NOVO HORIZONTE LOGÍSTICA', 32, 12);
   doc.setFont('helvetica','normal');
   doc.setFontSize(10);
-  doc.text('Período: ' + periodo, 14, 23);
-  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), 14, 29);
+  doc.setTextColor(60,60,60);
+  doc.text('Histórico de Inspeções', 32, 18);
+  doc.text('Período: ' + periodo, 32, 24);
+  doc.setFontSize(8);
+  doc.setTextColor(120,120,120);
+  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), pageW - 14, 12, { align:'right' });
+  doc.setDrawColor(0,24,84); doc.setLineWidth(0.5); doc.line(10, 27, pageW - 10, 27);
 
   const { headers, rows } = tblParaArray('hist-tbl-body');
   // Remover coluna "Aproveitamento" (última) — contém barra visual
@@ -3337,7 +3349,7 @@ function exportHistPDF() {
   const rFilt = rows.map(r => r.slice(0, -1));
 
   doc.autoTable({
-    startY: 34,
+    startY: 30,
     head: [hFilt],
     body: rFilt,
     styles: { fontSize: 9, cellPadding: 3 },
@@ -3369,16 +3381,37 @@ function exportRegExcel() {
 
 function exportRegPDF() {
   const { jsPDF } = window.jspdf;
+  // A4 paisagem
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
   const periodo = document.getElementById('reg-periodo-label')?.textContent || '';
 
+  // ── Logo NHL ──
+  try {
+    const logoEl = document.querySelector('.sidebar-logo img');
+    if (logoEl && logoEl.src) {
+      doc.addImage(logoEl.src, 'PNG', 10, 6, 18, 18);
+    }
+  } catch(e) {}
+
+  // ── Cabeçalho ──
   doc.setFont('helvetica','bold');
-  doc.setFontSize(14);
-  doc.text('NOVO HORIZONTE LOGÍSTICA — Controle de Regulagem de Freio', 14, 16);
-  doc.setFont('helvetica','normal');
+  doc.setFontSize(13);
+  doc.setTextColor(0, 24, 84);
+  doc.text('NOVO HORIZONTE LOGÍSTICA', 32, 12);
   doc.setFontSize(10);
-  doc.text('Período: ' + periodo, 14, 23);
-  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), 14, 29);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(60, 60, 60);
+  doc.text('Controle de Regulagem de Freio', 32, 18);
+  doc.text('Período: ' + periodo, 32, 24);
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Emitido em: ' + new Date().toLocaleDateString('pt-BR'), pageW - 14, 12, { align: 'right' });
+
+  // Linha separadora
+  doc.setDrawColor(0, 24, 84);
+  doc.setLineWidth(0.5);
+  doc.line(10, 27, pageW - 10, 27);
 
   const tbl = document.getElementById('reg-tbl');
   if (!tbl) return;
@@ -3387,34 +3420,55 @@ function exportRegPDF() {
     Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim() === '✕' ? 'X' : td.textContent.trim())
   ).filter(r => r.length > 1);
 
-  // Calcular largura das colunas: Nº Frota fixo, dias iguais, Observações maior
   const nCols = ths.length;
+  // Largura disponível: pageW - 20mm de margens
+  const available = pageW - 20;
+  const nfrW   = 26;   // Nº Frota
+  const obsW   = 38;   // Observações
+  const diaW   = Math.max(7, Math.floor((available - nfrW - obsW) / Math.max(1, nCols - 2)));
+
   const colStyles = {};
-  colStyles[0] = { cellWidth: 24 }; // Nº Frota
-  colStyles[nCols-1] = { cellWidth: 40 }; // Observações
+  colStyles[0]        = { cellWidth: nfrW, halign: 'left' };
+  colStyles[nCols-1]  = { cellWidth: obsW, halign: 'left' };
+  for (let i = 1; i < nCols-1; i++) colStyles[i] = { cellWidth: diaW, halign: 'center' };
 
   doc.autoTable({
-    startY: 34,
+    startY: 30,
     head: [ths],
     body: rows,
-    styles: { fontSize: 8, cellPadding: 2, halign: 'center' },
-    headStyles: { fillColor: [0, 24, 84], textColor: 255, fontStyle: 'bold' },
+    margin: { left: 10, right: 10 },
+    styles: { fontSize: 7, cellPadding: 1.5, overflow: 'hidden' },
+    headStyles: {
+      fillColor: [0, 24, 84],
+      textColor: 255,
+      fontStyle: 'bold',
+      fontSize: 7,
+      cellPadding: { top: 2, bottom: 2, left: 1, right: 1 },
+      halign: 'center',
+      valign: 'middle',
+      minCellHeight: 8,
+    },
     columnStyles: colStyles,
-    bodyStyles: { halign: 'center' },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
     didParseCell: (data) => {
-      if (data.section === 'body') {
-        if (data.cell.raw === 'X') {
-          data.cell.styles.textColor = [39, 80, 10];
-          data.cell.styles.fontStyle = 'bold';
-        }
-        if (data.column.index === 0) data.cell.styles.halign = 'left';
-        if (data.column.index === data.table.columns.length - 1) data.cell.styles.halign = 'left';
+      if (data.section === 'body' && data.cell.raw === 'X') {
+        data.cell.styles.textColor = [39, 80, 10];
+        data.cell.styles.fontStyle = 'bold';
       }
     },
-    alternateRowStyles: { fillColor: [245, 247, 250] },
+    // Rodapé com paginação
+    didDrawPage: (data) => {
+      const pY = doc.internal.pageSize.getHeight() - 6;
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        'Página ' + doc.internal.getCurrentPageInfo().pageNumber,
+        pageW / 2, pY, { align: 'center' }
+      );
+    }
   });
 
-  doc.save(`regulagem_freio_${periodo.replace(/[^0-9]/g,'_')}.pdf`);
+  doc.save('regulagem_freio_' + periodo.replace(/[^0-9]/g,'_') + '.pdf');
 }
 
 window.exportHistExcel = exportHistExcel;
