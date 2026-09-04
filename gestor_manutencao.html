@@ -1579,13 +1579,52 @@ document.addEventListener('click', e => {
   abrirModal(row.getAttribute('data-placa'));
 });
 
+// ── TELEMETRIA (SasIntegra) ──
+function renderTelemetriaPlaceholder() {
+  return `<div id="telemetria-secao" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:8px;">
+    <div class="msec-title"><span>📡 Telemetria</span></div>
+    <div style="font-size:12px;color:var(--text3);padding:8px 0;">Carregando...</div>
+  </div>`;
+}
+
+async function carregarTelemetriaModal(placa) {
+  const box = document.getElementById('telemetria-secao');
+  if (!box) return;
+  try {
+    const snap = await getDoc(doc(db,'telemetria_veiculos', placa));
+    if (!snap.exists()) {
+      box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
+        <div style="font-size:12px;color:var(--text3);padding:8px 0;">Sem dados de telemetria ainda para este veículo.</div>`;
+      return;
+    }
+    const t = snap.data();
+    const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
+    const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
+    box.innerHTML = `
+      <div class="msec-title">
+        <span>📡 Telemetria</span>
+        <span style="color:var(--text3);font-size:11px;">Atualizado: ${atualizado}</span>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;padding:8px 0 4px;">
+        <div><div style="font-size:11px;color:var(--text3);">Hodômetro</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.odometro,' km')}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">Km rodado hoje</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.kmRodadoHoje,' km')}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">RPM médio</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMedio)}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">RPM máximo</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMaximo)}</div></div>
+      </div>`;
+  } catch(e) {
+    box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
+      <div style="font-size:12px;color:var(--err);padding:8px 0;">Erro ao carregar dados de telemetria.</div>`;
+    console.warn('carregarTelemetriaModal:', e);
+  }
+}
+
 function abrirModal(placa) {
   const v  = TODOS.find(x=>x.placa===placa);
   const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
   document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
 
-  let html='';
+  let html=renderTelemetriaPlaceholder();
   [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']].forEach(([mod,label])=>{
     const doc=st[mod], s=statusDoc(doc);
     const cores={pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
@@ -1650,6 +1689,7 @@ function abrirModal(placa) {
   });
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-ov').classList.add('show');
+  carregarTelemetriaModal(placa);
   // Carrega OS salvas
   carregarOSdoModal(placa, [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']]).then(() => {
     // Atualiza inputs com valores carregados
