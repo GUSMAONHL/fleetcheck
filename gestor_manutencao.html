@@ -938,6 +938,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
   </div>
 </div>
 
+<div class="modal-ov" id="relatorio-ov" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1.5px;" id="relatorio-placa">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="relatorio-meta">Relatório de Telemetria — hoje</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('relatorio-ov').classList.remove('show')">✕</button>
+    </div>
+    <div class="modal-body" id="relatorio-body"></div>
+  </div>
+</div>
+
 
 <div class="modal-ov" id="modal-termac-ov" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal-box" style="max-width:460px;">
@@ -1714,8 +1727,70 @@ function renderTelemetriaPagina() {
 document.addEventListener('click', e => {
   const row = e.target.closest('.tel-row[data-placa]');
   if (!row) return;
-  abrirModal(row.getAttribute('data-placa'));
+  abrirRelatorioTelemetria(row.getAttribute('data-placa'));
 });
+
+async function abrirRelatorioTelemetria(placa) {
+  document.getElementById('relatorio-placa').textContent = placa;
+  document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Carregando...</div>';
+  document.getElementById('relatorio-ov').classList.add('show');
+
+  try {
+    const snap = await getDoc(doc(db,'telemetria_veiculos', placa));
+    if (!snap.exists()) {
+      document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Sem dados de telemetria hoje para este veículo.</div>';
+      return;
+    }
+    renderRelatorioTelemetria(snap.data());
+  } catch(e) {
+    document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--err);padding:24px;">Erro ao carregar relatório.</div>';
+    console.warn('abrirRelatorioTelemetria:', e);
+  }
+}
+
+function renderRelatorioTelemetria(t) {
+  const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
+  const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
+
+  const faixas = t.faixasPercentual || {};
+  const cores = { marchaLenta:'#BA7517', transicao:'#185FA5', verde:'#3B6D11', amarela:'#b07a10', perigo:'#A32D2D' };
+  const nomes = { marchaLenta:'Marcha lenta', transicao:'Transição', verde:'Verde econômica', amarela:'Amarela', perigo:'Perigo' };
+  const temFaixas = Object.values(faixas).some(v => v > 0);
+  const barHtml = Object.entries(faixas).filter(([,p])=>p>0).map(([k,p]) => `<div style="width:${p}%;background:${cores[k]||'#999'};"></div>`).join('');
+  const legendHtml = Object.entries(faixas).map(([k,p]) => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);margin-right:12px;"><span style="width:9px;height:9px;border-radius:2px;background:${cores[k]||'#999'};display:inline-block;"></span>${nomes[k]||k} ${p}%</span>`).join('');
+
+  document.getElementById('relatorio-body').innerHTML = `
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Atualizado: ${atualizado} · ${t.quantidadeDeltas||0} trecho(s) registrado(s) hoje</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
+      <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">RPM médio</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.rpmMedio)}</div></div></div>
+      <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">RPM máximo</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.rpmMaximo)}</div></div></div>
+      <div class="pcm-kpi-card" style="border-left:4px solid #BA7517;"><div class="pcm-kpi-top"><div class="pcm-kpi-label">Marcha lenta</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.faixasMin?.marchaLenta,' min')}</div></div></div>
+      <div class="pcm-kpi-card" style="border-left:4px solid var(--ok);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">Combustível</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.consumoTotalLitros,' L')}</div></div></div>
+    </div>
+    ${temFaixas ? `
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Tempo por faixa de RPM</div>
+      <div style="display:flex;width:100%;height:22px;border-radius:6px;overflow:hidden;margin-bottom:6px;">${barHtml}</div>
+      <div style="margin-bottom:18px;">${legendHtml}</div>
+    ` : ''}
+    <table class="pcm-tbl">
+      <tbody>
+        <tr><td>Hodômetro</td><td style="text-align:right;">${fmt(t.odometro,' km')}</td></tr>
+        <tr><td>Km rodado hoje</td><td style="text-align:right;">${fmt(t.kmRodadoHoje,' km')}</td></tr>
+        <tr><td>Velocidade média</td><td style="text-align:right;">${fmt(t.velocidadeMedia,' km/h')}</td></tr>
+        <tr><td>Média de consumo</td><td style="text-align:right;">${fmt(t.mediaKmPorLitro,' km/L')} (${fmt(t.mediaLitrosPor100km,' L/100km')})</td></tr>
+        <tr><td>Tempo com freio motor</td><td style="text-align:right;">${fmt(t.tempoDuracaoFreioMotorMin,' min')}</td></tr>
+        <tr><td>Distância com freio acionado</td><td style="text-align:right;">${fmt(t.distanciaPercorridaFreioAcionadoKm,' km')}</td></tr>
+        <tr><td>Distância com embreagem acionada</td><td style="text-align:right;">${fmt(t.distanciaPercorridaEmbreagemAcionadaKm,' km')}</td></tr>
+        <tr><td>Tempo parado / em movimento</td><td style="text-align:right;">${fmt(t.tempoDuracaoParadoMin,' min')} / ${fmt(t.tempoDuracaoMovimentoMin,' min')}</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:16px;padding-top:10px;border-top:1px dashed var(--border);">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Eventos hoje (${t.eventosHoje?.total||0}) — Segurança: ${t.eventosHoje?.porCategoria?.['Segurança']||0} · Manutenção: ${t.eventosHoje?.porCategoria?.['Manutenção']||0}</div>
+      ${Object.entries(t.eventosHoje?.porTipo||{}).map(([nome,qtd]) =>
+        `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span style="color:var(--text2);">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
+      ).join('') || '<div style="font-size:12px;color:var(--text3);">Nenhum evento hoje.</div>'}
+    </div>`;
+}
 
 function abrirModal(placa) {
   const v  = TODOS.find(x=>x.placa===placa);
