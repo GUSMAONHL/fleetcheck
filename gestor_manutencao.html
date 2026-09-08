@@ -1760,8 +1760,8 @@ function renderRelatorioTelemetria(t) {
   const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
 
   const faixas = t.faixasPercentual || {};
-  const cores = { marchaLenta:'#6B7280', transicao:'#185FA5', verde:'#3B6D11', amarela:'#b07a10', perigo:'#A32D2D' };
-  const nomes = { marchaLenta:'Marcha lenta', transicao:'Transição', verde:'Verde econômica', amarela:'Amarela', perigo:'Perigo' };
+  const cores = { marchaLenta:'#6B7280', transicao:'#185FA5', verde:'#3B6D11', verdeEconomica:'#7FB33A', amarela:'#b07a10', perigo:'#A32D2D' };
+  const nomes = { marchaLenta:'Marcha lenta', transicao:'Transição', verde:'Verde', verdeEconomica:'Verde econômica', amarela:'Amarela', perigo:'Perigo' };
   const temFaixas = Object.values(faixas).some(v => v > 0);
   const barHtml = Object.entries(faixas).filter(([,p])=>p>0).map(([k,p]) => `<div style="width:${p}%;background:${cores[k]||'#999'};"></div>`).join('');
   const legendHtml = Object.entries(faixas).map(([k,p]) => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);margin-right:12px;"><span style="width:9px;height:9px;border-radius:2px;background:${cores[k]||'#999'};display:inline-block;"></span>${nomes[k]||k} ${p}%</span>`).join('');
