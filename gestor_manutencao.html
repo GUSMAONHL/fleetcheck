@@ -1760,7 +1760,7 @@ function renderRelatorioTelemetria(t) {
   const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
 
   const faixas = t.faixasPercentual || {};
-  const cores = { marchaLenta:'#BA7517', transicao:'#185FA5', verde:'#3B6D11', amarela:'#b07a10', perigo:'#A32D2D' };
+  const cores = { marchaLenta:'#6B7280', transicao:'#185FA5', verde:'#3B6D11', amarela:'#b07a10', perigo:'#A32D2D' };
   const nomes = { marchaLenta:'Marcha lenta', transicao:'Transição', verde:'Verde econômica', amarela:'Amarela', perigo:'Perigo' };
   const temFaixas = Object.values(faixas).some(v => v > 0);
   const barHtml = Object.entries(faixas).filter(([,p])=>p>0).map(([k,p]) => `<div style="width:${p}%;background:${cores[k]||'#999'};"></div>`).join('');
@@ -1777,7 +1777,7 @@ function renderRelatorioTelemetria(t) {
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">RPM máximo</div>
         <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.rpmMaximo)}</div>
       </div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid #BA7517;min-width:0;">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid #6B7280;min-width:0;">
         <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Marcha lenta</div>
         <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.faixasMin?.marchaLenta,' min')}</div>
       </div>
