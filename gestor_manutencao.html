@@ -154,6 +154,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
 .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-box.wide{width:720px;max-width:92vw;}
 .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
 .modal-body{overflow-y:auto;padding:16px 20px;}
@@ -904,7 +905,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Telemetria por veículo — clique para ver detalhes</div>
         <table class="pcm-tbl">
           <thead><tr>
-            <th>Placa</th><th>Hodômetro</th><th>Km hoje</th><th>RPM médio</th><th>RPM máx</th>
+            <th>Veículo</th><th>Hodômetro</th><th>Km hoje</th><th>RPM médio</th><th>RPM máx</th>
             <th>Segurança</th><th>Manutenção</th><th>Atualizado</th>
           </tr></thead>
           <tbody id="tel-tbl-body"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr></tbody>
@@ -939,7 +940,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 </div>
 
 <div class="modal-ov" id="relatorio-ov" onclick="if(event.target===this)this.classList.remove('show')">
-  <div class="modal-box">
+  <div class="modal-box wide">
     <div class="modal-hdr">
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1.5px;" id="relatorio-placa">—</div>
@@ -1687,16 +1688,20 @@ async function carregarTelemetriaPagina() {
 
 function renderTelemetriaPagina() {
   const filtro = (document.getElementById('tel-filtro').value||'').toLowerCase();
-  const rows = TELEMETRIA_CACHE.filter(t => !filtro || (t.placa||'').toLowerCase().includes(filtro));
+  // Cruza com a lista de veículos do Portal (TODOS = só os de Poços) — só mostra quem está aqui
+  const poços = TELEMETRIA_CACHE
+    .map(t => ({ t, v: TODOS.find(x => x.placa === t.placa) }))
+    .filter(({v}) => v);
+  const rows = poços.filter(({t}) => !filtro || (t.placa||'').toLowerCase().includes(filtro));
   const tbody = document.getElementById('tel-tbl-body');
 
   let somaSeg=0, somaMan=0, somaKm=0;
-  TELEMETRIA_CACHE.forEach(t => {
+  poços.forEach(({t}) => {
     somaSeg += t.eventosHoje?.porCategoria?.['Segurança']||0;
     somaMan += t.eventosHoje?.porCategoria?.['Manutenção']||0;
     somaKm  += Number(t.kmRodadoHoje)||0;
   });
-  document.getElementById('tel-kpi-total').textContent = TELEMETRIA_CACHE.length;
+  document.getElementById('tel-kpi-total').textContent = poços.length;
   document.getElementById('tel-kpi-seguranca').textContent = somaSeg;
   document.getElementById('tel-kpi-manutencao').textContent = somaMan;
   document.getElementById('tel-kpi-km').textContent = somaKm.toFixed(0)+' km';
@@ -1706,13 +1711,14 @@ function renderTelemetriaPagina() {
     return;
   }
   tbody.innerHTML = rows
-    .sort((a,b)=>(a.placa||'').localeCompare(b.placa||''))
-    .map(t => {
+    .sort((a,b)=>(a.v.nfr||0)-(b.v.nfr||0))
+    .map(({t,v}) => {
       const seg = t.eventosHoje?.porCategoria?.['Segurança']||0;
       const man = t.eventosHoje?.porCategoria?.['Manutenção']||0;
       const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleTimeString('pt-BR') : '—';
+      const label = `${t.placa} - ${v.bloco||'—'} · ${v.tipo||'—'} · N° ${v.nfr||'—'}`;
       return `<tr class="tel-row" data-placa="${t.placa}" style="cursor:pointer;">
-        <td><strong>${t.placa||'—'}</strong></td>
+        <td><strong>${label}</strong></td>
         <td>${t.odometro ?? '—'}</td>
         <td>${t.kmRodadoHoje ?? '—'}</td>
         <td>${t.rpmMedio ?? '—'}</td>
@@ -1731,7 +1737,8 @@ document.addEventListener('click', e => {
 });
 
 async function abrirRelatorioTelemetria(placa) {
-  document.getElementById('relatorio-placa').textContent = placa;
+  const v = TODOS.find(x => x.placa === placa);
+  document.getElementById('relatorio-placa').textContent = v ? `${placa} - ${v.bloco||'—'} · ${v.tipo||'—'} · N° ${v.nfr||'—'}` : placa;
   document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Carregando...</div>';
   document.getElementById('relatorio-ov').classList.add('show');
 
@@ -1761,11 +1768,23 @@ function renderRelatorioTelemetria(t) {
 
   document.getElementById('relatorio-body').innerHTML = `
     <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Atualizado: ${atualizado} · ${t.quantidadeDeltas||0} trecho(s) registrado(s) hoje</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
-      <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">RPM médio</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.rpmMedio)}</div></div></div>
-      <div class="pcm-kpi-card" style="border-left:4px solid var(--blue);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">RPM máximo</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.rpmMaximo)}</div></div></div>
-      <div class="pcm-kpi-card" style="border-left:4px solid #BA7517;"><div class="pcm-kpi-top"><div class="pcm-kpi-label">Marcha lenta</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.faixasMin?.marchaLenta,' min')}</div></div></div>
-      <div class="pcm-kpi-card" style="border-left:4px solid var(--ok);"><div class="pcm-kpi-top"><div class="pcm-kpi-label">Combustível</div></div><div class="pcm-kpi-bottom"><div class="pcm-kpi-val">${fmt(t.consumoTotalLitros,' L')}</div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--blue);min-width:0;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">RPM médio</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.rpmMedio)}</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--blue);min-width:0;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">RPM máximo</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.rpmMaximo)}</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid #BA7517;min-width:0;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Marcha lenta</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.faixasMin?.marchaLenta,' min')}</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--ok);min-width:0;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Combustível</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.consumoTotalLitros,' L')}</div>
+      </div>
     </div>
     ${temFaixas ? `
       <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Tempo por faixa de RPM</div>
