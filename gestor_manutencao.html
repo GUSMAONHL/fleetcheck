@@ -153,8 +153,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
-.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
-.modal-box.wide{width:720px;max-width:92vw;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-box.wide{width:860px;max-width:95vw;}
 .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
 .modal-body{overflow-y:auto;padding:16px 20px;}
@@ -1757,57 +1757,63 @@ async function abrirRelatorioTelemetria(placa) {
 
 function renderRelatorioTelemetria(t) {
   const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
-  const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
+  const pct = (n) => (n===undefined || n===null ? '—' : String(n).replace('.', ','));
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const AZUL = '#1B4F8C';
 
-  const faixas = t.faixasPercentual || {};
-  const cores = { marchaLenta:'#6B7280', transicao:'#185FA5', verde:'#3B6D11', verdeEconomica:'#7FB33A', amarela:'#b07a10', perigo:'#A32D2D' };
-  const nomes = { marchaLenta:'Marcha lenta', transicao:'Transição', verde:'Verde', verdeEconomica:'Verde econômica', amarela:'Amarela', perigo:'Perigo' };
-  const temFaixas = Object.values(faixas).some(v => v > 0);
-  const barHtml = Object.entries(faixas).filter(([,p])=>p>0).map(([k,p]) => `<div style="width:${p}%;background:${cores[k]||'#999'};"></div>`).join('');
-  const legendHtml = Object.entries(faixas).map(([k,p]) => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);margin-right:12px;"><span style="width:9px;height:9px;border-radius:2px;background:${cores[k]||'#999'};display:inline-block;"></span>${nomes[k]||k} ${p}%</span>`).join('');
+  const th = (label) => `<th style="background:${AZUL};color:#fff;border:1px solid #fff;padding:4px 6px;font-size:10px;font-weight:600;line-height:1.25;">${label}</th>`;
+  const td = (val) => `<td style="border:1px solid #dde1e7;padding:4px 6px;font-size:12px;text-align:center;white-space:nowrap;">${val}</td>`;
+  const tituloBarra = (label, cols) => `<tr><td colspan="${cols}" style="background:${AZUL};color:#fff;text-align:center;padding:5px;font-size:12px;font-weight:700;">${label}</td></tr>`;
+
+  // Ordem igual ao relatório da Sascar: Marcha Lenta, Verde, Amarela, Transição, Verde Econômica, Perigo
+  const faixasOrdem = [
+    ['marchaLenta', 'Marcha Lenta'], ['verde', 'Faixa Verde'], ['amarela', 'Faixa Amarela'],
+    ['transicao', 'Faixa Transição'], ['verdeEconomica', 'Faixa Verde Econômica'], ['perigo', 'Faixa de Perigo'],
+  ];
+  const faixasLinhas = faixasOrdem.map(([key, label]) =>
+    `<tr>${td(label)}${td(t.faixasHMS?.[key] ?? '—')}${td(pct(t.faixasPercentual?.[key]))}</tr>`
+  ).join('');
 
   document.getElementById('relatorio-body').innerHTML = `
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">Atualizado: ${atualizado} · ${t.quantidadeDeltas||0} trecho(s) registrado(s) hoje</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--blue);min-width:0;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">RPM médio</div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.rpmMedio)}</div>
+    <div style="background:#fff;color:#1a2233;padding:2px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;background:${AZUL};color:#fff;border-radius:6px;padding:6px 12px;">
+        <strong style="font-size:13px;">${t.placa || '—'}</strong>
+        <span style="opacity:.8;font-size:11px;">·</span>
+        <span style="font-size:12px;">${hoje}</span>
       </div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--blue);min-width:0;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">RPM máximo</div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.rpmMaximo)}</div>
+
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;table-layout:fixed;">
+        ${tituloBarra('Produtividade de Rodagem e Consumo', 7)}
+        <tr>${th('Km Percorrido')}${th('Combustível (L)')}${th('Rendimento (Km/L)')}${th('Km / Dia')}${th('Vel. Média (Km/h)')}${th('Hodômetro Inicial')}${th('Hodômetro Final')}</tr>
+        <tr>${td(fmt(t.distanciaTotalKm))}${td(fmt(t.consumoTotalLitros))}${td(fmt(t.mediaKmPorLitro))}${td(fmt(t.distanciaTotalKm))}${td(fmt(t.velocidadeMedia))}${td(fmt(t.odometroInicial))}${td(fmt(t.odometroFinal))}</tr>
+      </table>
+
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:1;min-width:0;">
+          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+            ${tituloBarra('Produtividade do Motor', 5)}
+            <tr>${th('Motor Ligado')}${th('Movimento')}${th('% Mov.')}${th('Parado Ligado')}${th('% Parado')}</tr>
+            <tr>${td(t.tempoDuracaoMotorLigadoHMS ?? '—')}${td(t.tempoDuracaoMovimentoHMS ?? '—')}${td(pct(t.percMovimento))}${td(t.tempoDuracaoParadoHMS ?? '—')}${td(pct(t.percParado))}</tr>
+          </table>
+
+          <div style="margin-top:12px;padding-top:8px;border-top:1px dashed #dde1e7;">
+            <div style="font-size:11px;color:#8a9ab0;margin-bottom:4px;">Eventos hoje (${t.eventosHoje?.total||0}) — Segurança: ${t.eventosHoje?.porCategoria?.['Segurança']||0} · Manutenção: ${t.eventosHoje?.porCategoria?.['Manutenção']||0}</div>
+            ${Object.entries(t.eventosHoje?.porTipo||{}).map(([nome,qtd]) =>
+              `<div style="display:flex;justify-content:space-between;font-size:12px;padding:1px 0;"><span style="color:#4a5568;">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
+            ).join('') || '<div style="font-size:12px;color:#8a9ab0;">Nenhum evento hoje.</div>'}
+          </div>
+        </div>
+
+        <div style="flex:1;min-width:0;">
+          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+            ${tituloBarra('Faixas de Condução', 3)}
+            <tr>${th('Faixa')}${th('Tempo')}${th('%')}</tr>
+            ${faixasLinhas}
+          </table>
+        </div>
       </div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid #6B7280;min-width:0;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Marcha lenta</div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.faixasMin?.marchaLenta,' min')}</div>
-      </div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;border-left:4px solid var(--ok);min-width:0;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Combustível</div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);white-space:nowrap;">${fmt(t.consumoTotalLitros,' L')}</div>
-      </div>
-    </div>
-    ${temFaixas ? `
-      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Tempo por faixa de RPM</div>
-      <div style="display:flex;width:100%;height:22px;border-radius:6px;overflow:hidden;margin-bottom:6px;">${barHtml}</div>
-      <div style="margin-bottom:18px;">${legendHtml}</div>
-    ` : ''}
-    <table class="pcm-tbl">
-      <tbody>
-        <tr><td>Hodômetro</td><td style="text-align:right;">${fmt(t.odometro,' km')}</td></tr>
-        <tr><td>Km rodado hoje</td><td style="text-align:right;">${fmt(t.kmRodadoHoje,' km')}</td></tr>
-        <tr><td>Velocidade média</td><td style="text-align:right;">${fmt(t.velocidadeMedia,' km/h')}</td></tr>
-        <tr><td>Média de consumo</td><td style="text-align:right;">${fmt(t.mediaKmPorLitro,' km/L')} (${fmt(t.mediaLitrosPor100km,' L/100km')})</td></tr>
-        <tr><td>Tempo com freio motor</td><td style="text-align:right;">${fmt(t.tempoDuracaoFreioMotorMin,' min')}</td></tr>
-        <tr><td>Distância com freio acionado</td><td style="text-align:right;">${fmt(t.distanciaPercorridaFreioAcionadoKm,' km')}</td></tr>
-        <tr><td>Distância com embreagem acionada</td><td style="text-align:right;">${fmt(t.distanciaPercorridaEmbreagemAcionadaKm,' km')}</td></tr>
-        <tr><td>Tempo parado / em movimento</td><td style="text-align:right;">${fmt(t.tempoDuracaoParadoMin,' min')} / ${fmt(t.tempoDuracaoMovimentoMin,' min')}</td></tr>
-      </tbody>
-    </table>
-    <div style="margin-top:16px;padding-top:10px;border-top:1px dashed var(--border);">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Eventos hoje (${t.eventosHoje?.total||0}) — Segurança: ${t.eventosHoje?.porCategoria?.['Segurança']||0} · Manutenção: ${t.eventosHoje?.porCategoria?.['Manutenção']||0}</div>
-      ${Object.entries(t.eventosHoje?.porTipo||{}).map(([nome,qtd]) =>
-        `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span style="color:var(--text2);">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
-      ).join('') || '<div style="font-size:12px;color:var(--text3);">Nenhum evento hoje.</div>'}
+
+      <div style="font-size:10px;color:#8a9ab0;margin-top:8px;">Atualizado: ${t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—'} · ${t.quantidadeDeltas||0} trecho(s) hoje</div>
     </div>`;
 }
 
