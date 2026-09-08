@@ -403,6 +403,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Histórico
     </button>
+    <button class="nav-item" id="nav-telemetria" onclick="showPage('telemetria',this)" title="Telemetria">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Telemetria
+    </button>
   </nav>
   <div class="sidebar-user">
     <div class="sidebar-avatar" title="Gestor — NHL/ALCOA">GR</div>
@@ -880,6 +884,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ══ TELEMETRIA ══ -->
+    <div class="page" id="page-telemetria">
+      <div class="hist-filtros">
+        <input class="hist-date-input" id="tel-filtro" placeholder="Filtrar por placa..." style="width:180px;" oninput="renderTelemetriaPagina()">
+        <button class="hist-btn-apply" onclick="carregarTelemetriaPagina()">🔄 Atualizar</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:auto;" id="tel-atualizado">—</span>
+      </div>
+      <div class="hist-kpi-row">
+        <div class="hist-kpi"><div class="hist-kpi-lbl">Veículos com dado hoje</div><div class="hist-kpi-val" style="color:#185FA5;" id="tel-kpi-total">—</div></div>
+        <div class="hist-kpi"><div class="hist-kpi-lbl">Eventos de Segurança</div><div class="hist-kpi-val" style="color:#A32D2D;" id="tel-kpi-seguranca">—</div></div>
+        <div class="hist-kpi"><div class="hist-kpi-lbl">Eventos de Manutenção</div><div class="hist-kpi-val" style="color:#BA7517;" id="tel-kpi-manutencao">—</div></div>
+        <div class="hist-kpi"><div class="hist-kpi-lbl">Km rodado hoje (frota)</div><div class="hist-kpi-val" style="color:#27500A;" id="tel-kpi-km">—</div></div>
+      </div>
+      <div class="pcm-bp">
+        <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Telemetria por veículo — clique para ver detalhes</div>
+        <table class="pcm-tbl">
+          <thead><tr>
+            <th>Placa</th><th>Hodômetro</th><th>Km hoje</th><th>RPM médio</th><th>RPM máx</th>
+            <th>Segurança</th><th>Manutenção</th><th>Atualizado</th>
+          </tr></thead>
+          <tbody id="tel-tbl-body"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1600,6 +1629,10 @@ async function carregarTelemetriaModal(placa) {
     const t = snap.data();
     const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
     const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
+    const ev = t.eventosHoje || {total:0, porCategoria:{}, porTipo:{}};
+    const tiposHtml = Object.entries(ev.porTipo||{}).map(([nome,qtd]) =>
+      `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span style="color:var(--text2);">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
+    ).join('') || '<div style="font-size:12px;color:var(--text3);">Nenhum evento hoje.</div>';
     box.innerHTML = `
       <div class="msec-title">
         <span>📡 Telemetria</span>
@@ -1610,12 +1643,72 @@ async function carregarTelemetriaModal(placa) {
         <div><div style="font-size:11px;color:var(--text3);">Km rodado hoje</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.kmRodadoHoje,' km')}</div></div>
         <div><div style="font-size:11px;color:var(--text3);">RPM médio</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMedio)}</div></div>
         <div><div style="font-size:11px;color:var(--text3);">RPM máximo</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMaximo)}</div></div>
+      </div>
+      <div style="margin-top:6px;padding-top:8px;border-top:1px dashed var(--border);">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Eventos hoje (${ev.total||0}) — Segurança: ${ev.porCategoria?.['Segurança']||0} · Manutenção: ${ev.porCategoria?.['Manutenção']||0}</div>
+        ${tiposHtml}
       </div>`;
   } catch(e) {
     box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
       <div style="font-size:12px;color:var(--err);padding:8px 0;">Erro ao carregar dados de telemetria.</div>`;
     console.warn('carregarTelemetriaModal:', e);
   }
+}
+
+let TELEMETRIA_CACHE = [];
+
+async function carregarTelemetriaPagina() {
+  const tbody = document.getElementById('tel-tbl-body');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
+  try {
+    const snap = await getDocs(collection(db,'telemetria_veiculos'));
+    TELEMETRIA_CACHE = [];
+    snap.forEach(d => TELEMETRIA_CACHE.push(d.data()));
+    document.getElementById('tel-atualizado').textContent = 'Consultado às ' + new Date().toLocaleTimeString('pt-BR');
+    renderTelemetriaPagina();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--err);padding:24px;">Erro ao carregar telemetria.</td></tr>';
+    console.warn('carregarTelemetriaPagina:', e);
+  }
+}
+
+function renderTelemetriaPagina() {
+  const filtro = (document.getElementById('tel-filtro').value||'').toLowerCase();
+  const rows = TELEMETRIA_CACHE.filter(t => !filtro || (t.placa||'').toLowerCase().includes(filtro));
+  const tbody = document.getElementById('tel-tbl-body');
+
+  let somaSeg=0, somaMan=0, somaKm=0;
+  TELEMETRIA_CACHE.forEach(t => {
+    somaSeg += t.eventosHoje?.porCategoria?.['Segurança']||0;
+    somaMan += t.eventosHoje?.porCategoria?.['Manutenção']||0;
+    somaKm  += Number(t.kmRodadoHoje)||0;
+  });
+  document.getElementById('tel-kpi-total').textContent = TELEMETRIA_CACHE.length;
+  document.getElementById('tel-kpi-seguranca').textContent = somaSeg;
+  document.getElementById('tel-kpi-manutencao').textContent = somaMan;
+  document.getElementById('tel-kpi-km').textContent = somaKm.toFixed(0)+' km';
+
+  if (rows.length===0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Nenhum veículo com telemetria salva ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows
+    .sort((a,b)=>(a.placa||'').localeCompare(b.placa||''))
+    .map(t => {
+      const seg = t.eventosHoje?.porCategoria?.['Segurança']||0;
+      const man = t.eventosHoje?.porCategoria?.['Manutenção']||0;
+      const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleTimeString('pt-BR') : '—';
+      return `<tr style="cursor:pointer;" onclick="abrirModal('${t.placa}')">
+        <td><strong>${t.placa||'—'}</strong></td>
+        <td>${t.odometro ?? '—'}</td>
+        <td>${t.kmRodadoHoje ?? '—'}</td>
+        <td>${t.rpmMedio ?? '—'}</td>
+        <td>${t.rpmMaximo ?? '—'}</td>
+        <td style="color:${seg>0?'#A32D2D':'inherit'};font-weight:${seg>0?'600':'400'};">${seg}</td>
+        <td style="color:${man>0?'#BA7517':'inherit'};font-weight:${man>0?'600':'400'};">${man}</td>
+        <td style="font-size:11px;color:var(--text3);">${atualizado}</td>
+      </tr>`;
+    }).join('');
 }
 
 function abrirModal(placa) {
@@ -1776,12 +1869,14 @@ window.showPage = function(page,btn) {
     quadro: 'Quadro Geral — Manutenção',
     historico: 'Histórico de Inspeções',
     pcm: 'PCM — Planejamento e Controle da Manutenção',
-    estoque: 'Controle de Estoque'
+    estoque: 'Controle de Estoque',
+    telemetria: 'Telemetria — Consumo, Manutenção e Segurança'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
   if (page === 'estoque') carregarEstoque();
   if (page === 'historico') { histPopularSelectVeiculo(); histSetPeriodo(7); }
+  if (page === 'telemetria') carregarTelemetriaPagina();
 };
 
 window.abrirModalKpi = function(tipo) {
