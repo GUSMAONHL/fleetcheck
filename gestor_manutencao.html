@@ -1194,23 +1194,11 @@ async function carregarTodasOS() {
 
 // Busca a última inspeção de cada veículo nas últimas 4 semanas
 async function carregarUltimaInspecao() {
-  // Cache em sessionStorage para evitar re-leitura durante a sessão
-  const cacheKey = 'lastInsp_' + new Date().toLocaleDateString('pt-BR');
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    try {
-      const obj = JSON.parse(cached);
-      Object.assign(lastInspState, obj);
-      console.log('[FleetCheck] lastInspState carregado do cache');
-      return;
-    } catch(e) {}
-  }
-
-  // Busca apenas os últimos 30 dias úteis (6 semanas — suficiente para detectar vencidos)
+  // Busca os últimos 90 dias corridos para cobrir veículos que ficaram sem inspeção por mais tempo
   const hoje = new Date();
   const datasRange = [];
   const cur = new Date(hoje);
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 90; i++) {
     const dow = cur.getDay();
     if (dow !== 0 && dow !== 6) {
       datasRange.push(cur.toLocaleDateString('pt-BR'));
@@ -1218,7 +1206,7 @@ async function carregarUltimaInspecao() {
     cur.setDate(cur.getDate() - 1);
   }
 
-  // Busca em lotes de 10
+  // Busca em lotes de 10 (limite Firebase 'in') — sequencial para evitar sobrecarga
   const chunks = [];
   for (let i = 0; i < datasRange.length; i += 10) chunks.push(datasRange.slice(i, i+10));
 
@@ -1232,17 +1220,15 @@ async function carregarUltimaInspecao() {
     } catch(e) { console.warn('carregarUltimaInspecao chunk error:', e); }
   }
 
+  // Para cada placa, manter apenas a data mais recente encontrada
   allDocs.forEach(doc => {
     const placa = (doc.placa||'').toUpperCase();
     if (!placa) return;
-    const curVal = lastInspState[placa]?.dataFormatada;
-    if (!curVal || compareDateBR(doc.dataFormatada, curVal) > 0) {
+    const cur = lastInspState[placa]?.dataFormatada;
+    if (!cur || compareDateBR(doc.dataFormatada, cur) > 0) {
       lastInspState[placa] = { dataFormatada: doc.dataFormatada };
     }
   });
-
-  // Salvar cache por 1 hora (evita re-leitura no mesmo dia)
-  try { sessionStorage.setItem(cacheKey, JSON.stringify(lastInspState)); } catch(e) {}
 }
 
 // Compara datas BR dd/mm/yyyy: retorna >0 se a > b
@@ -1593,13 +1579,52 @@ document.addEventListener('click', e => {
   abrirModal(row.getAttribute('data-placa'));
 });
 
+// ── TELEMETRIA (SasIntegra) ──
+function renderTelemetriaPlaceholder() {
+  return `<div id="telemetria-secao" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:8px;">
+    <div class="msec-title"><span>📡 Telemetria</span></div>
+    <div style="font-size:12px;color:var(--text3);padding:8px 0;">Carregando...</div>
+  </div>`;
+}
+
+async function carregarTelemetriaModal(placa) {
+  const box = document.getElementById('telemetria-secao');
+  if (!box) return;
+  try {
+    const snap = await getDoc(doc(db,'telemetria_veiculos', placa));
+    if (!snap.exists()) {
+      box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
+        <div style="font-size:12px;color:var(--text3);padding:8px 0;">Sem dados de telemetria ainda para este veículo.</div>`;
+      return;
+    }
+    const t = snap.data();
+    const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
+    const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
+    box.innerHTML = `
+      <div class="msec-title">
+        <span>📡 Telemetria</span>
+        <span style="color:var(--text3);font-size:11px;">Atualizado: ${atualizado}</span>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;padding:8px 0 4px;">
+        <div><div style="font-size:11px;color:var(--text3);">Hodômetro</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.odometro,' km')}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">Km rodado hoje</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.kmRodadoHoje,' km')}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">RPM médio</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMedio)}</div></div>
+        <div><div style="font-size:11px;color:var(--text3);">RPM máximo</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMaximo)}</div></div>
+      </div>`;
+  } catch(e) {
+    box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
+      <div style="font-size:12px;color:var(--err);padding:8px 0;">Erro ao carregar dados de telemetria.</div>`;
+    console.warn('carregarTelemetriaModal:', e);
+  }
+}
+
 function abrirModal(placa) {
   const v  = TODOS.find(x=>x.placa===placa);
   const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
   document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
 
-  let html='';
+  let html=renderTelemetriaPlaceholder();
   [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']].forEach(([mod,label])=>{
     const doc=st[mod], s=statusDoc(doc);
     const cores={pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
@@ -1664,6 +1689,7 @@ function abrirModal(placa) {
   });
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-ov').classList.add('show');
+  carregarTelemetriaModal(placa);
   // Carrega OS salvas
   carregarOSdoModal(placa, [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']]).then(() => {
     // Atualiza inputs com valores carregados
@@ -1823,28 +1849,25 @@ function iniciarListeners() {
     _unsubscribes.push(unsub);
   });
 
-  // Listener 2: termac (mantido em tempo real)
-  const unsubTermac = onSnapshot(collection(db,'termac'),
-    () => { if (_realtimeReady) dispararAtualizacao('termac'); },
-    err => console.warn('[FleetCheck] onSnapshot termac erro:', err)
+  // Listener 2: ordens_servico
+  const unsubOS = onSnapshot(collection(db,'ordens_servico'),
+    () => { if (_realtimeReady) dispararAtualizacao('ordens_servico'); },
+    err => console.warn('[FleetCheck] onSnapshot ordens_servico erro:', err)
   );
-  _unsubscribes.push(unsubTermac);
+  _unsubscribes.push(unsubOS);
 
-  // Listener 3: justificativas (mantido em tempo real — gestor salva durante o dia)
+  // Listener 3: justificativas
   const unsubJust = onSnapshot(collection(db,'justificativas'),
     () => { if (_realtimeReady) dispararAtualizacao('justificativas'); },
     err => console.warn('[FleetCheck] onSnapshot justificativas erro:', err)
   );
   _unsubscribes.push(unsubJust);
 
-  // ordens_servico: poll a cada 3 min (evita leitura completa de toda a coleção a cada mudanca)
-  const pollOS = setInterval(async () => {
-    if (!_realtimeReady) return;
-    await carregarTodasOS();
-    TODOS.forEach(v => atualizarLinha(v.placa));
-    atualizarKPIs();
-  }, 3 * 60 * 1000);
-  _unsubscribes.push(() => clearInterval(pollOS));
+  const unsubTermac = onSnapshot(collection(db,'termac'),
+    () => { if (_realtimeReady) dispararAtualizacao('termac'); },
+    err => console.warn('[FleetCheck] onSnapshot termac erro:', err)
+  );
+  _unsubscribes.push(unsubTermac);
 
   console.log('[FleetCheck] Listeners em tempo real ativos:', _unsubscribes.length);
 }
@@ -1900,10 +1923,8 @@ async function carregarVeiculosFirebase() {
       .map(v => setDoc(doc(db,'veiculos',v.placa), {...v, ativo:true, criadoEm: new Date().toISOString()}));
     if (promises.length > 0) await Promise.all(promises);
 
-    // Reutilizar snap já carregado (evitar 2ª leitura)
-    const snap = promises.length > 0
-      ? await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)))
-      : snapCheck;
+    // Recarregar todos ativos
+    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
     snap.docs.forEach(d => {
       const v = d.data();
       if (!v.placa) return;
@@ -3196,17 +3217,9 @@ async function carregarHistorico() {
       allDocs = allDocs.filter(d => (d.placa||'').toUpperCase() === placaFiltro.toUpperCase());
     }
 
-    // Buscar OS apenas do período (evitar leitura de toda a coleção)
-    // Usamos as datas em formato ISO para comparar
-    const deISO = _histDe ? _histDe.toISOString().split('T')[0] : '2000-01-01';
-    const ateISO = _histAte ? new Date(_histAte.getTime() + 86400000).toISOString().split('T')[0] : '2099-12-31';
+    // Buscar OS
     const osSnap = await getDocs(collection(db,'ordens_servico'));
-    const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}))
-      .filter(os => {
-        if (!os.entradaEm) return false;
-        const d = os.entradaEm.split('T')[0];
-        return d >= deISO && d <= ateISO;
-      });
+    const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}));
 
     // Agrupar por data — conta DOCUMENTOS (1 doc = 1 módulo inspecionado de 1 veículo)
     // OK = doc sem nenhum item substituir; Substituir = doc com pelo menos 1 substituir
