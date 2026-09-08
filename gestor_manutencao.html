@@ -1698,7 +1698,7 @@ function renderTelemetriaPagina() {
       const seg = t.eventosHoje?.porCategoria?.['Segurança']||0;
       const man = t.eventosHoje?.porCategoria?.['Manutenção']||0;
       const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleTimeString('pt-BR') : '—';
-      return `<tr style="cursor:pointer;" onclick="abrirModal('${t.placa}')">
+      return `<tr class="tel-row" data-placa="${t.placa}" style="cursor:pointer;">
         <td><strong>${t.placa||'—'}</strong></td>
         <td>${t.odometro ?? '—'}</td>
         <td>${t.kmRodadoHoje ?? '—'}</td>
@@ -1710,6 +1710,12 @@ function renderTelemetriaPagina() {
       </tr>`;
     }).join('');
 }
+
+document.addEventListener('click', e => {
+  const row = e.target.closest('.tel-row[data-placa]');
+  if (!row) return;
+  abrirModal(row.getAttribute('data-placa'));
+});
 
 function abrirModal(placa) {
   const v  = TODOS.find(x=>x.placa===placa);
@@ -3611,6 +3617,8 @@ window.exportHistPDF   = exportHistPDF;
 window.exportRegExcel  = exportRegExcel;
 window.exportRegPDF    = exportRegPDF;
 window.histAplicarFiltro = histAplicarFiltro;
+window.carregarTelemetriaPagina = carregarTelemetriaPagina;
+window.renderTelemetriaPagina = renderTelemetriaPagina;
 
 // ══ CONTROLE DE REGULAGEM ══
 let _regDe = null, _regAte = null;
