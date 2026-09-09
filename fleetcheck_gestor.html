@@ -966,7 +966,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
       <div>
         <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Ofensor</label>
-        <select id="gestao-justif-ofensor" class="filter-input" style="width:100%;"></select>
+        <div style="display:flex;gap:8px;">
+          <select id="gestao-justif-ofensor" class="filter-input" style="width:100%;"></select>
+          <button onclick="novoOfensorGestao()" title="Cadastrar novo ofensor" style="flex-shrink:0;padding:0 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#388bfd;cursor:pointer;font-size:16px;font-weight:700;">+</button>
+        </div>
       </div>
       <div>
         <label style="display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Tipo de Ofensor</label>
@@ -2589,11 +2592,24 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
       ? (volumeRealPorPlaca[v.placa] || 0)
       : viagensRealizadas * (v.pesoMedio || 0);
 
+    // IMPORTANTE: a métrica de aderência continua exatamente igual — só olha viagens
+    // programadas x realizadas, sem nenhuma relação com o que vem abaixo.
     const aderencia = viagensProgramadas > 0
       ? Math.round((viagensRealizadas / viagensProgramadas) * 100)
       : (viagensRealizadas > 0 ? 100 : 0);
-    // toneladas que faltaram pra bater o programado, estimadas pelo peso médio do veículo
-    const percTon = Math.max(0, viagensProgramadas - viagensRealizadas) * (v.pesoMedio || 0);
+
+    // Toneladas perdidas: pra quem tinha programação, é o que faltou pra bater o programado.
+    // Pra quem NÃO foi programado, não dá pra saber quanto se perdeu a menos que o programador
+    // informe quantas viagens aquele veículo faria (campo "Viagens que faria" no modal de
+    // Veículos Não Programados) — só nesse caso entra aqui; sem isso, fica 0 (não afeta aderência).
+    let percTon;
+    if (viagensProgramadas > 0) {
+      percTon = Math.max(0, viagensProgramadas - viagensRealizadas) * (v.pesoMedio || 0);
+    } else {
+      const justNaoProg = justificativasNaoProgramados[v.placa];
+      const viagensQueFaria = justNaoProg && justNaoProg.viagensPerdidas ? Number(justNaoProg.viagensPerdidas) : 0;
+      percTon = viagensQueFaria * (v.pesoMedio || 0);
+    }
 
     // Ofensor/Tipo Ofensor/Responsável vêm da justificativa preenchida no Fim/Fora de Operação
     // (quando o veículo trabalhou mas não bateu 100%), ou do motivo de não ter sido programado.
@@ -5704,7 +5720,49 @@ window.toggleRealizacaoViagem = async function toggleRealizacaoViagem(placa, ind
   _gestaoRenderGrade();
 };
 
-const GESTAO_OFENSORES = ['MANUTENÇÃO', 'FOLGA', 'QUEBRADO', 'SEM MOTORISTA', 'PNEU', 'DOCUMENTAÇÃO', 'OUTRO'];
+// Lista de Ofensores — antes era fixa no código; agora é uma tabela de verdade (coleção
+// ofensores_cadastro), editável pelo gestor direto nos modais de justificativa. Na primeira vez
+// que alguém abrir um desses modais sem nenhum ofensor cadastrado, semeia com a lista padrão.
+const OFENSORES_PADRAO = ['MANUTENÇÃO', 'FOLGA', 'QUEBRADO', 'SEM MOTORISTA', 'PNEU', 'DOCUMENTAÇÃO', 'OUTRO'];
+let _ofensoresCadastroCache = null;
+
+async function _obterOfensores() {
+  if (_ofensoresCadastroCache) return _ofensoresCadastroCache;
+  try {
+    const snap = await getDocs(collection(db, 'ofensores_cadastro'));
+    if (snap.empty) {
+      const batch = writeBatch(db);
+      OFENSORES_PADRAO.forEach(nome => batch.set(doc(db, 'ofensores_cadastro', nome), { nome }));
+      await batch.commit();
+      _ofensoresCadastroCache = OFENSORES_PADRAO.slice();
+    } else {
+      _ofensoresCadastroCache = snap.docs.map(d => d.id).sort();
+    }
+  } catch (err) {
+    console.error('Erro ao carregar ofensores:', err);
+    _ofensoresCadastroCache = OFENSORES_PADRAO.slice();
+  }
+  return _ofensoresCadastroCache;
+}
+
+// Cadastra um novo ofensor na tabela (se ainda não existir) e chama o callback com o nome
+// normalizado — usado pelos dois modais de justificativa pra atualizar o <select> na hora.
+async function _cadastrarNovoOfensor(nomeBruto, callback) {
+  const nome = (nomeBruto || '').trim().toUpperCase();
+  if (!nome) return;
+  const ofensores = await _obterOfensores();
+  if (ofensores.includes(nome)) { if (callback) callback(nome); return; }
+  try {
+    await setDoc(doc(db, 'ofensores_cadastro', nome), { nome });
+    ofensores.push(nome);
+    ofensores.sort();
+    showToast(`✔ Ofensor "${nome}" cadastrado.`);
+    if (callback) callback(nome);
+  } catch (err) {
+    console.error('Erro ao cadastrar ofensor:', err);
+    showToast('✖ Erro ao cadastrar ofensor: ' + err.message);
+  }
+}
 
 function _gestaoObterOuCriarAtribuicao(placa) {
   let atrib = _gestaoAtribuicaoDoVeiculo(placa);
@@ -5744,19 +5802,33 @@ window.reabrirOperacaoGestao = async function reabrirOperacaoGestao(placa) {
 let _gestaoJustifPlaca = null;
 let _gestaoJustifStatusAlvo = null;
 
-window.abrirJustificativaGestao = function abrirJustificativaGestao(placa, statusAlvo) {
+function _gestaoPreencherSelectOfensor(ofensores, selecionado) {
+  const select = document.getElementById('gestao-justif-ofensor');
+  select.innerHTML = ['<option value="">— selecione —</option>'].concat(
+    ofensores.map(m => `<option value="${m}" ${selecionado===m?'selected':''}>${m}</option>`)
+  ).join('');
+}
+
+window.abrirJustificativaGestao = async function abrirJustificativaGestao(placa, statusAlvo) {
   _gestaoJustifPlaca = placa;
   _gestaoJustifStatusAlvo = statusAlvo;
   const atrib = _gestaoObterOuCriarAtribuicao(placa);
   const j = atrib.justificativa || {};
   document.getElementById('gestao-justif-titulo').textContent = statusAlvo === 'fora' ? '⛔ Fora de Operação' : '⏹ Fim de Operação';
-  const select = document.getElementById('gestao-justif-ofensor');
-  select.innerHTML = ['<option value="">— selecione —</option>'].concat(
-    GESTAO_OFENSORES.map(m => `<option value="${m}" ${j.ofensor===m?'selected':''}>${m}</option>`)
-  ).join('');
+  document.getElementById('gestao-justificativa-overlay').style.display = 'flex';
+  const ofensores = await _obterOfensores();
+  _gestaoPreencherSelectOfensor(ofensores, j.ofensor);
   document.getElementById('gestao-justif-tipo').value = j.tipoOfensor || '';
   document.getElementById('gestao-justif-responsavel').value = j.responsavel || 'NHL';
-  document.getElementById('gestao-justificativa-overlay').style.display = 'flex';
+};
+
+window.novoOfensorGestao = async function novoOfensorGestao() {
+  const nome = window.prompt('Nome do novo ofensor:');
+  if (!nome) return;
+  await _cadastrarNovoOfensor(nome, async (nomeSalvo) => {
+    const ofensores = await _obterOfensores();
+    _gestaoPreencherSelectOfensor(ofensores, nomeSalvo);
+  });
 };
 
 window.fecharJustificativaGestao = function fecharJustificativaGestao() {
@@ -6542,11 +6614,15 @@ window.abrirNaoProgramados = async function abrirNaoProgramados(categoria) {
   document.getElementById('prog-nao-programados-overlay').style.display = 'flex';
   document.getElementById('prog-naoprog-corpo').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando frota...</div>';
 
-  await _progCarregarRoster();
+  await Promise.all([_progCarregarRoster(), _obterOfensores()]);
   _progRenderNaoProgramados();
 };
 
-const PROG_MOTIVOS_NAO_ESCALADO = ['MANUTENÇÃO', 'FOLGA', 'QUEBRADO', 'SEM MOTORISTA', 'PNEU', 'DOCUMENTAÇÃO', 'OUTRO'];
+window.novoOfensorPrograma = async function novoOfensorPrograma() {
+  const nome = window.prompt('Nome do novo ofensor:');
+  if (!nome) return;
+  await _cadastrarNovoOfensor(nome, () => _progRenderNaoProgramados());
+};
 
 let _progNaoProgOrdem = { col: null, dir: 1 }; // col: 'motivo'|null
 
@@ -6584,13 +6660,17 @@ function _progRenderNaoProgramados() {
     return;
   }
 
+  const ofensores = _ofensoresCadastroCache || OFENSORES_PADRAO;
+
   const linhaVeiculo = (v) => {
     const just = _progJustificativas[v.placa] || {};
     const temMotivo = !!just.motivo;
     const opcoesMotivo = ['<option value="">— selecione —</option>'].concat(
-      PROG_MOTIVOS_NAO_ESCALADO.map(m => `<option value="${m}" ${just.motivo===m?'selected':''}>${m}</option>`)
+      ofensores.map(m => `<option value="${m}" ${just.motivo===m?'selected':''}>${m}</option>`)
     ).join('');
     const obsAttr = (just.observacao||'').toString().replace(/"/g,'&quot;');
+    const viagensPerdidasVal = just.viagensPerdidas ?? '';
+    const volumePerdidoEstimado = just.viagensPerdidas ? (Number(just.viagensPerdidas) * v.pesoMedio) : 0;
 
     return `<tr style="${temMotivo?'':'background:rgba(248,81,73,0.06);'}">
       <td style="font-size:16px;font-weight:700;color:var(--text3);">${v.fr||'—'}</td>
@@ -6599,24 +6679,31 @@ function _progRenderNaoProgramados() {
       <td style="font-size:12px;color:var(--text3);">${v.forca}</td>
       <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toFixed(1)}t/vg</td>
       <td>
-        <select class="filter-input" style="min-width:150px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', this.value, null)">
+        <select class="filter-input" style="min-width:150px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', this.value, null, null)">
           ${opcoesMotivo}
         </select>
       </td>
       <td>
-        <input type="text" placeholder="Observação (opcional)" value="${obsAttr}" class="filter-input" style="min-width:180px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', null, this.value)">
+        <input type="text" placeholder="Observação (opcional)" value="${obsAttr}" class="filter-input" style="min-width:180px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', null, this.value, null)">
+      </td>
+      <td>
+        <input type="number" min="0" placeholder="0" value="${viagensPerdidasVal}" title="Quantas viagens esse veículo faria se tivesse sido programado" class="filter-input" style="width:65px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', null, null, this.value)">
+        ${volumePerdidoEstimado > 0 ? `<div style="font-size:10px;color:#f85149;white-space:nowrap;margin-top:2px;">≈ ${Math.round(volumePerdidoEstimado)}t perdidos</div>` : ''}
       </td>
       <td style="text-align:center;">${temMotivo ? '<span style="color:#2ea043;font-size:15px;">✓</span>' : '<span style="color:#f85149;font-size:11px;white-space:nowrap;">⚠ pendente</span>'}</td>
     </tr>`;
   };
 
   cont.innerHTML = `
-    <div style="font-size:13px;color:var(--text3);margin-bottom:14px;">${naoProgramados.length} veículo(s) sem nenhuma viagem atribuída hoje</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:13px;color:var(--text3);">${naoProgramados.length} veículo(s) sem nenhuma viagem atribuída hoje</div>
+      <button onclick="novoOfensorPrograma()" style="display:flex;align-items:center;gap:5px;padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:#388bfd;cursor:pointer;">+ Novo Ofensor</button>
+    </div>
     <div style="overflow-x:auto;">
       <table style="width:100%;font-size:12px;">
         <thead><tr>
           <th>FR</th><th>PLACA</th><th>TIPO2</th><th>FORÇA</th><th>PESO MÉDIO</th>
-          <th onclick="ordenarNaoProgramados('motivo')" style="cursor:pointer;">MOTIVO ${_progNaoProgOrdem.col==='motivo' ? (_progNaoProgOrdem.dir===1?'▲':'▼') : ''}</th><th>OBSERVAÇÃO</th><th style="text-align:center;">STATUS</th>
+          <th onclick="ordenarNaoProgramados('motivo')" style="cursor:pointer;">MOTIVO ${_progNaoProgOrdem.col==='motivo' ? (_progNaoProgOrdem.dir===1?'▲':'▼') : ''}</th><th>OBSERVAÇÃO</th><th title="Quantas viagens esse veículo faria se tivesse sido programado">VIAGENS QUE FARIA</th><th style="text-align:center;">STATUS</th>
         </tr></thead>
         <tbody>
           ${naoProgramados.map(linhaVeiculo).join('')}
@@ -6625,11 +6712,15 @@ function _progRenderNaoProgramados() {
     </div>`;
 }
 
-window._progSalvarJustificativa = async function _progSalvarJustificativa(placa, motivo, observacao) {
+window._progSalvarJustificativa = async function _progSalvarJustificativa(placa, motivo, observacao, viagensPerdidas) {
   if (!_progJustificativas[placa]) _progJustificativas[placa] = {};
   if (motivo !== null) _progJustificativas[placa].motivo = motivo;
   if (observacao !== null) _progJustificativas[placa].observacao = observacao;
-  if (!_progJustificativas[placa].motivo && !_progJustificativas[placa].observacao) {
+  if (viagensPerdidas !== null && viagensPerdidas !== undefined) {
+    const n = parseInt(viagensPerdidas, 10);
+    _progJustificativas[placa].viagensPerdidas = isNaN(n) || n < 0 ? 0 : n;
+  }
+  if (!_progJustificativas[placa].motivo && !_progJustificativas[placa].observacao && !_progJustificativas[placa].viagensPerdidas) {
     delete _progJustificativas[placa];
   }
   try {
