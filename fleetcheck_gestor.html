@@ -767,9 +767,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: VOLUME ANALÍTICO -->
     <div class="page" id="page-volumeanalitico">
-      <div class="table-card">
+      <div class="table-card" style="margin-bottom:16px;">
         <div class="table-header">
-          <div class="table-title">Volume Analítico por Veículo</div>
+          <div class="table-title">Volume Analítico por Veículo × Rota</div>
           <div class="table-count" id="va-tabela-count">0 registros</div>
         </div>
         <div style="overflow-x:auto;">
@@ -781,10 +781,38 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                 <th style="text-align:right;">VOLUME TOTAL (t)</th>
                 <th style="text-align:right;">VIAGENS</th>
                 <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">DIAS TRABALHADOS</th>
+                <th style="text-align:right;">VFT$/t</th>
+                <th style="text-align:right;">FATURAMENTO</th>
               </tr>
             </thead>
             <tbody id="va-tabela-body">
-              <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia ou mês.</td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia ou mês.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Consolidado por Veículo</div>
+          <div class="table-count" id="va-consolidado-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>VEÍCULO</th>
+                <th style="text-align:right;">ROTAS</th>
+                <th style="text-align:right;">VOLUME TOTAL (t)</th>
+                <th style="text-align:right;">VIAGENS</th>
+                <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">DIAS TRABALHADOS</th>
+                <th style="text-align:right;">FATURAMENTO TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="va-consolidado-body">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">—</td></tr>
             </tbody>
           </table>
         </div>
@@ -814,11 +842,12 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                 <th style="text-align:right;">VIAGENS/DIA (padrão)</th>
                 <th style="text-align:right;">PESO MÉDIO CAMINHÃO</th>
                 <th style="text-align:right;">PESO MÉDIO CAVALO</th>
+                <th style="text-align:right;">VFT$/t</th>
                 <th style="text-align:right;">AÇÕES</th>
               </tr>
             </thead>
             <tbody id="minas-tabela-body">
-              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -915,6 +944,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Viagens/dia (padrão dessa rota)</label>
         <input type="number" id="mina-form-viagens" placeholder="ex: 8" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Valor de Frete Terceiro — VFT$ (por tonelada)</label>
+        <input type="number" step="0.01" min="0" id="mina-form-vft" placeholder="ex: 45.90" class="filter-input" style="width:100%;">
       </div>
       <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
     </div>
@@ -5028,7 +5061,7 @@ function _renderMinasTabela() {
   count.textContent = _minasCadastro.length + (_minasCadastro.length === 1 ? ' registro' : ' registros');
 
   if (_minasCadastro.length === 0) {
-    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
     return;
   }
 
@@ -5042,6 +5075,7 @@ function _renderMinasTabela() {
       <td style="text-align:right;font-family:'DM Mono',monospace;">${m.viagensDia ?? '—'}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.caminhao)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.cavalo)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${m.vft!=null ? 'R$ '+m.vft.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
       <td style="text-align:right;">
         <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:17px;margin-right:8px;">✏️</button>
         <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:17px;">🗑</button>
@@ -5063,6 +5097,7 @@ window.abrirFormMina = function abrirFormMina(id) {
   const origemEl = document.getElementById('mina-form-origem');
   const destinoEl = document.getElementById('mina-form-destino');
   const viagensEl = document.getElementById('mina-form-viagens');
+  const vftEl = document.getElementById('mina-form-vft');
 
   if (id) {
     const mina = _minasCadastro.find(m => m.id === id);
@@ -5071,11 +5106,13 @@ window.abrirFormMina = function abrirFormMina(id) {
     origemEl.value = mina.origem || '';
     destinoEl.value = mina.destino || 'FABRICA';
     viagensEl.value = mina.viagensDia ?? '';
+    vftEl.value = mina.vft ?? '';
   } else {
     titulo.textContent = '⛰️ Cadastrar Mina';
     origemEl.value = '';
     destinoEl.value = 'FABRICA';
     viagensEl.value = '';
+    vftEl.value = '';
   }
 
   document.getElementById('mina-form-overlay').style.display = 'flex';
@@ -5091,19 +5128,23 @@ window.salvarMina = async function salvarMina() {
   const origem = document.getElementById('mina-form-origem').value.trim().toUpperCase();
   const destino = document.getElementById('mina-form-destino').value;
   const viagensDia = parseInt(document.getElementById('mina-form-viagens').value, 10);
+  const vftRaw = document.getElementById('mina-form-vft').value;
+  const vft = vftRaw === '' ? null : parseFloat(vftRaw);
 
   if (!origem) { showToast('✖ Informe a origem.'); return; }
   if (isNaN(viagensDia) || viagensDia <= 0) { showToast('✖ Informe a quantidade de viagens/dia.'); return; }
+  if (vftRaw !== '' && (isNaN(vft) || vft < 0)) { showToast('✖ Valor de Frete Terceiro inválido.'); return; }
 
   try {
     if (_minaEditandoId) {
-      await setDoc(doc(db, 'minas_cadastro', _minaEditandoId), { origem, destino, viagensDia }, { merge: true });
+      await setDoc(doc(db, 'minas_cadastro', _minaEditandoId), { origem, destino, viagensDia, vft }, { merge: true });
       showToast(`✔ Mina ${origem} → ${destino} atualizada.`);
     } else {
       const novoDoc = doc(collection(db, 'minas_cadastro'));
-      await setDoc(novoDoc, { origem, destino, viagensDia });
+      await setDoc(novoDoc, { origem, destino, viagensDia, vft });
       showToast(`✔ Mina ${origem} → ${destino} cadastrada.`);
     }
+    _vftCadastroCache = null; // invalida o cache de VFT usado no Volume Analítico
     fecharFormMina();
     await _carregarMinas();
     _renderMinasTabela();
@@ -7057,44 +7098,66 @@ window._vaOnFiltroChange = function _vaOnFiltroChange() { _vaRenderTabela(); };
 
 // Agrupa uma lista de viagens (registros brutos do volume_dias) por Veículo × Rota, somando peso
 // e contando viagens — usado tanto pro dia único quanto pro consolidado do mês.
+let _vftCadastroCache = null; // 'ORIGEM|||DESTINO' -> valor do VFT$ (ou null se não cadastrado)
+
+async function _obterVftPorRota() {
+  if (_vftCadastroCache) return _vftCadastroCache;
+  await _carregarMinas(); // garante que _minasCadastro está carregado
+  const mapa = {};
+  (_minasCadastro || []).forEach(m => {
+    if (m.vft != null) mapa[_chaveRota(m.origem, m.destino)] = Number(m.vft);
+  });
+  _vftCadastroCache = mapa;
+  return mapa;
+}
+
+// Agrupa por Veículo × Rota, somando peso, contando viagens e registrando em quantos dias
+// distintos aquele veículo rodou aquela rota (cada viagem carrega o dia de origem em v._dia).
 function _vaAgruparPorVeiculoRota(viagens) {
   const grupos = {};
   viagens.forEach(v => {
     if (!v.placa) return;
     const chave = `${v.placa}|||${_progNormalizarOD(v.origem)}|||${_progNormalizarOD(v.destino)}`;
     if (!grupos[chave]) {
-      grupos[chave] = { placa: v.placa, fr: v.fr ?? v.cod ?? '', forca: (v.forca||'').toString().trim().toUpperCase(), tipo2: (v.tipo2||'').toString().trim().toUpperCase(), origem: v.origem, destino: v.destino, peso: 0, viagens: 0 };
+      grupos[chave] = { placa: v.placa, fr: v.fr ?? v.cod ?? '', forca: (v.forca||'').toString().trim().toUpperCase(), tipo2: (v.tipo2||'').toString().trim().toUpperCase(), origem: v.origem, destino: v.destino, peso: 0, viagens: 0, diasSet: new Set() };
     }
     grupos[chave].peso += Number(v.peso)||0;
     grupos[chave].viagens += 1;
+    if (v._dia) grupos[chave].diasSet.add(v._dia);
   });
-  return Object.values(grupos);
+  return Object.values(grupos).map(g => ({ ...g, diasTrabalhados: g.diasSet.size }));
 }
 
 async function _vaCarregar() {
   const tbody = document.getElementById('va-tabela-body');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
   try {
     let viagens = [];
     if (_vaModoView === 'dia') {
-      if (!_vaDiaAtual) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</td></tr>'; return; }
+      if (!_vaDiaAtual) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</td></tr>'; return; }
       const snap = await getDoc(doc(db, 'volume_dias', _vaDiaAtual));
-      viagens = (snap.exists() && Array.isArray(snap.data().viagens)) ? snap.data().viagens : [];
+      viagens = ((snap.exists() && Array.isArray(snap.data().viagens)) ? snap.data().viagens : []).map(v => Object.assign({}, v, { _dia: _vaDiaAtual }));
     } else {
-      if (!_vaMesAtual) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">Selecione um mês.</td></tr>'; return; }
+      if (!_vaMesAtual) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um mês.</td></tr>'; return; }
       const [ano, mes] = _vaMesAtual.split('-');
       const diasReais = await _obterDiasVolumeReal();
       const diasDoMes = diasReais.filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
       const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _diaParaChave(d)))));
-      snaps.forEach(snap => { if (snap.exists() && Array.isArray(snap.data().viagens)) viagens = viagens.concat(snap.data().viagens); });
+      snaps.forEach((snap, i) => {
+        if (snap.exists() && Array.isArray(snap.data().viagens)) {
+          const diaChave = _diaParaChave(diasDoMes[i]);
+          viagens = viagens.concat(snap.data().viagens.map(v => Object.assign({}, v, { _dia: diaChave })));
+        }
+      });
     }
 
+    await _obterVftPorRota();
     _vaLinhasBrutas = _vaAgruparPorVeiculoRota(viagens);
     _vaRenderTabela();
   } catch (err) {
     console.error('Erro ao carregar Volume Analítico:', err);
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados.</td></tr>';
   }
 }
 
@@ -7114,14 +7177,25 @@ function _vaRenderTabela() {
   if (tipoFiltro === 'CAVALO') linhas = linhas.filter(l => _progEhCavalo(l.tipo2));
 
   linhas = linhas.slice().sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0) || a.placa.localeCompare(b.placa));
+
+  // agrega o VFT$/Faturamento aqui, já com o filtro aplicado — fica pronto pra exportação e pro consolidado
+  linhas = linhas.map(l => {
+    const vft = (_vftCadastroCache || {})[_chaveRota(l.origem, l.destino)];
+    const faturamento = vft != null ? l.peso * vft : null;
+    return { ...l, vft: vft ?? null, faturamento };
+  });
   _vaLinhasAtuais = linhas;
 
   count.textContent = linhas.length + (linhas.length === 1 ? ' registro' : ' registros');
 
   if (linhas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3);">Nenhum registro pra esse filtro.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Nenhum registro pra esse filtro.</td></tr>';
+    document.getElementById('va-consolidado-body').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">—</td></tr>';
+    document.getElementById('va-consolidado-count').textContent = '0 registros';
     return;
   }
+
+  const fmtMoeda = (n) => n == null ? '—' : `R$ ${n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 
   tbody.innerHTML = linhas.map(l => {
     const pesoMedio = l.viagens > 0 ? l.peso / l.viagens : 0;
@@ -7137,9 +7211,64 @@ function _vaRenderTabela() {
       <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${l.diasTrabalhados}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${l.vft!=null ? fmtMoeda(l.vft) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${fmtMoeda(l.faturamento)}</td>
     </tr>`;
   }).join('');
+
+  _vaRenderConsolidadoVeiculo(linhas);
 }
+
+// Consolidado por Veículo — soma todas as rotas de cada veículo num total só. Dias trabalhados
+// aqui é a união dos dias em que o veículo rodou QUALQUER rota (não a soma dos dias por rota,
+// senão um veículo que trabalhou o mesmo dia em 2 rotas contaria esse dia 2x).
+function _vaRenderConsolidadoVeiculo(linhas) {
+  const body = document.getElementById('va-consolidado-body');
+  const count = document.getElementById('va-consolidado-count');
+  if (!body) return;
+
+  const porVeiculo = {};
+  linhas.forEach(l => {
+    if (!porVeiculo[l.placa]) {
+      porVeiculo[l.placa] = { placa: l.placa, fr: l.fr, forca: l.forca, rotas: 0, peso: 0, viagens: 0, faturamento: 0, temFaturamento: false, diasSet: new Set() };
+    }
+    const acc = porVeiculo[l.placa];
+    acc.rotas += 1;
+    acc.peso += l.peso;
+    acc.viagens += l.viagens;
+    if (l.faturamento != null) { acc.faturamento += l.faturamento; acc.temFaturamento = true; }
+    l.diasSet.forEach(d => acc.diasSet.add(d));
+  });
+
+  const consolidado = Object.values(porVeiculo).sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0) || a.placa.localeCompare(b.placa));
+  count.textContent = consolidado.length + (consolidado.length === 1 ? ' veículo' : ' veículos');
+
+  const fmtMoeda = (n) => `R$ ${n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+  body.innerHTML = consolidado.map(v => {
+    const pesoMedio = v.viagens > 0 ? v.peso / v.viagens : 0;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="font-size:15px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--text);">${v.placa}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text3);">${v.forca||'—'}</div>
+      </td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${v.rotas}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${v.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${v.viagens}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${v.diasSet.size}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${v.temFaturamento ? fmtMoeda(v.faturamento) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  _vaConsolidadoAtual = consolidado;
+}
+
+let _vaConsolidadoAtual = [];
 
 window.renderVolumeAnalitico = async function renderVolumeAnalitico() {
   const hoje = new Date();
@@ -7163,7 +7292,7 @@ window.renderVolumeAnalitico = async function renderVolumeAnalitico() {
 
 window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
   if (!_vaLinhasAtuais || _vaLinhasAtuais.length === 0) { showToast('✖ Nada pra exportar — ajuste os filtros primeiro.'); return; }
-  const dados = _vaLinhasAtuais.map(l => ({
+  const dadosDetalhe = _vaLinhasAtuais.map(l => ({
     'FR': l.fr || '',
     'Placa': l.placa,
     'Força': l.forca || '',
@@ -7172,11 +7301,26 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
     'Destino': l.destino,
     'Volume Total (t)': Math.round((l.peso||0) * 10) / 10,
     'Viagens': l.viagens,
-    'Peso Médio (t)': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0) * 10) / 10
+    'Peso Médio (t)': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0) * 10) / 10,
+    'Dias Trabalhados': l.diasTrabalhados,
+    'VFT$/t': l.vft != null ? Math.round(l.vft*100)/100 : '',
+    'Faturamento': l.faturamento != null ? Math.round(l.faturamento*100)/100 : ''
   }));
-  const ws = XLSX.utils.json_to_sheet(dados);
+  const dadosConsolidado = _vaConsolidadoAtual.map(v => ({
+    'FR': v.fr || '',
+    'Placa': v.placa,
+    'Força': v.forca || '',
+    'Rotas': v.rotas,
+    'Volume Total (t)': Math.round((v.peso||0) * 10) / 10,
+    'Viagens': v.viagens,
+    'Peso Médio (t)': Math.round((v.viagens > 0 ? v.peso/v.viagens : 0) * 10) / 10,
+    'Dias Trabalhados': v.diasSet.size,
+    'Faturamento Total': v.temFaturamento ? Math.round(v.faturamento*100)/100 : ''
+  }));
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Volume Analítico');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosDetalhe), 'Por Rota');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosConsolidado), 'Consolidado por Veículo');
   const rotulo = _vaModoView === 'dia' ? _vaDiaAtual : _vaMesAtual;
   XLSX.writeFile(wb, `volume_analitico_${rotulo}.xlsx`);
   showToast('✔ Arquivo exportado.');
