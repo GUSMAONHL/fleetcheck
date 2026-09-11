@@ -538,11 +538,17 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <div class="topbar-modo-toggle">
           <button id="va-modo-dia-btn" onclick="_vaSetModoView('dia')" style="background:#388bfd;color:#fff;">Dia</button>
           <button id="va-modo-mes-btn" onclick="_vaSetModoView('mes')">Mês</button>
+          <button id="va-modo-periodo-btn" onclick="_vaSetModoView('periodo')">Período</button>
         </div>
         <input type="date" id="va-dia-input" class="filter-input" onchange="_vaOnDiaChange(this.value)">
         <select id="va-mes-select" class="filter-input" style="display:none;" onchange="_vaOnMesChange(this.value)">
           <option value="">—</option>
         </select>
+        <div id="va-periodo-inputs" style="display:none;align-items:center;gap:6px;">
+          <input type="date" id="va-periodo-de" class="filter-input" onchange="_vaOnPeriodoChange()">
+          <span style="color:var(--text3);font-size:13px;">até</span>
+          <input type="date" id="va-periodo-ate" class="filter-input" onchange="_vaOnPeriodoChange()">
+        </div>
         <select id="va-forca-select" class="filter-input" onchange="_vaOnFiltroChange()">
           <option value="">Força: Todas</option>
           <option value="FROTA">Frota</option>
@@ -552,6 +558,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <option value="">Tipo: Todos</option>
           <option value="CAMINHAO">Caminhão</option>
           <option value="CAVALO">Cavalo</option>
+        </select>
+        <select id="va-veiculo-select" class="filter-input" onchange="_vaOnFiltroChange()">
+          <option value="">Veículo: Todos</option>
         </select>
       </div>
 
@@ -767,6 +776,27 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: VOLUME ANALÍTICO -->
     <div class="page" id="page-volumeanalitico">
+      <div class="table-card" id="va-pordia-card" style="margin-bottom:16px;display:none;">
+        <div class="table-header">
+          <div class="table-title" id="va-pordia-titulo">O que o veículo fez por dia</div>
+          <div class="table-count" id="va-pordia-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>DIA</th>
+                <th>ROTA</th>
+                <th style="text-align:right;">VOLUME (t)</th>
+                <th style="text-align:right;">VIAGENS</th>
+                <th style="text-align:right;">PESO MÉDIO (t)</th>
+              </tr>
+            </thead>
+            <tbody id="va-pordia-body"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="table-card" style="margin-bottom:16px;">
         <div class="table-header">
           <div class="table-title">Volume Analítico por Veículo × Rota</div>
@@ -7093,22 +7123,32 @@ async function _volRenderCardsDiasOperacao() {
 // de viagens e peso médio. Filtros por Dia/Mês, Força e Tipo de veículo. Fonte: volume_dias
 // (mesma base real usada em Volume Transportado).
 // ══════════════════════════════════════
-let _vaModoView = 'dia'; // 'dia' | 'mes'
+let _vaModoView = 'dia'; // 'dia' | 'mes' | 'periodo'
 let _vaDiaAtual = null;  // 'YYYY-MM-DD'
 let _vaMesAtual = null;  // 'YYYY-MM'
+let _vaPeriodoDe = null; // 'YYYY-MM-DD'
+let _vaPeriodoAte = null; // 'YYYY-MM-DD'
 let _vaLinhasAtuais = []; // cache das linhas já agrupadas/filtradas, usado na exportação
+let _vaViagensBrutas = []; // registros individuais (não agrupados), usados no detalhamento por dia
 
 window._vaSetModoView = function _vaSetModoView(modo) {
   _vaModoView = modo;
   document.getElementById('va-modo-dia-btn').style.cssText = modo==='dia' ? 'background:#388bfd;color:#fff;' : '';
   document.getElementById('va-modo-mes-btn').style.cssText = modo==='mes' ? 'background:#388bfd;color:#fff;' : '';
+  document.getElementById('va-modo-periodo-btn').style.cssText = modo==='periodo' ? 'background:#388bfd;color:#fff;' : '';
   document.getElementById('va-dia-input').style.display = modo==='dia' ? '' : 'none';
   document.getElementById('va-mes-select').style.display = modo==='mes' ? '' : 'none';
+  document.getElementById('va-periodo-inputs').style.display = modo==='periodo' ? 'flex' : 'none';
   _vaCarregar();
 };
 
 window._vaOnDiaChange = function _vaOnDiaChange(v) { _vaDiaAtual = v; _vaCarregar(); };
 window._vaOnMesChange = function _vaOnMesChange(v) { _vaMesAtual = v; _vaCarregar(); };
+window._vaOnPeriodoChange = function _vaOnPeriodoChange() {
+  _vaPeriodoDe = document.getElementById('va-periodo-de').value;
+  _vaPeriodoAte = document.getElementById('va-periodo-ate').value;
+  if (_vaPeriodoDe && _vaPeriodoAte) _vaCarregar();
+};
 window._vaOnFiltroChange = function _vaOnFiltroChange() { _vaRenderTabela(); };
 
 // Agrupa uma lista de viagens (registros brutos do volume_dias) por Veículo × Rota, somando peso
@@ -7143,37 +7183,62 @@ function _vaAgruparPorVeiculoRota(viagens) {
   return Object.values(grupos).map(g => ({ ...g, diasTrabalhados: g.diasSet.size }));
 }
 
+// Junta os dias que precisam ser buscados no Firestore, no formato de exibição 'DD/MM/YYYY',
+// conforme o modo atual — usa sempre a lista de dias que realmente têm volume real importado.
+async function _vaObterDiasParaCarregar() {
+  if (_vaModoView === 'dia') {
+    return _vaDiaAtual ? [_vaDiaAtual] : [];
+  }
+  const diasReais = await _obterDiasVolumeReal();
+  if (_vaModoView === 'mes') {
+    if (!_vaMesAtual) return [];
+    const [ano, mes] = _vaMesAtual.split('-');
+    return diasReais.filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; }).map(d => _diaParaChave(d));
+  }
+  // periodo
+  if (!_vaPeriodoDe || !_vaPeriodoAte) return [];
+  return diasReais.map(d => _diaParaChave(d)).filter(iso => iso >= _vaPeriodoDe && iso <= _vaPeriodoAte);
+}
+
 async function _vaCarregar() {
   const tbody = document.getElementById('va-tabela-body');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
   try {
-    let viagens = [];
-    if (_vaModoView === 'dia') {
-      if (!_vaDiaAtual) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia.</td></tr>'; return; }
-      const snap = await getDoc(doc(db, 'volume_dias', _vaDiaAtual));
-      viagens = ((snap.exists() && Array.isArray(snap.data().viagens)) ? snap.data().viagens : []).map(v => Object.assign({}, v, { _dia: _vaDiaAtual }));
-    } else {
-      if (!_vaMesAtual) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um mês.</td></tr>'; return; }
-      const [ano, mes] = _vaMesAtual.split('-');
-      const diasReais = await _obterDiasVolumeReal();
-      const diasDoMes = diasReais.filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
-      const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _diaParaChave(d)))));
-      snaps.forEach((snap, i) => {
-        if (snap.exists() && Array.isArray(snap.data().viagens)) {
-          const diaChave = _diaParaChave(diasDoMes[i]);
-          viagens = viagens.concat(snap.data().viagens.map(v => Object.assign({}, v, { _dia: diaChave })));
-        }
-      });
+    const diasParaCarregar = await _vaObterDiasParaCarregar();
+    if (diasParaCarregar.length === 0) {
+      const msg = _vaModoView === 'dia' ? 'Selecione um dia.' : _vaModoView === 'mes' ? 'Selecione um mês.' : 'Selecione o período (de/até).';
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">${msg}</td></tr>`;
+      return;
     }
 
+    const snaps = await Promise.all(diasParaCarregar.map(diaISO => getDoc(doc(db, 'volume_dias', diaISO))));
+    let viagens = [];
+    snaps.forEach((snap, i) => {
+      if (snap.exists() && Array.isArray(snap.data().viagens)) {
+        viagens = viagens.concat(snap.data().viagens.map(v => Object.assign({}, v, { _dia: diasParaCarregar[i] })));
+      }
+    });
+
     await _obterVftPorRota();
+    _vaViagensBrutas = viagens;
     _vaLinhasBrutas = _vaAgruparPorVeiculoRota(viagens);
+    _vaPopularSelectVeiculo();
     _vaRenderTabela();
   } catch (err) {
     console.error('Erro ao carregar Volume Analítico:', err);
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados.</td></tr>';
   }
+}
+
+// Popula o filtro de veículo com as placas que realmente aparecem no período carregado —
+// mantém a seleção atual se ela ainda existir na nova lista.
+function _vaPopularSelectVeiculo() {
+  const select = document.getElementById('va-veiculo-select');
+  const atual = select.value;
+  const placas = Array.from(new Set(_vaLinhasBrutas.map(l => l.placa))).sort();
+  select.innerHTML = '<option value="">Veículo: Todos</option>' + placas.map(p => `<option value="${p}">${p}</option>`).join('');
+  select.value = placas.includes(atual) ? atual : '';
 }
 
 let _vaLinhasBrutas = [];
@@ -7185,11 +7250,13 @@ function _vaRenderTabela() {
 
   const forcaFiltro = document.getElementById('va-forca-select').value;
   const tipoFiltro = document.getElementById('va-tipo-select').value;
+  const veiculoFiltro = document.getElementById('va-veiculo-select').value;
 
   let linhas = _vaLinhasBrutas;
   if (forcaFiltro) linhas = linhas.filter(l => l.forca === forcaFiltro);
   if (tipoFiltro === 'CAMINHAO') linhas = linhas.filter(l => _progEhCaminhao(l.tipo2));
   if (tipoFiltro === 'CAVALO') linhas = linhas.filter(l => _progEhCavalo(l.tipo2));
+  if (veiculoFiltro) linhas = linhas.filter(l => l.placa === veiculoFiltro);
 
   linhas = linhas.slice().sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0) || a.placa.localeCompare(b.placa));
 
@@ -7200,6 +7267,8 @@ function _vaRenderTabela() {
     return { ...l, vft: vft ?? null, faturamento };
   });
   _vaLinhasAtuais = linhas;
+
+  _vaRenderPorDia(veiculoFiltro);
 
   count.textContent = linhas.length + (linhas.length === 1 ? ' registro' : ' registros');
 
@@ -7238,6 +7307,45 @@ function _vaRenderTabela() {
 // Consolidado por Veículo — soma todas as rotas de cada veículo num total só. Dias trabalhados
 // aqui é a união dos dias em que o veículo rodou QUALQUER rota (não a soma dos dias por rota,
 // senão um veículo que trabalhou o mesmo dia em 2 rotas contaria esse dia 2x).
+// Mostra o que o veículo selecionado fez, dia a dia — uma linha por Dia×Rota, ordenado do dia
+// mais antigo pro mais recente. Só aparece quando um veículo específico está selecionado no
+// filtro (não faz sentido detalhar dia a dia com vários veículos misturados na mesma lista).
+function _vaRenderPorDia(placaSelecionada) {
+  const card = document.getElementById('va-pordia-card');
+  if (!card) return;
+  if (!placaSelecionada) { card.style.display = 'none'; return; }
+
+  const viagensDoVeiculo = _vaViagensBrutas.filter(v => v.placa === placaSelecionada);
+  const grupos = {};
+  viagensDoVeiculo.forEach(v => {
+    const chave = `${v._dia}|||${v.origem}|||${v.destino}`;
+    if (!grupos[chave]) grupos[chave] = { dia: v._dia, origem: v.origem, destino: v.destino, peso: 0, viagens: 0 };
+    grupos[chave].peso += Number(v.peso)||0;
+    grupos[chave].viagens += 1;
+  });
+  const linhas = Object.values(grupos).sort((a,b) => a.dia.localeCompare(b.dia) || a.origem.localeCompare(b.origem));
+
+  document.getElementById('va-pordia-titulo').textContent = `O que ${placaSelecionada} fez por dia`;
+  document.getElementById('va-pordia-count').textContent = linhas.length + (linhas.length === 1 ? ' registro' : ' registros');
+
+  const body = document.getElementById('va-pordia-body');
+  body.innerHTML = linhas.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3);">Nenhum registro pra esse veículo no período.</td></tr>'
+    : linhas.map(l => {
+        const pesoMedio = l.viagens > 0 ? l.peso / l.viagens : 0;
+        const [ano, mes, dia] = l.dia.split('-');
+        return `<tr>
+          <td style="font-family:'DM Mono',monospace;">${dia}/${mes}/${ano}</td>
+          <td>${l.origem} <span style="color:var(--text3);">→</span> ${l.destino}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+        </tr>`;
+      }).join('');
+
+  card.style.display = '';
+}
+
 function _vaRenderConsolidadoVeiculo(linhas) {
   const body = document.getElementById('va-consolidado-body');
   const count = document.getElementById('va-consolidado-count');
@@ -7302,6 +7410,11 @@ window.renderVolumeAnalitico = async function renderVolumeAnalitico() {
   selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_volMesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
   selectMes.value = _vaMesAtual;
 
+  // valores padrão pro período (início do mês corrente até hoje), só preenche se ainda estiver vazio
+  const primeiroDiaMes = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-01';
+  if (!_vaPeriodoDe) { _vaPeriodoDe = primeiroDiaMes; document.getElementById('va-periodo-de').value = primeiroDiaMes; }
+  if (!_vaPeriodoAte) { _vaPeriodoAte = hojeISO; document.getElementById('va-periodo-ate').value = hojeISO; }
+
   await _vaCarregar();
 };
 
@@ -7336,7 +7449,29 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosDetalhe), 'Por Rota');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosConsolidado), 'Consolidado por Veículo');
-  const rotulo = _vaModoView === 'dia' ? _vaDiaAtual : _vaMesAtual;
+
+  const veiculoFiltro = document.getElementById('va-veiculo-select').value;
+  if (veiculoFiltro) {
+    const viagensDoVeiculo = _vaViagensBrutas.filter(v => v.placa === veiculoFiltro);
+    const grupos = {};
+    viagensDoVeiculo.forEach(v => {
+      const chave = `${v._dia}|||${v.origem}|||${v.destino}`;
+      if (!grupos[chave]) grupos[chave] = { dia: v._dia, origem: v.origem, destino: v.destino, peso: 0, viagens: 0 };
+      grupos[chave].peso += Number(v.peso)||0;
+      grupos[chave].viagens += 1;
+    });
+    const dadosPorDia = Object.values(grupos).sort((a,b) => a.dia.localeCompare(b.dia)).map(l => ({
+      'Dia': l.dia.split('-').reverse().join('/'),
+      'Origem': l.origem,
+      'Destino': l.destino,
+      'Volume (t)': Math.round((l.peso||0) * 10) / 10,
+      'Viagens': l.viagens,
+      'Peso Médio (t)': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0) * 10) / 10
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosPorDia), `Por Dia - ${veiculoFiltro}`.slice(0,31));
+  }
+
+  const rotulo = _vaModoView === 'dia' ? _vaDiaAtual : _vaModoView === 'mes' ? _vaMesAtual : `${_vaPeriodoDe}_a_${_vaPeriodoAte}`;
   XLSX.writeFile(wb, `volume_analitico_${rotulo}.xlsx`);
   showToast('✔ Arquivo exportado.');
 };
