@@ -417,6 +417,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M12 3v6M9 6h6"/></svg>
       <span>Aderência/Disponibilidade</span>
     </button>
+    <button class="nav-item" title="Ofensores — Impacto de Volume" onclick="showPage('ofensores')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <span>Ofensores</span>
+    </button>
     <button class="nav-item active" title="Volume" onclick="showPage('volume')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
       <span>Volume</span>
@@ -514,6 +518,24 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <select id="prod-ano-select" class="filter-input" style="display:none;" onchange="_onProdAnoChange(this.value)">
           <option value="">—</option>
         </select>
+      </div>
+
+      <div class="topbar-filtros-painel" id="topbar-filtros-ofensores">
+        <div class="topbar-modo-toggle">
+          <button id="ofn-modo-dia-btn" onclick="_ofnSetModoView('dia')">Dia</button>
+          <button id="ofn-modo-mes-btn" onclick="_ofnSetModoView('mes')" style="background:#388bfd;color:#fff;">Mês</button>
+          <button id="ofn-modo-periodo-btn" onclick="_ofnSetModoView('periodo')">Período</button>
+        </div>
+        <input type="date" id="ofn-dia-input" class="filter-input" style="display:none;" onchange="_ofnOnDiaChange(this.value)">
+        <select id="ofn-mes-select" class="filter-input" onchange="_ofnOnMesChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <div id="ofn-periodo-inputs" style="display:none;align-items:center;gap:6px;">
+          <input type="date" id="ofn-periodo-de" class="filter-input" onchange="_ofnOnPeriodoChange()">
+          <span style="color:var(--text3);font-size:13px;">até</span>
+          <input type="date" id="ofn-periodo-ate" class="filter-input" onchange="_ofnOnPeriodoChange()">
+        </div>
+        <input type="text" id="ofn-veiculo-input" class="filter-input" placeholder="Filtrar por Placa ou FR..." style="width:180px;" oninput="_ofnOnFiltroVeiculoChange()">
       </div>
 
       <div class="topbar-filtros-painel active" id="topbar-filtros-volume">
@@ -749,6 +771,77 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div id="prod-grafico-df" style="margin-bottom:20px;"></div>
     </div>
 
+    <!-- PAGE: OFENSORES — IMPACTO DE VOLUME -->
+    <div class="page" id="page-ofensores">
+      <div id="ofn-kpis" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
+
+      <div id="ofn-pizzas-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
+
+      <div class="table-card" style="margin-bottom:16px;">
+        <div class="table-header">
+          <div class="table-title">Ranking de Ofensores</div>
+          <div class="table-count" id="ofn-ofensores-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>OFENSOR</th>
+                <th style="text-align:right;">OCORRÊNCIAS</th>
+                <th style="text-align:right;">TONELADAS PERDIDAS</th>
+                <th style="text-align:right;">% DO TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="ofn-ofensores-body">
+              <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Selecione um período.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-card" style="margin-bottom:16px;">
+        <div class="table-header">
+          <div class="table-title">Ranking de Tipo de Ofensor</div>
+          <div class="table-count" id="ofn-tipos-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>TIPO DE OFENSOR</th>
+                <th style="text-align:right;">OCORRÊNCIAS</th>
+                <th style="text-align:right;">TONELADAS PERDIDAS</th>
+                <th style="text-align:right;">% DO TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="ofn-tipos-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Ranking de Veículos — Quem Mais Perdeu Produtividade</div>
+          <div class="table-count" id="ofn-veiculos-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>VEÍCULO</th>
+                <th style="text-align:right;">TONELADAS PERDIDAS</th>
+                <th style="text-align:right;">% DO TOTAL</th>
+                <th style="text-align:right;">OCORRÊNCIAS</th>
+                <th>OFENSOR PRINCIPAL</th>
+              </tr>
+            </thead>
+            <tbody id="ofn-veiculos-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- PAGE: VOLUME TRANSPORTADO -->
     <div class="page active" id="page-volume">
       <div class="import-progress" id="import-progress-vol">
@@ -914,12 +1007,13 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                 <th>TIPO</th>
                 <th>TIPO2</th>
                 <th>FORÇA</th>
+                <th>INÍCIO</th>
                 <th>STATUS</th>
                 <th style="text-align:right;">AÇÕES</th>
               </tr>
             </thead>
             <tbody id="veiculos-tabela-body">
-              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1014,6 +1108,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <option value="FROTA">FROTA</option>
           <option value="TERCEIRO">TERCEIRO</option>
         </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Data de Início da Atividade</label>
+        <input type="date" id="veiculo-form-data-inicio" class="filter-input" style="width:100%;">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;">O veículo só entra nos indicadores a partir desse dia (deixe em branco pra já contar desde sempre).</div>
       </div>
       <button onclick="salvarVeiculo()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Veículo</button>
     </div>
@@ -1771,7 +1870,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico', ofensores: 'Ofensores — Impacto de Volume' };
 
 // Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
 // diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
@@ -1901,6 +2000,7 @@ window.showPage = function showPage(id) {
   if (id === 'frotas') renderFrotaTable();
   if (id === 'desempenho') setTimeout(() => window.renderDesempenhoKm(), 0);
   if (id === 'produtividade') setTimeout(() => window.renderProdutividade(), 0);
+  if (id === 'ofensores') setTimeout(() => window.renderOfensores(), 0);
   if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
   if (id === 'volumeanalitico') setTimeout(() => window.renderVolumeAnalitico(), 0);
   if (id === 'minas') setTimeout(() => window.renderMinas(), 0);
@@ -5293,23 +5393,25 @@ function _renderVeiculosCadastroTabela() {
   count.textContent = filtrados.length + (filtrados.length === 1 ? ' registro' : ' registros') + (filtrados.length !== _veiculosCadastro.length ? ` de ${_veiculosCadastro.length}` : '');
 
   if (_veiculosCadastro.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo cadastrado ainda. Clique em "Importar da Base Aderência" ou "Novo Veículo" pra começar.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo cadastrado ainda. Clique em "Importar da Base Aderência" ou "Novo Veículo" pra começar.</td></tr>';
     return;
   }
   if (filtrados.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo bate com esse filtro.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Nenhum veículo bate com esse filtro.</td></tr>';
     return;
   }
 
   const ordenados = filtrados.slice().sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0));
   body.innerHTML = ordenados.map(v => {
     const ativo = v.ativo !== false; // por padrão, ativo (undefined também conta como ativo)
+    const dataInicioTxt = v.dataInicio ? v.dataInicio.split('-').reverse().join('/') : '—';
     return `<tr style="${ativo ? '' : 'opacity:0.5;'}">
       <td style="font-family:'DM Mono',monospace;">${v.fr || '—'}</td>
       <td class="text-primary">${v.placa}</td>
       <td>${_veiculoTipo(v)}</td>
       <td>${v.tipo2 || '—'}</td>
       <td>${v.forca || '—'}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text2);">${dataInicioTxt}</td>
       <td>
         <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:${ativo ? 'rgba(46,160,67,0.15)' : 'rgba(248,81,73,0.15)'};color:${ativo ? '#2ea043' : '#f85149'};">${ativo ? 'ATIVO' : 'INATIVO'}</span>
       </td>
@@ -5324,7 +5426,7 @@ function _renderVeiculosCadastroTabela() {
 
 window.renderVeiculosCadastro = async function renderVeiculosCadastro() {
   const body = document.getElementById('veiculos-tabela-body');
-  if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  if (body) body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
   await _carregarVeiculosCadastro();
   _renderVeiculosCardsCategoria();
   _renderVeiculosCadastroTabela();
@@ -5337,6 +5439,7 @@ window.abrirFormVeiculo = function abrirFormVeiculo(placa) {
   const frEl = document.getElementById('veiculo-form-fr');
   const tipo2El = document.getElementById('veiculo-form-tipo2');
   const forcaEl = document.getElementById('veiculo-form-forca');
+  const dataInicioEl = document.getElementById('veiculo-form-data-inicio');
 
   if (placa) {
     const v = _veiculosCadastro.find(x => x.placa === placa);
@@ -5347,6 +5450,7 @@ window.abrirFormVeiculo = function abrirFormVeiculo(placa) {
     frEl.value = v.fr || '';
     tipo2El.value = v.tipo2 || 'BT';
     forcaEl.value = v.forca || 'FROTA';
+    dataInicioEl.value = v.dataInicio || '';
   } else {
     titulo.textContent = '🚛 Novo Veículo';
     placaEl.value = '';
@@ -5354,6 +5458,9 @@ window.abrirFormVeiculo = function abrirFormVeiculo(placa) {
     frEl.value = '';
     tipo2El.value = 'BT';
     forcaEl.value = 'FROTA';
+    // por padrão, hoje — evita esquecer de preencher e o veículo virar "sempre existiu"
+    const hoje = new Date();
+    dataInicioEl.value = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
   }
 
   document.getElementById('veiculo-form-overlay').style.display = 'flex';
@@ -5380,6 +5487,8 @@ window.salvarVeiculo = async function salvarVeiculo() {
   const fr = document.getElementById('veiculo-form-fr').value.trim();
   const tipo2 = document.getElementById('veiculo-form-tipo2').value;
   const forca = document.getElementById('veiculo-form-forca').value;
+  const dataInicioRaw = document.getElementById('veiculo-form-data-inicio').value;
+  const dataInicio = dataInicioRaw || null; // vazio = conta desde sempre, sem restrição de data
 
   if (!placa) { showToast('✖ Informe a placa.'); return; }
   if (!fr) { showToast('✖ Informe o FR.'); return; }
@@ -5387,12 +5496,12 @@ window.salvarVeiculo = async function salvarVeiculo() {
   try {
     if (_veiculoEditandoId) {
       // mantém o status ativo/inativo que já existia — esse formulário só edita os dados do veículo
-      await setDoc(doc(db, 'frota_cadastro', _veiculoEditandoId), { fr, tipo2, forca }, { merge: true });
+      await setDoc(doc(db, 'frota_cadastro', _veiculoEditandoId), { fr, tipo2, forca, dataInicio }, { merge: true });
       showToast(`✔ Veículo ${placa} atualizado.`);
     } else {
       const existente = _veiculosCadastro.find(v => v.placa === placa);
       if (existente) { showToast(`✖ Já existe um veículo cadastrado com a placa ${placa}.`); return; }
-      await setDoc(doc(db, 'frota_cadastro', placa), { fr, tipo2, forca, ativo: true, criadoEm: new Date().toISOString() });
+      await setDoc(doc(db, 'frota_cadastro', placa), { fr, tipo2, forca, dataInicio, ativo: true, criadoEm: new Date().toISOString() });
       showToast(`✔ Veículo ${placa} cadastrado.`);
     }
     _invalidarCachesRoster();
@@ -6501,6 +6610,10 @@ async function _construirRosterVeiculos(diaISO) {
     const roster = cadastroSnap.docs
       .map(d => ({ placa: d.id, ...d.data() }))
       .filter(v => v.ativo !== false)
+      // um veículo só entra no roster de um dia se já tiver começado a operar nele — sem essa
+      // checagem, cadastrar hoje um veículo que só vai trabalhar amanhã já contaria (errado) na
+      // disponibilidade de hoje e de todos os dias anteriores.
+      .filter(v => !v.dataInicio || !diaISO || v.dataInicio <= diaISO)
       .map(v => ({
         placa: v.placa,
         fr: v.fr ?? '',
@@ -7476,7 +7589,342 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
   showToast('✔ Arquivo exportado.');
 };
 
-// EXPORT PDF (simulado)
+// ══════════════════════════════════════
+// OFENSORES — IMPACTO DE VOLUME. Ranking de ofensores, tipo de ofensor e veículos que mais
+// perderam produtividade (toneladas perdidas = percTon), filtrado por Dia/Mês/Período e por
+// Veículo/FR. Reaproveita a mesma fonte de dados da tela Aderência (_obterLinhasDoDia), que já
+// decide sozinha se busca da planilha ADERENCIA importada ou da Gestão do Dia, conforme o corte.
+// ══════════════════════════════════════
+let _ofnModoView = 'mes'; // 'dia' | 'mes' | 'periodo'
+let _ofnDiaAtual = null;
+let _ofnMesAtual = null;
+let _ofnPeriodoDe = null;
+let _ofnPeriodoAte = null;
+let _ofnLinhasBrutas = [];
+
+async function _ofnGarantirProdMeta() {
+  if (_prodMeta !== null) return;
+  try {
+    const snap = await getDoc(doc(db, 'base_volume', 'meta'));
+    _prodMeta = snap.exists() ? snap.data() : {};
+  } catch (err) {
+    console.error('Erro ao carregar meta da Aderência:', err);
+    _prodMeta = {};
+  }
+}
+
+window._ofnSetModoView = function _ofnSetModoView(modo) {
+  _ofnModoView = modo;
+  document.getElementById('ofn-modo-dia-btn').style.cssText = modo==='dia' ? 'background:#388bfd;color:#fff;' : '';
+  document.getElementById('ofn-modo-mes-btn').style.cssText = modo==='mes' ? 'background:#388bfd;color:#fff;' : '';
+  document.getElementById('ofn-modo-periodo-btn').style.cssText = modo==='periodo' ? 'background:#388bfd;color:#fff;' : '';
+  document.getElementById('ofn-dia-input').style.display = modo==='dia' ? '' : 'none';
+  document.getElementById('ofn-mes-select').style.display = modo==='mes' ? '' : 'none';
+  document.getElementById('ofn-periodo-inputs').style.display = modo==='periodo' ? 'flex' : 'none';
+  _ofnCarregar();
+};
+
+window._ofnOnDiaChange = function _ofnOnDiaChange(v) {
+  const [ano,mes,dia] = v.split('-');
+  _ofnDiaAtual = `${dia}/${mes}/${ano}`;
+  _ofnCarregar();
+};
+window._ofnOnMesChange = function _ofnOnMesChange(v) { _ofnMesAtual = v; _ofnCarregar(); };
+window._ofnOnPeriodoChange = function _ofnOnPeriodoChange() {
+  _ofnPeriodoDe = document.getElementById('ofn-periodo-de').value;
+  _ofnPeriodoAte = document.getElementById('ofn-periodo-ate').value;
+  if (_ofnPeriodoDe && _ofnPeriodoAte) _ofnCarregar();
+};
+window._ofnOnFiltroVeiculoChange = function _ofnOnFiltroVeiculoChange() { _ofnRenderTudo(); };
+
+// Resolve a lista de dias (formato 'DD/MM/YYYY') do período selecionado, misturando ADERENCIA
+// importada (antes do corte) com Gestão do Dia (a partir do corte) quando necessário.
+async function _ofnObterDiasDoPeriodo() {
+  await _ofnGarantirProdMeta();
+  if (_ofnModoView === 'dia') {
+    return _ofnDiaAtual ? [_ofnDiaAtual] : [];
+  }
+  if (_ofnModoView === 'mes') {
+    if (!_ofnMesAtual) return [];
+    const [ano, mes] = _ofnMesAtual.split('-');
+    if (_ofnMesAtual >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) return await _diasDoMesParaExibicao(_ofnMesAtual);
+    return (_prodMeta.dias || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+  }
+  // período
+  if (!_ofnPeriodoDe || !_ofnPeriodoAte) return [];
+  const diasAntesCorte = (_prodMeta.dias || []).filter(d => {
+    const iso = _diaParaChave(d);
+    return iso >= _ofnPeriodoDe && iso <= _ofnPeriodoAte && iso < GESTAO_ADERENCIA_CUTOFF;
+  });
+  const diasReais = await _obterDiasVolumeReal();
+  const diasDepoisCorte = diasReais.filter(d => {
+    const iso = _diaParaChave(d);
+    return iso >= _ofnPeriodoDe && iso <= _ofnPeriodoAte && iso >= GESTAO_ADERENCIA_CUTOFF;
+  });
+  return diasAntesCorte.concat(diasDepoisCorte);
+}
+
+async function _ofnCarregar() {
+  const body = document.getElementById('ofn-ofensores-body');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  try {
+    const dias = await _ofnObterDiasDoPeriodo();
+    if (dias.length === 0) {
+      const msg = _ofnModoView === 'dia' ? 'Selecione um dia.' : _ofnModoView === 'mes' ? 'Selecione um mês.' : 'Selecione o período (de/até).';
+      body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">${msg}</td></tr>`;
+      document.getElementById('ofn-kpis').innerHTML = '';
+      document.getElementById('ofn-tipos-body').innerHTML = '';
+      document.getElementById('ofn-veiculos-body').innerHTML = '';
+      return;
+    }
+    const linhasPorDia = await Promise.all(dias.map(d => _obterLinhasDoDia(d)));
+    _ofnLinhasBrutas = [];
+    linhasPorDia.forEach((linhas, i) => {
+      linhas.forEach(l => _ofnLinhasBrutas.push(Object.assign({}, l, { _dia: dias[i] })));
+    });
+    _ofnRenderTudo();
+  } catch (err) {
+    console.error('Erro ao carregar Ofensores:', err);
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados.</td></tr>';
+  }
+}
+
+function _ofnLinhasFiltradas() {
+  const filtroVeiculo = (document.getElementById('ofn-veiculo-input').value || '').trim().toUpperCase();
+  if (!filtroVeiculo) return _ofnLinhasBrutas;
+  return _ofnLinhasBrutas.filter(l =>
+    (l.placa||'').toString().toUpperCase().includes(filtroVeiculo) ||
+    (l.fr||'').toString().toUpperCase().includes(filtroVeiculo)
+  );
+}
+
+function _ofnRenderTudo() {
+  const linhas = _ofnLinhasFiltradas();
+  const comOfensor = linhas.filter(l => l.ofensor);
+  const totalPerdido = linhas.reduce((s,l) => s + (Number(l.percTon)||0), 0);
+
+  // ── Ranking de Ofensores ──
+  const porOfensor = {};
+  comOfensor.forEach(l => {
+    if (!porOfensor[l.ofensor]) porOfensor[l.ofensor] = { nome: l.ofensor, ocorrencias: 0, perdido: 0 };
+    porOfensor[l.ofensor].ocorrencias += 1;
+    porOfensor[l.ofensor].perdido += Number(l.percTon)||0;
+  });
+  const rankOfensores = Object.values(porOfensor).sort((a,b) => b.perdido - a.perdido);
+
+  // ── Ranking de Tipo de Ofensor ──
+  const porTipo = {};
+  comOfensor.filter(l => l.tipoOfensor).forEach(l => {
+    if (!porTipo[l.tipoOfensor]) porTipo[l.tipoOfensor] = { nome: l.tipoOfensor, ocorrencias: 0, perdido: 0 };
+    porTipo[l.tipoOfensor].ocorrencias += 1;
+    porTipo[l.tipoOfensor].perdido += Number(l.percTon)||0;
+  });
+  const rankTipos = Object.values(porTipo).sort((a,b) => b.perdido - a.perdido);
+
+  // ── Ranking de Veículos ──
+  const porVeiculo = {};
+  linhas.forEach(l => {
+    if (!(Number(l.percTon)||0) && !l.ofensor) return; // ignora quem não teve perda nem ofensor
+    if (!porVeiculo[l.placa]) porVeiculo[l.placa] = { placa: l.placa, fr: l.fr, perdido: 0, ocorrencias: 0, ofensoresCount: {} };
+    const acc = porVeiculo[l.placa];
+    acc.perdido += Number(l.percTon)||0;
+    if (l.ofensor) {
+      acc.ocorrencias += 1;
+      acc.ofensoresCount[l.ofensor] = (acc.ofensoresCount[l.ofensor]||0) + 1;
+    }
+  });
+  const rankVeiculos = Object.values(porVeiculo)
+    .map(v => {
+      const principal = Object.entries(v.ofensoresCount).sort((a,b) => b[1]-a[1])[0];
+      return { ...v, ofensorPrincipal: principal ? principal[0] : '—' };
+    })
+    .filter(v => v.perdido > 0)
+    .sort((a,b) => b.perdido - a.perdido);
+
+  _ofnRenderKpis(totalPerdido, rankOfensores[0], rankVeiculos[0]);
+  _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos);
+  _ofnRenderTabelaOfensores(rankOfensores, totalPerdido);
+  _ofnRenderTabelaTipos(rankTipos, totalPerdido);
+  _ofnRenderTabelaVeiculos(rankVeiculos, totalPerdido);
+}
+
+// Monta os 3 gráficos de pizza lado a lado, no topo do painel — ordenados do maior pro menor
+// total de toneladas perdidas. O gráfico de Veículos não agrupa em "Outros": cada fatia já é um
+// veículo real com placa própria, então não existe uma categoria "outro veículo" que faça sentido.
+function _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos) {
+  const cont = document.getElementById('ofn-pizzas-row');
+  if (!cont) return;
+
+  const blocos = [
+    { titulo: 'Ofensores', total: rankOfensores.reduce((s,o)=>s+o.perdido,0), pizza: _ofnSvgPizza(rankOfensores.map(o => ({ nome: o.nome, valor: o.perdido }))) },
+    { titulo: 'Tipo de Ofensor', total: rankTipos.reduce((s,t)=>s+t.perdido,0), pizza: _ofnSvgPizza(rankTipos.map(t => ({ nome: t.nome, valor: t.perdido }))) },
+    { titulo: 'Veículos', total: rankVeiculos.reduce((s,v)=>s+v.perdido,0), pizza: _ofnSvgPizza(rankVeiculos.map(v => ({ nome: `${v.fr||'—'} ${v.placa}`, valor: v.perdido })), { agrupar: false }) },
+  ].sort((a,b) => b.total - a.total);
+
+  cont.innerHTML = blocos.map(b => `<div class="table-card" style="padding:14px 16px;">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${b.titulo} <span style="color:var(--text3);font-weight:400;">— ${Math.round(b.total).toLocaleString('pt-BR')}t</span></div>
+    ${b.pizza}
+  </div>`).join('');
+}
+
+function _ofnRenderKpis(totalPerdido, ofensorTop, veiculoTop) {
+  const cont = document.getElementById('ofn-kpis');
+  const card = (rotulo, valor, sub, cor) => `<div class="table-card" style="padding:16px 18px;">
+    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${rotulo}</div>
+    <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${valor}</div>
+    ${sub ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">${sub}</div>` : ''}
+  </div>`;
+  cont.innerHTML =
+    card('⚠ Total de Toneladas Perdidas', `${Math.round(totalPerdido).toLocaleString('pt-BR')}t`, null, '#f85149')
+    + card('🎯 Ofensor Principal', ofensorTop ? ofensorTop.nome : '—', ofensorTop ? `${Math.round(ofensorTop.perdido).toLocaleString('pt-BR')}t · ${ofensorTop.ocorrencias} ocorrência(s)` : 'Nenhum ofensor registrado', '#d29922')
+    + card('🚛 Veículo Mais Impactado', veiculoTop ? `${veiculoTop.fr||'—'} — ${veiculoTop.placa}` : '—', veiculoTop ? `${Math.round(veiculoTop.perdido).toLocaleString('pt-BR')}t perdidas` : 'Nenhum registro', '#f85149');
+}
+
+const OFN_CORES_PIE = ['#f85149','#d29922','#388bfd','#2ea043','#a371f7','#db61a2','#56d4dd','#e3b341','#79c0ff','#ff9492'];
+
+// Gera um gráfico de pizza em SVG puro (sem lib externa) + legenda ao lado, a partir de uma
+// lista [{nome, valor}]. Agrupa itens além do topo N numa fatia "Outros", pra pizza não virar
+// uma salada de fatias minúsculas quando tem muitos ofensores/veículos diferentes.
+function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
+  const total = dadosBrutos.reduce((s,d) => s + d.valor, 0);
+  if (total <= 0 || dadosBrutos.length === 0) {
+    return '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;text-align:center;">Sem dados<br>pra esse período</div>';
+  }
+
+  const ordenado = dadosBrutos.slice().sort((a,b) => b.valor - a.valor);
+  let dados = ordenado;
+  if (agrupar) {
+    dados = ordenado.slice(0, topN);
+    const resto = ordenado.slice(topN);
+    if (resto.length > 0) {
+      dados = dados.concat([{ nome: `Outros (${resto.length})`, valor: resto.reduce((s,d) => s+d.valor, 0) }]);
+    }
+  }
+
+  const tamanho = 180, raio = tamanho/2 - 4, cx = tamanho/2, cy = tamanho/2;
+  let anguloAtual = -90;
+  const fatias = dados.map((d, i) => {
+    const fracao = d.valor / total;
+    const cor = OFN_CORES_PIE[i % OFN_CORES_PIE.length];
+    const anguloFatia = fracao * 360;
+    const anguloFim = anguloAtual + anguloFatia;
+    let path;
+    if (fracao >= 0.9995) {
+      // uma única fatia ocupando (quase) 100% — desenha como círculo completo
+      path = `M ${cx} ${cy - raio} A ${raio} ${raio} 0 1 1 ${cx - 0.01} ${cy - raio} Z`;
+    } else {
+      const largeArc = anguloFatia > 180 ? 1 : 0;
+      const x1 = cx + raio * Math.cos(anguloAtual * Math.PI/180);
+      const y1 = cy + raio * Math.sin(anguloAtual * Math.PI/180);
+      const x2 = cx + raio * Math.cos(anguloFim * Math.PI/180);
+      const y2 = cy + raio * Math.sin(anguloFim * Math.PI/180);
+      path = `M ${cx} ${cy} L ${x1} ${y1} A ${raio} ${raio} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+    }
+    anguloAtual = anguloFim;
+    const pct = Math.round(fracao*1000)/10;
+    return { path, cor, nome: d.nome, pct, valor: d.valor };
+  });
+
+  const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}">
+    ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${Math.round(f.valor).toLocaleString('pt-BR')}t (${f.pct}%)</title></path>`).join('')}
+  </svg>`;
+
+  const legenda = `<div style="display:flex;flex-direction:column;gap:5px;justify-content:center;">
+    ${fatias.map(f => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;">
+      <span style="width:10px;height:10px;border-radius:2px;background:${f.cor};flex-shrink:0;"></span>
+      <span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${f.nome}</span>
+      <span style="color:var(--text3);flex-shrink:0;">${f.pct}%</span>
+    </div>`).join('')}
+  </div>`;
+
+  return `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">${svg}${legenda}</div>`;
+}
+
+function _ofnRenderTabelaOfensores(rank, totalPerdido) {
+  const body = document.getElementById('ofn-ofensores-body');
+  document.getElementById('ofn-ofensores-count').textContent = rank.length + (rank.length===1?' registro':' registros');
+  if (rank.length === 0) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Nenhum ofensor registrado nesse período.</td></tr>'; return; }
+  body.innerHTML = rank.map(o => {
+    const pct = totalPerdido > 0 ? Math.round((o.perdido/totalPerdido)*1000)/10 : 0;
+    return `<tr>
+      <td class="text-primary">${o.nome}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${o.ocorrencias}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(o.perdido).toLocaleString('pt-BR')}t</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function _ofnRenderTabelaTipos(rank, totalPerdido) {
+  const body = document.getElementById('ofn-tipos-body');
+  document.getElementById('ofn-tipos-count').textContent = rank.length + (rank.length===1?' registro':' registros');
+  body.innerHTML = rank.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3);">Nenhum tipo de ofensor registrado.</td></tr>'
+    : rank.map(t => {
+        const pct = totalPerdido > 0 ? Math.round((t.perdido/totalPerdido)*1000)/10 : 0;
+        return `<tr>
+          <td>${t.nome}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${t.ocorrencias}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(t.perdido).toLocaleString('pt-BR')}t</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
+        </tr>`;
+      }).join('');
+}
+
+function _ofnRenderTabelaVeiculos(rank, totalPerdido) {
+  const body = document.getElementById('ofn-veiculos-body');
+  document.getElementById('ofn-veiculos-count').textContent = rank.length + (rank.length===1?' veículo':' veículos');
+  body.innerHTML = rank.length === 0
+    ? '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3);">Nenhum veículo com perda registrada.</td></tr>'
+    : rank.map((v,i) => {
+        const pct = totalPerdido > 0 ? Math.round((v.perdido/totalPerdido)*1000)/10 : 0;
+        return `<tr>
+          <td style="color:var(--text3);font-family:'DM Mono',monospace;">${i+1}º</td>
+          <td>
+            <span style="font-size:14px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text);margin-left:4px;">${v.placa}</span>
+          </td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(v.perdido).toLocaleString('pt-BR')}t</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${v.ocorrencias}</td>
+          <td>${v.ofensorPrincipal}</td>
+        </tr>`;
+      }).join('');
+}
+
+window.renderOfensores = async function renderOfensores() {
+  const hoje = new Date();
+  const hojeISOInput = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  if (!_ofnDiaAtual) {
+    const [ano, mes, dia] = hojeISOInput.split('-');
+    _ofnDiaAtual = `${dia}/${mes}/${ano}`;
+  }
+  // reflete _ofnDiaAtual (formato DD/MM/YYYY) no input de data (formato ISO esperado pelo <input type="date">)
+  const [diaAtual, mesAtual, anoAtual] = _ofnDiaAtual.split('/');
+  document.getElementById('ofn-dia-input').value = `${anoAtual}-${mesAtual}-${diaAtual}`;
+
+  await _ofnGarantirProdMeta();
+  const diasTodos = (_prodMeta.dias || []).slice();
+  if (mesAtualKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) {
+    (await _diasDoMesParaExibicao(mesAtualKey)).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
+  }
+  const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+  mesesSet.add(mesAtualKey);
+  const meses = Array.from(mesesSet).sort().reverse();
+  if (!_ofnMesAtual) _ofnMesAtual = meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || '');
+  const selectMes = document.getElementById('ofn-mes-select');
+  selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_mesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
+  selectMes.value = _ofnMesAtual;
+
+  const primeiroDiaMes = mesAtualKey + '-01';
+  if (!_ofnPeriodoDe) { _ofnPeriodoDe = primeiroDiaMes; document.getElementById('ofn-periodo-de').value = primeiroDiaMes; }
+  if (!_ofnPeriodoAte) { _ofnPeriodoAte = hojeISOInput; document.getElementById('ofn-periodo-ate').value = hojeISOInput; }
+
+  await _ofnCarregar();
+};
+
 // ══════════════════════════════════════
 window.exportarPDF = async function exportarPDF() {
   const paginaAtiva = document.querySelector('.page.active');
