@@ -417,17 +417,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/><path d="M12 3v6M9 6h6"/></svg>
       <span>Aderência/Disponibilidade</span>
     </button>
-    <button class="nav-item" title="Ofensores — Impacto de Volume" onclick="showPage('ofensores')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-      <span>Ofensores</span>
-    </button>
     <button class="nav-item active" title="Volume" onclick="showPage('volume')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
       <span>Volume</span>
-    </button>
-    <button class="nav-item" title="Volume Analítico" onclick="showPage('volumeanalitico')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span>Volume Analítico</span>
     </button>
     <button class="nav-item" title="Minas" onclick="showPage('minas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l6-11 4 7 3-5 5 9H3z"/><circle cx="7" cy="6" r="2"/></svg>
@@ -518,6 +510,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <select id="prod-ano-select" class="filter-input" style="display:none;" onchange="_onProdAnoChange(this.value)">
           <option value="">—</option>
         </select>
+        <button onclick="showPage('ofensores')" title="Ofensores — Impacto de Volume" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#f85149;cursor:pointer;font-size:13px;font-weight:600;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          Ofensores
+        </button>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-ofensores">
@@ -554,6 +550,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <option value="">—</option>
         </select>
         <div id="vol-cards-dias-operacao" style="display:flex;gap:8px;"></div>
+        <button onclick="showPage('volumeanalitico')" title="Volume Analítico" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#388bfd;cursor:pointer;font-size:13px;font-weight:600;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Volume Analítico
+        </button>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-volumeanalitico">
@@ -773,7 +773,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: OFENSORES — IMPACTO DE VOLUME -->
     <div class="page" id="page-ofensores">
-      <div id="ofn-kpis" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
+      <div id="ofn-kpis" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:16px;"></div>
 
       <div id="ofn-pizzas-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
 
@@ -821,7 +821,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
       <div class="table-card">
         <div class="table-header">
-          <div class="table-title">Ranking de Veículos — Quem Mais Perdeu Produtividade</div>
+          <div class="table-title">Top 10 Veículos — Quem Mais Perdeu Produtividade</div>
           <div class="table-count" id="ofn-veiculos-count">0 registros</div>
         </div>
         <div style="overflow-x:auto;">
@@ -2923,7 +2923,8 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
       viagens: viagensRealizadas,
       percTon: Math.round(percTon * 100) / 100,
       aderencia,
-      ofensor, tipoOfensor, responsavel
+      ofensor, tipoOfensor, responsavel,
+      origem: atrib ? (atrib.origem || '') : '', destino: atrib ? (atrib.destino || '') : ''
     };
   });
 
@@ -7742,11 +7743,23 @@ function _ofnRenderTudo() {
     .filter(v => v.perdido > 0)
     .sort((a,b) => b.perdido - a.perdido);
 
-  _ofnRenderKpis(totalPerdido, rankOfensores[0], rankVeiculos[0]);
-  _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos);
+  // ── Ranking de Minas (Origem) ── só disponível pros dias que carregam essa informação (a
+  // partir do corte, quando a tela passa a se alimentar da Gestão do Dia — a planilha ADERENCIA
+  // antiga não registrava rota por veículo).
+  const porMina = {};
+  linhas.forEach(l => {
+    if (!l.origem || !(Number(l.percTon)||0)) return;
+    if (!porMina[l.origem]) porMina[l.origem] = { nome: l.origem, perdido: 0, ocorrencias: 0 };
+    porMina[l.origem].perdido += Number(l.percTon)||0;
+    porMina[l.origem].ocorrencias += 1;
+  });
+  const rankMinas = Object.values(porMina).sort((a,b) => b.perdido - a.perdido);
+
+  _ofnRenderKpis(totalPerdido, rankOfensores[0], rankVeiculos[0], rankMinas[0]);
+  _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos.slice(0, 10));
   _ofnRenderTabelaOfensores(rankOfensores, totalPerdido);
   _ofnRenderTabelaTipos(rankTipos, totalPerdido);
-  _ofnRenderTabelaVeiculos(rankVeiculos, totalPerdido);
+  _ofnRenderTabelaVeiculos(rankVeiculos.slice(0, 10), totalPerdido);
 }
 
 // Monta os 3 gráficos de pizza lado a lado, no topo do painel — ordenados do maior pro menor
@@ -7759,7 +7772,7 @@ function _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos) {
   const blocos = [
     { titulo: 'Ofensores', total: rankOfensores.reduce((s,o)=>s+o.perdido,0), pizza: _ofnSvgPizza(rankOfensores.map(o => ({ nome: o.nome, valor: o.perdido }))) },
     { titulo: 'Tipo de Ofensor', total: rankTipos.reduce((s,t)=>s+t.perdido,0), pizza: _ofnSvgPizza(rankTipos.map(t => ({ nome: t.nome, valor: t.perdido }))) },
-    { titulo: 'Veículos', total: rankVeiculos.reduce((s,v)=>s+v.perdido,0), pizza: _ofnSvgPizza(rankVeiculos.map(v => ({ nome: `${v.fr||'—'} ${v.placa}`, valor: v.perdido })), { agrupar: false }) },
+    { titulo: 'Veículos (Top 10)', total: rankVeiculos.reduce((s,v)=>s+v.perdido,0), pizza: _ofnSvgPizza(rankVeiculos.map(v => ({ nome: `${v.fr||'—'} ${v.placa}`, valor: v.perdido })), { agrupar: false }) },
   ].sort((a,b) => b.total - a.total);
 
   cont.innerHTML = blocos.map(b => `<div class="table-card" style="padding:14px 16px;">
@@ -7768,7 +7781,7 @@ function _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos) {
   </div>`).join('');
 }
 
-function _ofnRenderKpis(totalPerdido, ofensorTop, veiculoTop) {
+function _ofnRenderKpis(totalPerdido, ofensorTop, veiculoTop, minaTop) {
   const cont = document.getElementById('ofn-kpis');
   const card = (rotulo, valor, sub, cor) => `<div class="table-card" style="padding:16px 18px;">
     <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${rotulo}</div>
@@ -7778,7 +7791,8 @@ function _ofnRenderKpis(totalPerdido, ofensorTop, veiculoTop) {
   cont.innerHTML =
     card('⚠ Total de Toneladas Perdidas', `${Math.round(totalPerdido).toLocaleString('pt-BR')}t`, null, '#f85149')
     + card('🎯 Ofensor Principal', ofensorTop ? ofensorTop.nome : '—', ofensorTop ? `${Math.round(ofensorTop.perdido).toLocaleString('pt-BR')}t · ${ofensorTop.ocorrencias} ocorrência(s)` : 'Nenhum ofensor registrado', '#d29922')
-    + card('🚛 Veículo Mais Impactado', veiculoTop ? `${veiculoTop.fr||'—'} — ${veiculoTop.placa}` : '—', veiculoTop ? `${Math.round(veiculoTop.perdido).toLocaleString('pt-BR')}t perdidas` : 'Nenhum registro', '#f85149');
+    + card('🚛 Veículo Mais Impactado', veiculoTop ? `${veiculoTop.fr||'—'} — ${veiculoTop.placa}` : '—', veiculoTop ? `${Math.round(veiculoTop.perdido).toLocaleString('pt-BR')}t perdidas` : 'Nenhum registro', '#f85149')
+    + card('⛏️ Mina com Mais Perda', minaTop ? minaTop.nome : '—', minaTop ? `${Math.round(minaTop.perdido).toLocaleString('pt-BR')}t · ${minaTop.ocorrencias} ocorrência(s)` : 'Sem dado de mina nesse período', '#d29922');
 }
 
 const OFN_CORES_PIE = ['#f85149','#d29922','#388bfd','#2ea043','#a371f7','#db61a2','#56d4dd','#e3b341','#79c0ff','#ff9492'];
@@ -7789,7 +7803,7 @@ const OFN_CORES_PIE = ['#f85149','#d29922','#388bfd','#2ea043','#a371f7','#db61a
 function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
   const total = dadosBrutos.reduce((s,d) => s + d.valor, 0);
   if (total <= 0 || dadosBrutos.length === 0) {
-    return '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;text-align:center;">Sem dados<br>pra esse período</div>';
+    return '<div style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;text-align:center;">Sem dados<br>pra esse período</div>';
   }
 
   const ordenado = dadosBrutos.slice().sort((a,b) => b.valor - a.valor);
@@ -7802,7 +7816,7 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
     }
   }
 
-  const tamanho = 180, raio = tamanho/2 - 4, cx = tamanho/2, cy = tamanho/2;
+  const tamanho = 140, raio = tamanho/2 - 4, cx = tamanho/2, cy = tamanho/2;
   let anguloAtual = -90;
   const fatias = dados.map((d, i) => {
     const fracao = d.valor / total;
@@ -7826,19 +7840,21 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
     return { path, cor, nome: d.nome, pct, valor: d.valor };
   });
 
-  const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}">
+  const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}" style="flex-shrink:0;">
     ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${Math.round(f.valor).toLocaleString('pt-BR')}t (${f.pct}%)</title></path>`).join('')}
   </svg>`;
 
-  const legenda = `<div style="display:flex;flex-direction:column;gap:5px;justify-content:center;">
-    ${fatias.map(f => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;">
+  // Padrão fixo: legenda sempre ao LADO do gráfico, nunca embaixo — por isso sem flex-wrap aqui,
+  // e o texto de cada item quebra/trunca dentro da própria linha (min-width:0 permite isso).
+  const legenda = `<div style="display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:0;flex:1;">
+    ${fatias.map(f => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;min-width:0;">
       <span style="width:10px;height:10px;border-radius:2px;background:${f.cor};flex-shrink:0;"></span>
-      <span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${f.nome}</span>
+      <span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;">${f.nome}</span>
       <span style="color:var(--text3);flex-shrink:0;">${f.pct}%</span>
     </div>`).join('')}
   </div>`;
 
-  return `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">${svg}${legenda}</div>`;
+  return `<div style="display:flex;gap:14px;align-items:center;">${svg}${legenda}</div>`;
 }
 
 function _ofnRenderTabelaOfensores(rank, totalPerdido) {
