@@ -1813,6 +1813,13 @@ function renderRelatorioTelemetria(t) {
         </div>
       </div>
 
+      <table style="width:100%;border-collapse:collapse;margin-top:12px;table-layout:fixed;">
+        ${tituloBarra('Saúde do Motor (médias do dia)', 7)}
+        <tr>${th('Óleo Motor (°C)')}${th('Arrefec. (°C)')}${th('Combustível (°C)')}${th('Bateria Méd. (V)')}${th('Bateria Mín. (V)')}${th('Óleo Motor (Pressão)')}${th('Freio Ar (Pressão)')}</tr>
+        <tr>${td(fmt(t.temperaturaOleoMotor))}${td(fmt(t.temperaturaArrefecimento))}${td(fmt(t.temperaturaCombustivel))}${td(fmt(t.tensaoBateriaMedia))}${td(fmt(t.tensaoBateriaMenor))}${td(fmt(t.pressaoOleoMotor))}${td(fmt(t.pressaoFreioAr))}</tr>
+      </table>
+      <div style="font-size:9px;color:#8a9ab0;margin-top:3px;">Unidade/escala desses valores ainda não confirmada oficialmente pela Sascar — comparar com um relatório real antes de usar para decisão crítica.</div>
+
       <div style="font-size:10px;color:#8a9ab0;margin-top:8px;">Atualizado: ${t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—'} · ${t.quantidadeDeltas||0} trecho(s) hoje</div>
     </div>`;
 }
