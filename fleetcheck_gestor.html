@@ -567,26 +567,26 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <button id="va-modo-mes-btn" onclick="_vaSetModoView('mes')">Mês</button>
           <button id="va-modo-periodo-btn" onclick="_vaSetModoView('periodo')">Período</button>
         </div>
-        <input type="date" id="va-dia-input" class="filter-input" onchange="_vaOnDiaChange(this.value)">
-        <select id="va-mes-select" class="filter-input" style="display:none;" onchange="_vaOnMesChange(this.value)">
+        <input type="date" id="va-dia-input" class="filter-input" style="min-width:0;width:135px;padding:6px 8px;font-size:13px;" onchange="_vaOnDiaChange(this.value)">
+        <select id="va-mes-select" class="filter-input" style="display:none;min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_vaOnMesChange(this.value)">
           <option value="">—</option>
         </select>
-        <div id="va-periodo-inputs" style="display:none;align-items:center;gap:6px;">
-          <input type="date" id="va-periodo-de" class="filter-input" onchange="_vaOnPeriodoChange()">
-          <span style="color:var(--text3);font-size:13px;">até</span>
-          <input type="date" id="va-periodo-ate" class="filter-input" onchange="_vaOnPeriodoChange()">
+        <div id="va-periodo-inputs" style="display:none;align-items:center;gap:4px;">
+          <input type="date" id="va-periodo-de" class="filter-input" style="min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_vaOnPeriodoChange()">
+          <span style="color:var(--text3);font-size:12px;">até</span>
+          <input type="date" id="va-periodo-ate" class="filter-input" style="min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_vaOnPeriodoChange()">
         </div>
-        <select id="va-forca-select" class="filter-input" onchange="_vaOnFiltroChange()">
+        <select id="va-forca-select" class="filter-input" style="min-width:0;width:105px;padding:6px 8px;font-size:13px;" onchange="_vaOnFiltroChange()">
           <option value="">Força: Todas</option>
           <option value="FROTA">Frota</option>
           <option value="TERCEIRO">Terceiro</option>
         </select>
-        <select id="va-tipo-select" class="filter-input" onchange="_vaOnFiltroChange()">
+        <select id="va-tipo-select" class="filter-input" style="min-width:0;width:105px;padding:6px 8px;font-size:13px;" onchange="_vaOnFiltroChange()">
           <option value="">Tipo: Todos</option>
           <option value="CAMINHAO">Caminhão</option>
           <option value="CAVALO">Cavalo</option>
         </select>
-        <select id="va-veiculo-select" class="filter-input" onchange="_vaOnFiltroChange()">
+        <select id="va-veiculo-select" class="filter-input" style="min-width:0;width:120px;padding:6px 8px;font-size:13px;" onchange="_vaOnFiltroChange()">
           <option value="">Veículo: Todos</option>
         </select>
       </div>
@@ -874,6 +874,31 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: VOLUME ANALÍTICO -->
     <div class="page" id="page-volumeanalitico">
+      <div class="table-card" style="margin-bottom:16px;">
+        <div class="table-header">
+          <div class="table-title">Consolidado por Veículo</div>
+          <div class="table-count" id="va-consolidado-count">0 registros</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>VEÍCULO</th>
+                <th style="text-align:right;">ROTAS</th>
+                <th style="text-align:right;">VOLUME TOTAL (t)</th>
+                <th style="text-align:right;">VIAGENS</th>
+                <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">DIAS TRABALHADOS</th>
+                <th style="text-align:right;">FATURAMENTO TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="va-consolidado-body">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="table-card" id="va-pordia-card" style="margin-bottom:16px;display:none;">
         <div class="table-header">
           <div class="table-title" id="va-pordia-titulo">O que o veículo fez por dia</div>
@@ -916,31 +941,6 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
             </thead>
             <tbody id="va-tabela-body">
               <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Selecione um dia ou mês.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="table-card">
-        <div class="table-header">
-          <div class="table-title">Consolidado por Veículo</div>
-          <div class="table-count" id="va-consolidado-count">0 registros</div>
-        </div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>VEÍCULO</th>
-                <th style="text-align:right;">ROTAS</th>
-                <th style="text-align:right;">VOLUME TOTAL (t)</th>
-                <th style="text-align:right;">VIAGENS</th>
-                <th style="text-align:right;">PESO MÉDIO (t)</th>
-                <th style="text-align:right;">DIAS TRABALHADOS</th>
-                <th style="text-align:right;">FATURAMENTO TOTAL</th>
-              </tr>
-            </thead>
-            <tbody id="va-consolidado-body">
-              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">—</td></tr>
             </tbody>
           </table>
         </div>
@@ -7291,9 +7291,10 @@ function _vaAgruparPorVeiculoRota(viagens) {
   const grupos = {};
   viagens.forEach(v => {
     if (!v.placa) return;
-    const chave = `${v.placa}|||${_progNormalizarOD(v.origem)}|||${_progNormalizarOD(v.destino)}`;
+    const placaNorm = v.placa.toString().trim().toUpperCase();
+    const chave = `${placaNorm}|||${_progNormalizarOD(v.origem)}|||${_progNormalizarOD(v.destino)}`;
     if (!grupos[chave]) {
-      grupos[chave] = { placa: v.placa, fr: v.fr ?? v.cod ?? '', forca: (v.forca||'').toString().trim().toUpperCase(), tipo2: (v.tipo2||'').toString().trim().toUpperCase(), origem: v.origem, destino: v.destino, peso: 0, viagens: 0, diasSet: new Set() };
+      grupos[chave] = { placa: placaNorm, fr: v.fr ?? v.cod ?? '', forca: (v.forca||'').toString().trim().toUpperCase(), tipo2: (v.tipo2||'').toString().trim().toUpperCase(), origem: v.origem, destino: v.destino, peso: 0, viagens: 0, diasSet: new Set() };
     }
     grupos[chave].peso += Number(v.peso)||0;
     grupos[chave].viagens += 1;
@@ -7355,7 +7356,7 @@ async function _vaCarregar() {
 function _vaPopularSelectVeiculo() {
   const select = document.getElementById('va-veiculo-select');
   const atual = select.value;
-  const placas = Array.from(new Set(_vaLinhasBrutas.map(l => l.placa))).sort();
+  const placas = Array.from(new Set(_vaLinhasBrutas.map(l => (l.placa||'').toString().trim().toUpperCase()))).filter(Boolean).sort();
   select.innerHTML = '<option value="">Veículo: Todos</option>' + placas.map(p => `<option value="${p}">${p}</option>`).join('');
   select.value = placas.includes(atual) ? atual : '';
 }
@@ -7375,7 +7376,7 @@ function _vaRenderTabela() {
   if (forcaFiltro) linhas = linhas.filter(l => l.forca === forcaFiltro);
   if (tipoFiltro === 'CAMINHAO') linhas = linhas.filter(l => _progEhCaminhao(l.tipo2));
   if (tipoFiltro === 'CAVALO') linhas = linhas.filter(l => _progEhCavalo(l.tipo2));
-  if (veiculoFiltro) linhas = linhas.filter(l => l.placa === veiculoFiltro);
+  if (veiculoFiltro) linhas = linhas.filter(l => (l.placa||'').toString().trim().toUpperCase() === veiculoFiltro);
 
   linhas = linhas.slice().sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0) || a.placa.localeCompare(b.placa));
 
@@ -7434,7 +7435,7 @@ function _vaRenderPorDia(placaSelecionada) {
   if (!card) return;
   if (!placaSelecionada) { card.style.display = 'none'; return; }
 
-  const viagensDoVeiculo = _vaViagensBrutas.filter(v => v.placa === placaSelecionada);
+  const viagensDoVeiculo = _vaViagensBrutas.filter(v => (v.placa||'').toString().trim().toUpperCase() === placaSelecionada);
   const grupos = {};
   viagensDoVeiculo.forEach(v => {
     const chave = `${v._dia}|||${v.origem}|||${v.destino}`;
