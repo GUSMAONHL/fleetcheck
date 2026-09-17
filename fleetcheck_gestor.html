@@ -514,6 +514,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
           Ofensores
         </button>
+        <button onclick="exportarAderenciaCompletaExcel()" title="Exportar todos os veículos (Frota + Terceiro) em Excel" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#2ea043;cursor:pointer;font-size:13px;font-weight:600;">📊 Exportar Tudo</button>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-ofensores">
@@ -1261,6 +1262,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div id="prod-quadro-categoria-btns" style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;"></div>
+        <button onclick="exportarQuadroExcel()" title="Exportar lista em Excel" style="display:flex;align-items:center;gap:6px;padding:0 12px;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#2ea043;cursor:pointer;font-size:13px;font-weight:600;">📊 Exportar</button>
         <button onclick="fecharQuadroModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:4px;">&#x2715;</button>
       </div>
     </div>
@@ -2526,6 +2528,65 @@ window.abrirQuadro = function abrirQuadro(forca) {
 window.fecharQuadroModal = function fecharQuadroModal() {
   document.getElementById('prod-quadro-overlay').style.display = 'none';
 }
+
+// Exporta a lista de veículos do quadro (FROTA/TERCEIRO) pra Excel — usa exatamente os mesmos
+// filtros já aplicados na tela (Categoria, Tipo2, Faixa de Aderência), então o que sai no
+// arquivo é sempre igual ao que está sendo mostrado.
+// Exporta TODOS os veículos do período atual (Frota + Terceiro, todas as categorias) de uma vez
+// só — direto da tela principal, sem precisar abrir o quadro de Frota ou Terceiro separado.
+window.exportarAderenciaCompletaExcel = function exportarAderenciaCompletaExcel() {
+  const linhas = _prodLinhasAtual;
+  if (!linhas || linhas.length === 0) { showToast('✖ Nada pra exportar — selecione um período com dados primeiro.'); return; }
+
+  const dados = linhas.map(l => ({
+    'FR': l.fr || '',
+    'Placa': l.placa || '',
+    'Tipo': l.tipo || '',
+    'Tipo2': l.tipo2 || '',
+    'Força': l.forca || '',
+    'Volume (t)': Math.round((l.volume||0)*100)/100,
+    'Viagens': l.viagens || 0,
+    'Aderência': `${Math.round(l.aderencia||0)}%`,
+    'Toneladas Perdidas': Math.round((l.percTon||0)*100)/100,
+    'Ofensor': l.ofensor || '',
+    'Tipo Ofensor': l.tipoOfensor || '',
+    'Responsável': l.responsavel || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Aderência - Todos');
+  const rotulo = _prodModoView === 'dia' ? (_prodDiaAtual||'dia') : _prodModoView === 'mes' ? (_prodMesAtual||'mes') : (_prodAnoAtual||'ano');
+  XLSX.writeFile(wb, `aderencia_todos_${rotulo.toString().replace(/\//g,'-')}.xlsx`);
+  showToast('✔ Arquivo exportado.');
+};
+
+window.exportarQuadroExcel = function exportarQuadroExcel() {
+  const linhas = _linhasDoQuadro();
+  if (!linhas || linhas.length === 0) { showToast('✖ Nada pra exportar — ajuste os filtros primeiro.'); return; }
+
+  const dados = linhas.map(l => ({
+    'FR': l.fr || '',
+    'Placa': l.placa || '',
+    'Tipo': l.tipo || '',
+    'Tipo2': l.tipo2 || '',
+    'Força': l.forca || '',
+    'Volume (t)': Math.round((l.volume||0)*100)/100,
+    'Viagens': l.viagens || 0,
+    'Aderência': `${Math.round(l.aderencia||0)}%`,
+    'Toneladas Perdidas': Math.round((l.percTon||0)*100)/100,
+    'Ofensor': l.ofensor || '',
+    'Tipo Ofensor': l.tipoOfensor || '',
+    'Responsável': l.responsavel || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Aderência');
+  const rotulo = (document.getElementById('prod-quadro-meta')?.textContent || 'lista').trim().replace(/[^\w\-]+/g, '_').slice(0,40);
+  XLSX.writeFile(wb, `aderencia_${_prodQuadroForca||'lista'}_${rotulo}.xlsx`);
+  showToast('✔ Arquivo exportado.');
+};
 
 // Cards da página principal (VEÍCULOS/FROTA/TERCEIRO/tipo) abrem o quadro em tela cheia
 document.addEventListener('click', function(e) {
