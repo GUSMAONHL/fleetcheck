@@ -2226,34 +2226,31 @@ let _veiculosNovosFirebase = [];
 
 async function carregarVeiculosFirebase() {
   _veiculosNovosFirebase = [];
+  FROTA = []; TERCEIRO = []; TODOS = [];
   try {
-    // Migrar base para Firebase se ainda não existir
-    const snapCheck = await getDocs(collection(db,'veiculos')); // busca todos para não perder cadastros antigos
-    const existentes = snapCheck.docs.map(d => d.data().placa);
-    // Carregar veículos ativos (inclui docs sem campo 'ativo' = cadastros antigos)
-
-    // Inserir veículos base que não existem ainda
-    const promises = VEICULOS_BASE_NHL
-      .filter(v => !existentes.includes(v.placa))
-      .map(v => setDoc(doc(db,'veiculos',v.placa), {...v, ativo:true, criadoEm: new Date().toISOString()}));
-    if (promises.length > 0) await Promise.all(promises);
-
-    // Recarregar todos ativos
-    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
+    // Busca direta de todos os veículos do Firebase
+    const snap = await getDocs(collection(db,'veiculos'));
     snap.docs.forEach(d => {
       const v = d.data();
       if (!v.placa) return;
-      if (v.ativo === false || v._deleted === true) return; // ignorar inativos
-      const novoV = { nfr: v.nfr, placa: v.placa, tipo: v.tipo, bloco: v.bloco, marca: v.marca||'', modelo: v.modelo||'' };
-      if (v.bloco === 'FROTA') FROTA.push(novoV);
+      if (v.ativo === false || v._deleted === true) return;
+      const novoV = {
+        nfr:    v.nfr    || 0,
+        placa:  v.placa  || '',
+        tipo:   v.tipo   || '',
+        bloco:  v.bloco  || 'FROTA',
+        marca:  v.marca  || '',
+        modelo: v.modelo || ''
+      };
+      if (novoV.bloco === 'FROTA') FROTA.push(novoV);
       else TERCEIRO.push(novoV);
       TODOS.push(novoV);
       _veiculosNovosFirebase.push(novoV);
     });
-    // Ordenar por nfr
     FROTA.sort((a,b) => a.nfr - b.nfr);
     TERCEIRO.sort((a,b) => a.nfr - b.nfr);
     TODOS.sort((a,b) => a.nfr - b.nfr);
+    console.log('[FleetCheck] Veículos carregados:', TODOS.length, '— Ex:', TODOS[0]);
   } catch(e) { console.warn('carregarVeiculosFirebase:', e); }
 }
 
@@ -2264,9 +2261,7 @@ function injetarVeiculosNovosNaGrade() {
   if (gf) gf.innerHTML = '';
   if (gt) gt.innerHTML = '';
   _veiculosNovosFirebase.forEach(v => {
-    adicionarVeiculoNaGrade(v);
-    // Atualizar marca/modelo após injetar o card
-    renderMarcaModeloCard(v.placa, v.marca||'', v.modelo||'');
+    adicionarVeiculoNaGrade(v); // renderMarcaModeloCard já chamado dentro
   });
   _veiculosNovosFirebase = [];
 }
@@ -2918,13 +2913,16 @@ function gerarVrow(v) {
   const placa = v.placa;
   const nfr   = String(v.nfr).padStart(2,'0');
   const tipo  = v.tipo;
+  const marcaModelo = [v.marca, v.modelo].filter(Boolean).join(' ');
   return `<div class="vrow" data-placa="${placa}" data-tipo="${tipo}" onclick="abrirModal('${placa}')">
     <div class="vcell vcell-tipo" id="vcell-tipo-${placa}" style="align-items:center;text-align:center;" onclick="event.stopPropagation();abrirModalJustificativa('${placa}')">
       <div class="vcell-tipo-inner"><div class="v-tipo">${tipo}</div></div>
     </div>
     <div class="vcell vcell-id" id="vcell-id-${placa}">
-      <div class="v-placa-linha">${nfr} - ${placa}</div>
-      <div id="vcell-marcamodelo-${placa}" style="font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;min-width:0;">
+        <div class="v-placa-linha">${nfr} - ${placa}</div>
+        <div id="vcell-marcamodelo-${placa}" style="font-size:13px;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.3px;font-weight:500;">${marcaModelo}</div>
+      </div>
     </div>
     <div class="vcell vcell-check" id="f1-${placa}">
       <div class="v-check-label">Freio 01</div>
@@ -2957,6 +2955,8 @@ function adicionarVeiculoNaGrade(v) {
   if (document.getElementById('vcell-id-' + v.placa)) return;
   // Injetar HTML
   grid.insertAdjacentHTML('beforeend', gerarVrow(v));
+  // Preencher marca/modelo imediatamente após criar o card
+  renderMarcaModeloCard(v.placa, v.marca||'', v.modelo||'');
   // Inicializar estado e renderizar badges
   atualizarLinha(v.placa);
   renderJustBadge(v.placa);
