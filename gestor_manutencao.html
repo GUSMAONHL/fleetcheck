@@ -153,8 +153,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
-.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
-.modal-box.wide{width:860px;max-width:95vw;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:600px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
 .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 0 0 12px;}
 .modal-body{overflow-y:auto;padding:16px 20px;}
@@ -378,6 +377,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .btn-export:hover{border-color:#185FA5;color:#185FA5;}
 .btn-export.excel:hover{border-color:#217346;color:#217346;}
 .btn-export.pdf:hover{border-color:#cc2222;color:#cc2222;}
+
+/* ══ VEÍCULOS / TELEMETRIA ══ */
+.vg-tbl{width:100%;border-collapse:collapse;}
+.vg-tbl th{padding:8px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);}
+.vg-tbl td{padding:8px 12px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle;}
+.vg-tbl tr:hover td{background:var(--bg3);}
+.vg-inp{padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);font-size:12px;color:var(--text);font-family:inherit;width:100%;}
+.vg-inp:focus{outline:none;border-color:#185FA5;}
+.vg-save-btn{padding:4px 10px;border-radius:6px;border:none;background:#185FA5;color:#fff;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;}
+.vg-save-btn:hover{background:#0C447C;}
+.tel-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+.tel-kpi{background:var(--bg3);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;}
+.tel-kpi-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;}
+.tel-kpi-val{font-size:22px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);}
+.tel-badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+.tel-ok{background:#EAF3DE;color:#27500A;}
+.tel-warn{background:#FAEEDA;color:#633806;}
+.tel-err{background:#FCEBEB;color:#791F1F;}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -400,13 +417,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       Estoque
     </button>
+    <button class="nav-item" id="nav-veiculos" onclick="showPage('veiculos',this)" title="Veículos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
+      Veículos
+    </button>
+    <button class="nav-item" id="nav-telemetria" onclick="showPage('telemetria',this)" title="Telemetria">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Telemetria
+    </button>
     <button class="nav-item" id="nav-historico" onclick="showPage('historico',this)" title="Histórico">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Histórico
-    </button>
-    <button class="nav-item" id="nav-telemetria" onclick="showPage('telemetria',this)" title="Telemetria">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Telemetria
     </button>
   </nav>
   <div class="sidebar-user">
@@ -789,6 +810,72 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div class="est-mfooter"><button class="est-btn-c" onclick="estFecharEntrada()">Cancelar</button><button class="est-btn-s" onclick="estSalvarEntrada()">Confirmar entrada</button></div>
       </div>
     </div>
+
+    <!-- ══ VEÍCULOS ══ -->
+    <div class="page" id="page-veiculos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div style="font-size:15px;font-weight:500;color:var(--text);">Gerenciamento de Veículos</div>
+        <div style="font-size:12px;color:var(--text3);" id="vg-count">—</div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="vg-tbl">
+            <thead>
+              <tr>
+                <th>Nº</th><th>Placa</th><th>Tipo</th><th>Bloco</th>
+                <th style="min-width:130px;">Marca</th>
+                <th style="min-width:150px;">Modelo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="vg-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TELEMETRIA ══ -->
+    <div class="page" id="page-telemetria">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div style="font-size:15px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Telemetria — SasIntegra
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--text3);" id="tel-ultima-atualizacao">—</span>
+          <button onclick="carregarTelemetria()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;border:.5px solid var(--border2);background:var(--bg2);font-size:12px;color:var(--text2);cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+        </div>
+      </div>
+      <div class="tel-kpi-grid">
+        <div class="tel-kpi"><div class="tel-kpi-lbl">Veículos com dados</div><div class="tel-kpi-val" style="color:#185FA5;" id="tel-kpi-total">—</div></div>
+        <div class="tel-kpi"><div class="tel-kpi-lbl">Km médio hoje</div><div class="tel-kpi-val" id="tel-kpi-km">—</div></div>
+        <div class="tel-kpi"><div class="tel-kpi-lbl">RPM médio</div><div class="tel-kpi-val" id="tel-kpi-rpm">—</div></div>
+        <div class="tel-kpi"><div class="tel-kpi-lbl">Última atualização</div><div class="tel-kpi-val" style="font-size:16px;" id="tel-kpi-hora">—</div></div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+        <div style="padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);">
+          Dados por veículo
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="vg-tbl">
+            <thead>
+              <tr>
+                <th>Nº</th><th>Placa</th><th>Tipo</th>
+                <th style="text-align:right;">Hodômetro</th>
+                <th style="text-align:right;">Km rodado</th>
+                <th style="text-align:right;">RPM</th>
+                <th>Última posição</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tel-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     <div class="page" id="page-historico">
       <!-- Abas -->
       <div class="reg-tabs">
@@ -887,31 +974,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         </div>
       </div>
     </div>
-
-    <!-- ══ TELEMETRIA ══ -->
-    <div class="page" id="page-telemetria">
-      <div class="hist-filtros">
-        <input class="hist-date-input" id="tel-filtro" placeholder="Filtrar por placa..." style="width:180px;" oninput="renderTelemetriaPagina()">
-        <button class="hist-btn-apply" onclick="carregarTelemetriaPagina()">🔄 Atualizar</button>
-        <span style="font-size:11px;color:var(--text3);margin-left:auto;" id="tel-atualizado">—</span>
-      </div>
-      <div class="hist-kpi-row">
-        <div class="hist-kpi"><div class="hist-kpi-lbl">Veículos com dado hoje</div><div class="hist-kpi-val" style="color:#185FA5;" id="tel-kpi-total">—</div></div>
-        <div class="hist-kpi"><div class="hist-kpi-lbl">Eventos de Segurança</div><div class="hist-kpi-val" style="color:#A32D2D;" id="tel-kpi-seguranca">—</div></div>
-        <div class="hist-kpi"><div class="hist-kpi-lbl">Eventos de Manutenção</div><div class="hist-kpi-val" style="color:#BA7517;" id="tel-kpi-manutencao">—</div></div>
-        <div class="hist-kpi"><div class="hist-kpi-lbl">Km rodado hoje (frota)</div><div class="hist-kpi-val" style="color:#27500A;" id="tel-kpi-km">—</div></div>
-      </div>
-      <div class="pcm-bp">
-        <div class="pcm-pt"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Telemetria por veículo — clique para ver detalhes</div>
-        <table class="pcm-tbl">
-          <thead><tr>
-            <th>Veículo</th><th>Hodômetro</th><th>Km hoje</th><th>RPM médio</th><th>RPM máx</th>
-            <th>Segurança</th><th>Manutenção</th><th>Atualizado</th>
-          </tr></thead>
-          <tbody id="tel-tbl-body"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
 </main>
@@ -936,19 +998,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <button class="modal-close" onclick="document.getElementById('modal-ov').classList.remove('show')">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
-  </div>
-</div>
-
-<div class="modal-ov" id="relatorio-ov" onclick="if(event.target===this)this.classList.remove('show')">
-  <div class="modal-box wide">
-    <div class="modal-hdr">
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:1.5px;" id="relatorio-placa">—</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="relatorio-meta">Relatório de Telemetria — hoje</div>
-      </div>
-      <button class="modal-close" onclick="document.getElementById('relatorio-ov').classList.remove('show')">✕</button>
-    </div>
-    <div class="modal-body" id="relatorio-body"></div>
   </div>
 </div>
 
@@ -1237,11 +1286,23 @@ async function carregarTodasOS() {
 
 // Busca a última inspeção de cada veículo nas últimas 4 semanas
 async function carregarUltimaInspecao() {
-  // Busca os últimos 90 dias corridos para cobrir veículos que ficaram sem inspeção por mais tempo
+  // Cache em sessionStorage para evitar re-leitura durante a sessão
+  const cacheKey = 'lastInsp_' + new Date().toLocaleDateString('pt-BR');
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const obj = JSON.parse(cached);
+      Object.assign(lastInspState, obj);
+      console.log('[FleetCheck] lastInspState carregado do cache');
+      return;
+    } catch(e) {}
+  }
+
+  // Busca apenas os últimos 30 dias úteis (6 semanas — suficiente para detectar vencidos)
   const hoje = new Date();
   const datasRange = [];
   const cur = new Date(hoje);
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 30; i++) {
     const dow = cur.getDay();
     if (dow !== 0 && dow !== 6) {
       datasRange.push(cur.toLocaleDateString('pt-BR'));
@@ -1249,7 +1310,7 @@ async function carregarUltimaInspecao() {
     cur.setDate(cur.getDate() - 1);
   }
 
-  // Busca em lotes de 10 (limite Firebase 'in') — sequencial para evitar sobrecarga
+  // Busca em lotes de 10
   const chunks = [];
   for (let i = 0; i < datasRange.length; i += 10) chunks.push(datasRange.slice(i, i+10));
 
@@ -1263,15 +1324,17 @@ async function carregarUltimaInspecao() {
     } catch(e) { console.warn('carregarUltimaInspecao chunk error:', e); }
   }
 
-  // Para cada placa, manter apenas a data mais recente encontrada
   allDocs.forEach(doc => {
     const placa = (doc.placa||'').toUpperCase();
     if (!placa) return;
-    const cur = lastInspState[placa]?.dataFormatada;
-    if (!cur || compareDateBR(doc.dataFormatada, cur) > 0) {
+    const curVal = lastInspState[placa]?.dataFormatada;
+    if (!curVal || compareDateBR(doc.dataFormatada, curVal) > 0) {
       lastInspState[placa] = { dataFormatada: doc.dataFormatada };
     }
   });
+
+  // Salvar cache por 1 hora (evita re-leitura no mesmo dia)
+  try { sessionStorage.setItem(cacheKey, JSON.stringify(lastInspState)); } catch(e) {}
 }
 
 // Compara datas BR dd/mm/yyyy: retorna >0 se a > b
@@ -1622,215 +1685,13 @@ document.addEventListener('click', e => {
   abrirModal(row.getAttribute('data-placa'));
 });
 
-// ── TELEMETRIA (SasIntegra) ──
-function renderTelemetriaPlaceholder() {
-  return `<div id="telemetria-secao" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:8px;">
-    <div class="msec-title"><span>📡 Telemetria</span></div>
-    <div style="font-size:12px;color:var(--text3);padding:8px 0;">Carregando...</div>
-  </div>`;
-}
-
-async function carregarTelemetriaModal(placa) {
-  const box = document.getElementById('telemetria-secao');
-  if (!box) return;
-  try {
-    const snap = await getDoc(doc(db,'telemetria_veiculos', placa));
-    if (!snap.exists()) {
-      box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
-        <div style="font-size:12px;color:var(--text3);padding:8px 0;">Sem dados de telemetria ainda para este veículo.</div>`;
-      return;
-    }
-    const t = snap.data();
-    const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—';
-    const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
-    const ev = t.eventosHoje || {total:0, porCategoria:{}, porTipo:{}};
-    const tiposHtml = Object.entries(ev.porTipo||{}).map(([nome,qtd]) =>
-      `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span style="color:var(--text2);">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
-    ).join('') || '<div style="font-size:12px;color:var(--text3);">Nenhum evento hoje.</div>';
-    box.innerHTML = `
-      <div class="msec-title">
-        <span>📡 Telemetria</span>
-        <span style="color:var(--text3);font-size:11px;">Atualizado: ${atualizado}</span>
-      </div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap;padding:8px 0 4px;">
-        <div><div style="font-size:11px;color:var(--text3);">Hodômetro</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.odometro,' km')}</div></div>
-        <div><div style="font-size:11px;color:var(--text3);">Km rodado hoje</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.kmRodadoHoje,' km')}</div></div>
-        <div><div style="font-size:11px;color:var(--text3);">RPM médio</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMedio)}</div></div>
-        <div><div style="font-size:11px;color:var(--text3);">RPM máximo</div><div style="font-size:16px;font-weight:600;color:var(--text);">${fmt(t.rpmMaximo)}</div></div>
-      </div>
-      <div style="margin-top:6px;padding-top:8px;border-top:1px dashed var(--border);">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Eventos hoje (${ev.total||0}) — Segurança: ${ev.porCategoria?.['Segurança']||0} · Manutenção: ${ev.porCategoria?.['Manutenção']||0}</div>
-        ${tiposHtml}
-      </div>`;
-  } catch(e) {
-    box.innerHTML = `<div class="msec-title"><span>📡 Telemetria</span></div>
-      <div style="font-size:12px;color:var(--err);padding:8px 0;">Erro ao carregar dados de telemetria.</div>`;
-    console.warn('carregarTelemetriaModal:', e);
-  }
-}
-
-let TELEMETRIA_CACHE = [];
-
-async function carregarTelemetriaPagina() {
-  const tbody = document.getElementById('tel-tbl-body');
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
-  try {
-    const snap = await getDocs(collection(db,'telemetria_veiculos'));
-    TELEMETRIA_CACHE = [];
-    snap.forEach(d => TELEMETRIA_CACHE.push(d.data()));
-    document.getElementById('tel-atualizado').textContent = 'Consultado às ' + new Date().toLocaleTimeString('pt-BR');
-    renderTelemetriaPagina();
-  } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--err);padding:24px;">Erro ao carregar telemetria.</td></tr>';
-    console.warn('carregarTelemetriaPagina:', e);
-  }
-}
-
-function renderTelemetriaPagina() {
-  const filtro = (document.getElementById('tel-filtro').value||'').toLowerCase();
-  // Cruza com a lista de veículos do Portal (TODOS = só os de Poços) — só mostra quem está aqui
-  const poços = TELEMETRIA_CACHE
-    .map(t => ({ t, v: TODOS.find(x => x.placa === t.placa) }))
-    .filter(({v}) => v);
-  const rows = poços.filter(({t}) => !filtro || (t.placa||'').toLowerCase().includes(filtro));
-  const tbody = document.getElementById('tel-tbl-body');
-
-  let somaSeg=0, somaMan=0, somaKm=0;
-  poços.forEach(({t}) => {
-    somaSeg += t.eventosHoje?.porCategoria?.['Segurança']||0;
-    somaMan += t.eventosHoje?.porCategoria?.['Manutenção']||0;
-    somaKm  += Number(t.kmRodadoHoje)||0;
-  });
-  document.getElementById('tel-kpi-total').textContent = poços.length;
-  document.getElementById('tel-kpi-seguranca').textContent = somaSeg;
-  document.getElementById('tel-kpi-manutencao').textContent = somaMan;
-  document.getElementById('tel-kpi-km').textContent = somaKm.toFixed(0)+' km';
-
-  if (rows.length===0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Nenhum veículo com telemetria salva ainda.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = rows
-    .sort((a,b)=>(a.v.nfr||0)-(b.v.nfr||0))
-    .map(({t,v}) => {
-      const seg = t.eventosHoje?.porCategoria?.['Segurança']||0;
-      const man = t.eventosHoje?.porCategoria?.['Manutenção']||0;
-      const atualizado = t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleTimeString('pt-BR') : '—';
-      const label = `${t.placa} - ${v.bloco||'—'} · ${v.tipo||'—'} · N° ${v.nfr||'—'}`;
-      return `<tr class="tel-row" data-placa="${t.placa}" style="cursor:pointer;">
-        <td><strong>${label}</strong></td>
-        <td>${t.odometro ?? '—'}</td>
-        <td>${t.kmRodadoHoje ?? '—'}</td>
-        <td>${t.rpmMedio ?? '—'}</td>
-        <td>${t.rpmMaximo ?? '—'}</td>
-        <td style="color:${seg>0?'#A32D2D':'inherit'};font-weight:${seg>0?'600':'400'};">${seg}</td>
-        <td style="color:${man>0?'#BA7517':'inherit'};font-weight:${man>0?'600':'400'};">${man}</td>
-        <td style="font-size:11px;color:var(--text3);">${atualizado}</td>
-      </tr>`;
-    }).join('');
-}
-
-document.addEventListener('click', e => {
-  const row = e.target.closest('.tel-row[data-placa]');
-  if (!row) return;
-  abrirRelatorioTelemetria(row.getAttribute('data-placa'));
-});
-
-async function abrirRelatorioTelemetria(placa) {
-  const v = TODOS.find(x => x.placa === placa);
-  document.getElementById('relatorio-placa').textContent = v ? `${placa} - ${v.bloco||'—'} · ${v.tipo||'—'} · N° ${v.nfr||'—'}` : placa;
-  document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Carregando...</div>';
-  document.getElementById('relatorio-ov').classList.add('show');
-
-  try {
-    const snap = await getDoc(doc(db,'telemetria_veiculos', placa));
-    if (!snap.exists()) {
-      document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px;">Sem dados de telemetria hoje para este veículo.</div>';
-      return;
-    }
-    renderRelatorioTelemetria(snap.data());
-  } catch(e) {
-    document.getElementById('relatorio-body').innerHTML = '<div style="text-align:center;color:var(--err);padding:24px;">Erro ao carregar relatório.</div>';
-    console.warn('abrirRelatorioTelemetria:', e);
-  }
-}
-
-function renderRelatorioTelemetria(t) {
-  const fmt = (n, suf) => (n===undefined || n===null ? '—' : n+(suf||''));
-  const pct = (n) => (n===undefined || n===null ? '—' : String(n).replace('.', ','));
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  const AZUL = '#1B4F8C';
-
-  const th = (label) => `<th style="background:${AZUL};color:#fff;border:1px solid #fff;padding:4px 6px;font-size:10px;font-weight:600;line-height:1.25;">${label}</th>`;
-  const td = (val) => `<td style="border:1px solid #dde1e7;padding:4px 6px;font-size:12px;text-align:center;white-space:nowrap;">${val}</td>`;
-  const tituloBarra = (label, cols) => `<tr><td colspan="${cols}" style="background:${AZUL};color:#fff;text-align:center;padding:5px;font-size:12px;font-weight:700;">${label}</td></tr>`;
-
-  // Ordem igual ao relatório da Sascar: Marcha Lenta, Verde, Amarela, Transição, Verde Econômica, Perigo
-  const faixasOrdem = [
-    ['marchaLenta', 'Marcha Lenta'], ['verde', 'Faixa Verde'], ['amarela', 'Faixa Amarela'],
-    ['transicao', 'Faixa Transição'], ['verdeEconomica', 'Faixa Verde Econômica'], ['perigo', 'Faixa de Perigo'],
-  ];
-  const faixasLinhas = faixasOrdem.map(([key, label]) =>
-    `<tr>${td(label)}${td(t.faixasHMS?.[key] ?? '—')}${td(pct(t.faixasPercentual?.[key]))}</tr>`
-  ).join('');
-
-  document.getElementById('relatorio-body').innerHTML = `
-    <div style="background:#fff;color:#1a2233;padding:2px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;background:${AZUL};color:#fff;border-radius:6px;padding:6px 12px;">
-        <strong style="font-size:13px;">${t.placa || '—'}</strong>
-        <span style="opacity:.8;font-size:11px;">·</span>
-        <span style="font-size:12px;">${hoje}</span>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;table-layout:fixed;">
-        ${tituloBarra('Produtividade de Rodagem e Consumo', 7)}
-        <tr>${th('Km Percorrido')}${th('Combustível (L)')}${th('Rendimento (Km/L)')}${th('Km / Dia')}${th('Vel. Média (Km/h)')}${th('Hodômetro Inicial')}${th('Hodômetro Final')}</tr>
-        <tr>${td(fmt(t.distanciaTotalKm))}${td(fmt(t.consumoTotalLitros))}${td(fmt(t.mediaKmPorLitro))}${td(fmt(t.distanciaTotalKm))}${td(fmt(t.velocidadeMedia))}${td(fmt(t.odometroInicial))}${td(fmt(t.odometroFinal))}</tr>
-      </table>
-
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <div style="flex:1;min-width:0;">
-          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-            ${tituloBarra('Produtividade do Motor', 5)}
-            <tr>${th('Motor Ligado')}${th('Movimento')}${th('% Mov.')}${th('Parado Ligado')}${th('% Parado')}</tr>
-            <tr>${td(t.tempoDuracaoMotorLigadoHMS ?? '—')}${td(t.tempoDuracaoMovimentoHMS ?? '—')}${td(pct(t.percMovimento))}${td(t.tempoDuracaoParadoHMS ?? '—')}${td(pct(t.percParado))}</tr>
-          </table>
-
-          <div style="margin-top:12px;padding-top:8px;border-top:1px dashed #dde1e7;">
-            <div style="font-size:11px;color:#8a9ab0;margin-bottom:4px;">Eventos hoje (${t.eventosHoje?.total||0}) — Segurança: ${t.eventosHoje?.porCategoria?.['Segurança']||0} · Manutenção: ${t.eventosHoje?.porCategoria?.['Manutenção']||0}</div>
-            ${Object.entries(t.eventosHoje?.porTipo||{}).map(([nome,qtd]) =>
-              `<div style="display:flex;justify-content:space-between;font-size:12px;padding:1px 0;"><span style="color:#4a5568;">${nome}</span><span style="font-weight:600;">${qtd}</span></div>`
-            ).join('') || '<div style="font-size:12px;color:#8a9ab0;">Nenhum evento hoje.</div>'}
-          </div>
-        </div>
-
-        <div style="flex:1;min-width:0;">
-          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-            ${tituloBarra('Faixas de Condução', 3)}
-            <tr>${th('Faixa')}${th('Tempo')}${th('%')}</tr>
-            ${faixasLinhas}
-          </table>
-        </div>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse;margin-top:12px;table-layout:fixed;">
-        ${tituloBarra('Saúde do Motor (médias do dia)', 7)}
-        <tr>${th('Óleo Motor (°C)')}${th('Arrefec. (°C)')}${th('Combustível (°C)')}${th('Bateria Méd. (V)')}${th('Bateria Mín. (V)')}${th('Óleo Motor (Pressão)')}${th('Freio Ar (Pressão)')}</tr>
-        <tr>${td(fmt(t.temperaturaOleoMotor))}${td(fmt(t.temperaturaArrefecimento))}${td(fmt(t.temperaturaCombustivel))}${td(fmt(t.tensaoBateriaMedia))}${td(fmt(t.tensaoBateriaMenor))}${td(fmt(t.pressaoOleoMotor))}${td(fmt(t.pressaoFreioAr))}</tr>
-      </table>
-      <div style="font-size:9px;color:#8a9ab0;margin-top:3px;">Unidade/escala desses valores ainda não confirmada oficialmente pela Sascar — comparar com um relatório real antes de usar para decisão crítica.</div>
-
-      <div style="font-size:10px;color:#8a9ab0;margin-top:8px;">Atualizado: ${t.atualizadoEm ? new Date(t.atualizadoEm).toLocaleString('pt-BR') : '—'} · ${t.quantidadeDeltas||0} trecho(s) hoje</div>
-    </div>`;
-}
-
 function abrirModal(placa) {
   const v  = TODOS.find(x=>x.placa===placa);
   const st = checkState[placa]||{fp:null,fs:null};
   document.getElementById('modal-placa').textContent = placa;
   document.getElementById('modal-meta').textContent = (v?.bloco||'')+' · '+(v?.tipo||'')+' · N° '+(v?.nfr||'');
 
-  let html=renderTelemetriaPlaceholder();
+  let html='';
   [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']].forEach(([mod,label])=>{
     const doc=st[mod], s=statusDoc(doc);
     const cores={pending:'var(--text3)',ok:'var(--ok)',atencao:'var(--warn)',substituir:'var(--err)'};
@@ -1895,7 +1756,6 @@ function abrirModal(placa) {
   });
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-ov').classList.add('show');
-  carregarTelemetriaModal(placa);
   // Carrega OS salvas
   carregarOSdoModal(placa, [['f1','🔧 Freio 01'],['pn','⚫ Pneu'],['f2','🔧 Freio 02'],['su','⚙️ Suspensão']]).then(() => {
     // Atualiza inputs com valores carregados
@@ -1981,15 +1841,17 @@ window.showPage = function(page,btn) {
   const titles = {
     quadro: 'Quadro Geral — Manutenção',
     historico: 'Histórico de Inspeções',
+    veiculos: 'Gerenciamento de Veículos',
+    telemetria: 'Telemetria — SasIntegra',
     pcm: 'PCM — Planejamento e Controle da Manutenção',
-    estoque: 'Controle de Estoque',
-    telemetria: 'Telemetria — Consumo, Manutenção e Segurança'
+    estoque: 'Controle de Estoque'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
   if (page === 'estoque') carregarEstoque();
   if (page === 'historico') { histPopularSelectVeiculo(); histSetPeriodo(7); }
-  if (page === 'telemetria') carregarTelemetriaPagina();
+  if (page === 'veiculos') carregarGerenciamentoVeiculos();
+  if (page === 'telemetria') carregarTelemetria();
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -2057,25 +1919,28 @@ function iniciarListeners() {
     _unsubscribes.push(unsub);
   });
 
-  // Listener 2: ordens_servico
-  const unsubOS = onSnapshot(collection(db,'ordens_servico'),
-    () => { if (_realtimeReady) dispararAtualizacao('ordens_servico'); },
-    err => console.warn('[FleetCheck] onSnapshot ordens_servico erro:', err)
+  // Listener 2: termac (mantido em tempo real)
+  const unsubTermac = onSnapshot(collection(db,'termac'),
+    () => { if (_realtimeReady) dispararAtualizacao('termac'); },
+    err => console.warn('[FleetCheck] onSnapshot termac erro:', err)
   );
-  _unsubscribes.push(unsubOS);
+  _unsubscribes.push(unsubTermac);
 
-  // Listener 3: justificativas
+  // Listener 3: justificativas (mantido em tempo real — gestor salva durante o dia)
   const unsubJust = onSnapshot(collection(db,'justificativas'),
     () => { if (_realtimeReady) dispararAtualizacao('justificativas'); },
     err => console.warn('[FleetCheck] onSnapshot justificativas erro:', err)
   );
   _unsubscribes.push(unsubJust);
 
-  const unsubTermac = onSnapshot(collection(db,'termac'),
-    () => { if (_realtimeReady) dispararAtualizacao('termac'); },
-    err => console.warn('[FleetCheck] onSnapshot termac erro:', err)
-  );
-  _unsubscribes.push(unsubTermac);
+  // ordens_servico: poll a cada 3 min (evita leitura completa de toda a coleção a cada mudanca)
+  const pollOS = setInterval(async () => {
+    if (!_realtimeReady) return;
+    await carregarTodasOS();
+    TODOS.forEach(v => atualizarLinha(v.placa));
+    atualizarKPIs();
+  }, 3 * 60 * 1000);
+  _unsubscribes.push(() => clearInterval(pollOS));
 
   console.log('[FleetCheck] Listeners em tempo real ativos:', _unsubscribes.length);
 }
@@ -2131,8 +1996,10 @@ async function carregarVeiculosFirebase() {
       .map(v => setDoc(doc(db,'veiculos',v.placa), {...v, ativo:true, criadoEm: new Date().toISOString()}));
     if (promises.length > 0) await Promise.all(promises);
 
-    // Recarregar todos ativos
-    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
+    // Reutilizar snap já carregado (evitar 2ª leitura)
+    const snap = promises.length > 0
+      ? await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)))
+      : snapCheck;
     snap.docs.forEach(d => {
       const v = d.data();
       if (!v.placa) return;
@@ -2734,6 +2601,8 @@ function abrirModalNovoVeiculo() {
   document.getElementById('nv-placa').value  = '';
   document.getElementById('nv-bloco').value  = 'FROTA';
   document.getElementById('nv-tipo').value   = 'BITRUCK';
+  document.getElementById('nv-marca').value  = '';
+  document.getElementById('nv-modelo').value = '';
   document.getElementById('modal-novo-veiculo-ov').style.display = 'flex';
   setTimeout(() => document.getElementById('nv-nfr').focus(), 100);
 }
@@ -2747,6 +2616,8 @@ async function salvarNovoVeiculo() {
   const placa = document.getElementById('nv-placa').value.trim().toUpperCase();
   const bloco = document.getElementById('nv-bloco').value;
   const tipo  = document.getElementById('nv-tipo').value;
+  const marca = document.getElementById('nv-marca').value.trim().toUpperCase();
+  const modelo= document.getElementById('nv-modelo').value.trim().toUpperCase();
 
   if (!nfr || nfr < 1)  { alert('Informe um número de frota válido.'); return; }
   if (!placa)            { alert('Informe a placa do veículo.'); return; }
@@ -2763,7 +2634,7 @@ async function salvarNovoVeiculo() {
   try {
     // Salvar no Firebase
     await setDoc(doc(db, 'veiculos', placa), {
-      nfr, placa, tipo, bloco,
+      nfr, placa, tipo, bloco, marca, modelo,
       ativo: true,
       criadoEm: new Date().toISOString()
     });
@@ -2913,7 +2784,7 @@ async function abrirModalVeiculosInativos() {
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:.5px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg3);">
         <div>
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;color:var(--text2);">${nfr} · ${v.placa}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo||'—'} · ${v.bloco||'—'} · Inativado em ${inativadoEm}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${v.tipo||'—'} · ${v.bloco||'—'}${v.marca?' · '+v.marca:''}${v.modelo?' '+v.modelo:''} · Inativado em ${inativadoEm}</div>
         </div>
         <button onclick="reativarVeiculo('${v.placa}')" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;border:.5px solid #3B6D11;background:#EAF3DE;color:#27500A;font-size:12px;font-weight:500;cursor:pointer;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
@@ -3425,9 +3296,17 @@ async function carregarHistorico() {
       allDocs = allDocs.filter(d => (d.placa||'').toUpperCase() === placaFiltro.toUpperCase());
     }
 
-    // Buscar OS
+    // Buscar OS apenas do período (evitar leitura de toda a coleção)
+    // Usamos as datas em formato ISO para comparar
+    const deISO = _histDe ? _histDe.toISOString().split('T')[0] : '2000-01-01';
+    const ateISO = _histAte ? new Date(_histAte.getTime() + 86400000).toISOString().split('T')[0] : '2099-12-31';
     const osSnap = await getDocs(collection(db,'ordens_servico'));
-    const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}));
+    const osDocs = osSnap.docs.map(d => ({id:d.id,...d.data()}))
+      .filter(os => {
+        if (!os.entradaEm) return false;
+        const d = os.entradaEm.split('T')[0];
+        return d >= deISO && d <= ateISO;
+      });
 
     // Agrupar por data — conta DOCUMENTOS (1 doc = 1 módulo inspecionado de 1 veículo)
     // OK = doc sem nenhum item substituir; Substituir = doc com pelo menos 1 substituir
@@ -3539,6 +3418,117 @@ async function carregarHistorico() {
   }
 }
 
+
+// ══ GERENCIAMENTO DE VEÍCULOS ══
+async function carregarGerenciamentoVeiculos() {
+  const tbody = document.getElementById('vg-tbody');
+  const count = document.getElementById('vg-count');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
+  try {
+    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
+    const veics = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(a.nfr||0)-(b.nfr||0));
+    if (count) count.textContent = veics.length + ' veículos ativos';
+    tbody.innerHTML = veics.map(v => {
+      const nfr = String(v.nfr||'').padStart(2,'0');
+      return `<tr>
+        <td style="font-family:Arial,sans-serif;font-weight:500;">${nfr}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;">${v.placa||'—'}</td>
+        <td style="color:var(--text2);">${v.tipo||'—'}</td>
+        <td><span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:${v.bloco==='FROTA'?'#E6F1FB':'#FAEEDA'};color:${v.bloco==='FROTA'?'#0C447C':'#633806'};">${v.bloco||'—'}</span></td>
+        <td><input class="vg-inp" id="vg-marca-${v.placa}" value="${v.marca||''}" placeholder="Marca" oninput="this.value=this.value.toUpperCase()"></td>
+        <td><input class="vg-inp" id="vg-modelo-${v.placa}" value="${v.modelo||''}" placeholder="Modelo" oninput="this.value=this.value.toUpperCase()"></td>
+        <td><button class="vg-save-btn" onclick="salvarVeiculoEdicao('${v.placa}')">Salvar</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    console.error('carregarGerenciamentoVeiculos:', e);
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar.</td></tr>';
+  }
+}
+
+async function salvarVeiculoEdicao(placa) {
+  const marca  = document.getElementById('vg-marca-' + placa)?.value.trim().toUpperCase() || '';
+  const modelo = document.getElementById('vg-modelo-' + placa)?.value.trim().toUpperCase() || '';
+  try {
+    await setDoc(doc(db,'veiculos', placa), { marca, modelo }, { merge: true });
+    showToast(placa + ' — dados atualizados!');
+  } catch(e) {
+    alert('Erro ao salvar: ' + (e?.message||e));
+  }
+}
+
+window.carregarGerenciamentoVeiculos = carregarGerenciamentoVeiculos;
+window.salvarVeiculoEdicao = salvarVeiculoEdicao;
+
+// ══ TELEMETRIA ══
+async function carregarTelemetria() {
+  const tbody = document.getElementById('tel-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando dados do SasIntegra...</td></tr>';
+  try {
+    const snap = await getDocs(collection(db,'telemetria_veiculos'));
+    const dados = snap.docs.map(d => ({id:d.id,...d.data()}));
+
+    if (!dados.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px;">Nenhum dado de telemetria disponível.<br><span style="font-size:11px;">Verifique se a API SasIntegra está rodando em http://localhost:3000</span></td></tr>';
+      return;
+    }
+
+    // KPIs
+    const totalKm  = dados.reduce((s,d) => s+(parseFloat(d.kmRodado)||0), 0);
+    const totalRpm = dados.reduce((s,d) => s+(parseFloat(d.rpm)||0), 0);
+    const kmMedio  = dados.length ? (totalKm/dados.length).toFixed(0) : 0;
+    const rpmMedio = dados.length ? (totalRpm/dados.length).toFixed(0) : 0;
+
+    // Última atualização
+    const datas = dados.map(d => d.updatedAt||d.timestamp||'').filter(Boolean).sort();
+    const ultima = datas.length ? new Date(datas[datas.length-1]) : null;
+    const horaFmt = ultima ? ultima.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const dataFmt = ultima ? ultima.toLocaleDateString('pt-BR') : '—';
+
+    const el = id => document.getElementById(id);
+    if (el('tel-kpi-total'))  el('tel-kpi-total').textContent  = dados.length;
+    if (el('tel-kpi-km'))     el('tel-kpi-km').textContent     = kmMedio + ' km';
+    if (el('tel-kpi-rpm'))    el('tel-kpi-rpm').textContent    = rpmMedio;
+    if (el('tel-kpi-hora'))   el('tel-kpi-hora').textContent   = horaFmt;
+    if (el('tel-ultima-atualizacao')) el('tel-ultima-atualizacao').textContent = 'Atualizado em ' + dataFmt + ' às ' + horaFmt;
+
+    // Cruzar com TODOS para pegar nfr e tipo
+    dados.sort((a,b) => {
+      const va = TODOS.find(x => x.placa===a.placa);
+      const vb = TODOS.find(x => x.placa===b.placa);
+      return (va?.nfr||999) - (vb?.nfr||999);
+    });
+
+    tbody.innerHTML = dados.map(d => {
+      const v = TODOS.find(x => x.placa===d.placa) || {};
+      const nfr = String(v.nfr||'—').padStart(2,'0');
+      const hod = d.hodometro ? parseFloat(d.hodometro).toLocaleString('pt-BR') + ' km' : '—';
+      const km  = d.kmRodado  ? parseFloat(d.kmRodado).toFixed(1) + ' km' : '—';
+      const rpm = d.rpm       ? parseFloat(d.rpm).toFixed(0)              : '—';
+      const pos = d.ultimaPosicao || d.localizacao || '—';
+      const upd = d.updatedAt ? new Date(d.updatedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const rpmNum = parseFloat(d.rpm)||0;
+      const rpmCls = rpmNum > 2500 ? 'tel-err' : rpmNum > 2000 ? 'tel-warn' : 'tel-ok';
+      return `<tr>
+        <td style="font-family:Arial,sans-serif;font-weight:500;">${nfr}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;">${d.placa||'—'}</td>
+        <td style="color:var(--text2);font-size:12px;">${v.tipo||'—'}</td>
+        <td style="text-align:right;font-family:Arial,sans-serif;">${hod}</td>
+        <td style="text-align:right;font-family:Arial,sans-serif;">${km}</td>
+        <td style="text-align:right;"><span class="tel-badge ${rpmCls}">${rpm}</span></td>
+        <td style="font-size:11px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pos}">${pos}</td>
+        <td style="font-size:11px;color:var(--text3);">${upd}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    console.error('carregarTelemetria:', e);
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar telemetria.</td></tr>';
+  }
+}
+
+window.carregarTelemetria = carregarTelemetria;
 window.histSetPeriodo    = histSetPeriodo;
 
 // ══ EXPORTAÇÃO HISTÓRICO ══
@@ -3724,8 +3714,6 @@ window.exportHistPDF   = exportHistPDF;
 window.exportRegExcel  = exportRegExcel;
 window.exportRegPDF    = exportRegPDF;
 window.histAplicarFiltro = histAplicarFiltro;
-window.carregarTelemetriaPagina = carregarTelemetriaPagina;
-window.renderTelemetriaPagina = renderTelemetriaPagina;
 
 // ══ CONTROLE DE REGULAGEM ══
 let _regDe = null, _regAte = null;
@@ -4010,6 +3998,17 @@ window.regAplicarFiltro= regAplicarFiltro;
             <option value="8X2">8X2</option>
             <option value="8X4">8X4</option>
           </select>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding-bottom:4px;border-bottom:.5px solid var(--border);margin-top:2px;">Veículo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Marca</label>
+          <input type="text" id="nv-marca" placeholder="Ex: VOLVO, SCANIA..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Modelo</label>
+          <input type="text" id="nv-modelo" placeholder="Ex: FH 460, R 450..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
         </div>
       </div>
     </div>
