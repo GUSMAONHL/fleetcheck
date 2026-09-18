@@ -2093,6 +2093,7 @@ window.showPage = function(page,btn) {
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
   if (page === 'estoque') carregarEstoque();
+  if (page === 'veiculos') carregarGerenciamentoVeiculos();
   if (page === 'historico') { histPopularSelectVeiculo(); histSetPeriodo(7); }
   if (page === 'telemetria') carregarTelemetriaPagina();
 };
@@ -2227,8 +2228,9 @@ async function carregarVeiculosFirebase() {
   _veiculosNovosFirebase = [];
   try {
     // Migrar base para Firebase se ainda não existir
-    const snapCheck = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
+    const snapCheck = await getDocs(collection(db,'veiculos')); // busca todos para não perder cadastros antigos
     const existentes = snapCheck.docs.map(d => d.data().placa);
+    // Carregar veículos ativos (inclui docs sem campo 'ativo' = cadastros antigos)
 
     // Inserir veículos base que não existem ainda
     const promises = VEICULOS_BASE_NHL
@@ -2241,7 +2243,8 @@ async function carregarVeiculosFirebase() {
     snap.docs.forEach(d => {
       const v = d.data();
       if (!v.placa) return;
-      const novoV = { nfr: v.nfr, placa: v.placa, tipo: v.tipo, bloco: v.bloco };
+      if (v.ativo === false || v._deleted === true) return; // ignorar inativos
+      const novoV = { nfr: v.nfr, placa: v.placa, tipo: v.tipo, bloco: v.bloco, marca: v.marca||'', modelo: v.modelo||'' };
       if (v.bloco === 'FROTA') FROTA.push(novoV);
       else TERCEIRO.push(novoV);
       TODOS.push(novoV);
@@ -2260,7 +2263,11 @@ function injetarVeiculosNovosNaGrade() {
   const gt = document.getElementById('grid-terceiro');
   if (gf) gf.innerHTML = '';
   if (gt) gt.innerHTML = '';
-  _veiculosNovosFirebase.forEach(v => adicionarVeiculoNaGrade(v));
+  _veiculosNovosFirebase.forEach(v => {
+    adicionarVeiculoNaGrade(v);
+    // Atualizar marca/modelo após injetar o card
+    renderMarcaModeloCard(v.placa, v.marca||'', v.modelo||'');
+  });
   _veiculosNovosFirebase = [];
 }
 
@@ -2839,6 +2846,10 @@ function abrirModalNovoVeiculo() {
   document.getElementById('nv-placa').value  = '';
   document.getElementById('nv-bloco').value  = 'FROTA';
   document.getElementById('nv-tipo').value   = 'BITRUCK';
+  const marcaEl  = document.getElementById('nv-marca');
+  const modeloEl = document.getElementById('nv-modelo');
+  if (marcaEl)  marcaEl.value  = '';
+  if (modeloEl) modeloEl.value = '';
   document.getElementById('modal-novo-veiculo-ov').style.display = 'flex';
   setTimeout(() => document.getElementById('nv-nfr').focus(), 100);
 }
@@ -2852,6 +2863,8 @@ async function salvarNovoVeiculo() {
   const placa = document.getElementById('nv-placa').value.trim().toUpperCase();
   const bloco = document.getElementById('nv-bloco').value;
   const tipo  = document.getElementById('nv-tipo').value;
+  const marca = (document.getElementById('nv-marca')?.value||'').trim().toUpperCase();
+  const modelo= (document.getElementById('nv-modelo')?.value||'').trim().toUpperCase();
 
   if (!nfr || nfr < 1)  { alert('Informe um número de frota válido.'); return; }
   if (!placa)            { alert('Informe a placa do veículo.'); return; }
@@ -2868,13 +2881,13 @@ async function salvarNovoVeiculo() {
   try {
     // Salvar no Firebase
     await setDoc(doc(db, 'veiculos', placa), {
-      nfr, placa, tipo, bloco,
+      nfr, placa, tipo, bloco, marca, modelo,
       ativo: true,
       criadoEm: new Date().toISOString()
     });
 
     // Adicionar em memória e re-renderizar sem recarregar tudo
-    const novoV = { nfr, placa, tipo, bloco };
+    const novoV = { nfr, placa, tipo, bloco, marca, modelo };
     if (bloco === 'FROTA') FROTA.push(novoV);
     else TERCEIRO.push(novoV);
     TODOS.push(novoV);
@@ -2882,6 +2895,7 @@ async function salvarNovoVeiculo() {
     fecharModalNovoVeiculo();
     atualizarKPIs();
     adicionarVeiculoNaGrade(novoV);
+    renderMarcaModeloCard(placa, marca, modelo);
     showToast('Veículo ' + placa + ' cadastrado!');
   } catch(e) {
     console.error('salvarNovoVeiculo:', e);
@@ -2891,6 +2905,15 @@ async function salvarNovoVeiculo() {
 
 
 // ── ADICIONAR VEÍCULO NA GRADE DINAMICAMENTE ──
+
+// ── ATUALIZAR MARCA/MODELO NO CARD ──
+function renderMarcaModeloCard(placa, marca, modelo) {
+  const el = document.getElementById('vcell-marcamodelo-' + placa);
+  if (!el) return;
+  const txt = [marca, modelo].filter(Boolean).join(' ');
+  el.textContent = txt;
+}
+window.renderMarcaModeloCard = renderMarcaModeloCard;
 function gerarVrow(v) {
   const placa = v.placa;
   const nfr   = String(v.nfr).padStart(2,'0');
@@ -2901,6 +2924,7 @@ function gerarVrow(v) {
     </div>
     <div class="vcell vcell-id" id="vcell-id-${placa}">
       <div class="v-placa-linha">${nfr} - ${placa}</div>
+      <div id="vcell-marcamodelo-${placa}" style="font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
     </div>
     <div class="vcell vcell-check" id="f1-${placa}">
       <div class="v-check-label">Freio 01</div>
@@ -3835,9 +3859,17 @@ async function carregarGerenciamentoVeiculos() {
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
   try {
-    const snap = await getDocs(query(collection(db,'veiculos'), where('ativo','==',true)));
-    const veics = snap.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(a.nfr||0)-(b.nfr||0));
-    if (count) count.textContent = veics.length + ' veículos ativos';
+    // Buscar TODOS os veículos sem filtro — evita perder cadastros sem campo 'ativo'
+    const snap = await getDocs(collection(db,'veiculos'));
+    const veics = snap.docs
+      .map(d => ({id:d.id,...d.data()}))
+      .filter(v => v._deleted !== true && v.ativo !== false)
+      .sort((a,b) => (a.nfr||0)-(b.nfr||0));
+    if (count) count.textContent = veics.length + ' veículos';
+    if (!veics.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px;">Nenhum veículo encontrado.</td></tr>';
+      return;
+    }
     tbody.innerHTML = veics.map(v => {
       const nfr = String(v.nfr||'').padStart(2,'0');
       return `<tr>
@@ -4224,6 +4256,17 @@ window.regAplicarFiltro= regAplicarFiltro;
             <option value="8X2">8X2</option>
             <option value="8X4">8X4</option>
           </select>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding-bottom:4px;border-bottom:.5px solid var(--border);margin-top:2px;">Veículo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Marca</label>
+          <input type="text" id="nv-marca" placeholder="Ex: VOLVO, SCANIA..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Modelo</label>
+          <input type="text" id="nv-modelo" placeholder="Ex: FH 460, R 450..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
         </div>
       </div>
     </div>
