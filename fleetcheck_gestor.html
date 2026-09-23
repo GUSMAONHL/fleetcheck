@@ -5538,6 +5538,7 @@ function _renderVeiculosCadastroTabela() {
   body.innerHTML = ordenados.map(v => {
     const ativo = v.ativo !== false; // por padrão, ativo (undefined também conta como ativo)
     const dataInicioTxt = v.dataInicio ? v.dataInicio.split('-').reverse().join('/') : '—';
+    const dataInativacaoTxt = (!ativo && v.dataInativacao) ? v.dataInativacao.split('-').reverse().join('/') : null;
     return `<tr style="${ativo ? '' : 'opacity:0.5;'}">
       <td style="font-family:'DM Mono',monospace;">${v.fr || '—'}</td>
       <td class="text-primary">${v.placa}</td>
@@ -5547,6 +5548,7 @@ function _renderVeiculosCadastroTabela() {
       <td style="font-family:'DM Mono',monospace;color:var(--text2);">${dataInicioTxt}</td>
       <td>
         <span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:${ativo ? 'rgba(46,160,67,0.15)' : 'rgba(248,81,73,0.15)'};color:${ativo ? '#2ea043' : '#f85149'};">${ativo ? 'ATIVO' : 'INATIVO'}</span>
+        ${dataInativacaoTxt ? `<div style="font-size:10px;color:var(--text3);margin-top:2px;">desde ${dataInativacaoTxt}</div>` : ''}
       </td>
       <td style="text-align:right;white-space:nowrap;">
         <button onclick="toggleAtivoVeiculo('${v.placa}')" title="${ativo ? 'Inativar' : 'Ativar'}" style="background:none;border:none;color:${ativo ? '#d29922' : '#2ea043'};cursor:pointer;font-size:17px;margin-right:8px;">${ativo ? '⏸️' : '▶️'}</button>
@@ -5872,8 +5874,15 @@ window.toggleAtivoVeiculo = async function toggleAtivoVeiculo(placa) {
   if (!v) return;
   const novoStatus = !(v.ativo !== false);
   try {
-    await setDoc(doc(db, 'frota_cadastro', placa), { ativo: novoStatus }, { merge: true });
+    // Ao inativar, grava a partir de qual dia o veículo deixa de contar (hoje) — assim ele
+    // continua aparecendo normalmente em todos os dias ANTERIORES à inativação, nos indicadores
+    // de Aderência e Gestão do Dia. Ao reativar, limpa essa data (volta a contar sempre).
+    const hoje = new Date();
+    const hojeISO = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+    const dados = { ativo: novoStatus, dataInativacao: novoStatus ? null : hojeISO };
+    await setDoc(doc(db, 'frota_cadastro', placa), dados, { merge: true });
     v.ativo = novoStatus;
+    v.dataInativacao = dados.dataInativacao;
     _invalidarCachesRoster();
     _renderVeiculosCardsCategoria();
     _renderVeiculosCadastroTabela();
@@ -6943,7 +6952,15 @@ async function _construirRosterVeiculos(diaISO) {
     const pesoMedioPorPlaca = _computarPesoMedioPorPlaca(veiculosSnap);
     const roster = cadastroSnap.docs
       .map(d => ({ placa: d.id, ...d.data() }))
-      .filter(v => v.ativo !== false)
+      // um veículo ativo sempre conta; um inativo só conta pros dias ANTERIORES à data em que
+      // foi inativado — assim inativar hoje não reescreve o histórico dos dias anteriores.
+      // Sem essa data registrada (inativado antes dessa correção existir), mantém o
+      // comportamento antigo (não conta em nenhum dia, por segurança).
+      .filter(v => {
+        if (v.ativo !== false) return true;
+        if (!v.dataInativacao || !diaISO) return false;
+        return diaISO < v.dataInativacao;
+      })
       // um veículo só entra no roster de um dia se já tiver começado a operar nele — sem essa
       // checagem, cadastrar hoje um veículo que só vai trabalhar amanhã já contaria (errado) na
       // disponibilidade de hoje e de todos os dias anteriores.
