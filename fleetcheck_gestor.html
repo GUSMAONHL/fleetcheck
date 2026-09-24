@@ -471,6 +471,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <div class="filtros-painel" id="filtros-programacao">
       <button class="filtros-acao-btn" onclick="abrirFormProgItem()" title="Cadastrar Meta do Dia" style="color:#388bfd;">📅</button>
+      <button class="filtros-acao-btn" onclick="exportarNotaWhatsapp()" title="Exportar nota resumida (WhatsApp)" style="color:#2ea043;">💬</button>
       <button class="filtros-acao-btn" onclick="excluirVolumeRealDoDia()" title="Excluir dado real (Volume Poços) desse dia — use pra limpar teste/dado incorreto que ficou preso" style="color:#f85149;">🗑</button>
     </div>
     <div class="filtros-painel" id="filtros-gestao"></div>
@@ -8340,6 +8341,84 @@ window.renderOfensores = async function renderOfensores() {
   await _ofnCarregar();
 };
 
+// ══════════════════════════════════════
+// Exporta um resumo reduzido da Programação Diária, formatado pra WhatsApp — mesma fonte de
+// dados dos cards de mina da tela (não recalcula nada, só reaproveita os helpers já existentes).
+window.exportarNotaWhatsapp = function exportarNotaWhatsapp() {
+  if (!_progDataAtual || !_progItens || _progItens.length === 0) {
+    showToast('✖ Nada pra exportar — selecione um dia com metas cadastradas primeiro.');
+    return;
+  }
+
+  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const pluralCaminhao = (n) => n > 1 ? `${n} caminhões` : `${n} caminhão`;
+  const [ano, mes, dia] = _progDataAtual.split('-');
+  const dataTxt = `${dia}/${mes}/${ano}`;
+
+  const pesoMedioCategoria = (categoria) => {
+    if (!_progRosterVeiculos || _progRosterVeiculos.length === 0) return 0;
+    const filtro = categoria === 'caminhao' ? _progEhCaminhao : _progEhCavalo;
+    const veiculos = _progRosterVeiculos.filter(v => filtro(v.tipo2) && v.pesoMedio > 0);
+    if (veiculos.length === 0) return 0;
+    return veiculos.reduce((s,v) => s + v.pesoMedio, 0) / veiculos.length;
+  };
+
+  const totalMeta = _progItens.reduce((s,m) => s + (parseFloat(m.meta)||0), 0);
+  const totalProgramado = _progItens.reduce((s,m) => s + _progProgramadoPara(m.origem, m.destino), 0);
+  const pctProgramado = totalMeta > 0 ? Math.round((totalProgramado/totalMeta)*100) : 0;
+
+  // Não programados, separado por Tipo (Caminhões/Cavalos) e dentro de cada um por Força —
+  // só entra no texto o bloco de um tipo que realmente tem veículo cadastrado.
+  const roster = _progRosterVeiculos || [];
+  const blocoNaoProgTipo = (rotuloTipo, filtroTipo) => {
+    const grupoTipo = roster.filter(v => filtroTipo(v.tipo2));
+    if (grupoTipo.length === 0) return '';
+    const contarForca = (forca) => {
+      const grupo = grupoTipo.filter(v => v.forca === forca);
+      const naoProg = grupo.filter(v => {
+        const a = _progAtribuicaoDoVeiculo(v.placa);
+        return !a || !((Number(a.viagens)||0) > 0);
+      }).length;
+      return { total: grupo.length, naoProg };
+    };
+    const f = contarForca('FROTA');
+    const t = contarForca('TERCEIRO');
+    return `⚠️ Não programados: ${String(f.naoProg+t.naoProg).padStart(2,'0')}/${grupoTipo.length} ${rotuloTipo}\n Frota ${String(f.naoProg).padStart(2,'0')}/${f.total}\nTerceiro ${String(t.naoProg).padStart(2,'0')}/${t.total}\n`;
+  };
+
+  let texto = `📋 PROGRAMAÇÃO DIÁRIA — ${dataTxt}\n\n`;
+  texto += `Total: ${fmt(totalProgramado)}t programadas de ${fmt(totalMeta)}t (${pctProgramado}%).\n`;
+  texto += blocoNaoProgTipo('Caminhões', _progEhCaminhao);
+  texto += blocoNaoProgTipo('Cavalos', _progEhCavalo);
+
+  _progItens.forEach(m => {
+    const meta = parseFloat(m.meta) || 0;
+    const programado = _progProgramadoPara(m.origem, m.destino);
+    const pct = meta > 0 ? Math.round((programado/meta)*100) : 0;
+    const veic = _progVeiculosProgramadosPara(m.origem, m.destino);
+    const veicTxt = veic.total > 0
+      ? [veic.caminhoes > 0 ? `${veic.caminhoes} caminhões` : null, veic.cavalos > 0 ? `${veic.cavalos} cavalos` : null].filter(Boolean).join(', ')
+      : 'nenhum veículo atribuído';
+
+    texto += `\n⛰️ ${m.origem} → ${m.destino}\n`;
+    texto += `Meta: ${fmt(meta)}t | Programado: ${fmt(programado)}t (${pct}%)\n`;
+    texto += `Veículos: ${veicTxt}\n`;
+
+    const gap = meta - programado;
+    if (gap > 0.5) {
+      const viagensPadrao = _progBuscarViagensPadrao(m.origem, m.destino);
+      const capacidadeCaminhao = viagensPadrao * pesoMedioCategoria('caminhao');
+      if (capacidadeCaminhao > 0) {
+        texto += `⚠️ Faltam ~${fmt(gap)}t (${pluralCaminhao(Math.ceil(gap/capacidadeCaminhao))})\n`;
+      }
+    }
+  });
+
+  // Abre o WhatsApp (Web ou app) já com o texto pronto — o usuário só escolhe o contato/grupo
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+};
+
+// EXPORT PDF (simulado)
 // ══════════════════════════════════════
 window.exportarPDF = async function exportarPDF() {
   const paginaAtiva = document.querySelector('.page.active');
