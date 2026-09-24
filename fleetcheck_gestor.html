@@ -1242,6 +1242,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div style="font-size:16px;font-weight:700;color:var(--text);" id="prog-naoprog-titulo">🚛 Veículos não programados</div>
         <div id="prog-naoprog-volume-perdido"></div>
+        <div id="prog-naoprog-card-forca"></div>
       </div>
       <button onclick="fecharNaoProgramados()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
     </div>
@@ -7290,6 +7291,12 @@ window.novoOfensorPrograma = async function novoOfensorPrograma() {
 };
 
 let _progNaoProgOrdem = { col: null, dir: 1 }; // col: 'motivo'|null
+let _progNaoProgFiltroForca = null; // 'FROTA' | 'TERCEIRO' | null
+
+window.filtrarNaoProgramadosPorForca = function filtrarNaoProgramadosPorForca(forca) {
+  _progNaoProgFiltroForca = _progNaoProgFiltroForca === forca ? null : forca;
+  _progRenderNaoProgramados();
+};
 
 window.ordenarNaoProgramados = function ordenarNaoProgramados(col) {
   if (_progNaoProgOrdem.col === col) { _progNaoProgOrdem.dir *= -1; }
@@ -7317,12 +7324,43 @@ function _progRenderNaoProgramados() {
       if (ma && !mb) return -1;
       return _progNaoProgOrdem.dir * ma.localeCompare(mb);
     });
+  } else if (_progNaoProgOrdem.col === 'forca') {
+    naoProgramados = naoProgramados.slice().sort((a,b) => _progNaoProgOrdem.dir * (a.forca||'').localeCompare(b.forca||''));
+  }
+
+  // Card FROTA x TERCEIRO — quantos, dentro da categoria sendo vista (Caminhões/Cavalos/Todos),
+  // ainda NÃO estão programados hoje, separado por Força. Ex.: FROTA 04/28, TERCEIRO 02/20.
+  // Clicável: funciona como filtro da lista abaixo.
+  const contarForca = (forca) => {
+    const grupo = rosterFiltrado.filter(v => v.forca === forca);
+    const naoProgramadosGrupo = grupo.filter(v => {
+      const a = _progAtribuicaoDoVeiculo(v.placa);
+      return !a || !((Number(a.viagens)||0) > 0);
+    }).length;
+    return { total: grupo.length, naoProgramados: naoProgramadosGrupo };
+  };
+  const dadosFrota = contarForca('FROTA');
+  const dadosTerceiro = contarForca('TERCEIRO');
+  const blocoForca = (forca, rotulo, dados) => {
+    const ativo = _progNaoProgFiltroForca === forca;
+    return `<button onclick="filtrarNaoProgramadosPorForca('${forca}')" style="text-align:center;background:${ativo?'rgba(56,139,253,0.15)':'none'};border:1px solid ${ativo?'#388bfd':'transparent'};border-radius:8px;padding:4px 10px;cursor:pointer;">
+      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${rotulo}</div>
+      <div style="font-size:20px;font-weight:700;color:${dados.naoProgramados>0?'#f85149':'#2ea043'};font-family:'DM Mono',monospace;">${String(dados.naoProgramados).padStart(2,'0')}/${dados.total}</div>
+    </button>`;
+  };
+  document.getElementById('prog-naoprog-card-forca').innerHTML = `<div style="display:flex;gap:6px;">
+    ${blocoForca('FROTA', 'Frota', dadosFrota)}
+    ${blocoForca('TERCEIRO', 'Terceiro', dadosTerceiro)}
+  </div>`;
+
+  if (_progNaoProgFiltroForca) {
+    naoProgramados = naoProgramados.filter(v => v.forca === _progNaoProgFiltroForca);
   }
 
   const cont = document.getElementById('prog-naoprog-corpo');
   if (naoProgramados.length === 0) {
     document.getElementById('prog-naoprog-volume-perdido').innerHTML = '';
-    cont.innerHTML = '<div style="text-align:center;padding:30px;color:#2ea043;font-size:14px;">✔ Todos os veículos dessa categoria já estão programados.</div>';
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:#2ea043;font-size:14px;">✔ Todos os veículos dessa categoria (ou dessa força) já estão programados.</div>';
     return;
   }
 
@@ -7379,7 +7417,7 @@ function _progRenderNaoProgramados() {
     <div style="overflow-x:auto;">
       <table style="width:100%;font-size:12px;">
         <thead><tr>
-          <th>FR</th><th>PLACA</th><th>TIPO2</th><th>FORÇA</th><th>PESO MÉDIO</th>
+          <th>FR</th><th>PLACA</th><th>TIPO2</th><th onclick="ordenarNaoProgramados('forca')" style="cursor:pointer;">FORÇA ${_progNaoProgOrdem.col==='forca' ? (_progNaoProgOrdem.dir===1?'▲':'▼') : ''}</th><th>PESO MÉDIO</th>
           <th onclick="ordenarNaoProgramados('motivo')" style="cursor:pointer;">MOTIVO ${_progNaoProgOrdem.col==='motivo' ? (_progNaoProgOrdem.dir===1?'▲':'▼') : ''}</th><th>OBSERVAÇÃO</th><th title="Quantas viagens esse veículo faria se tivesse sido programado">VIAGENS QUE FARIA</th><th style="text-align:center;">STATUS</th>
         </tr></thead>
         <tbody>
