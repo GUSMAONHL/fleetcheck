@@ -7341,16 +7341,22 @@ function _progRenderNaoProgramados() {
   };
   const dadosFrota = contarForca('FROTA');
   const dadosTerceiro = contarForca('TERCEIRO');
+  const dadosTotal = { total: dadosFrota.total + dadosTerceiro.total, naoProgramados: dadosFrota.naoProgramados + dadosTerceiro.naoProgramados };
   const blocoForca = (forca, rotulo, dados) => {
     const ativo = _progNaoProgFiltroForca === forca;
-    return `<button onclick="filtrarNaoProgramadosPorForca('${forca}')" style="text-align:center;background:${ativo?'rgba(56,139,253,0.15)':'none'};border:1px solid ${ativo?'#388bfd':'transparent'};border-radius:8px;padding:4px 10px;cursor:pointer;">
-      <div style="font-size:13px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${rotulo}</div>
-      <div style="font-size:20px;font-weight:700;color:${dados.naoProgramados>0?'#f85149':'#2ea043'};font-family:'DM Mono',monospace;">${String(dados.naoProgramados).padStart(2,'0')}/${dados.total}</div>
+    return `<button onclick="filtrarNaoProgramadosPorForca('${forca}')" style="text-align:center;background:${ativo?'rgba(56,139,253,0.15)':'none'};border:1px solid ${ativo?'#388bfd':'transparent'};border-radius:8px;padding:6px 16px;cursor:pointer;">
+      <div style="font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${rotulo}</div>
+      <div style="font-size:24px;font-weight:700;color:${dados.naoProgramados>0?'#f85149':'#2ea043'};font-family:'DM Mono',monospace;">${String(dados.naoProgramados).padStart(2,'0')}/${dados.total}</div>
     </button>`;
   };
-  document.getElementById('prog-naoprog-card-forca').innerHTML = `<div style="display:flex;gap:6px;">
+  const blocoTotal = (rotulo, dados) => `<div style="text-align:center;padding:6px 16px;border-left:1px solid var(--border2);">
+    <div style="font-size:14px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">${rotulo}</div>
+    <div style="font-size:24px;font-weight:700;color:${dados.naoProgramados>0?'#f85149':'#2ea043'};font-family:'DM Mono',monospace;">${String(dados.naoProgramados).padStart(2,'0')}/${dados.total}</div>
+  </div>`;
+  document.getElementById('prog-naoprog-card-forca').innerHTML = `<div style="display:flex;align-items:center;gap:4px;">
     ${blocoForca('FROTA', 'Frota', dadosFrota)}
     ${blocoForca('TERCEIRO', 'Terceiro', dadosTerceiro)}
+    ${blocoTotal('Total', dadosTotal)}
   </div>`;
 
   if (_progNaoProgFiltroForca) {
