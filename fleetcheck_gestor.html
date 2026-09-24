@@ -6091,12 +6091,9 @@ function _renderProgCorpo() {
           if (gap > 0.5) {
             const viagensPadrao = _progBuscarViagensPadrao(m.origem, m.destino);
             const capacidadeCaminhao = viagensPadrao * pesoMedioCategoria('caminhao');
-            const capacidadeCavalo = viagensPadrao * pesoMedioCategoria('cavalo');
-            const opcoes = [];
-            if (capacidadeCaminhao > 0) opcoes.push(pluralCaminhao(Math.ceil(gap/capacidadeCaminhao)));
-            if (capacidadeCavalo > 0) opcoes.push(pluralCavalo(Math.ceil(gap/capacidadeCavalo)));
-            if (opcoes.length > 0) {
-              faltaTxt = `<div style="font-size:11px;color:#f85149;margin-top:2px;">Faltam ~${fmt(gap)}t (${opcoes.join(' ou ')})</div>`;
+            if (capacidadeCaminhao > 0) {
+              const qtdCaminhoes = pluralCaminhao(Math.ceil(gap/capacidadeCaminhao));
+              faltaTxt = `<div style="font-size:16px;font-weight:600;color:#f85149;margin-top:4px;text-align:center;">Faltam ~${fmt(gap)}t (${qtdCaminhoes})</div>`;
             }
           }
 
