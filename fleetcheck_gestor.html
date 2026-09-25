@@ -6989,7 +6989,7 @@ window.adicionarItemProg = async function adicionarItemProg() {
   else _progItens.push({ origem, destino, meta: volume });
 
   try {
-    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() });
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() }, { merge: true });
     showToast(`✔ ${origem} → ${destino}: ${volume.toLocaleString('pt-BR')}t programado(a) para ${_progChaveParaLabel(_progDataAtual)}.`);
     fecharFormProgItem();
     _renderProgCorpo();
@@ -7002,7 +7002,7 @@ window.adicionarItemProg = async function adicionarItemProg() {
 window.removerItemProg = async function removerItemProg(idx) {
   _progItens.splice(idx, 1);
   try {
-    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() });
+    await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() }, { merge: true });
     _renderProgCorpo();
     showToast('✔ Item removido da programação do dia.');
   } catch (err) {
