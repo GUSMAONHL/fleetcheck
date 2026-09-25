@@ -514,6 +514,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
         Novo veículo
       </button>
+      <button id="btn-sem-insp" onclick="abrirModalSemInspecao()" style="display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:none;background:#633806;color:#fff;font-size:12px;font-weight:500;cursor:pointer;position:relative;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Sem inspeções
+        <span id="badge-sem-insp" style="position:absolute;top:-7px;right:-7px;background:#fff;color:#633806;border:.5px solid #633806;border-radius:50%;width:19px;height:19px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;">0</span>
+      </button>
       <button id="btn-vencidas" onclick="abrirModalVencidas()" style="display:none;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:none;background:#cc2222;color:#fff;font-size:12px;font-weight:500;cursor:pointer;position:relative;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Inspeções vencidas
@@ -2806,6 +2811,7 @@ function calcularVencidas() {
 }
 
 function atualizarBtnVencidas() {
+  atualizarBtnSemInsp();
   const vencidas = calcularVencidas();
   const btn    = document.getElementById('btn-vencidas');
   const badge  = document.getElementById('badge-vencidas');
@@ -3280,6 +3286,64 @@ function fecharResumoDia() {
 window.abrirResumoDia  = abrirResumoDia;
 window.fecharResumoDia = fecharResumoDia;
 window.abrirModal = abrirModal;
+
+// ══ SEM INSPEÇÕES ══
+function calcularSemInspecao() {
+  return TODOS.filter(v => {
+    const temSemana    = ['f1','pn','f2','su'].some(m => checkState[v.placa]?.[m]?.dataFormatada);
+    const temHistorico = !!lastInspState[v.placa]?.dataFormatada;
+    return !temSemana && !temHistorico;
+  });
+}
+
+function atualizarBtnSemInsp() {
+  const lista = calcularSemInspecao();
+  const btn   = document.getElementById('btn-sem-insp');
+  const badge = document.getElementById('badge-sem-insp');
+  if (!btn) return;
+  if (lista.length > 0) {
+    btn.style.display = 'flex';
+    badge.textContent = lista.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function abrirModalSemInspecao() {
+  const lista = calcularSemInspecao();
+  const body  = document.getElementById('sem-insp-body');
+  const sub   = document.getElementById('sem-insp-sub');
+  if (sub) sub.textContent = lista.length + ' veículo' + (lista.length !== 1 ? 's' : '') + ' sem nenhuma inspeção registrada';
+
+  if (!lista.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">Todos os veículos já foram inspecionados.</td></tr>';
+  } else {
+    lista.sort((a,b) => (a.nfr||0)-(b.nfr||0));
+    body.innerHTML = lista.map((v,i) => {
+      const nfr = String(v.nfr||'—').padStart(2,'0');
+      const marcaModelo = [v.marca, v.modelo].filter(Boolean).join(' ') || '—';
+      const cadastro = v.criadoEm ? new Date(v.criadoEm).toLocaleDateString('pt-BR') : '—';
+      return `<tr style="${i%2===1?'background:var(--bg3);':''}">
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);">${nfr}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:14px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);">${v.placa}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.tipo||'—'}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
+          <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:${v.bloco==='FROTA'?'#E6F1FB':'#FAEEDA'};color:${v.bloco==='FROTA'?'#0C447C':'#633806'};">${v.bloco||'—'}</span>
+        </td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${marcaModelo}</td>
+        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text3);">${cadastro}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('modal-sem-insp-ov').style.display = 'flex';
+}
+
+function fecharModalSemInspecao() {
+  document.getElementById('modal-sem-insp-ov').style.display = 'none';
+}
+
+window.abrirModalSemInspecao  = abrirModalSemInspecao;
+window.fecharModalSemInspecao = fecharModalSemInspecao;
 window.abrirModalVencidas = abrirModalVencidas;
 
 // ── FILTROS MODAL VENCIDAS ──
@@ -4357,6 +4421,37 @@ window.regAplicarFiltro= regAplicarFiltro;
     <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border);">
       <button onclick="fecharModalNovoVeiculo()" style="padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer;">Cancelar</button>
       <button onclick="salvarNovoVeiculo()" style="padding:7px 18px;border-radius:7px;border:none;background:#185FA5;color:#fff;font-size:13px;font-weight:500;cursor:pointer;">Salvar veículo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SEM INSPEÇÕES -->
+<div id="modal-sem-insp-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)fecharModalSemInspecao()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:680px;max-width:95vw;max-height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 18px;background:#FAEEDA;border-bottom:1px solid #D9A86C;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#633806" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <div style="font-size:15px;font-weight:500;color:#633806;">Veículos sem nenhuma inspeção</div>
+          <div style="font-size:11px;color:#7A4A1A;margin-top:1px;" id="sem-insp-sub">—</div>
+        </div>
+      </div>
+      <button onclick="fecharModalSemInspecao()" style="background:none;border:none;color:#633806;font-size:20px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;min-height:0;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--bg3);">
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Frota</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Placa</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Tipo</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Bloco</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Marca / Modelo</th>
+            <th style="padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);">Cadastrado em</th>
+          </tr>
+        </thead>
+        <tbody id="sem-insp-body"></tbody>
+      </table>
     </div>
   </div>
 </div>
