@@ -2222,29 +2222,21 @@ async function _gravarEmLotesSeguro(gravacoes, onProgresso) {
   }
 }
 
-// Arredondamento consistente (método do maior resto) — garante que a SOMA dos valores
-// arredondados individualmente bate exatamente com o arredondamento do total. Sem isso, cada
-// linha de uma lista (ex.: "Por Mina x Destino") arredonda pro seu lado independentemente, e
-// somar os números já exibidos pode dar um resultado diferente do total mostrado no card —
-// gera divergência pro cliente mesmo os dados estando certos, é só um artefato de exibição.
-function _arredondarConsistente(valores) {
-  const totalArredondado = Math.round(valores.reduce((s,v) => s + v, 0));
-  const piso = valores.map(v => Math.floor(v));
-  const somaPiso = piso.reduce((s,v) => s + v, 0);
-  let falta = totalArredondado - somaPiso;
-  const restos = valores.map((v,i) => ({ i, resto: v - piso[i] })).sort((a,b) => b.resto - a.resto);
-  const resultado = piso.slice();
-  for (let k = 0; k < restos.length && falta > 0; k++) { resultado[restos[k].i] += 1; falta--; }
-  for (let k = 0; k < restos.length && falta < 0; k++) { resultado[restos[restos.length-1-k].i] -= 1; falta++; }
-  return resultado;
-}
-
 // ══════════════════════════════════════
 // PRODUTIVIDADE DE VEÍCULOS (base: aba ADERENCIA)
 // ══════════════════════════════════════
 // Formata peso/volume com 1 casa decimal, mas a parte decimal em fonte menor — usado em toda
 // a exibição de toneladas nos cards do painel, pra ganhar precisão sem alterar a proporção
 // visual (o número "principal" continua do mesmo tamanho de antes, só o ",X" é discreto).
+// 1º e 2º nome (as duas primeiras palavras do nome completo) pra exibição compacta — só
+// formata pra exibir; nunca grava nada, o nome completo salvo não muda.
+function _nomeESobrenome(nomeCompleto) {
+  if (!nomeCompleto) return null;
+  const partes = nomeCompleto.trim().split(/\s+/);
+  if (partes.length === 1) return partes[0];
+  return `${partes[0]} ${partes[1]}`;
+}
+
 function _fmtPesoCard(n, casas = 1) {
   const valor = Number(n) || 0;
   const texto = valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
@@ -4254,19 +4246,14 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   // meta por linha só faz sentido pras dimensões ligadas a Origem/Destino (é assim que a meta é cadastrada)
   const temMeta = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
 
-  // Arredonda os volumes de exibição de forma consistente — a soma dos números mostrados nas
-  // linhas bate exatamente com o total do card, sem o cliente conseguir "não fechar a conta"
-  // ao somar manualmente os valores já arredondados de cada linha.
-  const volumesConsistentes = _arredondarConsistente(breakdown.map(b => b.volume));
-
-  const linhas = breakdown.map((b, i) => {
+  const linhas = breakdown.map(b => {
     const pct = Math.round((b.volume / totalBreak) * 1000) / 10;
     const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
     const origemAttr = String(b.origem||'').replace(/"/g,'&quot;');
     const destinoAttr = String(b.destino||'').replace(/"/g,'&quot;');
     const metaSlot = temMeta ? `<div class="vol-meta-linha" data-meta-card="${cardKey}" data-meta-dim="${dimensao}" data-meta-chave="${chaveAttr}" data-meta-origem="${origemAttr}" data-meta-destino="${destinoAttr}" data-meta-real="${b.volume}" data-meta-viagens="${b.viagens}" data-meta-veiculos="${b.veiculos}"></div>` : '';
     return `<div class="vol-flow-row" data-aba-alvo="${dimensao}" data-chave="${chaveAttr}" data-destino="${destinoAttr}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);">
-      ${_volLinhaTexto(b.chave, pct, volumesConsistentes[i], b.viagens, b.pesoMedio)}
+      ${_volLinhaTexto(b.chave, pct, b.volume, b.viagens, b.pesoMedio)}
       ${metaSlot}
     </div>`;
   }).join('');
@@ -4286,6 +4273,15 @@ function _volCardHTML(opts) {
   const breakdownHtml = dimensoes.map(dim => _volBlocoBreakdown(opts.stats, dim, opts.chaveMeta)).join('');
   const pesoMedioViagem = opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0;
 
+  // Quando o card tem uma única quebra (rota/origem/destino) que particiona 100% das viagens,
+  // o "Total" do topo usa a soma dos valores JÁ ARREDONDADOS de cada linha (os mesmos números
+  // inteiros que aparecem na tela) — nunca a soma dos valores brutos seguida de arredondamento,
+  // porque essas duas contas podem dar resultados diferentes. Cada linha continua com seu
+  // próprio valor real, igual ao que aparece no detalhe daquela rota/origem/destino.
+  const totalExibido = dimensoes.length === 1
+    ? _volAgrupar(dimensoes[0], opts.stats.viagensFiltradas).reduce((s,b) => s + Math.round(b.volume), 0)
+    : opts.stats.total;
+
   return `<div class="table-card" id="vol-card-${opts.chaveMeta}" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -4296,7 +4292,7 @@ function _volCardHTML(opts) {
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
-        <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
+        <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalExibido)}</div>
         <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
       </div>
       <div style="text-align:right;">
@@ -6729,7 +6725,7 @@ function _gestaoLinhaVeiculo(v) {
   // painel de Manutenção (bloco de identificação em cima, faixa de status colorida embaixo,
   // tudo dentro de uma única borda arredondada). Clicável: abre o seletor de motorista.
   const nomeMotorista = _gestaoMotoristas[v.placa];
-  const primeiroNomeMotorista = nomeMotorista ? nomeMotorista.trim().split(/\s+/)[0] : null;
+  const primeiroNomeMotorista = _nomeESobrenome(nomeMotorista);
   // Chama atenção (borda pulsando) quando: é veículo próprio (FROTA), já fez pelo menos uma
   // viagem hoje (não basta estar programado — precisa ter rodado de verdade), e ainda ninguém
   // foi escalado pra dirigir.
