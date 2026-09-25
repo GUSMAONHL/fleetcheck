@@ -2744,48 +2744,61 @@ function calcularVencidas() {
   hoje.setHours(0,0,0,0);
   const vencidas = [];
 
+  console.log('[FleetCheck] calcularVencidas — TODOS:', TODOS.length, 'veículos');
+
   TODOS.forEach(v => {
     const st   = checkState[v.placa];
-    const info = calcPrazoBadge(st, v.placa);
     const just = justState[v.placa];
 
-    if (info && info.cls === 'prazo-vencido') {
-      // ── Caso normal: tem histórico de inspeção e está vencido ──
-      const prox = new Date(info.proxDate);
-      prox.setHours(0,0,0,0);
-      const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
+    // Verificar se tem QUALQUER inspeção registrada (semana atual ou histórico)
+    const temInspSemana  = ['f1','pn','f2','su'].some(m => st?.[m]?.dataFormatada);
+    const temInspHistorico = !!lastInspState[v.placa]?.dataFormatada;
+    const temInspecao = temInspSemana || temInspHistorico;
+
+    if (!temInspecao) {
+      // ── Nunca inspecionou ──
+      let diasSemInsp = 1;
+      if (v.criadoEm) {
+        const cadastro = new Date(v.criadoEm);
+        cadastro.setHours(0,0,0,0);
+        const d = diffDiasUteis(hoje, cadastro);
+        if (d <= 0) return; // cadastrado hoje
+        diasSemInsp = Math.abs(d);
+      }
       vencidas.push({
-        nfr:   v.nfr,
-        placa: v.placa,
-        tipo:  v.tipo,
-        bloco: v.bloco,
-        ult:   info.ult,
-        prox:  info.prox,
-        dias:  diasAtraso,
-        just:  just?.motivo || '—',
-        obs:   just?.obs || '',
-        semInsp: false
+        nfr:     v.nfr,
+        placa:   v.placa,
+        tipo:    v.tipo,
+        bloco:   v.bloco,
+        ult:     '—',
+        prox:    '—',
+        dias:    diasSemInsp,
+        just:    just?.motivo || '—',
+        obs:     just?.obs || '',
+        semInsp: true
       });
-    } else if (!info && v.criadoEm) {
-      // ── Nunca inspecionou: usar data de cadastro como base ──
-      const cadastro = new Date(v.criadoEm);
-      cadastro.setHours(0,0,0,0);
-      // Só contar como vencido se já passou pelo menos 1 dia útil desde o cadastro
-      const diasSemInsp = diffDiasUteis(hoje, cadastro);
-      if (diasSemInsp <= 0) return; // cadastrado hoje ou após hoje, ainda não venceu
-      vencidas.push({
-        nfr:   v.nfr,
-        placa: v.placa,
-        tipo:  v.tipo,
-        bloco: v.bloco,
-        ult:   '—',
-        prox:  '—',
-        dias:  Math.abs(diasSemInsp),
-        just:  just?.motivo || '—',
-        obs:   just?.obs || '',
-        semInsp: true  // flag para identificar na tabela
-      });
+      return;
     }
+
+    // ── Tem histórico — verificar se está vencido ──
+    const info = calcPrazoBadge(st, v.placa);
+    if (!info || info.cls !== 'prazo-vencido') return;
+
+    const prox = new Date(info.proxDate);
+    prox.setHours(0,0,0,0);
+    const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
+    vencidas.push({
+      nfr:     v.nfr,
+      placa:   v.placa,
+      tipo:    v.tipo,
+      bloco:   v.bloco,
+      ult:     info.ult,
+      prox:    info.prox,
+      dias:    diasAtraso,
+      just:    just?.motivo || '—',
+      obs:     just?.obs || '',
+      semInsp: false
+    });
   });
 
   vencidas.sort((a,b) => b.dias - a.dias);
@@ -3266,6 +3279,7 @@ function fecharResumoDia() {
 
 window.abrirResumoDia  = abrirResumoDia;
 window.fecharResumoDia = fecharResumoDia;
+window.abrirModal = abrirModal;
 window.abrirModalVencidas = abrirModalVencidas;
 
 // ── FILTROS MODAL VENCIDAS ──
