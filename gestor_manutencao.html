@@ -2235,12 +2235,13 @@ async function carregarVeiculosFirebase() {
       if (!v.placa) return;
       if (v.ativo === false || v._deleted === true) return;
       const novoV = {
-        nfr:    v.nfr    || 0,
-        placa:  v.placa  || '',
-        tipo:   v.tipo   || '',
-        bloco:  v.bloco  || 'FROTA',
-        marca:  v.marca  || '',
-        modelo: v.modelo || ''
+        nfr:      v.nfr      || 0,
+        placa:    v.placa    || '',
+        tipo:     v.tipo     || '',
+        bloco:    v.bloco    || 'FROTA',
+        marca:    v.marca    || '',
+        modelo:   v.modelo   || '',
+        criadoEm: v.criadoEm || null
       };
       if (novoV.bloco === 'FROTA') FROTA.push(novoV);
       else TERCEIRO.push(novoV);
@@ -2744,31 +2745,47 @@ function calcularVencidas() {
   const vencidas = [];
 
   TODOS.forEach(v => {
-    const st = checkState[v.placa];
-
-    // Usar dados da semana atual + fallback lastInspState (histórico de até 4 semanas)
-    // Isso garante que veículos sem inspeção NESTA semana mas com histórico recente
-    // continuem aparecendo como vencidos corretamente
+    const st   = checkState[v.placa];
     const info = calcPrazoBadge(st, v.placa);
-    if (!info) return; // sem nenhum histórico de inspeção = não dá pra calcular prazo
-    if (info.cls !== 'prazo-vencido') return;
-
-    const prox = new Date(info.proxDate);
-    prox.setHours(0,0,0,0);
-    const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
-
     const just = justState[v.placa];
-    vencidas.push({
-      nfr:   v.nfr,
-      placa: v.placa,
-      tipo:  v.tipo,
-      bloco: v.bloco,
-      ult:   info.ult,
-      prox:  info.prox,
-      dias:  diasAtraso,
-      just:  just?.motivo || '—',
-      obs:   just?.obs || ''
-    });
+
+    if (info && info.cls === 'prazo-vencido') {
+      // ── Caso normal: tem histórico de inspeção e está vencido ──
+      const prox = new Date(info.proxDate);
+      prox.setHours(0,0,0,0);
+      const diasAtraso = Math.abs(diffDiasUteis(hoje, prox));
+      vencidas.push({
+        nfr:   v.nfr,
+        placa: v.placa,
+        tipo:  v.tipo,
+        bloco: v.bloco,
+        ult:   info.ult,
+        prox:  info.prox,
+        dias:  diasAtraso,
+        just:  just?.motivo || '—',
+        obs:   just?.obs || '',
+        semInsp: false
+      });
+    } else if (!info && v.criadoEm) {
+      // ── Nunca inspecionou: usar data de cadastro como base ──
+      const cadastro = new Date(v.criadoEm);
+      cadastro.setHours(0,0,0,0);
+      // Só contar como vencido se já passou pelo menos 1 dia útil desde o cadastro
+      const diasSemInsp = diffDiasUteis(hoje, cadastro);
+      if (diasSemInsp <= 0) return; // cadastrado hoje ou após hoje, ainda não venceu
+      vencidas.push({
+        nfr:   v.nfr,
+        placa: v.placa,
+        tipo:  v.tipo,
+        bloco: v.bloco,
+        ult:   '—',
+        prox:  '—',
+        dias:  Math.abs(diasSemInsp),
+        just:  just?.motivo || '—',
+        obs:   just?.obs || '',
+        semInsp: true  // flag para identificar na tabela
+      });
+    }
   });
 
   vencidas.sort((a,b) => b.dias - a.dias);
@@ -2790,45 +2807,62 @@ function atualizarBtnVencidas() {
 
 function abrirModalVencidas() {
   const vencidas = calcularVencidas();
-  const ov    = document.getElementById('modal-vencidas-ov');
-  const body  = document.getElementById('modal-vencidas-body');
-  const titulo = document.getElementById('modal-venc-titulo');
-  const sub    = document.getElementById('modal-venc-sub');
+  _vencidasCache = vencidas;
 
-  titulo.textContent = 'Inspeções vencidas — ' + vencidas.length + ' veículo' + (vencidas.length !== 1 ? 's' : '');
-  sub.textContent    = 'Ordenado do mais crítico ao menos crítico';
+  // Resetar filtros
+  document.getElementById('venc-f-bloco-ativo').value = 'todos';
+  ['todos','frota','terceiro'].forEach(b => {
+    const btn = document.getElementById('venc-f-' + b);
+    if (!btn) return;
+    btn.style.background = b === 'todos' ? '#cc2222' : 'none';
+    btn.style.color       = b === 'todos' ? '#fff'    : '#A32D2D';
+  });
+  const tipoSel = document.getElementById('venc-f-tipo');
+  if (tipoSel) tipoSel.value = '';
+
+  document.getElementById('modal-venc-titulo').textContent = 'Inspeções vencidas';
+  document.getElementById('modal-venc-sub').textContent = vencidas.length + ' veículo' + (vencidas.length !== 1 ? 's' : '') + ' — do mais crítico ao menos crítico';
+
+  renderVencidasTabela(vencidas);
+  document.getElementById('modal-vencidas-ov').style.display = 'flex';
+}
+
+function renderVencidasTabela(vencidas) {
+  const body = document.getElementById('modal-vencidas-body');
+  const sub  = document.getElementById('modal-venc-sub');
+  if (sub) sub.textContent = vencidas.length + ' veículo' + (vencidas.length !== 1 ? 's' : '');
 
   if (!vencidas.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma inspeção vencida</td></tr>';
-  } else {
-    body.innerHTML = vencidas.map((v,i) => {
-      const corDias = v.dias >= 5 ? '#791F1F' : '#A32D2D';
-      return `<tr style="${i % 2 === 1 ? 'background:var(--bg3);' : ''}">
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);">${v.nfr}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:14px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);">${v.placa}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.tipo||'—'}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.bloco||'—'}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);font-family:Arial,sans-serif;">${v.ult}</td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
-          <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#FCEBEB;color:#791F1F;">${v.prox}</span>
-        </td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
-          ${v.just !== '—'
-            ? `<div style="display:flex;flex-direction:column;gap:3px;">
-                <span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#F1EFE8;color:#444441;">${v.just}</span>
-                ${v.obs ? `<span style="font-size:11px;color:var(--text3);padding-left:2px;font-style:italic;">${v.obs}</span>` : ''}
-              </div>`
-            : `<span style="font-size:11px;color:var(--text3);">—</span>`}
-        </td>
-        <td style="padding:9px 14px;border-bottom:.5px solid var(--border);text-align:center;">
-          <span style="font-size:13px;font-weight:700;font-family:Arial,sans-serif;color:${corDias};">-${v.dias}d</span>
-        </td>
-      </tr>`;
-    }).join('');
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma inspeção vencida com esse filtro.</td></tr>';
+    return;
   }
 
-  ov.style.display = 'flex';
+  body.innerHTML = vencidas.map((v,i) => {
+    const corDias = v.dias >= 5 ? '#791F1F' : '#A32D2D';
+    return `<tr style="${i % 2 === 1 ? 'background:var(--bg3);' : ''}">
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:13px;color:var(--text2);">${v.nfr}</td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:14px;font-weight:500;font-family:Arial,sans-serif;color:var(--text);">${v.placa}</td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.tipo||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);">${v.bloco||'—'}</td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);font-size:12px;color:var(--text2);font-family:Arial,sans-serif;">
+        ${v.semInsp ? '<span style="display:inline-flex;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;background:#F1EFE8;color:#444441;">Nunca inspecionado</span>' : v.ult}
+      </td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
+        ${v.semInsp ? '<span style="font-size:11px;color:var(--text3);">—</span>' : '<span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#FCEBEB;color:#791F1F;">'+v.prox+'</span>'}
+      </td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);">
+        ${v.just !== '—'
+          ? `<div style="display:flex;flex-direction:column;gap:3px;"><span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:#F1EFE8;color:#444441;">${v.just}</span>${v.obs ? `<span style="font-size:11px;color:var(--text3);padding-left:2px;font-style:italic;">${v.obs}</span>` : ''}</div>`
+          : `<span style="font-size:11px;color:var(--text3);">—</span>`}
+      </td>
+      <td style="padding:9px 14px;border-bottom:.5px solid var(--border);text-align:center;">
+        <span style="font-size:13px;font-weight:700;font-family:Arial,sans-serif;color:${corDias};">-${v.dias}d</span>
+      </td>
+    </tr>`;
+  }).join('');
 }
+window.renderVencidasTabela = renderVencidasTabela;
+
 
 function fecharModalVencidas() {
   document.getElementById('modal-vencidas-ov').style.display = 'none';
@@ -2882,7 +2916,7 @@ async function salvarNovoVeiculo() {
     });
 
     // Adicionar em memória e re-renderizar sem recarregar tudo
-    const novoV = { nfr, placa, tipo, bloco, marca, modelo };
+    const novoV = { nfr, placa, tipo, bloco, marca, modelo, criadoEm: new Date().toISOString() };
     if (bloco === 'FROTA') FROTA.push(novoV);
     else TERCEIRO.push(novoV);
     TODOS.push(novoV);
@@ -3233,6 +3267,42 @@ function fecharResumoDia() {
 window.abrirResumoDia  = abrirResumoDia;
 window.fecharResumoDia = fecharResumoDia;
 window.abrirModalVencidas = abrirModalVencidas;
+
+// ── FILTROS MODAL VENCIDAS ──
+let _vencidasCache = [];
+
+function filtrarVencidas(bloco) {
+  // Atualizar bloco ativo
+  document.getElementById('venc-f-bloco-ativo').value = bloco;
+
+  // Atualizar estilo dos botões de bloco
+  ['todos','frota','terceiro'].forEach(b => {
+    const btn = document.getElementById('venc-f-' + b);
+    if (!btn) return;
+    const ativo = b === bloco;
+    btn.style.background = ativo ? '#cc2222' : 'none';
+    btn.style.color       = ativo ? '#fff'    : '#A32D2D';
+  });
+
+  const tipo = document.getElementById('venc-f-tipo')?.value || '';
+
+  // Filtrar da cache
+  let filtrados = _vencidasCache;
+  if (bloco !== 'todos') {
+    filtrados = filtrados.filter(v => v.bloco.toLowerCase() === bloco);
+  }
+  if (tipo) {
+    filtrados = filtrados.filter(v => v.tipo === tipo);
+  }
+
+  // Renderizar
+  renderVencidasTabela(filtrados);
+
+  // Atualizar subtítulo
+  const sub = document.getElementById('modal-venc-sub');
+  if (sub) sub.textContent = filtrados.length + ' veículo' + (filtrados.length !== 1 ? 's' : '');
+}
+window.filtrarVencidas = filtrarVencidas;
 window.fecharModalVencidas = fecharModalVencidas;
 
 // MODAL VENCIMENTOS DO DIA
@@ -4287,7 +4357,28 @@ window.regAplicarFiltro= regAplicarFiltro;
           <div style="font-size:11px;color:#A32D2D;margin-top:1px;" id="modal-venc-sub">—</div>
         </div>
       </div>
-      <button onclick="fecharModalVencidas()" style="background:none;border:none;color:#A32D2D;font-size:20px;cursor:pointer;padding:0;">✕</button>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <!-- Filtros Bloco -->
+        <div style="display:flex;align-items:center;gap:4px;">
+          <button id="venc-f-todos"  onclick="filtrarVencidas('todos')"    style="padding:4px 10px;border-radius:20px;border:1px solid #F09595;background:#cc2222;color:#fff;font-size:11px;font-weight:500;cursor:pointer;">Todos</button>
+          <button id="venc-f-frota"  onclick="filtrarVencidas('frota')"   style="padding:4px 10px;border-radius:20px;border:1px solid #F09595;background:none;color:#A32D2D;font-size:11px;font-weight:500;cursor:pointer;">Frota</button>
+          <button id="venc-f-terceiro" onclick="filtrarVencidas('terceiro')" style="padding:4px 10px;border-radius:20px;border:1px solid #F09595;background:none;color:#A32D2D;font-size:11px;font-weight:500;cursor:pointer;">Terceiro</button>
+        </div>
+        <div style="width:.5px;height:20px;background:#F09595;"></div>
+        <!-- Filtro Tipo -->
+        <select id="venc-f-tipo" onchange="filtrarVencidas(document.getElementById('venc-f-bloco-ativo').value)" style="padding:4px 8px;border-radius:7px;border:1px solid #F09595;background:#FCEBEB;color:#791F1F;font-size:11px;font-family:inherit;cursor:pointer;">
+          <option value="">Todos os tipos</option>
+          <option value="BITRUCK">BITRUCK</option>
+          <option value="CAVALO">CAVALO</option>
+          <option value="CARRETA">CARRETA</option>
+          <option value="6X2">6X2</option>
+          <option value="6X4">6X4</option>
+          <option value="8X2">8X2</option>
+          <option value="8X4">8X4</option>
+        </select>
+        <input type="hidden" id="venc-f-bloco-ativo" value="todos">
+        <button onclick="fecharModalVencidas()" style="background:none;border:none;color:#A32D2D;font-size:20px;cursor:pointer;padding:0;margin-left:8px;">✕</button>
+      </div>
     </div>
     <div style="overflow-y:auto;flex:1;min-height:0;">
       <table style="width:100%;border-collapse:collapse;">
