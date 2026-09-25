@@ -2222,9 +2222,36 @@ async function _gravarEmLotesSeguro(gravacoes, onProgresso) {
   }
 }
 
+// Arredondamento consistente (método do maior resto) — garante que a SOMA dos valores
+// arredondados individualmente bate exatamente com o arredondamento do total. Sem isso, cada
+// linha de uma lista (ex.: "Por Mina x Destino") arredonda pro seu lado independentemente, e
+// somar os números já exibidos pode dar um resultado diferente do total mostrado no card —
+// gera divergência pro cliente mesmo os dados estando certos, é só um artefato de exibição.
+function _arredondarConsistente(valores) {
+  const totalArredondado = Math.round(valores.reduce((s,v) => s + v, 0));
+  const piso = valores.map(v => Math.floor(v));
+  const somaPiso = piso.reduce((s,v) => s + v, 0);
+  let falta = totalArredondado - somaPiso;
+  const restos = valores.map((v,i) => ({ i, resto: v - piso[i] })).sort((a,b) => b.resto - a.resto);
+  const resultado = piso.slice();
+  for (let k = 0; k < restos.length && falta > 0; k++) { resultado[restos[k].i] += 1; falta--; }
+  for (let k = 0; k < restos.length && falta < 0; k++) { resultado[restos[restos.length-1-k].i] -= 1; falta++; }
+  return resultado;
+}
+
 // ══════════════════════════════════════
 // PRODUTIVIDADE DE VEÍCULOS (base: aba ADERENCIA)
 // ══════════════════════════════════════
+// Formata peso/volume com 1 casa decimal, mas a parte decimal em fonte menor — usado em toda
+// a exibição de toneladas nos cards do painel, pra ganhar precisão sem alterar a proporção
+// visual (o número "principal" continua do mesmo tamanho de antes, só o ",X" é discreto).
+function _fmtPesoCard(n, casas = 1) {
+  const valor = Number(n) || 0;
+  const texto = valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+  const [inteiro, decimal] = texto.split(',');
+  return decimal ? `${inteiro}<span style="font-size:0.64em;opacity:0.82;">,${decimal}</span>` : inteiro;
+}
+
 function corProdutividade(pct) {
   if (pct === null || pct === undefined) return { bg:'rgba(139,148,158,0.10)', border:'rgba(139,148,158,0.35)', cor:'#8b949e', label:'Sem dado' };
   if (pct >= 90) return { bg:'rgba(46,160,67,0.10)',  border:'rgba(46,160,67,0.35)',  cor:'#2ea043', label:'Alta' };
@@ -4130,7 +4157,7 @@ function _volSetaTendenciaHTML(tendencia, chaveMeta) {
 let _volTendenciasCache = {}; // chaveMeta -> { titulo, tendencia }
 
 function _volConteudoTendenciaHTML(titulo, tendencia) {
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   if (!tendencia) return `<div style="text-align:center;padding:40px;color:var(--text3);">Dados insuficientes nesse período pra calcular uma tendência.</div>`;
 
   const { variacaoPct, mediaAnterior, mediaRecente, metadeAnterior, metadeRecente } = tendencia;
@@ -4143,7 +4170,7 @@ function _volConteudoTendenciaHTML(titulo, tendencia) {
       <div style="flex:1;background:var(--bg3);border-radius:4px;overflow:hidden;height:10px;">
         <div style="width:${mediaRef>0 ? Math.min(100, Math.round((d.volume/(mediaRef*2))*100)) : 0}%;height:100%;background:${corBarra};"></div>
       </div>
-      <div style="font-size:12px;color:var(--text2);width:70px;text-align:right;font-family:'DM Mono',monospace;">${fmt(d.volume)}t</div>
+      <div style="font-size:12px;color:var(--text2);width:70px;text-align:right;font-family:'DM Mono',monospace;">${fmt(d.volume)}</div>
     </div>`;
   };
 
@@ -4227,14 +4254,19 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   // meta por linha só faz sentido pras dimensões ligadas a Origem/Destino (é assim que a meta é cadastrada)
   const temMeta = (dimensao === 'origem' || dimensao === 'destino' || dimensao === 'rota') && !!cardKey;
 
-  const linhas = breakdown.map(b => {
+  // Arredonda os volumes de exibição de forma consistente — a soma dos números mostrados nas
+  // linhas bate exatamente com o total do card, sem o cliente conseguir "não fechar a conta"
+  // ao somar manualmente os valores já arredondados de cada linha.
+  const volumesConsistentes = _arredondarConsistente(breakdown.map(b => b.volume));
+
+  const linhas = breakdown.map((b, i) => {
     const pct = Math.round((b.volume / totalBreak) * 1000) / 10;
     const chaveAttr = String(b.chave).replace(/"/g,'&quot;');
     const origemAttr = String(b.origem||'').replace(/"/g,'&quot;');
     const destinoAttr = String(b.destino||'').replace(/"/g,'&quot;');
     const metaSlot = temMeta ? `<div class="vol-meta-linha" data-meta-card="${cardKey}" data-meta-dim="${dimensao}" data-meta-chave="${chaveAttr}" data-meta-origem="${origemAttr}" data-meta-destino="${destinoAttr}" data-meta-real="${b.volume}" data-meta-viagens="${b.viagens}" data-meta-veiculos="${b.veiculos}"></div>` : '';
     return `<div class="vol-flow-row" data-aba-alvo="${dimensao}" data-chave="${chaveAttr}" data-destino="${destinoAttr}" style="cursor:pointer;padding:6px 0;border-bottom:1px solid var(--border2);">
-      ${_volLinhaTexto(b.chave, pct, b.volume, b.viagens, b.pesoMedio)}
+      ${_volLinhaTexto(b.chave, pct, volumesConsistentes[i], b.viagens, b.pesoMedio)}
       ${metaSlot}
     </div>`;
   }).join('');
@@ -4242,7 +4274,7 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
   return `<div class="vol-breakdown-block" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">
         <span>Por ${rotulo} (${nItens})</span>
-        <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}t</strong></span>
+        <span>Média/item: <strong style="color:var(--text2);">${fmt(mediaPorItem)}</strong></span>
       </div>
       ${linhas}
     </div>`;
@@ -4430,14 +4462,14 @@ async function _volObterMetasParaCards(mesKey) {
 }
 
 function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   if (totalMeta <= 0) {
     return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2);font-size:15px;color:var(--text3);text-align:center;">🎯 Nenhuma meta cadastrada para este mês</div>`;
   }
   const pct = Math.round((totalReal/totalMeta)*1000)/10;
   const cor = _corAtingimento(pct);
   const dif = totalReal - totalMeta;
-  const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
+  const difTxt = dif >= 0 ? `+${fmt(dif)}` : `−${fmt(Math.abs(dif))}`;
 
   let projecaoHtml = '';
   if (diasOperacao > 0 && diasComDados > 0) {
@@ -4447,7 +4479,7 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     projecaoHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2);">
       <div style="font-size:16px;font-weight:600;color:var(--text2);white-space:nowrap;">📈 Projeção (${diasOperacao}d)</div>
       <div style="display:flex;align-items:baseline;gap:10px;flex-shrink:0;">
-        <div style="font-size:20px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(projecao)}t</div>
+        <div style="font-size:20px;font-weight:700;color:${corProj};font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(projecao)}</div>
         <div style="font-size:19px;font-weight:700;color:${corProj};white-space:nowrap;">${pctProj}%</div>
       </div>
     </div>`;
@@ -4464,7 +4496,7 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
       const volumeNecessarioDia = faltante / diasRestantes;
       necessarioHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);">
         <div style="font-size:16px;font-weight:600;color:var(--text2);">📊 Necessário/dia (${diasRestantes}d restantes)</div>
-        <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;flex-shrink:0;">${fmt(volumeNecessarioDia)}t</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;text-align:right;white-space:nowrap;flex-shrink:0;">${fmt(volumeNecessarioDia)}</div>
       </div>`;
     } else {
       necessarioHtml = `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);font-size:13px;color:#f85149;text-align:center;">⚠ Sem dias restantes no mês pra atingir a meta</div>`;
@@ -4474,7 +4506,7 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
   return `<div style="margin-top:10px;padding-top:10px;border-top:2px solid ${cor};">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}t</strong></div>
+        <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}</strong></div>
         <div style="font-size:14px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:15px;">${difTxt}</strong></div>
       </div>
       <div style="text-align:right;">
@@ -4623,7 +4655,7 @@ function _volInjetarLinhasMetaOnly(itens, diasOperacao, diasComDados) {
 }
 
 function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   if (metaTotal <= 0) {
     return `<div style="font-size:13px;color:var(--text3);margin-top:3px;">🎯 sem meta cadastrada</div>`;
   }
@@ -4631,14 +4663,14 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
   const pct = Math.round((realizado/metaTotal)*1000)/10;
   const cor = _corAtingimento(pct);
   const falta = metaTotal - realizado;
-  const faltaTxt = falta > 0 ? `${fmt(falta)}t restantes` : `meta batida (+${fmt(Math.abs(falta))}t)`;
+  const faltaTxt = falta > 0 ? `${fmt(falta)} restantes` : `meta batida (+${fmt(Math.abs(falta))})`;
 
   let projecaoHtml = '';
   if (diasOperacao > 0 && diasComDados > 0) {
     const projecao = (realizado / diasComDados) * diasOperacao;
     const pctProj = Math.round((projecao/metaTotal)*1000)/10;
     const corProj = _corAtingimento(pctProj);
-    projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">📈 Projeção: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
+    projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">📈 Projeção: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}</strong> <strong style="color:${corProj};">(${pctProj}%)</strong></div>`;
   }
 
   let frotaHtml = '';
@@ -4657,7 +4689,7 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
 
   return `<div style="margin-top:3px;padding-top:3px;border-top:1px dashed var(--border2);">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <span style="font-size:14px;color:var(--text2);">🎯 ${fmt(metaTotal)}t · ${faltaTxt}</span>
+      <span style="font-size:14px;color:var(--text2);">🎯 ${fmt(metaTotal)} · ${faltaTxt}</span>
       <span style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct}%</span>
     </div>
     ${projecaoHtml}
@@ -4938,7 +4970,7 @@ function _corAtingimento(pct) {
 function _renderMetasCorpo() {
   const cont = document.getElementById('metas-corpo');
   if (!cont) return;
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   const dadosDe = (m) => _volMetasRealizado[_metaChaveOD(m.origem, m.destino)] || { volume: 0, viagens: 0, placas: new Set(), porTipo: {} };
   const realizadoDe = (m) => dadosDe(m).volume;
 
@@ -4950,7 +4982,7 @@ function _renderMetasCorpo() {
     const dif = real - meta;
     const pct = meta > 0 ? Math.round((real/meta)*1000)/10 : null;
     const cor = _corAtingimento(pct);
-    const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
+    const difTxt = dif >= 0 ? `+${fmt(dif)}` : `−${fmt(Math.abs(dif))}`;
 
     // Projeção de fechamento do mês, com base no ritmo diário atual x dias de operação cadastrados
     let projecaoHtml = '';
@@ -4959,7 +4991,7 @@ function _renderMetasCorpo() {
       const projecao = ritmoDiario * _volMetasDiasOperacao;
       const pctProjecao = meta > 0 ? Math.round((projecao/meta)*1000)/10 : null;
       const corProj = _corAtingimento(pctProjecao);
-      projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:3px;">📈 Projeção p/ ${_volMetasDiasOperacao}d: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}t</strong> <span style="color:${corProj};font-weight:700;">(${pctProjecao===null?'—':pctProjecao+'%'})</span></div>`;
+      projecaoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:3px;">📈 Projeção p/ ${_volMetasDiasOperacao}d: <strong style="color:${corProj};font-family:'DM Mono',monospace;">${fmt(projecao)}</strong> <span style="color:${corProj};font-weight:700;">(${pctProjecao===null?'—':pctProjecao+'%'})</span></div>`;
     }
 
     // Peso médio por tipo de veículo, nessa rota especificamente
@@ -4994,7 +5026,7 @@ function _renderMetasCorpo() {
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:3px;">
-        <div style="font-size:13px;color:var(--text3);">Meta: <strong style="color:var(--text2);">${fmt(meta)}t</strong> · Realizado: <strong style="color:var(--text2);">${fmt(real)}t</strong> · Dif: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong></div>
+        <div style="font-size:13px;color:var(--text3);">Meta: <strong style="color:var(--text2);">${fmt(meta)}</strong> · Realizado: <strong style="color:var(--text2);">${fmt(real)}</strong> · Dif: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong></div>
         <div style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${pct===null?'—':pct+'%'}</div>
       </div>
       ${projecaoHtml}
@@ -5014,7 +5046,7 @@ function _renderMetasCorpo() {
     return `<div style="margin-bottom:18px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">
         <span>${titulo}</span>
-        <span style="font-size:14px;font-weight:700;color:${corTotal};">${fmt(totalReal)}t / ${fmt(totalMeta)}t${pctTotal!==null ? ' ('+pctTotal+'%)' : ''}</span>
+        <span style="font-size:14px;font-weight:700;color:${corTotal};">${fmt(totalReal)} / ${fmt(totalMeta)}t${pctTotal!==null ? ' ('+pctTotal+'%)' : ''}</span>
       </div>
       ${linhas}
     </div>`;
@@ -6130,7 +6162,7 @@ async function _carregarProgDia(dataISO) {
 function _renderProgCorpo() {
   const cont = document.getElementById('prog-corpo');
   if (!cont) return;
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
 
   const pluralCaminhao = (n) => n > 1 ? `${n} caminhões` : `${n} caminhão`;
   const pluralCavalo = (n) => n > 1 ? `${n} cavalos` : `${n} cavalo`;
@@ -6169,7 +6201,7 @@ function _renderProgCorpo() {
           const dif = realizado - meta;
           const pctReal = meta > 0 ? Math.round((realizado/meta)*1000)/10 : 0;
           const corReal = pctReal >= 96 ? '#2ea043' : pctReal >= 51 ? '#d29922' : '#f85149';
-          const difTxt = dif >= 0 ? `+${fmt(dif)}t` : `−${fmt(Math.abs(dif))}t`;
+          const difTxt = dif >= 0 ? `+${fmt(dif)}` : `−${fmt(Math.abs(dif))}`;
           const viagensProg = _progViagensProgramadasPara(m.origem, m.destino);
           const viagensReal = _progRealizadoViagensPara(m.origem, m.destino);
           const corViagens = viagensReal >= viagensProg && viagensProg > 0 ? '#2ea043' : viagensReal > 0 ? '#d29922' : 'var(--text3)';
@@ -6188,7 +6220,7 @@ function _renderProgCorpo() {
             const capacidadeCaminhao = viagensPadrao * pesoMedioCategoria('caminhao');
             if (capacidadeCaminhao > 0) {
               const qtdCaminhoes = pluralCaminhao(Math.ceil(gap/capacidadeCaminhao));
-              faltaTxt = `<div style="font-size:16px;font-weight:600;color:#f85149;margin-top:4px;text-align:center;">Faltam ~${fmt(gap)}t (${qtdCaminhoes})</div>`;
+              faltaTxt = `<div style="font-size:16px;font-weight:600;color:#f85149;margin-top:4px;text-align:center;">Faltam ~${fmt(gap)} (${qtdCaminhoes})</div>`;
             }
           }
 
@@ -6196,13 +6228,13 @@ function _renderProgCorpo() {
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <div style="font-size:15px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
               <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                <div style="font-size:16px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}t</div>
+                <div style="font-size:16px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}</div>
                 <button onclick="removerItemProg(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:16px;line-height:1;">🗑</button>
               </div>
             </div>
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}t</div>
-            <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}t</strong> de <strong>${fmt(meta)}t</strong> (${pct}%)</div>
-            <div style="font-size:13px;color:${corReal};margin-top:1px;">Realizado: <strong>${fmt(realizado)}t</strong> · Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong> (${pctReal}%)</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Meta Alcoa: ${fmt(meta)}</div>
+            <div style="font-size:13px;color:${corProg};margin-top:1px;">Programação NHL: <strong>${fmt(programado)}</strong> de <strong>${fmt(meta)}</strong> (${pct}%)</div>
+            <div style="font-size:13px;color:${corReal};margin-top:1px;">Realizado: <strong>${fmt(realizado)}</strong> · Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};">${difTxt}</strong> (${pctReal}%)</div>
             <div style="font-size:12px;color:${corViagens};margin-top:1px;">Viagens: <strong>${viagensProg}</strong> programadas · <strong>${viagensReal}</strong> realizadas</div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
               <div style="font-size:12px;">${veicTxt}</div>
@@ -6227,7 +6259,7 @@ function _renderProgCorpo() {
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:${corRealizadoCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalRealizado)} <span style="font-size:14px;">(${pctRealizadoCard}%)</span></div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado (t) · <span style="color:${difCard>=0?'#2ea043':'#f85149'};">${difCard>=0?'+':'−'}${fmt(Math.abs(difCard))}t</span></div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado (t) · <span style="color:${difCard>=0?'#2ea043':'#f85149'};">${difCard>=0?'+':'−'}${fmt(Math.abs(difCard))}</span></div>
         </div>
       </div>
       <div style="font-size:12px;color:var(--text3);margin-top:6px;">🚛 Viagens: <strong style="color:var(--text2);">${viagensProgCard}</strong> programadas · <strong style="color:var(--text2);">${viagensRealCard}</strong> realizadas</div>
@@ -6287,16 +6319,16 @@ function _renderProgCorpo() {
       <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">🚛 Viagens: <strong style="color:var(--text2);">${viagensProgGeral}</strong> programadas · <strong style="color:var(--text2);">${viagensRealGeral}</strong> realizadas</div>
       <div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap;">
         <div>
-          <div style="font-size:25px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalGeral)}t</div>
+          <div style="font-size:25px;font-weight:700;color:#388bfd;font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalGeral)}</div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa</div>
         </div>
         <div>
-          <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)}t <span style="font-size:16px;">(${pctGeral}%)</span></div>
+          <div style="font-size:25px;font-weight:700;color:${corGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalNHL)} <span style="font-size:16px;">(${pctGeral}%)</span></div>
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programação NHL</div>
         </div>
         <div>
-          <div style="font-size:25px;font-weight:700;color:${corRealizadoGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalRealizadoGeral)}t <span style="font-size:16px;">(${pctRealizadoGeral}%)</span></div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}t</span></div>
+          <div style="font-size:25px;font-weight:700;color:${corRealizadoGeral};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalRealizadoGeral)} <span style="font-size:16px;">(${pctRealizadoGeral}%)</span></div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difGeral>=0?'#2ea043':'#f85149'};">${difGeral>=0?'+':'−'}${fmt(Math.abs(difGeral))}</span></div>
         </div>
         <div style="display:flex;gap:24px;align-items:baseline;margin-left:auto;">
           <button onclick="abrirNaoProgramados('todos')" style="text-align:left;background:none;border:none;cursor:pointer;padding:0;">
@@ -6314,8 +6346,8 @@ function _renderProgCorpo() {
         </div>
       </div>
       ${rotasOrfaas.length > 0 ? `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #d29922;">
-        <div style="font-size:12px;color:#d29922;font-weight:600;margin-bottom:4px;">⚠ ${fmt(volumeOrfaoGeral)}t já incluídos no Realizado acima, mas transportados em rota(s) sem Meta Alcoa cadastrada hoje:</div>
-        ${rotasOrfaas.map(r => `<div style="font-size:11px;color:var(--text3);">${r.origem} → ${r.destino}: <strong style="color:var(--text2);">${fmt(r.peso)}t</strong> (${r.viagens} viagem${r.viagens>1?'ns':''})</div>`).join('')}
+        <div style="font-size:12px;color:#d29922;font-weight:600;margin-bottom:4px;">⚠ ${fmt(volumeOrfaoGeral)} já incluídos no Realizado acima, mas transportados em rota(s) sem Meta Alcoa cadastrada hoje:</div>
+        ${rotasOrfaas.map(r => `<div style="font-size:11px;color:var(--text3);">${r.origem} → ${r.destino}: <strong style="color:var(--text2);">${fmt(r.peso)}</strong> (${r.viagens} viagem${r.viagens>1?'ns':''})</div>`).join('')}
       </div>` : ''}
     </div>
     <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;">` +
@@ -6778,16 +6810,16 @@ function _gestaoSubCard(rotulo, num, den, corBarra, volumeTxt, volumePct) {
 }
 
 function _gestaoCardCategoria(titulo, icone, cor, dados) {
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   const pctVolTransportado = _gestaoPct(dados.volumeTransportado, dados.volumeProgramado);
   const pctVolPerdido = _gestaoPct(dados.volumePerdido, dados.volumeProgramado);
   return `<div class="table-card" style="padding:16px 18px;text-align:center;">
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${icone} ${titulo}</div>
     <div style="font-size:32px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;margin-bottom:10px;">${dados.total}</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;border-top:1px solid var(--border2);padding-top:10px;">
-      ${_gestaoSubCard('Programados', dados.programados, dados.total, null, `${fmt(dados.volumeProgramado)}t`, null)}
-      ${_gestaoSubCard('Em Operação', dados.emOperacao, dados.programados, null, `${fmt(dados.volumeTransportado)}t`, pctVolTransportado)}
-      ${_gestaoSubCard('Fora de Operação', dados.foraOperacao, dados.total, '#f85149', `${fmt(dados.volumePerdido)}t`, pctVolPerdido)}
+      ${_gestaoSubCard('Programados', dados.programados, dados.total, null, `${fmt(dados.volumeProgramado)}`, null)}
+      ${_gestaoSubCard('Em Operação', dados.emOperacao, dados.programados, null, `${fmt(dados.volumeTransportado)}`, pctVolTransportado)}
+      ${_gestaoSubCard('Fora de Operação', dados.foraOperacao, dados.total, '#f85149', `${fmt(dados.volumePerdido)}`, pctVolPerdido)}
     </div>
   </div>`;
 }
@@ -6820,7 +6852,7 @@ async function _gestaoRenderIndicadores() {
   const roster = _gestaoRoster || [];
   if (roster.length === 0) { cont.innerHTML = ''; return; }
 
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   const dadosCaminhoes = _gestaoContarCategoria(_progEhCaminhao);
   const dadosCavalos = _gestaoContarCategoria(_progEhCavalo);
   const totalEmOperacaoGeral = dadosCaminhoes.emOperacao + dadosCavalos.emOperacao;
@@ -6835,11 +6867,11 @@ async function _gestaoRenderIndicadores() {
       <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid var(--border2);padding-top:10px;margin-bottom:8px;">${totalEmOperacaoGeral} em operação</div>
       <div style="display:flex;justify-content:center;gap:18px;border-top:1px solid var(--border2);padding-top:8px;">
         <div>
-          <div style="font-size:20px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;">${fmt(volumeProgramadoGeral)}t</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;">${fmt(volumeProgramadoGeral)}</div>
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Programado</div>
         </div>
         <div>
-          <div style="font-size:20px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volumeTransportadoGeral)}t <span style="font-size:18px;color:#2ea043;">(${_gestaoPct(volumeTransportadoGeral, volumeProgramadoGeral)}%)</span></div>
+          <div style="font-size:20px;font-weight:700;color:#2ea043;font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volumeTransportadoGeral)} <span style="font-size:18px;color:#2ea043;">(${_gestaoPct(volumeTransportadoGeral, volumeProgramadoGeral)}%)</span></div>
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;">Vol. Realizado</div>
         </div>
       </div>
@@ -6889,7 +6921,7 @@ function _gestaoCardRota(grupo) {
     pesoEstimado += _gestaoVolumeRealPorPlaca ? (_gestaoVolumeRealPorPlaca[a.placa] || 0) : feitas * (Number(a.pesoMedio)||0);
   });
 
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   const pctVeiculos = _gestaoPct(veiculosEmOperacao, veiculosProgramados);
   const pctViagens = _gestaoPct(viagensRealizadas, viagensProgramadas);
   const pctPeso = _gestaoPct(pesoEstimado, pesoProgramado);
@@ -6907,8 +6939,8 @@ function _gestaoCardRota(grupo) {
       <div style="font-size:17px;color:var(--text2);white-space:nowrap;">🔁 ${viagensProgramadas} ${plural(viagensProgramadas,'viagem','viagens')}</div>
       <div style="font-size:17px;color:${_gestaoCorPct(pctViagens)};white-space:nowrap;">🔁 ${viagensRealizadas} ${plural(viagensRealizadas,'viagem','viagens')} <strong>${pctViagens}%</strong></div>
 
-      <div style="font-size:17px;color:var(--text2);white-space:nowrap;">⚖️ ${fmt(pesoProgramado)}t</div>
-      <div style="font-size:17px;color:${_gestaoCorPct(pctPeso)};white-space:nowrap;">⚖️ ${fmt(pesoEstimado)}t <strong>${pctPeso}%</strong></div>
+      <div style="font-size:17px;color:var(--text2);white-space:nowrap;">⚖️ ${fmt(pesoProgramado)}</div>
+      <div style="font-size:17px;color:${_gestaoCorPct(pctPeso)};white-space:nowrap;">⚖️ ${fmt(pesoEstimado)} <strong>${pctPeso}%</strong></div>
     </div>
   </div>`;
 }
@@ -6990,7 +7022,7 @@ window.adicionarItemProg = async function adicionarItemProg() {
 
   try {
     await setDoc(doc(db, 'programacao_dias', _progDataAtual), { itens: _progItens, atualizadoEm: new Date().toISOString() }, { merge: true });
-    showToast(`✔ ${origem} → ${destino}: ${volume.toLocaleString('pt-BR')}t programado(a) para ${_progChaveParaLabel(_progDataAtual)}.`);
+    showToast(`✔ ${origem} → ${destino}: ${volume.toLocaleString('pt-BR')} programado(a) para ${_progChaveParaLabel(_progDataAtual)}.`);
     fecharFormProgItem();
     _renderProgCorpo();
   } catch (err) {
@@ -7209,7 +7241,7 @@ async function _progAtualizarAtribuicao(placa, mudancas) {
 function _progRenderFrotaTabela() {
   const cont = document.getElementById('prog-frota-corpo');
   if (!cont || !_progRosterVeiculos) return;
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
 
   const origensDisponiveis = Array.from(new Set((_minasCadastro||[]).map(m => (m.origem||'').toString().trim().toUpperCase()))).sort();
 
@@ -7286,10 +7318,10 @@ function _progRenderSelecaoVeiculos() {
   const item = _progItens[_progSelVeicItemIdx];
   if (!item) return;
 
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => _fmtPesoCard(n);
   const viagensPadrao = _progBuscarViagensPadrao(item.origem, item.destino);
   document.getElementById('prog-selveic-meta').textContent =
-    `Meta Alcoa: ${fmt(item.meta)}t · Viagens/dia padrão dessa rota: ${viagensPadrao || '—'} (cadastrado em Minas)`;
+    `Meta Alcoa: ${fmt(item.meta)} · Viagens/dia padrão dessa rota: ${viagensPadrao || '—'} (cadastrado em Minas)`;
 
   const roster = _progRosterVeiculos || [];
   if (roster.length === 0) {
@@ -7326,7 +7358,7 @@ function _progRenderSelecaoVeiculos() {
       <td style="font-size:12px;color:var(--text3);">${v.forca}</td>
       <td onclick="event.stopPropagation()">${viagensInput}</td>
       <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toFixed(1)}t/vg</td>
-      <td style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(pesoEstimado)}t</td>
+      <td style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(pesoEstimado)}</td>
       <td style="text-align:center;">${statusTxt}</td>
     </tr>`;
   };
@@ -7501,7 +7533,7 @@ function _progRenderNaoProgramados() {
       </td>
       <td>
         <input type="number" min="0" placeholder="0" value="${viagensPerdidasVal}" title="Quantas viagens esse veículo faria se tivesse sido programado" class="filter-input" style="width:65px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', null, null, this.value)">
-        ${volumePerdidoEstimado > 0 ? `<div style="font-size:10px;color:#f85149;white-space:nowrap;margin-top:2px;">≈ ${Math.round(volumePerdidoEstimado)}t perdidos</div>` : ''}
+        ${volumePerdidoEstimado > 0 ? `<div style="font-size:10px;color:#f85149;white-space:nowrap;margin-top:2px;">≈ ${Math.round(volumePerdidoEstimado)} perdidos</div>` : ''}
       </td>
       <td style="text-align:center;">${temMotivo ? '<span style="color:#2ea043;font-size:15px;">✓</span>' : '<span style="color:#f85149;font-size:11px;white-space:nowrap;">⚠ pendente</span>'}</td>
     </tr>`;
@@ -7515,7 +7547,7 @@ function _progRenderNaoProgramados() {
 
   document.getElementById('prog-naoprog-volume-perdido').innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:4px 12px;border-radius:8px;background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.25);">
     <span style="font-size:12px;color:var(--text3);">⚠ Volume Deixando de Fazer:</span>
-    <span style="font-size:15px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;">${Math.round(volumePerdidoTotal).toLocaleString('pt-BR')}t</span>
+    <span style="font-size:15px;font-weight:700;color:#f85149;font-family:'DM Mono',monospace;">${_fmtPesoCard(volumePerdidoTotal)}</span>
   </div>`;
 
   cont.innerHTML = `
@@ -8281,7 +8313,7 @@ function _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos) {
   ].sort((a,b) => b.total - a.total);
 
   cont.innerHTML = blocos.map(b => `<div class="table-card" style="padding:14px 16px;">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${b.titulo} <span style="color:var(--text3);font-weight:400;">— ${Math.round(b.total).toLocaleString('pt-BR')}t</span></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${b.titulo} <span style="color:var(--text3);font-weight:400;">— ${_fmtPesoCard(b.total)}</span></div>
     ${b.pizza}
   </div>`).join('');
 }
@@ -8294,10 +8326,10 @@ function _ofnRenderKpis(totalPerdido, ofensorTop, veiculoTop, minaTop) {
     ${sub ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">${sub}</div>` : ''}
   </div>`;
   cont.innerHTML =
-    card('⚠ Total de Toneladas Perdidas', `${Math.round(totalPerdido).toLocaleString('pt-BR')}t`, null, '#f85149')
-    + card('🎯 Ofensor Principal', ofensorTop ? ofensorTop.nome : '—', ofensorTop ? `${Math.round(ofensorTop.perdido).toLocaleString('pt-BR')}t · ${ofensorTop.ocorrencias} ocorrência(s)` : 'Nenhum ofensor registrado', '#d29922')
-    + card('🚛 Veículo Mais Impactado', veiculoTop ? `${veiculoTop.fr||'—'} — ${veiculoTop.placa}` : '—', veiculoTop ? `${Math.round(veiculoTop.perdido).toLocaleString('pt-BR')}t perdidas` : 'Nenhum registro', '#f85149')
-    + card('⛏️ Mina com Mais Perda', minaTop ? minaTop.nome : '—', minaTop ? `${Math.round(minaTop.perdido).toLocaleString('pt-BR')}t · ${minaTop.ocorrencias} ocorrência(s)` : 'Sem dado de mina nesse período', '#d29922');
+    card('⚠ Total de Toneladas Perdidas', `${_fmtPesoCard(totalPerdido)}`, null, '#f85149')
+    + card('🎯 Ofensor Principal', ofensorTop ? ofensorTop.nome : '—', ofensorTop ? `${_fmtPesoCard(ofensorTop.perdido)} · ${ofensorTop.ocorrencias} ocorrência(s)` : 'Nenhum ofensor registrado', '#d29922')
+    + card('🚛 Veículo Mais Impactado', veiculoTop ? `${veiculoTop.fr||'—'} — ${veiculoTop.placa}` : '—', veiculoTop ? `${_fmtPesoCard(veiculoTop.perdido)} perdidas` : 'Nenhum registro', '#f85149')
+    + card('⛏️ Mina com Mais Perda', minaTop ? minaTop.nome : '—', minaTop ? `${_fmtPesoCard(minaTop.perdido)} · ${minaTop.ocorrencias} ocorrência(s)` : 'Sem dado de mina nesse período', '#d29922');
 }
 
 const OFN_CORES_PIE = ['#f85149','#d29922','#388bfd','#2ea043','#a371f7','#db61a2','#56d4dd','#e3b341','#79c0ff','#ff9492'];
@@ -8346,7 +8378,7 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
   });
 
   const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}" style="flex-shrink:0;">
-    ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${Math.round(f.valor).toLocaleString('pt-BR')}t (${f.pct}%)</title></path>`).join('')}
+    ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${f.valor.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} (${f.pct}%)</title></path>`).join('')}
   </svg>`;
 
   // Padrão fixo: legenda sempre ao LADO do gráfico, nunca embaixo — por isso sem flex-wrap aqui,
@@ -8371,7 +8403,7 @@ function _ofnRenderTabelaOfensores(rank, totalPerdido) {
     return `<tr>
       <td class="text-primary">${o.nome}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${o.ocorrencias}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(o.perdido).toLocaleString('pt-BR')}t</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${_fmtPesoCard(o.perdido)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
     </tr>`;
   }).join('');
@@ -8387,7 +8419,7 @@ function _ofnRenderTabelaTipos(rank, totalPerdido) {
         return `<tr>
           <td>${t.nome}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${t.ocorrencias}</td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(t.perdido).toLocaleString('pt-BR')}t</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${_fmtPesoCard(t.perdido)}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
         </tr>`;
       }).join('');
@@ -8406,7 +8438,7 @@ function _ofnRenderTabelaVeiculos(rank, totalPerdido) {
             <span style="font-size:14px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
             <span style="font-size:12px;font-weight:600;color:var(--text);margin-left:4px;">${v.placa}</span>
           </td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${Math.round(v.perdido).toLocaleString('pt-BR')}t</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${_fmtPesoCard(v.perdido)}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${pct}%</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${v.ocorrencias}</td>
           <td>${v.ofensorPrincipal}</td>
@@ -8455,7 +8487,7 @@ window.exportarNotaWhatsapp = function exportarNotaWhatsapp() {
     return;
   }
 
-  const fmt = (n) => Math.round(n||0).toLocaleString('pt-BR');
+  const fmt = (n) => (Number(n)||0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const pluralCaminhao = (n) => n > 1 ? `${n} caminhões` : `${n} caminhão`;
   const [ano, mes, dia] = _progDataAtual.split('-');
   const dataTxt = `${dia}/${mes}/${ano}`;
@@ -8492,7 +8524,7 @@ window.exportarNotaWhatsapp = function exportarNotaWhatsapp() {
   };
 
   let texto = `📋 PROGRAMAÇÃO DIÁRIA — ${dataTxt}\n\n`;
-  texto += `Total: ${fmt(totalProgramado)}t programadas de ${fmt(totalMeta)}t (${pctProgramado}%).\n`;
+  texto += `Total: ${fmt(totalProgramado)} programadas de ${fmt(totalMeta)} (${pctProgramado}%).\n`;
   texto += blocoNaoProgTipo('Caminhões', _progEhCaminhao);
   texto += blocoNaoProgTipo('Cavalos', _progEhCavalo);
 
@@ -8506,7 +8538,7 @@ window.exportarNotaWhatsapp = function exportarNotaWhatsapp() {
       : 'nenhum veículo atribuído';
 
     texto += `\n⛰️ ${m.origem} → ${m.destino}\n`;
-    texto += `Meta: ${fmt(meta)}t | Programado: ${fmt(programado)}t (${pct}%)\n`;
+    texto += `Meta: ${fmt(meta)} | Programado: ${fmt(programado)} (${pct}%)\n`;
     texto += `Veículos: ${veicTxt}\n`;
 
     const gap = meta - programado;
@@ -8514,7 +8546,7 @@ window.exportarNotaWhatsapp = function exportarNotaWhatsapp() {
       const viagensPadrao = _progBuscarViagensPadrao(m.origem, m.destino);
       const capacidadeCaminhao = viagensPadrao * pesoMedioCategoria('caminhao');
       if (capacidadeCaminhao > 0) {
-        texto += `⚠️ Faltam ~${fmt(gap)}t (${pluralCaminhao(Math.ceil(gap/capacidadeCaminhao))})\n`;
+        texto += `⚠️ Faltam ~${fmt(gap)} (${pluralCaminhao(Math.ceil(gap/capacidadeCaminhao))})\n`;
       }
     }
   });
