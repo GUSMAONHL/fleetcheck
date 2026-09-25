@@ -1120,6 +1120,20 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- SELECIONAR MOTORISTA (Gestão do Dia — vincula motorista à placa naquele dia) -->
+<div id="motorista-selecionar-overlay" onclick="if(event.target===this) fecharSelecionarMotorista()" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:420px;max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:18px;font-weight:700;color:var(--text);" id="motorista-selecionar-titulo">👤 Selecionar Motorista</div>
+      <button onclick="fecharSelecionarMotorista()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:14px 22px 0;flex-shrink:0;">
+      <input type="text" id="motorista-selecionar-busca" placeholder="Buscar motorista..." class="filter-input" style="width:100%;" oninput="_renderListaSelecionarMotorista()">
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:12px 22px 18px;" id="motorista-selecionar-lista"></div>
+  </div>
+</div>
+
 <!-- FORM CADASTRO/EDIÇÃO DE MINA -->
 <div id="mina-form-overlay" onclick="if(event.target===this) fecharFormMina()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
@@ -5770,6 +5784,71 @@ window.importarMotoristasIniciais = async function importarMotoristasIniciais() 
   }
 };
 
+// ══════════════════════════════════════
+// SELECIONAR MOTORISTA — usado na Gestão do Dia: clicar no card do veículo abre essa lista, o
+// motorista escolhido fica vinculado àquela placa NAQUELE DIA (não é um vínculo permanente —
+// os motoristas rotacionam entre veículos, então isso vive dentro de programacao_dias).
+// ══════════════════════════════════════
+let _gestaoPlacaSelecionandoMotorista = null;
+
+window.abrirSelecionarMotorista = async function abrirSelecionarMotorista(placa) {
+  if (!_gestaoDataAtual) { showToast('✖ Selecione um dia primeiro.'); return; }
+  _gestaoPlacaSelecionandoMotorista = placa;
+  document.getElementById('motorista-selecionar-titulo').textContent = `👤 Motorista — ${placa}`;
+  document.getElementById('motorista-selecionar-busca').value = '';
+  document.getElementById('motorista-selecionar-overlay').style.display = 'flex';
+  document.getElementById('motorista-selecionar-lista').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Carregando...</div>';
+  if (_motoristasCadastro.length === 0) await _carregarMotoristasCadastro();
+  _renderListaSelecionarMotorista();
+};
+
+window.fecharSelecionarMotorista = function fecharSelecionarMotorista() {
+  document.getElementById('motorista-selecionar-overlay').style.display = 'none';
+  _gestaoPlacaSelecionandoMotorista = null;
+};
+
+window._renderListaSelecionarMotorista = function _renderListaSelecionarMotorista() {
+  const busca = (document.getElementById('motorista-selecionar-busca').value || '').trim().toUpperCase();
+  const cont = document.getElementById('motorista-selecionar-lista');
+  const ativos = _motoristasCadastro.filter(m => m.ativo !== false);
+  const filtrados = busca ? ativos.filter(m => (m.nome||'').toUpperCase().includes(busca)) : ativos;
+  const ordenados = filtrados.slice().sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  const atual = _gestaoMotoristas[_gestaoPlacaSelecionandoMotorista];
+
+  let html = '';
+  if (atual) {
+    html += `<button onclick="_gestaoSalvarMotorista(null)" style="width:100%;text-align:left;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid #f85149;background:rgba(248,81,73,0.08);color:#f85149;cursor:pointer;font-size:13px;font-weight:600;">✖ Remover motorista atual (${atual})</button>`;
+  }
+
+  if (_motoristasCadastro.length === 0) {
+    html += '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Nenhum motorista cadastrado ainda. Cadastre em Cadastro → Motoristas.</div>';
+  } else if (ordenados.length === 0) {
+    html += '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Nenhum motorista encontrado pra essa busca.</div>';
+  } else {
+    html += ordenados.map(m => {
+      const selecionado = m.nome === atual;
+      return `<button onclick="_gestaoSalvarMotorista('${m.nome.replace(/'/g,"\\'")}')" style="width:100%;text-align:left;padding:10px 12px;margin-bottom:4px;border-radius:8px;border:1px solid ${selecionado?'#388bfd':'var(--border2)'};background:${selecionado?'rgba(56,139,253,0.12)':'var(--bg3)'};color:var(--text);cursor:pointer;font-size:14px;">${m.nome}</button>`;
+    }).join('');
+  }
+  cont.innerHTML = html;
+};
+
+window._gestaoSalvarMotorista = async function _gestaoSalvarMotorista(nome) {
+  const placa = _gestaoPlacaSelecionandoMotorista;
+  if (!placa || !_gestaoDataAtual) return;
+  try {
+    if (nome) _gestaoMotoristas[placa] = nome;
+    else delete _gestaoMotoristas[placa];
+    await setDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { motoristas: _gestaoMotoristas, atualizadoEm: new Date().toISOString() }, { merge: true });
+    showToast(nome ? `✔ ${nome} escalado pro veículo ${placa}.` : `✔ Motorista removido do veículo ${placa}.`);
+    fecharSelecionarMotorista();
+    _gestaoRenderGrade();
+  } catch (err) {
+    console.error('Erro ao salvar motorista:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+};
+
 window.abrirFormVeiculo = function abrirFormVeiculo(placa) {
   _veiculoEditandoId = placa || null;
   const titulo = document.getElementById('veiculo-form-titulo');
@@ -6297,6 +6376,7 @@ window._onGestaoDataChange = function _onGestaoDataChange(dataISO) {
 let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (base Volume Poços) nesse dia
 let _gestaoVolumeRealPorPlaca = null; // placa -> peso real (base Volume Poços) nesse dia — null se a planilha ainda não foi importada pra esse dia
 let _gestaoJustificativas = {}; // placa -> { motivo, observacao } — mesma info preenchida na Programação (veículos não programados)
+let _gestaoMotoristas = {}; // placa -> nome do motorista escalado nesse dia
 let _gestaoCarregarToken = 0;
 
 async function _gestaoCarregarDia(dataISO) {
@@ -6316,6 +6396,7 @@ async function _gestaoCarregarDia(dataISO) {
     if (meuToken !== _gestaoCarregarToken) return;
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
     _gestaoJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
+    _gestaoMotoristas = (snap.exists() && snap.data().motoristas && typeof snap.data().motoristas === 'object') ? snap.data().motoristas : {};
 
     // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
     // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão,
@@ -6597,14 +6678,17 @@ function _gestaoLinhaVeiculo(v) {
 
   // Um único mini card contendo FR, Placa, Tipo e Aderência — mesmo padrão do "vcell-id" do
   // painel de Manutenção (bloco de identificação em cima, faixa de status colorida embaixo,
-  // tudo dentro de uma única borda arredondada).
-  const cardVeiculo = `<div style="width:190px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg3);">
+  // tudo dentro de uma única borda arredondada). Clicável: abre o seletor de motorista.
+  const nomeMotorista = _gestaoMotoristas[v.placa];
+  const primeiroNomeMotorista = nomeMotorista ? nomeMotorista.trim().split(/\s+/)[0] : null;
+  const cardVeiculo = `<div onclick="abrirSelecionarMotorista('${v.placa}')" title="Clique pra escalar o motorista desse veículo hoje" style="width:190px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg3);cursor:pointer;">
     <div style="padding:7px 12px 5px;">
       <div style="display:flex;align-items:baseline;gap:6px;">
         <span style="font-size:20px;font-weight:700;color:var(--text);line-height:1;">${v.fr||'—'}</span>
         <span style="font-size:15px;font-weight:600;color:var(--text3);">${v.placa}</span>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">${v.tipo2} · ${v.forca}</div>
+      <div style="font-size:11px;font-weight:600;color:${primeiroNomeMotorista?'#388bfd':'var(--text3)'};margin-top:3px;display:flex;align-items:center;gap:3px;">👤 ${primeiroNomeMotorista || 'Selecionar motorista'}</div>
     </div>
     <div style="border-top:1px solid var(--border2);padding:4px 12px;background:${corFaixaAderencia};display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</span>
