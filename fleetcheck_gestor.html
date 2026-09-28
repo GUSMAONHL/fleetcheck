@@ -5883,11 +5883,15 @@ window._renderListaSelecionarMotorista = function _renderListaSelecionarMotorist
   const ordenados = filtrados.slice().sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
   const atual = _gestaoMotoristas[_gestaoPlacaSelecionandoMotorista];
 
-  // Nome do motorista -> placa em que ele já está escalado HOJE (ignorando a própria placa que
-  // estamos editando agora) — usado pra travar a opção na lista e mostrar onde ele já está.
-  const placaOcupadaPorNome = {};
+  // Nome do motorista -> placas em que ele já está escalado HOJE (ignorando a própria placa que
+  // estamos editando agora) — só informativo agora: um motorista PODE dirigir mais de um veículo
+  // no mesmo dia, então isso não trava mais a seleção, só avisa onde ele já está.
+  const placasOcupadasPorNome = {};
   Object.entries(_gestaoMotoristas).forEach(([outraPlaca, outroNome]) => {
-    if (outraPlaca !== _gestaoPlacaSelecionandoMotorista && outroNome) placaOcupadaPorNome[outroNome] = outraPlaca;
+    if (outraPlaca !== _gestaoPlacaSelecionandoMotorista && outroNome) {
+      if (!placasOcupadasPorNome[outroNome]) placasOcupadasPorNome[outroNome] = [];
+      placasOcupadasPorNome[outroNome].push(outraPlaca);
+    }
   });
   const frDaPlaca = (placa) => (_gestaoRoster || []).find(v => v.placa === placa)?.fr || '';
 
@@ -5903,12 +5907,14 @@ window._renderListaSelecionarMotorista = function _renderListaSelecionarMotorist
   } else {
     html += ordenados.map(m => {
       const selecionado = m.nome === atual;
-      const placaOcupada = placaOcupadaPorNome[m.nome];
-      if (placaOcupada) {
-        const fr = frDaPlaca(placaOcupada);
-        return `<div style="width:100%;padding:10px 12px;margin-bottom:4px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);opacity:0.55;cursor:not-allowed;font-size:14px;color:var(--text3);">${fr?fr+' ':''}${placaOcupada} — ${m.nome}</div>`;
-      }
-      return `<button onclick="_gestaoSalvarMotorista('${m.nome.replace(/'/g,"\\'")}')" style="width:100%;text-align:left;padding:10px 12px;margin-bottom:4px;border-radius:8px;border:1px solid ${selecionado?'#388bfd':'var(--border2)'};background:${selecionado?'rgba(56,139,253,0.12)':'var(--bg3)'};color:var(--text);cursor:pointer;font-size:14px;">${m.nome}</button>`;
+      const outrasPlacas = placasOcupadasPorNome[m.nome];
+      const avisoOutrasPlacas = outrasPlacas
+        ? `<div style="font-size:11px;color:#d29922;margin-top:2px;">⚠ Também dirige hoje: ${outrasPlacas.map(p => `${frDaPlaca(p)?frDaPlaca(p)+' ':''}${p}`).join(', ')}</div>`
+        : '';
+      return `<button onclick="_gestaoSalvarMotorista('${m.nome.replace(/'/g,"\\'")}')" style="width:100%;text-align:left;padding:10px 12px;margin-bottom:4px;border-radius:8px;border:1px solid ${selecionado?'#388bfd':'var(--border2)'};background:${selecionado?'rgba(56,139,253,0.12)':'var(--bg3)'};color:var(--text);cursor:pointer;">
+        <div style="font-size:14px;">${m.nome}</div>
+        ${avisoOutrasPlacas}
+      </button>`;
     }).join('');
   }
   cont.innerHTML = html;
