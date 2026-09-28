@@ -7593,6 +7593,7 @@ window.fecharNaoProgramados = function fecharNaoProgramados() {
 
 async function _volCarregarDia(diaStr) {
   _volDiaAtual = diaStr;
+  _volRenderCardsDiasOperacao();
   const tbody = document.getElementById('vol-tabela-body');
   if (!diaStr) { _volDiasRegistros = []; _volRenderPagina(); return; }
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
@@ -7608,6 +7609,7 @@ async function _volCarregarDia(diaStr) {
 
 async function _volCarregarMes(mesKey) {
   _volMesAtual = mesKey;
+  _volRenderCardsDiasOperacao();
   const tbody = document.getElementById('vol-tabela-body');
   if (!mesKey) { _volDiasRegistros = []; _volRenderPagina(); return; }
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando consolidado do mês...</td></tr>';
@@ -7626,6 +7628,7 @@ async function _volCarregarMes(mesKey) {
 
 async function _volCarregarAno(anoKey) {
   _volAnoAtual = anoKey;
+  _volRenderCardsDiasOperacao();
   const tbody = document.getElementById('vol-tabela-body');
   if (!anoKey) { _volDiasRegistros = []; _volRenderPagina(); return; }
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando consolidado do ano...</td></tr>';
@@ -7720,8 +7723,6 @@ window.renderVolume = async function renderVolume() {
     if (_volModoView === 'ano') await _volCarregarAno(anoPadrao);
     else if (_volModoView === 'mes') await _volCarregarMes(mesPadrao);
     else await _volCarregarDia(manterDia);
-
-    _volRenderCardsDiasOperacao();
   } catch (err) {
     console.error('Erro volume:', err);
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Erro ao carregar dados.</td></tr>';
@@ -7731,22 +7732,48 @@ window.renderVolume = async function renderVolume() {
 // Dois miniaturas na barra superior: quantos dias do mês vigente já tiveram operação (viagem
 // registrada) e quantos ainda faltam, considerando os dias de operação projetados pra esse mês
 // (o mesmo número cadastrado na tela de Metas).
+let _volCardsDiasToken = 0;
+
+// Mini cards "Dias Operados / Dias Restantes" — seguem o período selecionado no filtro da tela:
+//  • Mês: dias com operação naquele mês. "Restantes" só aparece se o mês ainda não terminou
+//    (mês corrente ou futuro) — num mês já encerrado (ex.: Agosto), mostra só os dias operados.
+//  • Dia: usa o mês do dia selecionado, com a mesma regra acima.
+//  • Ano: total de dias operados no ano (não faz sentido falar em dias restantes).
 async function _volRenderCardsDiasOperacao() {
   const cont = document.getElementById('vol-cards-dias-operacao');
   if (!cont) return;
+  const meuToken = ++_volCardsDiasToken;
 
   const hoje = new Date();
   const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  const [anoAtual, mesAtual] = mesAtualKey.split('-');
-
   const diasTodos = (_volMeta && _volMeta.dias) || [];
-  const diasOperados = diasTodos.filter(d => {
-    const p = d.split('/'); // [DD, MM, YYYY]
-    return p[1] === mesAtual && p[2] === anoAtual;
-  }).length;
 
-  const { diasOperacao } = await _volObterMetasParaCards(mesAtualKey);
-  const diasRestantes = diasOperacao ? Math.max(0, diasOperacao - diasOperados) : null;
+  let diasOperados = 0;
+  let mesAlvo = null; // 'YYYY-MM' — só quando o período é um mês (ou o mês de um dia)
+
+  if (_volModoView === 'ano') {
+    const anoAlvo = _volAnoAtual;
+    diasOperados = diasTodos.filter(d => d.split('/')[2] === anoAlvo).length;
+  } else {
+    if (_volModoView === 'dia' && _volDiaAtual) {
+      const p = _volDiaAtual.split('/'); // [DD, MM, YYYY]
+      mesAlvo = `${p[2]}-${p[1]}`;
+    } else {
+      mesAlvo = _volMesAtual || mesAtualKey;
+    }
+    const [anoAlvo, mesNum] = mesAlvo.split('-');
+    diasOperados = diasTodos.filter(d => { const p = d.split('/'); return p[1] === mesNum && p[2] === anoAlvo; }).length;
+  }
+
+  // Dias restantes: só faz sentido pro mês corrente ou futuro (mês encerrado não tem "restante")
+  let diasRestantes = null;
+  if (mesAlvo && mesAlvo >= mesAtualKey) {
+    const { diasOperacao } = await _volObterMetasParaCards(mesAlvo);
+    diasRestantes = diasOperacao ? Math.max(0, diasOperacao - diasOperados) : null;
+  }
+
+  // se o usuário já trocou de período enquanto buscávamos as metas, descarta essa resposta antiga
+  if (meuToken !== _volCardsDiasToken) return;
 
   const miniCard = (valor, rotulo, cor) => `<div style="padding:5px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);text-align:center;">
     <div style="font-size:16px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1;">${valor}</div>
