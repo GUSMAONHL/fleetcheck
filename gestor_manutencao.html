@@ -456,7 +456,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .tel-warn{background:#FAEEDA;color:#633806;}
 .tel-err{background:#FCEBEB;color:#791F1F;}
 
-  </style>
+  
+.sobrev-cell{display:flex;align-items:center;justify-content:center;border-radius:4px;padding:3px 4px;font-size:11px;font-weight:600;min-width:36px;}
+.sobrev-verde{background:#EAF3DE;color:#27500A;}
+.sobrev-amarelo{background:#FAEEDA;color:#633806;}
+.sobrev-vermelho{background:#FCEBEB;color:#791F1F;}
+.sobrev-off{color:var(--text3);font-weight:400;}
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -881,6 +887,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div class="reg-tabs">
         <button class="reg-tab at" id="hist-tab-visao" onclick="histSwitchTab('visao')">Visão geral</button>
         <button class="reg-tab" id="hist-tab-regulagem" onclick="histSwitchTab('regulagem')">Controle de regulagem</button>
+        <button class="reg-tab" id="hist-tab-sobrev" onclick="histSwitchTab('sobrev')">Mapa de sobrevivência</button>
       </div>
 
       <!-- PAINEL VISÃO GERAL -->
@@ -937,6 +944,75 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         </div>
       </div>
 
+
+      <!-- PAINEL MAPA DE SOBREVIVÊNCIA -->
+      <div id="hist-panel-sobrev" style="display:none;">
+        <div class="hist-filtros">
+          <button class="hist-pill at" id="sobrev-p-7"    onclick="sobrevSetPeriodo(7)">7 dias</button>
+          <button class="hist-pill"    id="sobrev-p-15"   onclick="sobrevSetPeriodo(15)">15 dias</button>
+          <button class="hist-pill"    id="sobrev-p-30"   onclick="sobrevSetPeriodo(30)">30 dias</button>
+          <div class="hist-sep"></div>
+          <input class="hist-date-input" type="date" id="sobrev-de">
+          <span style="font-size:12px;color:var(--text3);">até</span>
+          <input class="hist-date-input" type="date" id="sobrev-ate">
+          <button class="hist-btn-apply" onclick="sobrevAplicarFiltro()">Aplicar</button>
+          <div class="hist-sep"></div>
+          <button class="hist-pill at" id="sobrev-f-todos"    onclick="sobrevSetForca('todos')">Todos</button>
+          <button class="hist-pill"    id="sobrev-f-frota"    onclick="sobrevSetForca('frota')">Frota</button>
+          <button class="hist-pill"    id="sobrev-f-terceiro" onclick="sobrevSetForca('terceiro')">Terceiro</button>
+        </div>
+        <div class="reg-tbl-wrap">
+          <div class="reg-tbl-hdr">
+            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);">Aderência por veículo</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#EAF3DE;border:1px solid #27500A;"></span>≥90%
+                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FAEEDA;border:1px solid #633806;margin-left:6px;"></span>60–89%
+                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FCEBEB;border:1px solid #A32D2D;margin-left:6px;"></span>&lt;60%
+                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);margin-left:6px;"></span>Folga
+              </div>
+              <span style="font-size:11px;color:var(--text3);" id="sobrev-periodo-label">—</span>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="sobrev-tbl" style="width:100%;border-collapse:collapse;table-layout:auto;">
+              <thead id="sobrev-thead"></thead>
+              <tbody id="sobrev-tbody">
+                <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text3);">Clique em qualquer linha para ver o histórico detalhado do veículo no painel de produtividade.</div>
+
+        <!-- Modal detalhe veículo -->
+        <div id="sobrev-modal-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:9999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)fecharSobrevModal()">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:780px;max-width:96vw;max-height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div>
+                <div style="font-size:15px;font-weight:500;color:var(--text);" id="sobrev-modal-title">—</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="sobrev-modal-meta">—</div>
+              </div>
+              <button onclick="fecharSobrevModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);flex-shrink:0;">
+              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Aderência média</div>
+                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;" id="sobrev-kpi-adr">—</div>
+              </div>
+              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Total de viagens</div>
+                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;color:#27500A;" id="sobrev-kpi-viagens">—</div>
+              </div>
+              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Volume (t)</div>
+                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;color:#185FA5;" id="sobrev-kpi-volume">—</div>
+              </div>
+            </div>
+            <div style="overflow-y:auto;flex:1;min-height:0;" id="sobrev-modal-body"></div>
+          </div>
+        </div>
+      </div>
       <!-- PAINEL CONTROLE DE REGULAGEM -->
       <div id="hist-panel-regulagem" style="display:none;">
         <div class="hist-filtros">
@@ -3816,6 +3892,240 @@ async function carregarHistorico() {
   }
 }
 
+
+// ══ MAPA DE SOBREVIVÊNCIA ══
+let _sobrevDe   = null;
+let _sobrevAte  = null;
+let _sobrevForca = 'todos';
+
+function sobrevSetForca(forca) {
+  _sobrevForca = forca;
+  ['todos','frota','terceiro'].forEach(f => {
+    const el = document.getElementById('sobrev-f-' + f);
+    if (el) { el.classList.toggle('at', f === forca); }
+  });
+  carregarSobrev();
+}
+
+function sobrevSetPeriodo(dias) {
+  ['7','15','30'].forEach(d => {
+    const el = document.getElementById('sobrev-p-' + d);
+    if (el) el.classList.remove('at');
+  });
+  document.getElementById('sobrev-p-' + dias)?.classList.add('at');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const de   = new Date(hoje); de.setDate(hoje.getDate() - (dias - 1));
+  _sobrevDe  = de;
+  _sobrevAte = hoje;
+  const toISO = d => d.toISOString().split('T')[0];
+  const deEl  = document.getElementById('sobrev-de');
+  const ateEl = document.getElementById('sobrev-ate');
+  if (deEl)  deEl.value  = toISO(de);
+  if (ateEl) ateEl.value = toISO(hoje);
+  carregarSobrev();
+}
+
+function sobrevAplicarFiltro() {
+  const deVal  = document.getElementById('sobrev-de')?.value;
+  const ateVal = document.getElementById('sobrev-ate')?.value;
+  if (!deVal || !ateVal) { alert('Informe as duas datas.'); return; }
+  if (deVal > ateVal)    { alert('Data inicial deve ser anterior à final.'); return; }
+  ['7','15','30'].forEach(d => document.getElementById('sobrev-p-' + d)?.classList.remove('at'));
+  _sobrevDe  = new Date(deVal + 'T00:00:00');
+  _sobrevAte = new Date(ateVal + 'T00:00:00');
+  carregarSobrev();
+}
+
+function corSobrev(pct) {
+  if (pct === null) return 'sobrev-off';
+  if (pct >= 90)   return 'sobrev-verde';
+  if (pct >= 60)   return 'sobrev-amarelo';
+  return 'sobrev-vermelho';
+}
+
+function corMedia(pct) {
+  if (pct === null) return 'var(--text3)';
+  if (pct >= 90)   return '#27500A';
+  if (pct >= 60)   return '#633806';
+  return '#A32D2D';
+}
+
+async function carregarSobrev() {
+  const tbody  = document.getElementById('sobrev-tbody');
+  const thead  = document.getElementById('sobrev-thead');
+  const label  = document.getElementById('sobrev-periodo-label');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px;">Carregando dados de produtividade...</td></tr>';
+
+  const de  = _sobrevDe  || (() => { const d = new Date(); d.setDate(d.getDate()-6); return d; })();
+  const ate = _sobrevAte || new Date();
+
+  // Gerar datas do período
+  const datas = [];
+  const cur = new Date(de);
+  while (cur <= ate) { datas.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+
+  const fmtBR    = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+  const fmtCurto = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+  if (label) label.textContent = fmtBR(de) + ' – ' + fmtBR(ate);
+
+  // Filtrar veículos por força
+  let veics = TODOS;
+  if (_sobrevForca === 'frota')    veics = TODOS.filter(v => v.bloco === 'FROTA');
+  if (_sobrevForca === 'terceiro') veics = TODOS.filter(v => v.bloco === 'TERCEIRO');
+  veics = [...veics].sort((a,b) => (a.nfr||0)-(b.nfr||0));
+
+  try {
+    // Buscar dados de produtividade do Firebase (base_volume_veiculos)
+    const placas = veics.map(v => v.placa);
+    const aderMap = {}; // { placa: { 'dd/mm/yyyy': pct } }
+
+    // Buscar em lotes de 10 (limite Firebase 'in')
+    for (let i = 0; i < placas.length; i += 10) {
+      const chunk = placas.slice(i, i+10);
+      const snaps = await Promise.all(chunk.map(p =>
+        getDoc(doc(db, 'base_volume_veiculos', p))
+      ));
+      snaps.forEach((snap, idx) => {
+        const placa = chunk[idx];
+        if (!snap.exists()) { aderMap[placa] = {}; return; }
+        const historico = snap.data().historico || [];
+        const porDia = {};
+        historico.forEach(h => { if (h.data) porDia[h.data] = Math.round(h.aderencia || 0); });
+        aderMap[placa] = porDia;
+      });
+    }
+
+    // Cabeçalho
+    const diasSem = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const thCols = datas.map(d =>
+      `<th style="min-width:48px;padding:6px 4px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid var(--border);border-right:0.5px solid var(--border);">${diasSem[d.getDay()]}<br>${fmtCurto(d)}</th>`
+    ).join('');
+    thead.innerHTML = `<tr>
+      <th style="text-align:left;padding:6px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid var(--border);border-right:0.5px solid var(--border);min-width:130px;">Nº Frota</th>
+      ${thCols}
+      <th style="min-width:60px;padding:6px 4px;text-align:center;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid var(--border);">Média</th>
+    </tr>`;
+
+    // Linhas
+    const rows = veics.map(v => {
+      const nfr = String(v.nfr||'—').padStart(2,'0');
+      const porDia = aderMap[v.placa] || {};
+      const vals   = [];
+
+      const cols = datas.map(d => {
+        const dtBR = d.toLocaleDateString('pt-BR');
+        const pct  = porDia.hasOwnProperty(dtBR) ? porDia[dtBR] : null;
+        if (pct !== null) vals.push(pct);
+        const fds = d.getDay() === 0 || d.getDay() === 6;
+        if (pct === null) {
+          return `<td style="padding:4px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);text-align:center;background:${fds?'var(--bg3)':''};">
+            <div class="sobrev-cell sobrev-off">—</div></td>`;
+        }
+        const cls = corSobrev(pct);
+        return `<td style="padding:4px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);text-align:center;">
+          <div class="sobrev-cell ${cls}">${pct}%</div></td>`;
+      }).join('');
+
+      const media = vals.length > 0 ? Math.round(vals.reduce((s,x)=>s+x,0)/vals.length) : null;
+      const corM  = corMedia(media);
+      const mediaCell = media !== null
+        ? `<span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${media>=90?'#EAF3DE':media>=60?'#FAEEDA':'#FCEBEB'};color:${corM};">${media}%</span>`
+        : `<span style="font-size:11px;color:var(--text3);">—</span>`;
+
+      return `<tr style="cursor:pointer;" onclick="abrirSobrevModal('${v.placa}')">
+        <td style="padding:7px 10px;border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);">
+          <div style="font-weight:500;font-size:12px;color:var(--text);">${nfr} · ${v.placa}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px;">${v.tipo||'—'}${v.marca?' · '+v.marca:''}</div>
+        </td>
+        ${cols}
+        <td style="padding:4px 8px;border-bottom:0.5px solid var(--border);text-align:center;">${mediaCell}</td>
+      </tr>`;
+    }).join('');
+
+    tbody.innerHTML = rows || '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px;">Nenhum dado encontrado.</td></tr>';
+
+  } catch(e) {
+    console.error('carregarSobrev:', e);
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px;">Erro ao carregar dados de produtividade.</td></tr>';
+  }
+}
+
+// ── Modal detalhe veículo ──
+async function abrirSobrevModal(placa) {
+  const v = TODOS.find(x => x.placa === placa);
+  const nfr = String(v?.nfr||'—').padStart(2,'0');
+  document.getElementById('sobrev-modal-title').textContent = nfr + ' · ' + placa + (v?.marca?' — '+v.marca:'') + (v?.modelo?' '+v.modelo:'');
+  document.getElementById('sobrev-modal-meta').textContent = (v?.tipo||'—') + ' · ' + (v?.bloco||'—');
+  document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);">Carregando histórico...</div>';
+  document.getElementById('sobrev-kpi-adr').textContent = '—';
+  document.getElementById('sobrev-kpi-viagens').textContent = '—';
+  document.getElementById('sobrev-kpi-volume').textContent = '—';
+  document.getElementById('sobrev-modal-ov').style.display = 'flex';
+
+  try {
+    const snap = await getDoc(doc(db, 'base_volume_veiculos', placa));
+    if (!snap.exists() || !(snap.data().historico||[]).length) {
+      document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum histórico de produtividade para este veículo.</div>';
+      return;
+    }
+    const hist = snap.data().historico.slice().sort((a,b) => {
+      return b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join(''));
+    });
+
+    // KPIs
+    const totalViag = hist.reduce((s,h) => s+(Number(h.viagens)||0), 0);
+    const totalVol  = hist.reduce((s,h) => s+(Number(h.volume)||0), 0);
+    const adrMedia  = hist.length ? hist.reduce((s,h) => s+(Number(h.aderencia)||0), 0)/hist.length : 0;
+    const corA = corMedia(Math.round(adrMedia));
+
+    document.getElementById('sobrev-kpi-adr').textContent = Math.round(adrMedia) + '%';
+    document.getElementById('sobrev-kpi-adr').style.color = corA;
+    document.getElementById('sobrev-kpi-viagens').textContent = totalViag;
+    document.getElementById('sobrev-kpi-volume').textContent = totalVol.toLocaleString('pt-BR',{maximumFractionDigits:0});
+
+    // Tabela histórico
+    const thStyle = 'padding:7px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);';
+    const tdStyle = 'padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;';
+    const rows = hist.map((h,i) => {
+      const pct = Math.round(h.aderencia||0);
+      const cls = corSobrev(pct);
+      const bg  = i%2===1?'background:var(--bg3);':'';
+      return `<tr style="${bg}">
+        <td style="${tdStyle}color:var(--text2);">${h.data||'—'}</td>
+        <td style="${tdStyle}color:var(--text2);font-size:12px;">${h.ofensor||'—'}</td>
+        <td style="${tdStyle}text-align:center;"><span class="sobrev-cell ${cls}" style="margin:0 auto;">${pct}%</span></td>
+        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;font-weight:500;color:#27500A;">${Number(h.viagens)||0}</td>
+        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;color:#185FA5;">${(Number(h.volume)||0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('sobrev-modal-body').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="${thStyle}">Data</th>
+          <th style="${thStyle}">Motivo / Ofensor</th>
+          <th style="${thStyle}text-align:center;">Aderência</th>
+          <th style="${thStyle}text-align:right;">Viagens</th>
+          <th style="${thStyle}text-align:right;">Volume (t)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) {
+    console.error('abrirSobrevModal:', e);
+    document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);">Erro ao carregar histórico.</div>';
+  }
+}
+
+function fecharSobrevModal() {
+  document.getElementById('sobrev-modal-ov').style.display = 'none';
+}
+
+window.sobrevSetPeriodo   = sobrevSetPeriodo;
+window.sobrevSetForca     = sobrevSetForca;
+window.sobrevAplicarFiltro= sobrevAplicarFiltro;
+window.abrirSobrevModal   = abrirSobrevModal;
+window.fecharSobrevModal  = fecharSobrevModal;
 window.histSetPeriodo    = histSetPeriodo;
 
 // ══ EXPORTAÇÃO HISTÓRICO ══
@@ -4125,12 +4435,14 @@ window.renderTelemetriaPagina = renderTelemetriaPagina;
 let _regDe = null, _regAte = null;
 
 function histSwitchTab(tab) {
-  document.getElementById('hist-panel-visao').style.display      = tab==='visao' ? '' : 'none';
-  document.getElementById('hist-panel-regulagem').style.display  = tab==='regulagem' ? '' : 'none';
-  document.getElementById('hist-tab-visao').classList.toggle('at',     tab==='visao');
-  document.getElementById('hist-tab-regulagem').classList.toggle('at', tab==='regulagem');
+  document.getElementById('hist-panel-visao').style.display      = tab==='visao'      ? '' : 'none';
+  document.getElementById('hist-panel-regulagem').style.display  = tab==='regulagem'  ? '' : 'none';
+  document.getElementById('hist-panel-sobrev').style.display     = tab==='sobrev'     ? '' : 'none';
+  document.getElementById('hist-tab-visao').classList.toggle('at',      tab==='visao');
+  document.getElementById('hist-tab-regulagem').classList.toggle('at',  tab==='regulagem');
+  document.getElementById('hist-tab-sobrev').classList.toggle('at',     tab==='sobrev');
   if (tab === 'regulagem' && !_regDe) regSetPeriodo('semana');
-  // Popular dropdown de veículos
+  if (tab === 'sobrev'    && !_sobrevDe) sobrevSetPeriodo(7);
   histPopularSelectVeiculo();
 }
 
