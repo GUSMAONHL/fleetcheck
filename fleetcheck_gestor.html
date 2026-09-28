@@ -3883,6 +3883,7 @@ window.importarVolume = async function importarVolume(input) {
     _progRosterVeiculos = null; // força a tela de Programação a buscar a frota atualizada de novo
     _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
     _minasPesoMedioCache = null; // idem pro peso médio por rota mostrado na tela de Minas
+    _veiculoPesoMedioRealCache = null; // idem pro peso médio real por veículo, usado no roster de Programação/Gestão do Dia
     _volMetaDiasCache = null; // idem pra lista de dias com volume real, usada na Aderência a partir do corte
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
@@ -5316,6 +5317,43 @@ function _chaveRota(origem, destino) {
 }
 
 let _minasPesoMedioCache = null; // 'ORIGEM|||DESTINO' -> { caminhao: pesoMedio|null, cavalo: pesoMedio|null }
+let _veiculoPesoMedioRealCache = null; // placa -> pesoMedio real (viagens já rodadas), ou null se não achou
+
+// Peso médio real por viagem, por PLACA — mesma fonte e mesmo padrão de _calcularPesoMedioPorRota
+// (varre o histórico da Volume Poços já importado), só que agrupando por veículo em vez de rota.
+// Usado como 1ª opção no roster de Programação/Gestão do Dia: veículo com viagem real registrada
+// usa o peso médio DELE mesmo, mais preciso que a média da categoria toda.
+async function _calcularPesoMedioPorVeiculo() {
+  if (_veiculoPesoMedioRealCache) return _veiculoPesoMedioRealCache;
+  try {
+    const metaSnap = await getDoc(doc(db, 'volume', 'meta'));
+    const dias = (metaSnap.exists() && Array.isArray(metaSnap.data().dias)) ? metaSnap.data().dias : [];
+    if (dias.length === 0) { _veiculoPesoMedioRealCache = {}; return _veiculoPesoMedioRealCache; }
+
+    const snaps = await Promise.all(dias.map(d => getDoc(doc(db, 'volume_dias', _diaParaChave(d)))));
+    const somas = {};
+    snaps.forEach(snap => {
+      if (!snap.exists()) return;
+      (snap.data().viagens || []).forEach(v => {
+        if (!v.placa) return;
+        const placa = v.placa.toString().trim().toUpperCase();
+        if (!somas[placa]) somas[placa] = { peso: 0, viagens: 0 };
+        somas[placa].peso += Number(v.peso)||0;
+        somas[placa].viagens += 1;
+      });
+    });
+
+    const resultado = {};
+    Object.entries(somas).forEach(([placa, s]) => {
+      if (s.viagens > 0) resultado[placa] = s.peso / s.viagens;
+    });
+    _veiculoPesoMedioRealCache = resultado;
+  } catch (err) {
+    console.error('Erro ao calcular peso médio por veículo:', err);
+    _veiculoPesoMedioRealCache = {};
+  }
+  return _veiculoPesoMedioRealCache;
+}
 
 // Calcula o peso médio real por viagem, por rota, separado por Caminhão (BT+TR) e Cavalo (CV) —
 // varre todo o histórico de viagens já importado da planilha Volume Poços.
@@ -7077,10 +7115,11 @@ function _computarPesoMedioPorPlaca(veiculosSnap) {
 // recente de Aderência igual ou anterior ao dia informado, pra não quebrar quem ainda não migrou.
 async function _construirRosterVeiculos(diaISO) {
   const veiculosSnapPromise = getDocs(collection(db, 'base_volume_veiculos'));
+  const pesoMedioRealPromise = _calcularPesoMedioPorVeiculo();
   const cadastroSnap = await getDocs(collection(db, 'frota_cadastro'));
 
   if (!cadastroSnap.empty) {
-    const veiculosSnap = await veiculosSnapPromise;
+    const [veiculosSnap, pesoMedioRealPorPlaca] = await Promise.all([veiculosSnapPromise, pesoMedioRealPromise]);
     const pesoMedioPorPlaca = _computarPesoMedioPorPlaca(veiculosSnap);
     const roster = cadastroSnap.docs
       .map(d => ({ placa: d.id, ...d.data() }))
@@ -7102,9 +7141,30 @@ async function _construirRosterVeiculos(diaISO) {
         fr: v.fr ?? '',
         tipo2: (v.tipo2 || '').toString().trim().toUpperCase(),
         forca: (v.forca || '').toString().trim().toUpperCase(),
-        pesoMedio: pesoMedioPorPlaca[v.placa] || 0
+        // 1ª opção: peso médio real do próprio veículo (viagens já rodadas, base Volume Poços —
+        // a mesma fonte/número que aparece em Volume Analítico). 2ª opção: histórico antigo da
+        // planilha ADERENCIA. Só cai pra 0 (e depois pra média da categoria, abaixo) se não tiver nenhum dos dois.
+        pesoMedio: pesoMedioRealPorPlaca[v.placa] || pesoMedioPorPlaca[v.placa] || 0
       }));
     roster.sort((a,b) => (Number(a.fr)||0) - (Number(b.fr)||0));
+
+    // Veículo recém-cadastrado (sem histórico próprio na planilha ADERENCIA importada) fica com
+    // pesoMedio 0 — o que zera ele em qualquer totalização de potencial de carga. Preenche com a
+    // média da categoria (Caminhão/Cavalo) calculada a partir dos demais veículos do roster que
+    // já têm peso próprio conhecido, em vez de deixar zerado.
+    const mediaCategoria = (filtro) => {
+      const comHistorico = roster.filter(v => filtro(v.tipo2) && v.pesoMedio > 0);
+      if (comHistorico.length === 0) return 0;
+      return comHistorico.reduce((s,v) => s + v.pesoMedio, 0) / comHistorico.length;
+    };
+    const mediaCaminhao = mediaCategoria(_progEhCaminhao);
+    const mediaCavalo = mediaCategoria(_progEhCavalo);
+    roster.forEach(v => {
+      if (v.pesoMedio > 0) return;
+      if (_progEhCaminhao(v.tipo2)) v.pesoMedio = mediaCaminhao;
+      else if (_progEhCavalo(v.tipo2)) v.pesoMedio = mediaCavalo;
+    });
+
     return roster;
   }
 
@@ -7315,9 +7375,10 @@ function _progRenderSelecaoVeiculos() {
   if (!item) return;
 
   const fmt = (n) => _fmtPesoCard(n);
+  const fmtTexto = (n) => (Number(n)||0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const viagensPadrao = _progBuscarViagensPadrao(item.origem, item.destino);
   document.getElementById('prog-selveic-meta').textContent =
-    `Meta Alcoa: ${fmt(item.meta)} · Viagens/dia padrão dessa rota: ${viagensPadrao || '—'} (cadastrado em Minas)`;
+    `Meta Alcoa: ${fmtTexto(item.meta)} · Viagens/dia padrão dessa rota: ${viagensPadrao || '—'} (cadastrado em Minas)`;
 
   const roster = _progRosterVeiculos || [];
   if (roster.length === 0) {
