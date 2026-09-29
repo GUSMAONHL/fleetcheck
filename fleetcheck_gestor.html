@@ -3426,14 +3426,41 @@ async function abrirDetalheVeiculo(placaKey) {
 
   try {
     const snap = await getDoc(doc(db, 'base_volume_veiculos', placaKey));
-    if (!snap.exists() || !(snap.data().historico || []).length) {
+    const historicoImportado = (snap.exists() && Array.isArray(snap.data().historico)) ? snap.data().historico : [];
+
+    // O histórico gravado em base_volume_veiculos é uma FOTO da planilha ADERENCIA, tirada só na
+    // hora da importação — não é atualizado dia a dia. A partir do corte, os dias reais vêm da
+    // Gestão do Dia (mesma fonte usada no resto da tela de Aderência), então buscamos aqui
+    // também, pra completar o histórico até o dia mais recente de verdade.
+    const diasJaCobertos = new Set(historicoImportado.map(l => _diaParaChave(l.data)));
+    const diasReais = await _obterDiasVolumeReal();
+    const diasFaltando = diasReais.filter(d => {
+      const iso = _diaParaChave(d);
+      return iso >= GESTAO_ADERENCIA_CUTOFF && !diasJaCobertos.has(iso);
+    });
+
+    const linhasPorDia = await Promise.all(diasFaltando.map(d => _gestaoConstruirLinhasAderencia(_diaParaChave(d))));
+    const historicoVivo = [];
+    linhasPorDia.forEach((linhas, i) => {
+      const linha = linhas.find(l => l.placa === placaKey);
+      if (linha) {
+        historicoVivo.push({
+          data: diasFaltando[i], fr: linha.fr, forca: linha.forca, tipo2: linha.tipo2,
+          volume: linha.volume, viagens: linha.viagens, percTon: linha.percTon, aderencia: linha.aderencia,
+          ofensor: linha.ofensor, tipoOfensor: linha.tipoOfensor, responsavel: linha.responsavel, justificativa: ''
+        });
+      }
+    });
+
+    const historicoCompleto = historicoImportado.concat(historicoVivo);
+    if (historicoCompleto.length === 0) {
       _prodVeiculoCache = null;
       document.getElementById('prod-modal-meta').textContent = '';
       document.getElementById('prod-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">Nenhum histórico encontrado para este veículo.</div>';
       return;
     }
 
-    const historicoCronologico = snap.data().historico.slice().sort((a,b) => {
+    const historicoCronologico = historicoCompleto.slice().sort((a,b) => {
       const da = a.data.split('/').reverse().join(''); const db = b.data.split('/').reverse().join('');
       return da.localeCompare(db);
     });

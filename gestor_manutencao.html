@@ -457,11 +457,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .tel-err{background:#FCEBEB;color:#791F1F;}
 
   
-.sobrev-cell{display:flex;align-items:center;justify-content:center;border-radius:4px;padding:3px 4px;font-size:11px;font-weight:600;min-width:36px;}
-.sobrev-verde{background:#EAF3DE;color:#27500A;}
-.sobrev-amarelo{background:#FAEEDA;color:#633806;}
-.sobrev-vermelho{background:#FCEBEB;color:#791F1F;}
-.sobrev-off{color:var(--text3);font-weight:400;}
+.sobrev-cell{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;min-width:44px;font-family:Arial,sans-serif;letter-spacing:.3px;}
+.sobrev-verde  {background:#0d2e0d;color:#3fb950;border:1px solid #238636;}
+.sobrev-amarelo{background:#2d1f00;color:#e3b341;border:1px solid #9e6a03;}
+.sobrev-vermelho{background:#2d0e0e;color:#f85149;border:1px solid #da3633;}
+.sobrev-off    {color:var(--text3);font-weight:400;font-size:12px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -948,9 +948,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <!-- PAINEL MAPA DE SOBREVIVÊNCIA -->
       <div id="hist-panel-sobrev" style="display:none;">
         <div class="hist-filtros">
-          <button class="hist-pill at" id="sobrev-p-7"    onclick="sobrevSetPeriodo(7)">7 dias</button>
+          <button class="hist-pill"    id="sobrev-p-7"    onclick="sobrevSetPeriodo(7)">7 dias</button>
           <button class="hist-pill"    id="sobrev-p-15"   onclick="sobrevSetPeriodo(15)">15 dias</button>
-          <button class="hist-pill"    id="sobrev-p-30"   onclick="sobrevSetPeriodo(30)">30 dias</button>
+          <button class="hist-pill at" id="sobrev-p-30"   onclick="sobrevSetPeriodo(30)">30 dias</button>
           <div class="hist-sep"></div>
           <input class="hist-date-input" type="date" id="sobrev-de">
           <span style="font-size:12px;color:var(--text3);">até</span>
@@ -2825,8 +2825,6 @@ function calcularVencidas() {
   hoje.setHours(0,0,0,0);
   const vencidas = [];
 
-  console.log('[FleetCheck] calcularVencidas — TODOS:', TODOS.length, 'veículos');
-
   TODOS.forEach(v => {
     const st   = checkState[v.placa];
     const just = justState[v.placa];
@@ -3975,29 +3973,94 @@ async function carregarSobrev() {
   if (_sobrevForca === 'terceiro') veics = TODOS.filter(v => v.bloco === 'TERCEIRO');
   veics = [...veics].sort((a,b) => (a.nfr||0)-(b.nfr||0));
 
-  try {
-    // Buscar dados de produtividade do Firebase (base_volume_veiculos)
-    const placas = veics.map(v => v.placa);
-    const aderMap = {}; // { placa: { 'dd/mm/yyyy': pct } }
-    console.log('[Sobrev] Buscando', placas.length, 'placas. Ex:', placas[0]);
+  const CUTOFF = '2026-09-01'; // datas >= CUTOFF: reconstruir ao vivo
 
-    // Buscar em lotes de 10 (limite Firebase 'in')
-    for (let i = 0; i < placas.length; i += 10) {
-      const chunk = placas.slice(i, i+10);
-      const snaps = await Promise.all(chunk.map(p =>
-        getDoc(doc(db, 'base_volume_veiculos', p))
+  try {
+    const aderMap = {}; // { placa: { 'DD/MM/YYYY': pct } }
+    veics.forEach(v => { aderMap[v.placa] = {}; });
+
+    const toISO = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const toBR  = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+
+    // Separar datas
+    const datasAntes  = datas.filter(d => toISO(d) < CUTOFF);
+    const datasDepois = datas.filter(d => toISO(d) >= CUTOFF);
+
+    // ── 1. ANTES DO CORTE: base_volume_dias/{YYYY-MM-DD} ──
+    // { veiculos: { PLACA: { aderencia: 0-100 } } }
+    if (datasAntes.length > 0) {
+      const snaps = await Promise.all(datasAntes.map(d =>
+        getDoc(doc(db, 'base_volume_dias', toISO(d)))
       ));
-      snaps.forEach((snap, idx) => {
-        const placa = chunk[idx];
-        if (!snap.exists()) {
-          console.log('[Sobrev] Sem doc:', placa);
-          aderMap[placa] = {}; return;
+      snaps.forEach((snap, i) => {
+        if (!snap.exists()) return;
+        const dtBR = toBR(datasAntes[i]);
+        const veiculosObj = snap.data().veiculos || {};
+        Object.entries(veiculosObj).forEach(([placa, v]) => {
+          if (aderMap[placa] !== undefined) {
+            aderMap[placa][dtBR] = Math.round(v.aderencia || 0);
+          }
+        });
+      });
+    }
+
+    // ── 2. A PARTIR DO CORTE: reconstruir ao vivo ──
+    // Cruzar programacao_dias + volume_dias + frota_cadastro
+    if (datasDepois.length > 0) {
+      // Carregar frota_cadastro uma vez
+      const frotaSnap = await getDocs(collection(db, 'frota_cadastro'));
+      const frotaMap = {}; // placa -> { pesoMedio, dataInicio, dataInativacao, tipo2, forca, fr }
+      frotaSnap.docs.forEach(d => {
+        const v = d.data();
+        frotaMap[d.id] = v;
+      });
+
+      // Buscar programacao_dias e volume_dias em paralelo para cada dia
+      const pares = await Promise.all(datasDepois.map(async d => {
+        const iso = toISO(d);
+        const [snapProg, snapVol] = await Promise.all([
+          getDoc(doc(db, 'programacao_dias', iso)),
+          getDoc(doc(db, 'volume_dias', iso))
+        ]);
+        return { d, snapProg, snapVol };
+      }));
+
+      pares.forEach(({ d, snapProg, snapVol }) => {
+        if (!snapProg.exists()) return;
+        const dtBR = toBR(d);
+        const iso  = toISO(d);
+
+        const atribuicoes = snapProg.data().atribuicoes || [];
+
+        // Volume real por placa (do volume_dias)
+        const volumeRealPorPlaca = {};
+        if (snapVol.exists()) {
+          (snapVol.data().viagens || []).forEach(v => {
+            if (!v.placa) return;
+            volumeRealPorPlaca[v.placa] = (volumeRealPorPlaca[v.placa]||0) + (Number(v.peso)||0);
+          });
         }
-        const historico = snap.data().historico || [];
-        console.log('[Sobrev]', placa, '— histórico:', historico.length, 'dias. Último:', historico[historico.length-1]?.data);
-        const porDia = {};
-        historico.forEach(h => { if (h.data) porDia[h.data] = Math.round(h.aderencia || 0); });
-        aderMap[placa] = porDia;
+
+        atribuicoes.forEach(a => {
+          const placa = a.placa;
+          if (!placa || aderMap[placa] === undefined) return;
+
+          // Verificar se veículo estava ativo neste dia
+          const fc = frotaMap[placa];
+          if (fc) {
+            if (fc.dataInicio && iso < fc.dataInicio) return;
+            if (fc.dataInativacao && iso >= fc.dataInativacao) return;
+          }
+
+          const prog = Number(a.viagens) || 0;
+          if (prog === 0) return;
+
+          // Realizações: array de booleanos
+          const realizacoes = Array.isArray(a.realizacoes) ? a.realizacoes : [];
+          const realiz = realizacoes.filter(Boolean).length;
+          const pct = Math.round((realiz / prog) * 100);
+          aderMap[placa][dtBR] = pct;
+        });
       });
     }
 
@@ -4019,8 +4082,13 @@ async function carregarSobrev() {
       const vals   = [];
 
       const cols = datas.map(d => {
-        const dtBR = d.toLocaleDateString('pt-BR');
+        // Formato fixo DD/MM/YYYY com zero à esquerda (igual ao salvo no Firebase)
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        const dtBR = dd+'/'+mm+'/'+yyyy;
         const pct  = porDia.hasOwnProperty(dtBR) ? porDia[dtBR] : null;
+
         if (pct !== null) vals.push(pct);
         const fds = d.getDay() === 0 || d.getDay() === 6;
         if (pct === null) {
@@ -4447,7 +4515,7 @@ function histSwitchTab(tab) {
   document.getElementById('hist-tab-regulagem').classList.toggle('at',  tab==='regulagem');
   document.getElementById('hist-tab-sobrev').classList.toggle('at',     tab==='sobrev');
   if (tab === 'regulagem' && !_regDe) regSetPeriodo('semana');
-  if (tab === 'sobrev'    && !_sobrevDe) sobrevSetPeriodo(7);
+  if (tab === 'sobrev'    && !_sobrevDe) sobrevSetPeriodo(30);
   histPopularSelectVeiculo();
 }
 
