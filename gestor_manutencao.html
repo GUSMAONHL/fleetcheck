@@ -4136,40 +4136,162 @@ async function abrirSobrevModal(placa) {
   document.getElementById('sobrev-kpi-volume').textContent = '—';
   document.getElementById('sobrev-modal-ov').style.display = 'flex';
 
+  const CUTOFF = '2026-09-01';
+  const toBR  = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const toISO = s => { const [d,m,y] = s.split('/'); return y+'-'+m+'-'+d; };
+
   try {
-    const snap = await getDoc(doc(db, 'base_volume_veiculos', placa));
-    if (!snap.exists() || !(snap.data().historico||[]).length) {
+    // ── 1. Histórico ANTES do corte — base_volume_veiculos ──
+    const snapHist = await getDoc(doc(db, 'base_volume_veiculos', placa));
+    // Pegar TODO o histórico do base_volume_veiculos (cobre dias antes do cutoff e importações manuais)
+    const histAntigo = (snapHist.exists() ? (snapHist.data().historico || []) : [])
+      .filter(h => h.data) // só filtrar registros sem data
+      .map(h => ({
+        data: h.data,
+        viagens: Number(h.viagens) || 0,
+        aderencia: Number(h.aderencia) || 0,
+        volume: Number(h.volume) || 0,
+        ofensor: [h.ofensor, h.tipoOfensor].filter(Boolean).join(' · ')
+      }));
+
+    // ── 2. Dias APÓS o corte — reconstruir ao vivo ──
+    // Buscar frota_cadastro para filtro de ativo
+    const frotaSnap = await getDocs(collection(db, 'frota_cadastro'));
+    const frotaMap = {};
+    frotaSnap.docs.forEach(d => { frotaMap[d.id] = d.data(); });
+
+    // Verificar se veículo está no roster num dia
+    const fc = frotaMap[placa];
+    const veiculoAtivoNoDia = iso => {
+      if (!fc) return true;
+      if (fc.dataInicio && iso < fc.dataInicio) return false;
+      if (fc.dataInativacao && iso >= fc.dataInativacao) return false;
+      return true;
+    };
+
+    // Gerar todos os dias desde o CUTOFF até hoje
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const cutoffDate = new Date(CUTOFF + 'T00:00:00');
+    const diasRecentes = [];
+    const cur = new Date(hoje);
+    while (cur >= cutoffDate) {
+      diasRecentes.push(new Date(cur));
+      cur.setDate(cur.getDate() - 1);
+    }
+
+    // Buscar programacao_dias e volume_dias em paralelo (lotes de 10)
+    const histRecente = [];
+    for (let i = 0; i < diasRecentes.length; i += 10) {
+      const lote = diasRecentes.slice(i, i + 10);
+      const pares = await Promise.all(lote.map(async d => {
+        const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        const [snapProg, snapVol] = await Promise.all([
+          getDoc(doc(db, 'programacao_dias', iso)),
+          getDoc(doc(db, 'volume_dias', iso))
+        ]);
+        return { d, iso, snapProg, snapVol };
+      }));
+
+      pares.forEach(({ d, iso, snapProg, snapVol }) => {
+        // Ignorar fins de semana sem dado nenhum
+        const dow = d.getDay();
+        if (!snapProg.exists() && !snapVol.exists()) return;
+
+        // Verificar se veículo estava ativo neste dia
+        if (!veiculoAtivoNoDia(iso)) return;
+
+        const dtBR = toBR(d);
+        const atribuicoes = snapProg.exists() ? (snapProg.data().atribuicoes || []) : [];
+        const justNaoProg = snapProg.exists() ? (snapProg.data().justificativas || {}) : {};
+        const atrib = atribuicoes.find(a => a.placa === placa);
+
+        // Volume real
+        let volumeReal = 0;
+        if (snapVol.exists()) {
+          (snapVol.data().viagens || []).forEach(vj => {
+            if (vj.placa === placa) volumeReal += Number(vj.peso) || 0;
+          });
+        }
+
+        const prog = atrib ? (Number(atrib.viagens) || 0) : 0;
+
+        // Só incluir se foi programado OU fez viagem real OU estava no roster (prog=0 mas fazia parte da frota)
+        const noRoster = !!fc; // se está no frota_cadastro, faz parte da frota
+        if (prog === 0 && volumeReal === 0 && !noRoster) return;
+        if (prog === 0 && volumeReal === 0 && dow === 0) return; // domingo sem dado
+
+        // Realizações
+        const realizacoes = atrib && Array.isArray(atrib.realizacoes) ? atrib.realizacoes : [];
+        const realiz = realizacoes.filter(Boolean).length;
+        const aderencia = prog > 0
+          ? Math.round((realiz / prog) * 100)
+          : (realiz > 0 ? 100 : (noRoster && dow !== 0 && dow !== 6 ? 0 : null));
+
+        if (aderencia === null) return; // sem dado relevante
+
+        // Ofensor
+        let ofensor = '';
+        if (atrib?.justificativa?.ofensor) {
+          ofensor = atrib.justificativa.ofensor;
+          if (atrib.justificativa.justificativa) ofensor += ' · ' + atrib.justificativa.justificativa;
+        } else if (!atrib || prog === 0) {
+          const j = justNaoProg[placa];
+          if (j) { ofensor = j.motivo || ''; if (j.justificativa) ofensor += ' · ' + j.justificativa; }
+        }
+
+        histRecente.push({ data: dtBR, viagens: realiz, aderencia, volume: Math.round(volumeReal*100)/100, ofensor });
+      });
+    }
+
+    // ── 3. Mesclar + deduplicar por data ──
+    // histAntigo primeiro (base), histRecente sobrescreve (mais atual, calculado ao vivo)
+    const mapaFinal = {};
+    [...histAntigo, ...histRecente].forEach(h => {
+      const iso = toISO(h.data);
+      // histRecente sempre vence sobre histAntigo (calculado ao vivo > snapshot importado)
+      if (!mapaFinal[iso]) {
+        mapaFinal[iso] = h;
+      } else {
+        // Se já existe, sobrescrever apenas se o novo tem mais informação
+        const jaTemOfensor = !!mapaFinal[iso].ofensor;
+        const novoTemOfensor = !!h.ofensor;
+        if (novoTemOfensor || !jaTemOfensor) mapaFinal[iso] = h;
+      }
+    });
+
+    const histCompleto = Object.values(mapaFinal)
+      .sort((a,b) => toISO(b.data).localeCompare(toISO(a.data)));
+
+    if (!histCompleto.length) {
       document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum histórico de produtividade para este veículo.</div>';
       return;
     }
-    const hist = snap.data().historico.slice().sort((a,b) => {
-      return b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join(''));
-    });
 
-    // KPIs
-    const totalViag = hist.reduce((s,h) => s+(Number(h.viagens)||0), 0);
-    const totalVol  = hist.reduce((s,h) => s+(Number(h.volume)||0), 0);
-    const adrMedia  = hist.length ? hist.reduce((s,h) => s+(Number(h.aderencia)||0), 0)/hist.length : 0;
-    const corA = corMedia(Math.round(adrMedia));
+    // KPIs — só dias com aderência definida
+    const diasComDado = histCompleto.filter(h => h.aderencia !== null);
+    const totalViag = diasComDado.reduce((s,h) => s+(Number(h.viagens)||0), 0);
+    const totalVol  = diasComDado.reduce((s,h) => s+(Number(h.volume)||0), 0);
+    const adrMedia  = diasComDado.length ? diasComDado.reduce((s,h) => s+(Number(h.aderencia)||0), 0) / diasComDado.length : 0;
 
+    const corA = adrMedia >= 90 ? '#3fb950' : adrMedia >= 60 ? '#e3b341' : '#f85149';
     document.getElementById('sobrev-kpi-adr').textContent = Math.round(adrMedia) + '%';
     document.getElementById('sobrev-kpi-adr').style.color = corA;
     document.getElementById('sobrev-kpi-viagens').textContent = totalViag;
-    document.getElementById('sobrev-kpi-volume').textContent = totalVol.toLocaleString('pt-BR',{maximumFractionDigits:0});
+    document.getElementById('sobrev-kpi-volume').textContent = totalVol.toLocaleString('pt-BR',{maximumFractionDigits:1});
 
-    // Tabela histórico
+    // Tabela
     const thStyle = 'padding:7px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);';
     const tdStyle = 'padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;';
-    const rows = hist.map((h,i) => {
+
+    const rows = histCompleto.map((h,i) => {
       const pct = Math.round(h.aderencia||0);
-      const cls = corSobrev(pct);
-      const bg  = i%2===1?'background:var(--bg3);':'';
-      return `<tr style="${bg}">
+      const cls = pct >= 90 ? 'sobrev-verde' : pct >= 60 ? 'sobrev-amarelo' : 'sobrev-vermelho';
+      return `<tr style="${i%2===1?'background:var(--bg3);':''}">
         <td style="${tdStyle}color:var(--text2);">${h.data||'—'}</td>
         <td style="${tdStyle}color:var(--text2);font-size:12px;">${h.ofensor||'—'}</td>
         <td style="${tdStyle}text-align:center;"><span class="sobrev-cell ${cls}" style="margin:0 auto;">${pct}%</span></td>
-        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;font-weight:500;color:#27500A;">${Number(h.viagens)||0}</td>
-        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;color:#185FA5;">${(Number(h.volume)||0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;font-weight:500;color:#3fb950;">${Number(h.viagens)||0}</td>
+        <td style="${tdStyle}text-align:right;font-family:Arial,sans-serif;color:#58a6ff;">${(Number(h.volume)||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
       </tr>`;
     }).join('');
 
@@ -4184,11 +4306,13 @@ async function abrirSobrevModal(placa) {
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
+
   } catch(e) {
     console.error('abrirSobrevModal:', e);
     document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);">Erro ao carregar histórico.</div>';
   }
 }
+
 
 function fecharSobrevModal() {
   document.getElementById('sobrev-modal-ov').style.display = 'none';
