@@ -1352,6 +1352,27 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- DETALHE DE PERDA POR VEÍCULO, DENTRO DE UMA ROTA ESPECÍFICA -->
+<div id="perda-veiculo-rota-overlay" onclick="if(event.target===this) fecharDetalheRotaPerdaModal()" style="display:none;position:fixed;inset:0;z-index:72;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:700px;max-height:80vh;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div id="perda-veiculo-rota-titulo" style="font-size:15px;font-weight:700;color:var(--text);">📉 Rota</div>
+      <button onclick="fecharDetalheRotaPerdaModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 22px 18px;">
+      <table style="width:100%;font-size:13px;">
+        <thead><tr>
+          <th style="text-align:left;">VEÍCULO</th>
+          <th style="text-align:left;">FORÇA</th>
+          <th style="text-align:right;">VG</th>
+          <th style="text-align:right;">TONELADAS PERDIDAS</th>
+        </tr></thead>
+        <tbody id="perda-veiculo-rota-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- QUADRO FROTA / TERCEIRO EM TELA CHEIA -->
 <div id="prod-quadro-overlay" onclick="if(event.target===this) fecharQuadroModal()" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;height:100%;max-width:1700px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
@@ -2259,6 +2280,61 @@ function _fmtPesoCard(n, casas = 2) {
   return decimal ? `${inteiro}<span style="font-size:0.64em;opacity:0.82;">,${decimal}</span>` : inteiro;
 }
 
+// Ordenação genérica de qualquer tabela — clique no <th> reordena as linhas do <tbody> direto no
+// DOM, sem precisar re-renderizar os dados originais. Cada <td> pode ter um atributo
+// data-sort-value com o valor bruto (número ou texto) pra ordenar; sem esse atributo, usa o
+// texto visível da célula (removendo separador de milhar antes de tentar converter em número).
+window._ordenarTabelaPorColuna = function _ordenarTabelaPorColuna(thEl) {
+  const table = thEl.closest('table');
+  const thead = thEl.closest('thead');
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+  const ths = Array.from(thead.querySelectorAll('th'));
+  const colIdx = ths.indexOf(thEl);
+  if (colIdx === -1) return;
+
+  const dirAtual = thEl.getAttribute('data-dir') || '';
+  const novaDir = dirAtual === 'asc' ? 'desc' : 'asc';
+  ths.forEach(t => t.removeAttribute('data-dir'));
+  thEl.setAttribute('data-dir', novaDir);
+
+  const valorCelula = (tr) => {
+    const td = tr.children[colIdx];
+    if (!td) return '';
+    return td.hasAttribute('data-sort-value') ? td.getAttribute('data-sort-value') : (td.textContent || '').trim();
+  };
+  const paraNumero = (txt) => {
+    const limpo = txt.toString().replace(/\./g, '').replace(',', '.').replace(/[^\d.\-]/g, '');
+    return limpo === '' || limpo === '-' ? NaN : parseFloat(limpo);
+  };
+
+  const linhas = Array.from(tbody.querySelectorAll('tr'));
+  linhas.sort((a, b) => {
+    const rawA = valorCelula(a), rawB = valorCelula(b);
+    const numA = paraNumero(rawA), numB = paraNumero(rawB);
+    const cmp = (!isNaN(numA) && !isNaN(numB)) ? numA - numB : rawA.toString().localeCompare(rawB.toString(), 'pt-BR');
+    return novaDir === 'asc' ? cmp : -cmp;
+  });
+  linhas.forEach(tr => tbody.appendChild(tr));
+
+  ths.forEach((t, i) => {
+    if (!t.hasAttribute('data-label')) t.setAttribute('data-label', (t.textContent || '').replace(/[▲▼]/g, '').trim());
+    const base = t.getAttribute('data-label');
+    t.textContent = base + (i === colIdx ? (novaDir === 'asc' ? ' ▲' : ' ▼') : '');
+  });
+};
+
+// Marca todos os <th> de uma tabela como clicáveis/ordenáveis — chamar depois de montar o HTML.
+function _tornarTabelaOrdenavel(tableEl) {
+  if (!tableEl) return;
+  const thead = tableEl.querySelector('thead');
+  if (!thead) return;
+  thead.querySelectorAll('th').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.onclick = () => _ordenarTabelaPorColuna(th);
+  });
+}
+
 function corProdutividade(pct) {
   if (pct === null || pct === undefined) return { bg:'rgba(139,148,158,0.10)', border:'rgba(139,148,158,0.35)', cor:'#8b949e', label:'Sem dado' };
   if (pct >= 90) return { bg:'rgba(46,160,67,0.10)',  border:'rgba(46,160,67,0.35)',  cor:'#2ea043', label:'Alta' };
@@ -2676,6 +2752,8 @@ window.fecharPerdaPorRotaModal = function fecharPerdaPorRotaModal() {
   document.getElementById('perda-rota-overlay').style.display = 'none';
 };
 
+let _perdaRotaCategoriasCache = null;
+
 function _renderPerdaPorRota() {
   const cont = document.getElementById('perda-rota-corpo');
   const metaEl = document.getElementById('perda-rota-meta');
@@ -2708,62 +2786,131 @@ function _renderPerdaPorRota() {
     if (!((Number(l.percTon)||0) > 0)) return; // só entra quem realmente teve toneladas perdidas
     categorias[_classificarRotaPerda(l)].linhas.push(l);
   });
+  _perdaRotaCategoriasCache = categorias; // usado pelo modal de detalhe por veículo, ao clicar numa rota
 
   const totalGeral = Object.values(categorias).reduce((s,c) => s + c.linhas.reduce((s2,l) => s2+(l.percTon||0), 0), 0);
   const fmtT = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const porForca = (linhasCat, forca) => linhasCat.filter(l => (l.forca||'').toString().trim().toUpperCase() === forca).reduce((s,l) => s+(l.percTon||0), 0);
 
+  // Cards — peso e percentual no mesmo tamanho (o card não cresce de largura, só reduz um pouco
+  // a fonte do peso pra caber os dois lado a lado), com o detalhe Frota x Terceiro embaixo.
   const cardsHtml = Object.values(categorias).map(c => {
     const total = c.linhas.reduce((s,l) => s+(l.percTon||0), 0);
     const viagens = c.linhas.reduce((s,l) => s+(Number(l.viagens)||0), 0);
     const pct = totalGeral > 0 ? Math.round((total/totalGeral)*1000)/10 : 0;
+    const frotaT = porForca(c.linhas, 'FROTA');
+    const terceiroT = porForca(c.linhas, 'TERCEIRO');
     return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${c.cor};">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">${c.titulo}</div>
-      <div style="font-size:26px;font-weight:700;color:${c.cor};font-family:'DM Mono',monospace;">${fmtT(total)}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px;">${viagens} viagem(ns) · ${pct}% do total perdido</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:22px;font-weight:700;color:${c.cor};font-family:'DM Mono',monospace;">${fmtT(total)}</span>
+        <span style="font-size:22px;font-weight:700;color:${c.cor};font-family:'DM Mono',monospace;">${pct}%</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">${viagens} VG</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px;border-top:1px solid var(--border2);padding-top:4px;">Frota: ${fmtT(frotaT)} · Terceiro: ${fmtT(terceiroT)}</div>
     </div>`;
   }).join('');
 
-  // Detalhamento por rota específica (agrupando as ocorrências), pras 3 categorias que têm rota real
+  // Detalhamento por rota específica (agrupando as ocorrências), pras 3 categorias que têm rota
+  // real — clicável: abre o detalhe por veículo daquela rota.
   const detalheHtml = ['mina_fabrica','mina_patio4','patio_fabrica'].map(catKey => {
     const c = categorias[catKey];
     if (c.linhas.length === 0) return '';
     const porRota = {};
     c.linhas.forEach(l => {
       const chave = `${l.origem} → ${l.destino}`;
-      if (!porRota[chave]) porRota[chave] = { total: 0, viagens: 0 };
+      if (!porRota[chave]) porRota[chave] = { total: 0, viagens: 0, frota: 0, terceiro: 0 };
       porRota[chave].total += l.percTon || 0;
       porRota[chave].viagens += Number(l.viagens) || 0;
+      const forca = (l.forca||'').toString().trim().toUpperCase();
+      if (forca === 'FROTA') porRota[chave].frota += l.percTon || 0;
+      else if (forca === 'TERCEIRO') porRota[chave].terceiro += l.percTon || 0;
     });
     const linhasRota = Object.entries(porRota).sort((a,b) => b[1].total - a[1].total);
+    const idCorpo = `perda-detalhe-${catKey}`;
     return `<div class="table-card" style="padding:14px 18px;margin-top:16px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${c.titulo} — Detalhado por Rota</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${c.titulo} — Detalhado por Rota <span style="font-weight:400;color:var(--text3);font-size:11px;">(clique numa rota pra ver por veículo)</span></div>
       <table style="width:100%;font-size:13px;">
-        <thead><tr><th style="text-align:left;">ROTA</th><th style="text-align:right;">VIAGENS</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
-        <tbody>${linhasRota.map(([rota,d]) => `<tr>
+        <thead><tr><th style="text-align:left;">ROTA</th><th style="text-align:right;">VG</th><th style="text-align:right;">FROTA</th><th style="text-align:right;">TERCEIRO</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
+        <tbody id="${idCorpo}">${linhasRota.map(([rota,d]) => `<tr onclick="abrirDetalheRotaPerda('${catKey}','${rota.replace(/'/g,"\'")}')" style="cursor:pointer;">
             <td>${rota}</td>
             <td style="text-align:right;font-family:'DM Mono',monospace;">${d.viagens}</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmtT(d.frota)}</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmtT(d.terceiro)}</td>
             <td style="text-align:right;font-family:'DM Mono',monospace;color:${c.cor};">${fmtT(d.total)}</td>
           </tr>`).join('')}</tbody>
       </table>
     </div>`;
   }).join('');
 
-  // Sem programação não tem rota pra agrupar — lista direto por veículo
-  const semProg = categorias.sem_prog.linhas.slice().sort((a,b) => (b.percTon||0)-(a.percTon||0));
+  // Sem programação — consolidado por veículo (um veículo pode ter várias ocorrências ao longo
+  // do período; antes cada ocorrência virava uma linha separada, o que ficava estranho).
+  const semProgPorVeiculo = {};
+  categorias.sem_prog.linhas.forEach(l => {
+    if (!semProgPorVeiculo[l.placa]) semProgPorVeiculo[l.placa] = { fr: l.fr, placa: l.placa, forca: l.forca, total: 0, viagens: 0 };
+    const acc = semProgPorVeiculo[l.placa];
+    acc.total += l.percTon || 0;
+    acc.viagens += Number(l.viagens) || 0;
+  });
+  const semProg = Object.values(semProgPorVeiculo).sort((a,b) => b.total - a.total);
   const semProgHtml = semProg.length === 0 ? '' : `<div class="table-card" style="padding:14px 18px;margin-top:16px;">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">${categorias.sem_prog.titulo} — Detalhado por Veículo</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">${categorias.sem_prog.titulo} — Consolidado por Veículo</div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Inclui veículos não programados (com estimativa de viagens perdidas informada) e dados de períodos anteriores ao corte, sem rota registrada.</div>
     <table style="width:100%;font-size:13px;">
-      <thead><tr><th style="text-align:left;">VEÍCULO</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
-      <tbody>${semProg.map(l => `<tr>
-          <td>${l.fr||'—'} ${l.placa||''}</td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;color:${categorias.sem_prog.cor};">${fmtT(l.percTon||0)}</td>
+      <thead><tr><th style="text-align:left;">VEÍCULO</th><th style="text-align:left;">FORÇA</th><th style="text-align:right;">VG</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
+      <tbody id="perda-semprog-body">${semProg.map(v => `<tr>
+          <td data-sort-value="${v.fr||0}">${v.fr||'—'} ${v.placa||''}</td>
+          <td>${v.forca||'—'}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${v.viagens}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:${categorias.sem_prog.cor};">${fmtT(v.total)}</td>
         </tr>`).join('')}</tbody>
     </table>
   </div>`;
 
   cont.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;">${cardsHtml}</div>${detalheHtml}${semProgHtml}`;
+
+  ['mina_fabrica','mina_patio4','patio_fabrica'].forEach(catKey => {
+    const el = document.getElementById(`perda-detalhe-${catKey}`);
+    if (el) _tornarTabelaOrdenavel(el.closest('table'));
+  });
+  const semProgEl = document.getElementById('perda-semprog-body');
+  if (semProgEl) _tornarTabelaOrdenavel(semProgEl.closest('table'));
 }
+
+// Abre o detalhe por veículo de UMA rota específica (chamado ao clicar numa linha da tabela
+// "Detalhado por Rota"). Reaproveita o cache já classificado, sem recalcular nada.
+window.abrirDetalheRotaPerda = function abrirDetalheRotaPerda(catKey, rotaChave) {
+  const c = _perdaRotaCategoriasCache && _perdaRotaCategoriasCache[catKey];
+  if (!c) return;
+  const linhasRota = c.linhas.filter(l => `${l.origem} → ${l.destino}` === rotaChave);
+
+  const porVeiculo = {};
+  linhasRota.forEach(l => {
+    if (!porVeiculo[l.placa]) porVeiculo[l.placa] = { fr: l.fr, placa: l.placa, forca: l.forca, total: 0, viagens: 0 };
+    const acc = porVeiculo[l.placa];
+    acc.total += l.percTon || 0;
+    acc.viagens += Number(l.viagens) || 0;
+  });
+  const consolidado = Object.values(porVeiculo).sort((a,b) => b.total - a.total);
+
+  document.getElementById('perda-veiculo-rota-titulo').textContent = `📉 ${rotaChave}`;
+  const fmtT = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const body = document.getElementById('perda-veiculo-rota-body');
+  body.innerHTML = consolidado.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3);">Nenhum veículo encontrado.</td></tr>'
+    : consolidado.map(v => `<tr>
+        <td data-sort-value="${v.fr||0}">${v.fr||'—'} ${v.placa}</td>
+        <td>${v.forca||'—'}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;">${v.viagens}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${fmtT(v.total)}</td>
+      </tr>`).join('');
+  _tornarTabelaOrdenavel(body.closest('table'));
+  document.getElementById('perda-veiculo-rota-overlay').style.display = 'flex';
+};
+
+window.fecharDetalheRotaPerdaModal = function fecharDetalheRotaPerdaModal() {
+  document.getElementById('perda-veiculo-rota-overlay').style.display = 'none';
+};
 
 window.exportarAderenciaCompletaExcel = function exportarAderenciaCompletaExcel() {
   const linhas = _prodLinhasAtual;
@@ -8174,7 +8321,7 @@ function _vaRenderTabela() {
   tbody.innerHTML = linhas.map(l => {
     const pesoMedio = l.viagens > 0 ? l.peso / l.viagens : 0;
     return `<tr>
-      <td>
+      <td data-sort-value="${l.fr||0}">
         <div style="display:flex;align-items:baseline;gap:6px;">
           <span style="font-size:15px;font-weight:700;color:var(--text3);">${l.fr||'—'}</span>
           <span style="font-size:13px;font-weight:600;color:var(--text);">${l.placa}</span>
@@ -8190,6 +8337,7 @@ function _vaRenderTabela() {
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${fmtMoeda(l.faturamento)}</td>
     </tr>`;
   }).join('');
+  _tornarTabelaOrdenavel(document.getElementById('va-tabela-body').closest('table'));
 
   _vaRenderConsolidadoVeiculo(linhas);
 }
@@ -8225,13 +8373,14 @@ function _vaRenderPorDia(placaSelecionada) {
         const pesoMedio = l.viagens > 0 ? l.peso / l.viagens : 0;
         const [ano, mes, dia] = l.dia.split('-');
         return `<tr>
-          <td style="font-family:'DM Mono',monospace;">${dia}/${mes}/${ano}</td>
+          <td data-sort-value="${l.dia}" style="font-family:'DM Mono',monospace;">${dia}/${mes}/${ano}</td>
           <td>${l.origem} <span style="color:var(--text3);">→</span> ${l.destino}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         </tr>`;
       }).join('');
+  _tornarTabelaOrdenavel(document.getElementById('va-pordia-body').closest('table'));
 
   card.style.display = '';
 }
@@ -8262,7 +8411,7 @@ function _vaRenderConsolidadoVeiculo(linhas) {
   body.innerHTML = consolidado.map(v => {
     const pesoMedio = v.viagens > 0 ? v.peso / v.viagens : 0;
     return `<tr>
-      <td>
+      <td data-sort-value="${v.fr||0}">
         <div style="display:flex;align-items:baseline;gap:6px;">
           <span style="font-size:15px;font-weight:700;color:var(--text3);">${v.fr||'—'}</span>
           <span style="font-size:13px;font-weight:600;color:var(--text);">${v.placa}</span>
@@ -8277,6 +8426,7 @@ function _vaRenderConsolidadoVeiculo(linhas) {
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${v.temFaturamento ? fmtMoeda(v.faturamento) : '—'}</td>
     </tr>`;
   }).join('');
+  _tornarTabelaOrdenavel(document.getElementById('va-consolidado-body').closest('table'));
 
   _vaConsolidadoAtual = consolidado;
 }
