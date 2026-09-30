@@ -885,9 +885,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
               <tr>
                 <th>VEÍCULO</th>
                 <th style="text-align:right;">ROTAS</th>
-                <th style="text-align:right;">VOLUME TOTAL (t)</th>
+                <th style="text-align:right;">VOLUME TOTAL</th>
                 <th style="text-align:right;">VIAGENS</th>
-                <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">PESO MÉDIO</th>
                 <th style="text-align:right;">DIAS TRABALHADOS</th>
                 <th style="text-align:right;">FATURAMENTO TOTAL</th>
               </tr>
@@ -910,9 +910,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
               <tr>
                 <th>DIA</th>
                 <th>ROTA</th>
-                <th style="text-align:right;">VOLUME (t)</th>
+                <th style="text-align:right;">VOLUME</th>
                 <th style="text-align:right;">VIAGENS</th>
-                <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">PESO MÉDIO</th>
               </tr>
             </thead>
             <tbody id="va-pordia-body"></tbody>
@@ -931,11 +931,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
               <tr>
                 <th>VEÍCULO</th>
                 <th>ROTA</th>
-                <th style="text-align:right;">VOLUME TOTAL (t)</th>
+                <th style="text-align:right;">VOLUME TOTAL</th>
                 <th style="text-align:right;">VIAGENS</th>
-                <th style="text-align:right;">PESO MÉDIO (t)</th>
+                <th style="text-align:right;">PESO MÉDIO</th>
                 <th style="text-align:right;">DIAS TRABALHADOS</th>
-                <th style="text-align:right;">VFT$/t</th>
+                <th style="text-align:right;">VFT$</th>
                 <th style="text-align:right;">FATURAMENTO</th>
               </tr>
             </thead>
@@ -1010,7 +1010,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                   <th style="text-align:right;">VIAGENS/DIA (padrão)</th>
                   <th style="text-align:right;">PESO MÉDIO CAMINHÃO</th>
                   <th style="text-align:right;">PESO MÉDIO CAVALO</th>
-                  <th style="text-align:right;">VFT$/t</th>
+                  <th style="text-align:right;">VFT$</th>
                   <th style="text-align:right;">AÇÕES</th>
                 </tr>
               </thead>
@@ -1230,7 +1230,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Volume (t)</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Volume</label>
         <input type="number" id="prog-form-volume" placeholder="ex: 1224" class="filter-input" style="width:100%;">
       </div>
       <button onclick="adicionarItemProg()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">+ Adicionar</button>
@@ -1364,7 +1364,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
               <th data-sort="tipo2" style="cursor:pointer;padding:6px 10px;text-align:center;">TIPO2 <span class="prod-sort-ico"></span></th>
               <th data-sort="aderencia" style="cursor:pointer;padding:6px 10px;text-align:center;">ADERÊNCIA <span class="prod-sort-ico"></span></th>
               <th data-sort="viagens" style="cursor:pointer;padding:6px 10px;text-align:right;">VGS <span class="prod-sort-ico"></span></th>
-              <th data-sort="volume" style="cursor:pointer;padding:6px 10px;text-align:right;">PESO (t) <span class="prod-sort-ico"></span></th>
+              <th data-sort="volume" style="cursor:pointer;padding:6px 10px;text-align:right;">PESO <span class="prod-sort-ico"></span></th>
               <th data-sort="percTon" style="cursor:pointer;padding:6px 10px;text-align:right;">PERC.TON. <span class="prod-sort-ico"></span></th>
               <th data-sort="ofensor" style="cursor:pointer;padding:6px 10px;text-align:left;">OFENSOR <span class="prod-sort-ico"></span></th>
               <th data-sort="tipoOfensor" style="cursor:pointer;padding:6px 10px;text-align:left;">TIPO OFENSOR <span class="prod-sort-ico"></span></th>
@@ -1445,7 +1445,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         </select>
       </div>
       <div>
-        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Meta mensal (t)</label>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Meta mensal</label>
         <input type="number" id="meta-input-valor" placeholder="ex: 15757" class="filter-input" style="width:130px;">
       </div>
       <button onclick="adicionarMeta()" style="padding:9px 16px;font-size:15px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">+ Adicionar</button>
@@ -2237,7 +2237,7 @@ function _nomeESobrenome(nomeCompleto) {
   return `${partes[0]} ${partes[1]}`;
 }
 
-function _fmtPesoCard(n, casas = 1) {
+function _fmtPesoCard(n, casas = 2) {
   const valor = Number(n) || 0;
   const texto = valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
   const [inteiro, decimal] = texto.split(',');
@@ -2300,7 +2300,7 @@ function _cardTrabalho(label, total, verdes, vermelhos, opts) {
   const borda = ativo ? '2px solid #388bfd' : '1px solid var(--border2)';
   const sombra = ativo ? 'box-shadow:0 0 0 3px rgba(56,139,253,0.15);' : '';
 
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   let transportadoTxt = '', perdidoTxt = '', medioTxt = '';
   if (opts.pesoStats) {
     transportadoTxt = fmt(opts.pesoStats.transportado) + 't';
@@ -2495,8 +2495,8 @@ function _renderQuadroTabela() {
       <td style="text-align:center;">${l.tipo2 || '—'}</td>
       <td style="text-align:center;">${_cellAderencia(l.aderencia)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;color:${l.percTon>0?'#f85149':'var(--text3)'};">${l.percTon > 0 ? l.percTon.toLocaleString('pt-BR',{maximumFractionDigits:0}) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:${l.percTon>0?'#f85149':'var(--text3)'};">${l.percTon > 0 ? l.percTon.toLocaleString('pt-BR',{maximumFractionDigits:2}) : '—'}</td>
       <td style="text-align:left;">${l.ofensor ? `<span style="color:#f85149;">${l.ofensor}</span>` : '—'}</td>
       <td style="text-align:left;">${l.tipoOfensor || '—'}</td>
       <td style="text-align:left;">${l.responsavel || '—'}</td>
@@ -2647,7 +2647,7 @@ window.exportarAderenciaCompletaExcel = function exportarAderenciaCompletaExcel(
     'Tipo': l.tipo || '',
     'Tipo2': l.tipo2 || '',
     'Força': l.forca || '',
-    'Volume (t)': Math.round((l.volume||0)*100)/100,
+    'Volume': Math.round((l.volume||0)*100)/100,
     'Viagens': l.viagens || 0,
     'Aderência': `${Math.round(l.aderencia||0)}%`,
     'Toneladas Perdidas': Math.round((l.percTon||0)*100)/100,
@@ -2674,7 +2674,7 @@ window.exportarQuadroExcel = function exportarQuadroExcel() {
     'Tipo': l.tipo || '',
     'Tipo2': l.tipo2 || '',
     'Força': l.forca || '',
-    'Volume (t)': Math.round((l.volume||0)*100)/100,
+    'Volume': Math.round((l.volume||0)*100)/100,
     'Viagens': l.viagens || 0,
     'Aderência': `${Math.round(l.aderencia||0)}%`,
     'Toneladas Perdidas': Math.round((l.percTon||0)*100)/100,
@@ -2890,7 +2890,7 @@ async function _prodRenderResumoProgramacao(linhasCat) {
       <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:baseline;">
         ${blocoVeiculos}
         ${bloco('Viagens: Programadas / Realizadas', viagensProgramadas, viagensRealizadas, null)}
-        ${bloco('Volume: Programado / Realizado', Math.round(volumeProgramado), Math.round(volumeRealizado), 't')}
+        ${bloco('Volume: Programado / Realizado', volumeProgramado, volumeRealizado, null)}
       </div>
     </div>`;
   } catch (err) {
@@ -2981,7 +2981,7 @@ function _renderProdResumoEBlocos(linhas) {
   _prodRenderDistribuicaoAderencia(linhasCat);
 
   document.getElementById('prod-resumo').innerHTML = `
-    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${toneladasPerdidas.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="km-resumo-lbl">Toneladas Perdidas</div></div>
+    <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${toneladasPerdidas.toLocaleString('pt-BR',{maximumFractionDigits:2})}</div><div class="km-resumo-lbl">Toneladas Perdidas</div></div>
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:${disponibilidadeMedia<70?'#f85149':'#2ea043'};">${disponibilidadeMedia.toFixed(0)}%</div><div class="km-resumo-lbl">Disponibilidade Média</div></div>
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:${aderenciaMedia<70?'#f85149':'#d29922'};">${aderenciaMedia.toFixed(0)}%</div><div class="km-resumo-lbl">Aderência Média</div></div>
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:var(--text);">${linhasCat.length}</div><div class="km-resumo-lbl">Veículos Ativos</div></div>`;
@@ -3501,7 +3501,7 @@ function _prodRenderDetalheVeiculo() {
   const body = document.getElementById('prod-modal-body');
   let html = `<div class="viagens-kpis">
     <div class="viagens-kpi">
-      <div class="viagens-kpi-num" style="color:${cores.cor};">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div>
+      <div class="viagens-kpi-num" style="color:${cores.cor};">${volumeTotal.toLocaleString('pt-BR',{maximumFractionDigits:2})}</div>
       <div class="viagens-kpi-lbl">Toneladas</div>
     </div>
     <div class="viagens-kpi">
@@ -3532,7 +3532,7 @@ function _prodRenderDetalheVeiculo() {
           <th>Motivo / Justificativa</th>
           <th style="text-align:right;">Aderência</th>
           <th style="text-align:right;">Viagens</th>
-          <th style="text-align:right;">Volume (t)</th>
+          <th style="text-align:right;">Volume</th>
           <th style="text-align:right;">Perc. Ton.</th>
         </tr>
       </thead>
@@ -3544,8 +3544,8 @@ function _prodRenderDetalheVeiculo() {
               <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
               <td class="td-fat" style="color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
               <td class="td-km">${d.viagens}</td>
-              <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
-              <td class="td-km">${(d.percTon||0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+              <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+              <td class="td-km">${(d.percTon||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
             </tr>`).join('')
         }
       </tbody>
@@ -3554,8 +3554,8 @@ function _prodRenderDetalheVeiculo() {
           <td colspan="2" style="color:var(--text3);font-size:14px;">TOTAL${_prodVeiculoOfensorFiltro ? ' (filtrado)' : ''}</td>
           <td></td>
           <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.viagens,0)}</td>
-          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.volume,0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
-          <td class="td-km">${historicoExibido.reduce((s,l)=>s+(l.percTon||0),0).toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.volume,0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+          <td class="td-km">${historicoExibido.reduce((s,l)=>s+(l.percTon||0),0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
         </tr>
       </tfoot>
     </table>
@@ -3999,7 +3999,7 @@ const VOL_ABA_COLS = {
   local: [
     { key: 'chave', label: 'MINA/ROTA', align: 'left' },
     { key: 'viagens', label: 'VIAGENS', align: 'right' },
-    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'volume', label: 'VOLUME', align: 'right' },
     { key: 'pct', label: '% DO TOTAL', align: 'right' },
     { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
     { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
@@ -4007,7 +4007,7 @@ const VOL_ABA_COLS = {
   origem: [
     { key: 'chave', label: 'ORIGEM', align: 'left' },
     { key: 'viagens', label: 'VIAGENS', align: 'right' },
-    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'volume', label: 'VOLUME', align: 'right' },
     { key: 'pct', label: '% DO TOTAL', align: 'right' },
     { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
     { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
@@ -4015,7 +4015,7 @@ const VOL_ABA_COLS = {
   destino: [
     { key: 'chave', label: 'DESTINO', align: 'left' },
     { key: 'viagens', label: 'VIAGENS', align: 'right' },
-    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'volume', label: 'VOLUME', align: 'right' },
     { key: 'pct', label: '% DO TOTAL', align: 'right' },
     { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
     { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
@@ -4025,14 +4025,14 @@ const VOL_ABA_COLS = {
     { key: 'tipo2', label: 'TIPO2', align: 'center' },
     { key: 'forca', label: 'FORÇA', align: 'center' },
     { key: 'viagens', label: 'VIAGENS', align: 'right' },
-    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'volume', label: 'VOLUME', align: 'right' },
     { key: 'pct', label: '% DO TOTAL', align: 'right' },
     { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' }
   ],
   tipo: [
     { key: 'chave', label: 'TIPO2', align: 'left' },
     { key: 'viagens', label: 'VIAGENS', align: 'right' },
-    { key: 'volume', label: 'VOLUME (t)', align: 'right' },
+    { key: 'volume', label: 'VOLUME', align: 'right' },
     { key: 'pct', label: '% DO TOTAL', align: 'right' },
     { key: 'pesoMedio', label: 'PESO MÉDIO/VIAGEM', align: 'right' },
     { key: 'veiculos', label: 'VEÍCULOS', align: 'right' }
@@ -4088,7 +4088,7 @@ function _volRenderTabelaGenerica() {
     tbody.innerHTML = ordenado.map(g => {
       const tds = cols.map(c => {
         let val = g[c.key];
-        if (c.key === 'volume' || c.key === 'pesoMedio') val = (val||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+        if (c.key === 'volume' || c.key === 'pesoMedio') val = (val||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
         else if (c.key === 'pct') val = (val||0).toLocaleString('pt-BR',{maximumFractionDigits:1}) + '%';
         else if (c.key === 'viagens' || c.key === 'veiculos') val = (val||0).toLocaleString('pt-BR');
         if (val === '' || val === undefined || val === null) val = '—';
@@ -4246,17 +4246,17 @@ function _volStatsFluxo(filtroFn) {
 
 // Formata uma linha de quebra no padrão: "FROTA - 76,4% - 16.250T - 677vg - 24t/vg"
 function _volLinhaTexto(chave, pct, volume, viagens, pesoMedio) {
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const fmtPct = pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
     <span style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${chave}</span>
-    <span style="font-size:15px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volume)}T</span>
+    <span style="font-size:15px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(volume)}</span>
   </div>
-  <div style="text-align:right;font-size:13px;color:var(--text3);margin-top:1px;">${fmtPct}% · ${viagens.toLocaleString('pt-BR')} viagens · ${fmt(pesoMedio)}t/vg</div>`;
+  <div style="text-align:right;font-size:13px;color:var(--text3);margin-top:1px;">${fmtPct}% · ${viagens.toLocaleString('pt-BR')} viagens · ${fmt(pesoMedio)}/vg</div>`;
 }
 
 function _volBlocoBreakdown(stats, dimensao, cardKey) {
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const ROTULOS = { origem: 'Origem', destino: 'Destino', rota: 'Mina × Destino', forca: 'Força', tipo: 'Tipo' };
   const rotulo = ROTULOS[dimensao] || 'Item';
   const breakdown = _volAgrupar(dimensao, stats.viagensFiltradas).sort((a,b) => b.volume - a.volume);
@@ -4297,18 +4297,18 @@ function _volBlocoBreakdown(stats, dimensao, cardKey) {
 }
 
 function _volCardHTML(opts) {
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const dimensoes = opts.dimensoesBreakdown || [];
   const breakdownHtml = dimensoes.map(dim => _volBlocoBreakdown(opts.stats, dim, opts.chaveMeta)).join('');
   const pesoMedioViagem = opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0;
 
   // Quando o card tem uma única quebra (rota/origem/destino) que particiona 100% das viagens,
-  // o "Total" do topo usa a soma dos valores JÁ ARREDONDADOS de cada linha (os mesmos números
-  // inteiros que aparecem na tela) — nunca a soma dos valores brutos seguida de arredondamento,
-  // porque essas duas contas podem dar resultados diferentes. Cada linha continua com seu
-  // próprio valor real, igual ao que aparece no detalhe daquela rota/origem/destino.
+  // o "Total" do topo usa a soma dos valores exibidos em cada linha (2 casas decimais, sem
+  // nenhum arredondamento a mais) — nunca a soma dos valores brutos seguida de arredondamento
+  // à parte, porque essas duas contas podem dar resultados diferentes. Cada linha continua com
+  // seu próprio valor real, igual ao que aparece no detalhe daquela rota/origem/destino.
   const totalExibido = dimensoes.length === 1
-    ? _volAgrupar(dimensoes[0], opts.stats.viagensFiltradas).reduce((s,b) => s + Math.round(b.volume), 0)
+    ? _volAgrupar(dimensoes[0], opts.stats.viagensFiltradas).reduce((s,b) => s + b.volume, 0)
     : opts.stats.total;
 
   return `<div class="table-card" id="vol-card-${opts.chaveMeta}" style="padding:16px 18px;border-top:3px solid ${opts.cor};">
@@ -4322,11 +4322,11 @@ function _volCardHTML(opts) {
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
         <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(totalExibido)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, opts.chaveMeta)}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, opts.chaveMeta)}</div>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
@@ -4336,7 +4336,7 @@ function _volCardHTML(opts) {
       </div>
       <div style="text-align:right;">
         <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(pesoMedioViagem)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem</div>
       </div>
     </div>
     <div id="vol-card-meta-${opts.chaveMeta}"></div>
@@ -4347,7 +4347,7 @@ function _volCardHTML(opts) {
 // Card Fábrica: a Fábrica recebe de 2 fontes — Pátio 4 (estoque) ou direto das minas (Material Novo).
 // Mostra primeiro esse resumo de 2 fontes, depois a quebra do "Material Novo" por mina de origem.
 function _volCardFabricaHTML(opts) {
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const viagens = opts.stats.viagensFiltradas;
   const doPatio4 = viagens.filter(_volOrigemPatio4);
   const materialNovo = viagens.filter(v => !_volOrigemPatio4(v));
@@ -4391,11 +4391,11 @@ function _volCardFabricaHTML(opts) {
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
         <div style="font-size:27px;font-weight:700;color:${opts.cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.total)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Total</div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.mediaDia)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia (t) · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, 'fabrica')}</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média/dia · ${opts.stats.nDias}d${_volSetaTendenciaHTML(opts.stats.tendencia, 'fabrica')}</div>
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
@@ -4405,7 +4405,7 @@ function _volCardFabricaHTML(opts) {
       </div>
       <div style="text-align:right;">
         <div style="font-size:17px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(opts.stats.viagens > 0 ? opts.stats.total / opts.stats.viagens : 0)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peso Médio/Viagem</div>
       </div>
     </div>
     <div id="vol-card-meta-fabrica"></div>
@@ -4781,7 +4781,7 @@ async function _volAtualizarCardEstoque() {
 function _volPintarCardEstoque(dados) {
   const cardEl = document.getElementById('vol-card-estoque-patio4');
   if (!cardEl) return;
-  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const cor = dados.estoque < 0 ? '#f85149' : '#a371f7';
 
   const diasTxt = dados.diasRestantes === null
@@ -4799,11 +4799,11 @@ function _volPintarCardEstoque(dados) {
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div>
         <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.estoque)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Estoque atual (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Estoque atual</div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:19px;font-weight:700;color:var(--text2);font-family:'DM Mono',monospace;line-height:1.1;">${fmt(dados.mediaSaida30d)}</div>
-        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média saída/dia (t)</div>
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Média saída/dia</div>
       </div>
     </div>
     <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);text-align:center;">
@@ -4864,9 +4864,9 @@ function abrirVolItem(dimensao, chave) {
 
   const body = document.getElementById('vol-item-body');
   let html = `<div class="viagens-kpis">
-    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#388bfd;">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</div><div class="viagens-kpi-lbl">Toneladas</div></div>
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#388bfd;">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</div><div class="viagens-kpi-lbl">Toneladas</div></div>
     <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:#3fb950;">${totalViagens}</div><div class="viagens-kpi-lbl">Viagens</div></div>
-    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:var(--text);font-size:17px;">${totalViagens>0 ? (totalVolume/totalViagens).toLocaleString('pt-BR',{maximumFractionDigits:0}) : '0'}</div><div class="viagens-kpi-lbl">Peso Médio/Viagem</div></div>
+    <div class="viagens-kpi"><div class="viagens-kpi-num" style="color:var(--text);font-size:17px;">${totalViagens>0 ? (totalVolume/totalViagens).toLocaleString('pt-BR',{maximumFractionDigits:2}) : '0'}</div><div class="viagens-kpi-lbl">Peso Médio/Viagem</div></div>
   </div>`;
 
   if (porDia.length === 0) {
@@ -4874,16 +4874,16 @@ function abrirVolItem(dimensao, chave) {
   } else {
     html += `<div style="overflow-x:auto;">
       <table class="viagens-table">
-        <thead><tr><th>Data</th><th style="text-align:right;">Viagens</th><th style="text-align:right;">Volume (t)</th></tr></thead>
+        <thead><tr><th>Data</th><th style="text-align:right;">Viagens</th><th style="text-align:right;">Volume</th></tr></thead>
         <tbody>${porDia.map(d => `<tr>
             <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.dia}</td>
             <td class="td-km">${d.viagens}</td>
-            <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+            <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
           </tr>`).join('')}</tbody>
         <tfoot><tr>
             <td style="color:var(--text3);font-size:14px;">TOTAL</td>
             <td class="td-km">${totalViagens}</td>
-            <td class="td-km">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td>
+            <td class="td-km">${totalVolume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
           </tr></tfoot>
       </table>
     </div>`;
@@ -5023,7 +5023,7 @@ function _renderMetasCorpo() {
     let pesoTipoHtml = '';
     const tipos = Object.entries(dados.porTipo || {});
     if (tipos.length > 0) {
-      const partes = tipos.sort((a,b) => b[1].volume - a[1].volume).map(([tipo, d]) => `${tipo} ${(d.volume/d.viagens).toLocaleString('pt-BR',{maximumFractionDigits:0})}t/vg`).join(' · ');
+      const partes = tipos.sort((a,b) => b[1].volume - a[1].volume).map(([tipo, d]) => `${tipo} ${(d.volume/d.viagens).toLocaleString('pt-BR',{maximumFractionDigits:2})}/vg`).join(' · ');
       pesoTipoHtml = `<div style="font-size:13px;color:var(--text3);margin-top:2px;">🚛 Peso médio: ${partes}</div>`;
     }
 
@@ -5443,7 +5443,7 @@ function _renderMinasTabela() {
     return;
   }
 
-  const fmt = (n) => n === null || n === undefined ? '—' : `${Math.round(n*10)/10}t/vg`;
+  const fmt = (n) => n === null || n === undefined ? '—' : `${n.toLocaleString('pt-BR',{maximumFractionDigits:2})}/vg`;
   const ordenadas = _minasCadastro.slice().sort((a,b) => (a.origem||'').localeCompare(b.origem||'') || (a.destino||'').localeCompare(b.destino||''));
   body.innerHTML = ordenadas.map(m => {
     const peso = (_minasPesoMedioCache || {})[_chaveRota(m.origem, m.destino)] || { caminhao: null, cavalo: null };
@@ -6319,15 +6319,15 @@ function _renderProgCorpo() {
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
         <div>
           <div style="font-size:27px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(total)}</div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa (t)</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Meta Alcoa</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:${corCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalProgramado)} <span style="font-size:14px;">(${pctCard}%)</span></div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Prog. NHL (t)</div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Prog. NHL</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:${corRealizadoCard};font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:2px;">${fmt(totalRealizado)} <span style="font-size:14px;">(${pctRealizadoCard}%)</span></div>
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado (t) · <span style="color:${difCard>=0?'#2ea043':'#f85149'};">${difCard>=0?'+':'−'}${fmt(Math.abs(difCard))}</span></div>
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Realizado · <span style="color:${difCard>=0?'#2ea043':'#f85149'};">${difCard>=0?'+':'−'}${fmt(Math.abs(difCard))}</span></div>
         </div>
       </div>
       <div style="font-size:12px;color:var(--text3);margin-top:6px;">🚛 Viagens: <strong style="color:var(--text2);">${viagensProgCard}</strong> programadas · <strong style="color:var(--text2);">${viagensRealCard}</strong> realizadas</div>
@@ -7448,7 +7448,7 @@ function _progRenderSelecaoVeiculos() {
       <td style="font-size:12px;color:var(--text3);">${v.tipo2}</td>
       <td style="font-size:12px;color:var(--text3);">${v.forca}</td>
       <td onclick="event.stopPropagation()">${viagensInput}</td>
-      <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toFixed(1)}t/vg</td>
+      <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toLocaleString('pt-BR',{maximumFractionDigits:2})}/vg</td>
       <td style="font-size:13px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;white-space:nowrap;">${fmt(pesoEstimado)}</td>
       <td style="text-align:center;">${statusTxt}</td>
     </tr>`;
@@ -7613,7 +7613,7 @@ function _progRenderNaoProgramados() {
       <td style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;">${v.placa}</td>
       <td style="font-size:12px;color:var(--text3);">${v.tipo2}</td>
       <td style="font-size:12px;color:var(--text3);">${v.forca}</td>
-      <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toFixed(1)}t/vg</td>
+      <td style="font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap;">${v.pesoMedio.toLocaleString('pt-BR',{maximumFractionDigits:2})}/vg</td>
       <td>
         <select class="filter-input" style="min-width:150px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', this.value, null, null)">
           ${opcoesMotivo}
@@ -7624,7 +7624,7 @@ function _progRenderNaoProgramados() {
       </td>
       <td>
         <input type="number" min="0" placeholder="0" value="${viagensPerdidasVal}" title="Quantas viagens esse veículo faria se tivesse sido programado" class="filter-input" style="width:65px;font-size:12px;padding:4px 6px;" onchange="_progSalvarJustificativa('${v.placa}', null, null, this.value)">
-        ${volumePerdidoEstimado > 0 ? `<div style="font-size:10px;color:#f85149;white-space:nowrap;margin-top:2px;">≈ ${Math.round(volumePerdidoEstimado)} perdidos</div>` : ''}
+        ${volumePerdidoEstimado > 0 ? `<div style="font-size:10px;color:#f85149;white-space:nowrap;margin-top:2px;">≈ ${volumePerdidoEstimado.toLocaleString('pt-BR',{maximumFractionDigits:2})} perdidos</div>` : ''}
       </td>
       <td style="text-align:center;">${temMotivo ? '<span style="color:#2ea043;font-size:15px;">✓</span>' : '<span style="color:#f85149;font-size:11px;white-space:nowrap;">⚠ pendente</span>'}</td>
     </tr>`;
@@ -8054,9 +8054,9 @@ function _vaRenderTabela() {
         <div style="font-size:10px;color:var(--text3);">${l.forca||'—'}</div>
       </td>
       <td>${l.origem} <span style="color:var(--text3);">→</span> ${l.destino}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${l.diasTrabalhados}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${l.vft!=null ? fmtMoeda(l.vft) : '—'}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${fmtMoeda(l.faturamento)}</td>
@@ -8099,9 +8099,9 @@ function _vaRenderPorDia(placaSelecionada) {
         return `<tr>
           <td style="font-family:'DM Mono',monospace;">${dia}/${mes}/${ano}</td>
           <td>${l.origem} <span style="color:var(--text3);">→</span> ${l.destino}</td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         </tr>`;
       }).join('');
 
@@ -8142,9 +8142,9 @@ function _vaRenderConsolidadoVeiculo(linhas) {
         <div style="font-size:10px;color:var(--text3);">${v.forca||'—'}</div>
       </td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${v.rotas}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${v.peso.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${v.peso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${v.viagens}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${pesoMedio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${v.diasSet.size}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${v.temFaturamento ? fmtMoeda(v.faturamento) : '—'}</td>
     </tr>`;
@@ -8189,11 +8189,11 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
     'Tipo2': l.tipo2 || '',
     'Origem': l.origem,
     'Destino': l.destino,
-    'Volume Total (t)': Math.round((l.peso||0) * 10) / 10,
+    'Volume Total': Math.round((l.peso||0)*100)/100,
     'Viagens': l.viagens,
-    'Peso Médio (t)': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0) * 10) / 10,
+    'Peso Médio': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0)*100)/100,
     'Dias Trabalhados': l.diasTrabalhados,
-    'VFT$/t': l.vft != null ? Math.round(l.vft*100)/100 : '',
+    'VFT$': l.vft != null ? Math.round(l.vft*100)/100 : '',
     'Faturamento': l.faturamento != null ? Math.round(l.faturamento*100)/100 : ''
   }));
   const dadosConsolidado = _vaConsolidadoAtual.map(v => ({
@@ -8201,9 +8201,9 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
     'Placa': v.placa,
     'Força': v.forca || '',
     'Rotas': v.rotas,
-    'Volume Total (t)': Math.round((v.peso||0) * 10) / 10,
+    'Volume Total': Math.round((v.peso||0)*100)/100,
     'Viagens': v.viagens,
-    'Peso Médio (t)': Math.round((v.viagens > 0 ? v.peso/v.viagens : 0) * 10) / 10,
+    'Peso Médio': Math.round((v.viagens > 0 ? v.peso/v.viagens : 0)*100)/100,
     'Dias Trabalhados': v.diasSet.size,
     'Faturamento Total': v.temFaturamento ? Math.round(v.faturamento*100)/100 : ''
   }));
@@ -8226,9 +8226,9 @@ window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
       'Dia': l.dia.split('-').reverse().join('/'),
       'Origem': l.origem,
       'Destino': l.destino,
-      'Volume (t)': Math.round((l.peso||0) * 10) / 10,
+      'Volume': Math.round((l.peso||0)*100)/100,
       'Viagens': l.viagens,
-      'Peso Médio (t)': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0) * 10) / 10
+      'Peso Médio': Math.round((l.viagens > 0 ? l.peso/l.viagens : 0)*100)/100
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dadosPorDia), `Por Dia - ${veiculoFiltro}`.slice(0,31));
   }
@@ -8496,7 +8496,7 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
   });
 
   const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}" style="flex-shrink:0;">
-    ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${f.valor.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} (${f.pct}%)</title></path>`).join('')}
+    ${fatias.map(f => `<path d="${f.path}" fill="${f.cor}" stroke="var(--bg2)" stroke-width="2"><title>${f.nome}: ${f.valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} (${f.pct}%)</title></path>`).join('')}
   </svg>`;
 
   // Padrão fixo: legenda sempre ao LADO do gráfico, nunca embaixo — por isso sem flex-wrap aqui,
