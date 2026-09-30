@@ -3358,11 +3358,12 @@ window.renderProdutividade = async function renderProdutividade() {
     const hoje = new Date();
     const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
 
-    // a partir do corte, adiciona os dias do mês corrente que já têm volume real importado pra
-    // aparecerem no seletor de Dia mesmo sem nenhuma planilha ADERENCIA jamais importada
-    if (mesAtualKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) {
-      (await _diasDoMesParaExibicao(mesAtualKey)).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
-    }
+    // a partir do corte, adiciona TODOS os dias com volume real importado (não só o mês corrente
+    // do calendário) — assim um mês com dado já lançado adiantado (ex.: Outubro sendo preenchido
+    // antes de outubro "chegar") aparece nos seletores de Dia/Mês normalmente.
+    (await _obterDiasVolumeReal()).forEach(d => {
+      if (_diaParaChave(d) >= GESTAO_ADERENCIA_CUTOFF && !diasTodos.includes(d)) diasTodos.push(d);
+    });
 
     const dias = diasTodos.slice().sort((a,b) => {
       const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
