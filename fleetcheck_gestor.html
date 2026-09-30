@@ -514,6 +514,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           Ofensores
         </button>
         <button onclick="exportarAderenciaCompletaExcel()" title="Exportar todos os veículos (Frota + Terceiro) em Excel" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#2ea043;cursor:pointer;font-size:13px;font-weight:600;">📊 Exportar Tudo</button>
+        <button onclick="abrirPerdaPorRotaModal()" title="Perda de Volume por Rota" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#f85149;cursor:pointer;font-size:13px;font-weight:600;">📉 Perda por Rota</button>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-ofensores">
@@ -1334,6 +1335,20 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button class="panel-close" onclick="document.getElementById('prod-overlay').style.display='none'">&#x2715;</button>
     </div>
     <div class="panel-body" id="prod-modal-body"></div>
+  </div>
+</div>
+
+<!-- PERDA DE VOLUME POR ROTA -->
+<div id="perda-rota-overlay" onclick="if(event.target===this) fecharPerdaPorRotaModal()" style="display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;height:100%;max-width:1300px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);">📉 Perda de Volume por Rota</div>
+        <div id="perda-rota-meta" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
+      </div>
+      <button onclick="fecharPerdaPorRotaModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 22px;" id="perda-rota-corpo"></div>
   </div>
 </div>
 
@@ -2637,6 +2652,119 @@ window.fecharQuadroModal = function fecharQuadroModal() {
 // arquivo é sempre igual ao que está sendo mostrado.
 // Exporta TODOS os veículos do período atual (Frota + Terceiro, todas as categorias) de uma vez
 // só — direto da tela principal, sem precisar abrir o quadro de Frota ou Terceiro separado.
+// ══════════════════════════════════════
+// PERDA DE VOLUME POR ROTA — mesmo período já carregado na tela principal de Aderência
+// (_prodLinhasAtual), classificado em 4 grupos: Mina×Fábrica, Mina×Pátio4, Pátio4×Fábrica e
+// Veículo Sem Programação. Reaproveita as mesmas funções de reconhecer Pátio4/Fábrica já usadas
+// em Volume Transportado.
+// ══════════════════════════════════════
+function _classificarRotaPerda(linha) {
+  if (!linha.origem && !linha.destino) return 'sem_prog';
+  const origemPatio = _volEhPatio4(linha.origem);
+  if (origemPatio && _volDestinoFabrica(linha)) return 'patio_fabrica';
+  if (!origemPatio && _volDestinoFabrica(linha)) return 'mina_fabrica';
+  if (!origemPatio && _volEhPatio4(linha.destino)) return 'mina_patio4';
+  return 'sem_prog'; // rota não reconhecida (ex.: dado anterior ao corte, sem origem/destino gravado)
+}
+
+window.abrirPerdaPorRotaModal = function abrirPerdaPorRotaModal() {
+  document.getElementById('perda-rota-overlay').style.display = 'flex';
+  _renderPerdaPorRota();
+};
+
+window.fecharPerdaPorRotaModal = function fecharPerdaPorRotaModal() {
+  document.getElementById('perda-rota-overlay').style.display = 'none';
+};
+
+function _renderPerdaPorRota() {
+  const cont = document.getElementById('perda-rota-corpo');
+  const metaEl = document.getElementById('perda-rota-meta');
+  // Em Dia, _prodLinhasAtual já é a granularidade certa (um dia só, sem agregação). Em Mês/Ano,
+  // _prodLinhasAtual vem AGREGADO por veículo (_agregarRegistrosDiarios), e essa agregação não
+  // carrega origem/destino — um mesmo veículo pode rodar rotas diferentes em dias diferentes do
+  // mês, então não tem como resumir isso numa rota só. Por isso, pra Mês/Ano usamos os registros
+  // brutos por dia (_prodDiasRegistrosPeriodo), que preservam a rota de cada ocorrência.
+  const linhas = _prodModoView === 'dia'
+    ? (_prodLinhasAtual || [])
+    : (_prodDiasRegistrosPeriodo || []).flatMap(d => d.linhas);
+
+  if (linhas.length === 0) {
+    metaEl.textContent = '';
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum dado carregado — selecione um período na tela de Aderência primeiro.</div>';
+    return;
+  }
+
+  const rotuloPeriodo = _prodModoView === 'dia' ? (_prodDiaAtual||'—') : _prodModoView === 'mes' ? _mesParaLabel(_prodMesAtual) : (_prodAnoAtual||'—');
+  metaEl.textContent = `Período: ${rotuloPeriodo}`;
+
+  const categorias = {
+    mina_fabrica: { titulo: '⛏️ Mina × Fábrica', cor: '#f85149', linhas: [] },
+    mina_patio4: { titulo: '⛏️ Mina × Pátio 4', cor: '#d29922', linhas: [] },
+    patio_fabrica: { titulo: '🏭 Pátio 4 × Fábrica', cor: '#388bfd', linhas: [] },
+    sem_prog: { titulo: '🚫 Veículo Sem Programação', cor: '#a371f7', linhas: [] },
+  };
+
+  linhas.forEach(l => {
+    if (!((Number(l.percTon)||0) > 0)) return; // só entra quem realmente teve toneladas perdidas
+    categorias[_classificarRotaPerda(l)].linhas.push(l);
+  });
+
+  const totalGeral = Object.values(categorias).reduce((s,c) => s + c.linhas.reduce((s2,l) => s2+(l.percTon||0), 0), 0);
+  const fmtT = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+
+  const cardsHtml = Object.values(categorias).map(c => {
+    const total = c.linhas.reduce((s,l) => s+(l.percTon||0), 0);
+    const viagens = c.linhas.reduce((s,l) => s+(Number(l.viagens)||0), 0);
+    const pct = totalGeral > 0 ? Math.round((total/totalGeral)*1000)/10 : 0;
+    return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${c.cor};">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">${c.titulo}</div>
+      <div style="font-size:26px;font-weight:700;color:${c.cor};font-family:'DM Mono',monospace;">${fmtT(total)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px;">${viagens} viagem(ns) · ${pct}% do total perdido</div>
+    </div>`;
+  }).join('');
+
+  // Detalhamento por rota específica (agrupando as ocorrências), pras 3 categorias que têm rota real
+  const detalheHtml = ['mina_fabrica','mina_patio4','patio_fabrica'].map(catKey => {
+    const c = categorias[catKey];
+    if (c.linhas.length === 0) return '';
+    const porRota = {};
+    c.linhas.forEach(l => {
+      const chave = `${l.origem} → ${l.destino}`;
+      if (!porRota[chave]) porRota[chave] = { total: 0, viagens: 0 };
+      porRota[chave].total += l.percTon || 0;
+      porRota[chave].viagens += Number(l.viagens) || 0;
+    });
+    const linhasRota = Object.entries(porRota).sort((a,b) => b[1].total - a[1].total);
+    return `<div class="table-card" style="padding:14px 18px;margin-top:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${c.titulo} — Detalhado por Rota</div>
+      <table style="width:100%;font-size:13px;">
+        <thead><tr><th style="text-align:left;">ROTA</th><th style="text-align:right;">VIAGENS</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
+        <tbody>${linhasRota.map(([rota,d]) => `<tr>
+            <td>${rota}</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;">${d.viagens}</td>
+            <td style="text-align:right;font-family:'DM Mono',monospace;color:${c.cor};">${fmtT(d.total)}</td>
+          </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  // Sem programação não tem rota pra agrupar — lista direto por veículo
+  const semProg = categorias.sem_prog.linhas.slice().sort((a,b) => (b.percTon||0)-(a.percTon||0));
+  const semProgHtml = semProg.length === 0 ? '' : `<div class="table-card" style="padding:14px 18px;margin-top:16px;">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">${categorias.sem_prog.titulo} — Detalhado por Veículo</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Inclui veículos não programados (com estimativa de viagens perdidas informada) e dados de períodos anteriores ao corte, sem rota registrada.</div>
+    <table style="width:100%;font-size:13px;">
+      <thead><tr><th style="text-align:left;">VEÍCULO</th><th style="text-align:right;">TONELADAS PERDIDAS</th></tr></thead>
+      <tbody>${semProg.map(l => `<tr>
+          <td>${l.fr||'—'} ${l.placa||''}</td>
+          <td style="text-align:right;font-family:'DM Mono',monospace;color:${categorias.sem_prog.cor};">${fmtT(l.percTon||0)}</td>
+        </tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+
+  cont.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;">${cardsHtml}</div>${detalheHtml}${semProgHtml}`;
+}
+
 window.exportarAderenciaCompletaExcel = function exportarAderenciaCompletaExcel() {
   const linhas = _prodLinhasAtual;
   if (!linhas || linhas.length === 0) { showToast('✖ Nada pra exportar — selecione um período com dados primeiro.'); return; }
