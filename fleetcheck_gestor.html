@@ -3580,10 +3580,20 @@ function _detectarDomingosDisfarce(diasComDadoISO) {
     }
 
     const inicioBusca = new Date(ano, mes - 1, ultimoDiaNormal + 1);
+    // o domingo-candidato nunca pode vir de depois do mês IMEDIATAMENTE seguinte — a
+    // particularidade real sempre esconde o fim de um mês nos domingos do mês seguinte, nunca
+    // mais longe que isso. Sem esse limite travado no calendário (uma janela larga em dias, tipo
+    // 40, não é suficiente): se um mês anterior também tiver dias faltando, ele pode "roubar" um
+    // domingo que na verdade pertence ao par (mês atual → mês seguinte), empurrando toda a
+    // cadeia um passo adiante em cascata — foi exatamente isso que causou Agosto aparecer
+    // resolvido com domingos de Outubro, que são de Setembro→Outubro, não de Agosto→Setembro.
+    const anoMesSeguinte = mes === 12 ? ano + 1 : ano;
+    const mesSeguinteNum = mes === 12 ? 1 : mes + 1;
+    const limiteBusca = new Date(anoMesSeguinte, mesSeguinteNum, 0); // dia 0 do mês seguinte = último dia do mês seguinte certo
     const candidatos = ordenados.filter(iso => {
       if (usados.has(iso)) return false;
       const d = new Date(iso + 'T00:00:00');
-      if (d < inicioBusca) return false;
+      if (d < inicioBusca || d > limiteBusca) return false;
       return d.getDay() === 0; // domingo
     });
 
@@ -3599,13 +3609,14 @@ function _detectarDomingosDisfarce(diasComDadoISO) {
 
 async function _obterMapaDiasDisfarce() {
   if (_mapaDiasDisfarceCache) return _mapaDiasDisfarceCache;
-  const diasReais = await _obterDiasVolumeReal(); // formato 'DD/MM/YYYY' — pode incluir datas bem
-  // anteriores ao corte (ex.: histórico importado pra comparação de tendência em Volume
-  // Transportado). O "domingo-disfarce" é uma particularidade só da operação atual — restringe a
-  // detecção a partir do corte, pra nunca mexer em dado antigo por engano.
-  const diasISO = diasReais
-    .map(d => _diaParaChave(d))
-    .filter(iso => iso >= GESTAO_ADERENCIA_CUTOFF);
+  // IMPORTANTE: não filtra por data aqui — pra detectar que o fim de Agosto está escondido em
+  // domingos de Setembro, o algoritmo PRECISA enxergar os próprios dias de Agosto (senão não tem
+  // como saber qual foi o "último dia normal" daquele mês, e a detecção simplesmente não roda pro
+  // mês anterior ao corte). A proteção contra dado antigo (ex.: 2025) fica só na hora de APLICAR
+  // o mapa (em abrirDetalheVeiculo), que já confere se o registro é posterior ao corte antes de
+  // usar qualquer resolução — aqui, deixar passar tudo é seguro.
+  const diasReais = await _obterDiasVolumeReal(); // formato 'DD/MM/YYYY'
+  const diasISO = diasReais.map(d => _diaParaChave(d));
   _mapaDiasDisfarceCache = _detectarDomingosDisfarce(diasISO);
   return _mapaDiasDisfarceCache;
 }
