@@ -5379,7 +5379,7 @@ document.addEventListener('click', function(e) {
   abrirVolItem(_volAba, row.getAttribute('data-chave'));
 });
 
-function abrirVolItem(dimensao, chave) {
+async function abrirVolItem(dimensao, chave) {
   const diasReg = _volDiasRegistros || [];
   const filtro = v => {
     if (dimensao === 'local') return (v.local||'—') === chave;
@@ -5390,11 +5390,20 @@ function abrirVolItem(dimensao, chave) {
     if (dimensao === 'forca') return ((v.forca||'—').toString().trim().toUpperCase() || '—') === chave;
     return (v.tipo2||'—') === chave;
   };
-  const porDia = diasReg.map(({ dia, viagens }) => {
+  let porDia = diasReg.map(({ dia, viagens }) => {
     const filtradas = (viagens || []).filter(filtro);
     return { dia, viagens: filtradas.length, volume: Math.round(filtradas.reduce((s,v) => s+(v.peso||0), 0) * 100) / 100 };
-  }).filter(d => d.viagens > 0).sort((a,b) => {
-    const da = a.dia.split('/').reverse().join(''); const db = b.dia.split('/').reverse().join('');
+  }).filter(d => d.viagens > 0);
+
+  // Resolve a data REAL (domingo-disfarce) — mesma lógica usada em Aderência/Volume Analítico.
+  const mapaDisfarce = await _obterMapaDiasDisfarce();
+  porDia.forEach(d => {
+    const iso = _diaParaChave(d.dia);
+    const isoReal = (iso >= GESTAO_ADERENCIA_CUTOFF && mapaDisfarce[iso]) || iso;
+    d.diaReal = isoReal === iso ? d.dia : isoReal.split('-').reverse().join('/');
+  });
+  porDia = porDia.sort((a,b) => {
+    const da = a.diaReal.split('/').reverse().join(''); const db = b.diaReal.split('/').reverse().join('');
     return da.localeCompare(db);
   });
 
@@ -5418,7 +5427,7 @@ function abrirVolItem(dimensao, chave) {
       <table class="viagens-table">
         <thead><tr><th>Data</th><th style="text-align:right;">Viagens</th><th style="text-align:right;">Volume</th></tr></thead>
         <tbody>${porDia.map(d => `<tr>
-            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.dia}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;" title="${d.diaReal!==d.dia ? 'Gravado no sistema como '+d.dia : ''}">${d.diaReal}${d.diaReal!==d.dia ? ' <span style="color:#d29922;">✦</span>' : ''}</td>
             <td class="td-km">${d.viagens}</td>
             <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
           </tr>`).join('')}</tbody>
@@ -7444,7 +7453,7 @@ function _gestaoLinhaVeiculo(v) {
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">${v.tipo2} · ${v.forca}</div>
       <div style="font-size:11px;font-weight:600;color:${primeiroNomeMotorista?'#388bfd':'var(--text3)'};margin-top:3px;display:flex;align-items:center;gap:3px;">👤 ${primeiroNomeMotorista || 'Selecionar motorista'}</div>
-      ${mediaKmL != null ? `<div style="font-size:10px;color:#2ea043;margin-top:2px;">⛽ ${mediaKmL.toLocaleString('pt-BR',{maximumFractionDigits:2})} km/L</div>` : ''}
+      ${mediaKmL != null ? `<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:2px;"><span style="font-size:10px;color:#2ea043;">⛽</span><span style="font-size:14px;font-weight:700;color:#2ea043;">${mediaKmL.toLocaleString('pt-BR',{maximumFractionDigits:2})} km/L</span></div>` : ''}
     </div>
     <div style="border-top:1px solid var(--border2);padding:4px 12px;background:${corFaixaAderencia};display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</span>
@@ -8708,7 +8717,7 @@ function _vaRenderTabela() {
 // Mostra o que o veículo selecionado fez, dia a dia — uma linha por Dia×Rota, ordenado do dia
 // mais antigo pro mais recente. Só aparece quando um veículo específico está selecionado no
 // filtro (não faz sentido detalhar dia a dia com vários veículos misturados na mesma lista).
-function _vaRenderPorDia(placaSelecionada) {
+async function _vaRenderPorDia(placaSelecionada) {
   const card = document.getElementById('va-pordia-card');
   if (!card) return;
   if (!placaSelecionada) { card.style.display = 'none'; return; }
@@ -8721,7 +8730,16 @@ function _vaRenderPorDia(placaSelecionada) {
     grupos[chave].peso += Number(v.peso)||0;
     grupos[chave].viagens += 1;
   });
-  const linhas = Object.values(grupos).sort((a,b) => a.dia.localeCompare(b.dia) || a.origem.localeCompare(b.origem));
+
+  // Resolve a data REAL de cada registro (domingo-disfarce) — mesma lógica da timeline de
+  // Aderência: só reordena/exibe diferente, não muda em qual mês o registro conta pro relatório.
+  const mapaDisfarce = await _obterMapaDiasDisfarce();
+  Object.values(grupos).forEach(g => {
+    const isoReal = (g.dia >= GESTAO_ADERENCIA_CUTOFF && mapaDisfarce[g.dia]) || g.dia;
+    g.diaReal = isoReal;
+  });
+
+  const linhas = Object.values(grupos).sort((a,b) => a.diaReal.localeCompare(b.diaReal) || a.origem.localeCompare(b.origem));
 
   document.getElementById('va-pordia-titulo').textContent = `O que ${placaSelecionada} fez por dia`;
   document.getElementById('va-pordia-count').textContent = linhas.length + (linhas.length === 1 ? ' registro' : ' registros');
@@ -8731,9 +8749,11 @@ function _vaRenderPorDia(placaSelecionada) {
     ? '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3);">Nenhum registro pra esse veículo no período.</td></tr>'
     : linhas.map(l => {
         const pesoMedio = l.viagens > 0 ? l.peso / l.viagens : 0;
-        const [ano, mes, dia] = l.dia.split('-');
+        const [ano, mes, dia] = l.diaReal.split('-');
+        const divergente = l.diaReal !== l.dia;
+        const dataGravadaBr = (() => { const [a,m,d] = l.dia.split('-'); return `${d}/${m}/${a}`; })();
         return `<tr>
-          <td data-sort-value="${l.dia}" style="font-family:'DM Mono',monospace;">${dia}/${mes}/${ano}</td>
+          <td data-sort-value="${l.diaReal}" style="font-family:'DM Mono',monospace;" title="${divergente ? 'Gravado no sistema como '+dataGravadaBr : ''}">${dia}/${mes}/${ano}${divergente ? ' <span style="color:#d29922;">✦</span>' : ''}</td>
           <td>${l.origem} <span style="color:var(--text3);">→</span> ${l.destino}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;" class="text-primary">${l.peso.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${l.viagens}</td>
