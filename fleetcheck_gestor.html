@@ -1140,6 +1140,32 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
   </div>
 </div>
 
+<!-- REGISTRAR ABASTECIMENTO / KM (Gestão do Dia) -->
+<div id="abastecimento-overlay" onclick="if(event.target===this) fecharAbastecimentoModal()" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);" id="abastecimento-titulo">⛽ Abastecimento</div>
+      <button onclick="fecharAbastecimentoModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">KM Inicial do Dia</label>
+        <input type="number" min="0" id="abastecimento-km-inicial" class="filter-input" style="width:100%;" placeholder="ex: 128450">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">KM Final do Dia</label>
+        <input type="number" min="0" id="abastecimento-km-final" class="filter-input" style="width:100%;" placeholder="ex: 128780">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Litros Abastecidos</label>
+        <input type="number" min="0" step="0.01" id="abastecimento-litros" class="filter-input" style="width:100%;" placeholder="ex: 85.5">
+      </div>
+      <div id="abastecimento-media-preview" style="font-size:13px;color:var(--text3);"></div>
+      <button onclick="salvarAbastecimento()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- FORM CADASTRO/EDIÇÃO DE MINA -->
 <div id="mina-form-overlay" onclick="if(event.target===this) fecharFormMina()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
@@ -3518,6 +3544,84 @@ async function _obterDiasVolumeReal() {
   return _volMetaDiasCache;
 }
 
+// ══════════════════════════════════════
+// "DOMINGOS-DISFARCE" — particularidade operacional: os últimos 1-3 dias de um mês (quando não
+// batem com um domingo) às vezes são lançados sob a data do(s) domingo(s) seguinte(s), de
+// propósito, pra entrarem no fechamento do mês certo. Isso quebra a ordem cronológica de quem
+// olha por veículo/data. Detecta esse padrão (sem mexer em nada do fechamento mensal, que
+// continua usando a data gravada normalmente) e devolve um mapa pra resolver a data REAL só onde
+// for pedido explicitamente (timeline do veículo, encadeamento de KM).
+let _mapaDiasDisfarceCache = null; // 'YYYY-MM-DD' gravada -> 'YYYY-MM-DD' real
+
+function _detectarDomingosDisfarce(diasComDadoISO) {
+  const baseSet = new Set(diasComDadoISO);
+  const ordenados = diasComDadoISO.slice().sort();
+  const usados = new Set();
+  const mapa = {};
+  const ultimoDiaDoMes = (ano, mes) => new Date(ano, mes, 0).getDate(); // mes 1-indexed
+
+  const mesesOrdenados = Array.from(new Set(diasComDadoISO.map(d => d.slice(0,7)))).sort();
+  mesesOrdenados.forEach(mesKey => {
+    const [ano, mes] = mesKey.split('-').map(Number);
+    const totalDias = ultimoDiaDoMes(ano, mes);
+    let ultimoDiaNormal = null;
+    for (let d = totalDias; d >= 1; d--) {
+      const iso = `${mesKey}-${String(d).padStart(2,'0')}`;
+      if (baseSet.has(iso)) { ultimoDiaNormal = d; break; }
+    }
+    if (ultimoDiaNormal === null || ultimoDiaNormal === totalDias) return; // mês completo ou sem dado — nada a resolver
+
+    // Um dia que falta e É um domingo de verdade não precisa de disfarce — legitimamente não tem
+    // operação nesse dia, então não entra na lista de dias a casar com um domingo-disfarce.
+    const faltando = [];
+    for (let d = ultimoDiaNormal + 1; d <= totalDias; d++) {
+      if (new Date(ano, mes - 1, d).getDay() === 0) continue;
+      faltando.push(d);
+    }
+
+    const inicioBusca = new Date(ano, mes - 1, ultimoDiaNormal + 1);
+    const candidatos = ordenados.filter(iso => {
+      if (usados.has(iso)) return false;
+      const d = new Date(iso + 'T00:00:00');
+      if (d < inicioBusca) return false;
+      return d.getDay() === 0; // domingo
+    });
+
+    faltando.forEach((diaFaltando, i) => {
+      if (i >= candidatos.length) return; // não achou domingo suficiente — deixa sem mapear
+      const candidato = candidatos[i];
+      usados.add(candidato);
+      mapa[candidato] = `${mesKey}-${String(diaFaltando).padStart(2,'0')}`;
+    });
+  });
+  return mapa;
+}
+
+async function _obterMapaDiasDisfarce() {
+  if (_mapaDiasDisfarceCache) return _mapaDiasDisfarceCache;
+  const diasReais = await _obterDiasVolumeReal(); // formato 'DD/MM/YYYY' — pode incluir datas bem
+  // anteriores ao corte (ex.: histórico importado pra comparação de tendência em Volume
+  // Transportado). O "domingo-disfarce" é uma particularidade só da operação atual — restringe a
+  // detecção a partir do corte, pra nunca mexer em dado antigo por engano.
+  const diasISO = diasReais
+    .map(d => _diaParaChave(d))
+    .filter(iso => iso >= GESTAO_ADERENCIA_CUTOFF);
+  _mapaDiasDisfarceCache = _detectarDomingosDisfarce(diasISO);
+  return _mapaDiasDisfarceCache;
+}
+
+function _somarDiasISO(dataISO, delta) {
+  const d = new Date(dataISO + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function _inverterMapa(mapa) {
+  const inv = {};
+  Object.entries(mapa).forEach(([k,v]) => { inv[v] = k; });
+  return inv;
+}
+
 // Pros meses a partir do corte, usa só os dias que REALMENTE têm volume já importado na base
 // principal (Volume Poços) — não gera uma sequência de calendário. Um dia com programação e
 // dado provisório na Gestão do Dia (ex.: hoje, ainda sem o volume real lançado) não deve contar
@@ -3866,8 +3970,21 @@ async function abrirDetalheVeiculo(placaKey) {
       return;
     }
 
+    // Resolve a data REAL de cada registro (quando for um "domingo-disfarce", conforme
+    // detectado) — a timeline passa a ordenar e exibir por essa data, sem mudar nada no mês em
+    // que o registro conta pros relatórios (isso continua usando a data gravada, intocado).
+    const mapaDisfarce = await _obterMapaDiasDisfarce();
+    historicoCompleto.forEach(d => {
+      const iso = _diaParaChave(d.data);
+      // só resolve pra data real se o registro já for do período pós-corte — dado anterior a
+      // isso (planilha ADERENCIA importada) nunca deve ser reinterpretado, mesmo que por engano
+      // o mapa viesse a conter alguma chave antiga.
+      const isoReal = (iso >= GESTAO_ADERENCIA_CUTOFF && mapaDisfarce[iso]) || iso;
+      d.dataReal = isoReal === iso ? d.data : isoReal.split('-').reverse().join('/');
+    });
+
     const historicoCronologico = historicoCompleto.slice().sort((a,b) => {
-      const da = a.data.split('/').reverse().join(''); const db = b.data.split('/').reverse().join('');
+      const da = _diaParaChave(a.dataReal); const db = _diaParaChave(b.dataReal);
       return da.localeCompare(db);
     });
 
@@ -3897,7 +4014,7 @@ function _prodRenderDetalheVeiculo() {
   const ofensores = {};
   historicoCronologico.forEach(l => { if (l.ofensor) ofensores[l.ofensor] = (ofensores[l.ofensor] || 0) + 1; });
 
-  document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${primeiro.data} a ${ultimo.data}`;
+  document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${primeiro.dataReal} a ${ultimo.dataReal}`;
 
   // histórico mais recente primeiro na tabela; filtra por ofensor se algum estiver selecionado
   const historicoExibido = historicoCronologico.slice().reverse()
@@ -3952,8 +4069,8 @@ function _prodRenderDetalheVeiculo() {
         ${historicoExibido.length === 0
           ? `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3);">Nenhum registro com esse ofensor.</td></tr>`
           : historicoExibido.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
-              <td style="text-align:center;font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
-              <td style="text-align:center;font-size:13px;color:var(--text3);text-transform:capitalize;">${diaSemanaAbrev(d.data)}</td>
+              <td style="text-align:center;font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;" title="${d.dataReal!==d.data ? 'Gravado no sistema como '+d.data : ''}">${d.dataReal}${d.dataReal!==d.data ? ' <span style="color:#d29922;">✦</span>' : ''}</td>
+              <td style="text-align:center;font-size:13px;color:var(--text3);text-transform:capitalize;">${diaSemanaAbrev(d.dataReal)}</td>
               <td class="td-fat" style="text-align:center;color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
               <td style="text-align:center;font-size:13px;white-space:nowrap;">${(d.origem && d.destino) ? `${d.origem} → ${d.destino}` : '—'}</td>
               <td class="td-orig" style="text-align:center;" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
@@ -4325,6 +4442,7 @@ window.importarVolume = async function importarVolume(input) {
     _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
     _minasPesoMedioCache = null; // idem pro peso médio por rota mostrado na tela de Minas
     _veiculoPesoMedioRealCache = null; // idem pro peso médio real por veículo, usado no roster de Programação/Gestão do Dia
+    _mapaDiasDisfarceCache = null; // idem pro mapa de domingos-disfarce, usado na timeline do veículo e no KM
     _volMetaDiasCache = null; // idem pra lista de dias com volume real, usada na Aderência a partir do corte
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
     window.renderProdutividade();
@@ -6316,6 +6434,92 @@ window.fecharSelecionarMotorista = function fecharSelecionarMotorista() {
   _gestaoPlacaSelecionandoMotorista = null;
 };
 
+// ══════════════════════════════════════
+// ABASTECIMENTO / KM — primeira versão: registra KM inicial, KM final e litros abastecidos por
+// veículo por dia, e calcula a média de km/litro. Vamos evoluindo esse recurso aos poucos.
+// ══════════════════════════════════════
+let _gestaoPlacaAbastecendo = null;
+
+window.abrirAbastecimentoModal = async function abrirAbastecimentoModal(placa) {
+  if (!_gestaoDataAtual) { showToast('✖ Selecione um dia primeiro.'); return; }
+  _gestaoPlacaAbastecendo = placa;
+  const atual = _gestaoAbastecimentos[placa] || {};
+  document.getElementById('abastecimento-titulo').textContent = `⛽ Abastecimento — ${placa}`;
+  document.getElementById('abastecimento-overlay').style.display = 'flex';
+  document.getElementById('abastecimento-km-inicial').value = atual.kmInicial ?? '';
+  document.getElementById('abastecimento-km-final').value = atual.kmFinal ?? '';
+  document.getElementById('abastecimento-litros').value = atual.litros ?? '';
+  document.getElementById('abastecimento-media-preview').textContent = '';
+  ['abastecimento-km-inicial','abastecimento-km-final','abastecimento-litros'].forEach(id => {
+    document.getElementById(id).oninput = _atualizarPreviaAbastecimento;
+  });
+  _atualizarPreviaAbastecimento();
+
+  // Se ainda não tem KM inicial preenchido pra hoje, sugere com o KM final do dia anterior — na
+  // ordem REAL de operação (não na ordem gravada, que pode ter domingos-disfarce no meio).
+  if (atual.kmInicial == null) {
+    try {
+      const mapa = await _obterMapaDiasDisfarce();
+      const mapaInv = _inverterMapa(mapa);
+      const dataRealHoje = mapa[_gestaoDataAtual] || _gestaoDataAtual;
+      const dataRealOntem = _somarDiasISO(dataRealHoje, -1);
+      const dataGravadaOntem = mapaInv[dataRealOntem] || dataRealOntem;
+      if (dataGravadaOntem !== _gestaoDataAtual) {
+        const snapOntem = await getDoc(doc(db, 'programacao_dias', dataGravadaOntem));
+        const abastOntem = snapOntem.exists() ? (snapOntem.data().abastecimentos || {})[placa] : null;
+        if (abastOntem && abastOntem.kmFinal != null && _gestaoPlacaAbastecendo === placa) {
+          document.getElementById('abastecimento-km-inicial').value = abastOntem.kmFinal;
+          _atualizarPreviaAbastecimento();
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar KM do dia anterior:', err);
+    }
+  }
+};
+
+function _atualizarPreviaAbastecimento() {
+  const kmInicial = parseFloat(document.getElementById('abastecimento-km-inicial').value);
+  const kmFinal = parseFloat(document.getElementById('abastecimento-km-final').value);
+  const litros = parseFloat(document.getElementById('abastecimento-litros').value);
+  const preview = document.getElementById('abastecimento-media-preview');
+  if (!isNaN(kmInicial) && !isNaN(kmFinal) && !isNaN(litros) && litros > 0 && kmFinal >= kmInicial) {
+    const kmRodado = kmFinal - kmInicial;
+    const media = kmRodado / litros;
+    preview.innerHTML = `${kmRodado.toLocaleString('pt-BR')} km rodados · <span style="color:#2ea043;font-weight:600;">${media.toLocaleString('pt-BR',{maximumFractionDigits:2})} km/L</span>`;
+  } else {
+    preview.textContent = '';
+  }
+}
+
+window.fecharAbastecimentoModal = function fecharAbastecimentoModal() {
+  document.getElementById('abastecimento-overlay').style.display = 'none';
+  _gestaoPlacaAbastecendo = null;
+};
+
+window.salvarAbastecimento = async function salvarAbastecimento() {
+  const placa = _gestaoPlacaAbastecendo;
+  if (!placa || !_gestaoDataAtual) return;
+  const kmInicial = parseFloat(document.getElementById('abastecimento-km-inicial').value);
+  const kmFinal = parseFloat(document.getElementById('abastecimento-km-final').value);
+  const litros = parseFloat(document.getElementById('abastecimento-litros').value);
+
+  if (isNaN(kmInicial) || isNaN(kmFinal) || isNaN(litros)) { showToast('✖ Preencha os três campos.'); return; }
+  if (kmFinal < kmInicial) { showToast('✖ O KM final não pode ser menor que o KM inicial.'); return; }
+  if (litros <= 0) { showToast('✖ Informe uma quantidade de litros válida.'); return; }
+
+  try {
+    _gestaoAbastecimentos[placa] = { kmInicial, kmFinal, litros };
+    await setDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { abastecimentos: _gestaoAbastecimentos, atualizadoEm: new Date().toISOString() }, { merge: true });
+    showToast(`✔ Abastecimento registrado pro veículo ${placa}.`);
+    fecharAbastecimentoModal();
+    _gestaoRenderGrade();
+  } catch (err) {
+    console.error('Erro ao salvar abastecimento:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+};
+
 window._renderListaSelecionarMotorista = function _renderListaSelecionarMotorista() {
   const busca = (document.getElementById('motorista-selecionar-busca').value || '').trim().toUpperCase();
   const cont = document.getElementById('motorista-selecionar-lista');
@@ -6905,6 +7109,7 @@ let _gestaoViagensReaisPorPlaca = {}; // placa -> quantidade de viagens reais (b
 let _gestaoVolumeRealPorPlaca = null; // placa -> peso real (base Volume Poços) nesse dia — null se a planilha ainda não foi importada pra esse dia
 let _gestaoJustificativas = {}; // placa -> { motivo, observacao } — mesma info preenchida na Programação (veículos não programados)
 let _gestaoMotoristas = {}; // placa -> nome do motorista escalado nesse dia
+let _gestaoAbastecimentos = {}; // placa -> { kmInicial, kmFinal, litros } registrado nesse dia
 let _gestaoCarregarToken = 0;
 
 async function _gestaoCarregarDia(dataISO) {
@@ -6925,6 +7130,7 @@ async function _gestaoCarregarDia(dataISO) {
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
     _gestaoJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
     _gestaoMotoristas = (snap.exists() && snap.data().motoristas && typeof snap.data().motoristas === 'object') ? snap.data().motoristas : {};
+    _gestaoAbastecimentos = (snap.exists() && snap.data().abastecimentos && typeof snap.data().abastecimentos === 'object') ? snap.data().abastecimentos : {};
 
     // Conta, por placa, quantas viagens realmente aconteceram naquele dia segundo a base Volume
     // Poços (dado real, importado do sistema) — usado pra conferir contra o que foi marcado à mão,
@@ -7215,7 +7421,11 @@ function _gestaoLinhaVeiculo(v) {
   // viagem hoje (não basta estar programado — precisa ter rodado de verdade), e ainda ninguém
   // foi escalado pra dirigir.
   const precisaMotorista = v.forca === 'FROTA' && feitasRealizadas > 0 && !nomeMotorista;
-  const cardVeiculo = `<div onclick="abrirSelecionarMotorista('${v.placa}')" title="Clique pra escalar o motorista desse veículo hoje" class="${precisaMotorista?'card-motorista-pendente':''}" style="width:190px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg3);cursor:pointer;">
+  const abast = _gestaoAbastecimentos[v.placa];
+  const temAbastecimento = abast && abast.kmInicial != null && abast.kmFinal != null && abast.litros != null;
+  const mediaKmL = temAbastecimento && abast.litros > 0 ? (abast.kmFinal - abast.kmInicial) / abast.litros : null;
+  const cardVeiculo = `<div onclick="abrirSelecionarMotorista('${v.placa}')" title="Clique pra escalar o motorista desse veículo hoje" class="${precisaMotorista?'card-motorista-pendente':''}" style="width:190px;flex-shrink:0;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg3);cursor:pointer;position:relative;">
+    <button onclick="event.stopPropagation(); abrirAbastecimentoModal('${v.placa}')" title="Registrar abastecimento / KM" style="position:absolute;top:5px;right:6px;background:none;border:none;cursor:pointer;font-size:14px;line-height:1;padding:2px;color:${temAbastecimento?'#2ea043':'var(--text3)'};">⛽</button>
     <div style="padding:7px 12px 5px;">
       <div style="display:flex;align-items:baseline;gap:6px;">
         <span style="font-size:20px;font-weight:700;color:var(--text);line-height:1;">${v.fr||'—'}</span>
@@ -7223,6 +7433,7 @@ function _gestaoLinhaVeiculo(v) {
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:1px;">${v.tipo2} · ${v.forca}</div>
       <div style="font-size:11px;font-weight:600;color:${primeiroNomeMotorista?'#388bfd':'var(--text3)'};margin-top:3px;display:flex;align-items:center;gap:3px;">👤 ${primeiroNomeMotorista || 'Selecionar motorista'}</div>
+      ${mediaKmL != null ? `<div style="font-size:10px;color:#2ea043;margin-top:2px;">⛽ ${mediaKmL.toLocaleString('pt-BR',{maximumFractionDigits:2})} km/L</div>` : ''}
     </div>
     <div style="border-top:1px solid var(--border2);padding:4px 12px;background:${corFaixaAderencia};display:flex;align-items:center;justify-content:space-between;">
       <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.3px;">Aderência</span>
