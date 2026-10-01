@@ -105,8 +105,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .filtros-acao-global { padding: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
 
 /* ── FILTROS DE PERÍODO NA BARRA SUPERIOR (Dia/Mês/Ano, seletores, data) ── */
-.topbar-filtros-painel { display: none; align-items: center; gap: 8px; }
+.topbar-filtros-painel { display: none; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 6px; }
 .topbar-filtros-painel.active { display: flex; }
+.topbar-filtros-painel.active > * { flex-shrink: 0; }
 .topbar-modo-toggle { display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
 .topbar-modo-toggle button { padding: 6px 12px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; background: var(--bg3); color: var(--text3); }
 
@@ -115,9 +116,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
 /* ── TOPBAR ── */
 .topbar {
-  height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px; position: sticky; top: 0; z-index: 9;
+  min-height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  padding: 8px 28px; position: sticky; top: 0; z-index: 9; row-gap: 8px;
 }
 .topbar-title { font-size:18px; font-weight: 500; color: var(--text); }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
@@ -491,7 +492,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <!-- MAIN -->
 <main class="main">
   <header class="topbar">
-    <div style="display:flex;align-items:center;gap:20px;min-width:0;">
+    <div style="display:flex;align-items:center;gap:20px;min-width:0;flex-wrap:wrap;row-gap:8px;">
       <div class="topbar-title" id="page-title">Volume Transportado</div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-produtividade">
@@ -509,6 +510,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <select id="prod-ano-select" class="filter-input" style="display:none;" onchange="_onProdAnoChange(this.value)">
           <option value="">—</option>
         </select>
+        <button onclick="abrirFiltroPeriodoModal()" title="Filtrar por período (data de/até)" id="prod-periodo-btn" style="padding:7px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:13px;">📅 Período</button>
+        <div id="prod-periodo-label" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;"></div>
         <button onclick="showPage('ofensores')" title="Ofensores — Impacto de Volume" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#f85149;cursor:pointer;font-size:13px;font-weight:600;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
           Ofensores
@@ -1326,7 +1329,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
 <!-- PAINEL PRODUTIVIDADE VEÍCULO -->
 <div class="detail-overlay" id="prod-overlay" onclick="fecharProdModal(event)" style="display:none;">
-  <div class="detail-panel" style="width:920px;">
+  <div class="detail-panel" style="width:1180px;max-width:95vw;">
     <div class="panel-header">
       <div>
         <div class="panel-title" id="prod-modal-title">Veículo</div>
@@ -1335,6 +1338,27 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button class="panel-close" onclick="document.getElementById('prod-overlay').style.display='none'">&#x2715;</button>
     </div>
     <div class="panel-body" id="prod-modal-body"></div>
+  </div>
+</div>
+
+<!-- FILTRO POR PERÍODO (Aderência) — complementa Dia/Mês/Ano, não substitui -->
+<div id="filtro-periodo-overlay" onclick="if(event.target===this) fecharFiltroPeriodoModal()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);">📅 Filtrar por Período</div>
+      <button onclick="fecharFiltroPeriodoModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">De</label>
+        <input type="date" id="filtro-periodo-de" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Até</label>
+        <input type="date" id="filtro-periodo-ate" class="filter-input" style="width:100%;">
+      </div>
+      <button onclick="aplicarFiltroPeriodo()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">Aplicar</button>
+    </div>
   </div>
 </div>
 
@@ -1456,7 +1480,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <div style="font-size:14px;color:var(--text3);margin-top:2px;"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <select id="meta-mes-select" class="filter-input" style="min-width:150px;" onchange="_onMetaMesChange(this.value)">
+        <select id="meta-mes-select" class="filter-input" style="min-width:150px;font-size:13px;" onchange="_onMetaMesChange(this.value)">
           <option value="">—</option>
         </select>
         <button onclick="fecharMetasModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:25px;line-height:1;padding:4px;">&#x2715;</button>
@@ -2452,7 +2476,11 @@ function _contagemTrabalho(arr) {
   const total = arr.length;
   const verdes = arr.filter(l => (Number(l.viagens)||0) >= 1).length;
   const vermelhos = total - verdes;
-  const aderenciaMedia = total > 0 ? arr.reduce((s,l) => s + (l.aderencia||0), 0) / total : null;
+  // Média de aderência: só entra quem ficou ACIMA de 0% — tanto na soma quanto na quantidade
+  // usada pra dividir. Veículo com 0% de aderência não entra na conta (nem no numerador, nem no
+  // denominador), senão ele puxa a média geral pra baixo mesmo sem ter rodado nada.
+  const comAderencia = arr.filter(l => (l.aderencia||0) > 0);
+  const aderenciaMedia = comAderencia.length > 0 ? comAderencia.reduce((s,l) => s + l.aderencia, 0) / comAderencia.length : null;
   return { total, verdes, vermelhos, aderenciaMedia };
 }
 
@@ -2467,7 +2495,8 @@ function _mediaDiariaPorGrupo(filtroFn) {
     if (filtroFn) filtradas = filtradas.filter(filtroFn);
     somaVerdes += filtradas.filter(l => (Number(l.viagens)||0) >= 1).length;
     somaVermelhos += filtradas.filter(l => (Number(l.viagens)||0) === 0).length;
-    filtradas.forEach(l => { somaAderencia += (l.aderencia||0); nAderencia++; });
+    // Mesma regra do modo Dia: só conta (soma e quantidade) quem ficou acima de 0% de aderência.
+    filtradas.forEach(l => { if ((l.aderencia||0) > 0) { somaAderencia += l.aderencia; nAderencia++; } });
   });
   const nDias = diasReg.length;
   const verdes = somaVerdes / nDias;
@@ -2669,7 +2698,10 @@ function _renderQuadro() {
   const tiposObj = _porTipo2(base);
 
   document.getElementById('prod-quadro-title').textContent = (forca === 'FROTA' ? '🚛 FROTA' : '🚚 TERCEIRO') + (_prodQuadroTipo2 ? ' · ' + _prodQuadroTipo2 : '');
-  const rotuloPeriodo = _prodModoView === 'ano' ? ('Ano: ' + (_prodAnoAtual || '')) : (_prodModoView === 'mes' ? ('Mês: ' + (_prodMesAtual ? _mesParaLabel(_prodMesAtual) : '')) : ('Dia: ' + (_prodDiaAtual || '')));
+  const rotuloPeriodo = _prodModoView === 'ano' ? ('Ano: ' + (_prodAnoAtual || ''))
+    : _prodModoView === 'mes' ? ('Mês: ' + (_prodMesAtual ? _mesParaLabel(_prodMesAtual) : ''))
+    : _prodModoView === 'periodo' ? ('Período: ' + (_prodPeriodoDe||'').split('-').reverse().join('/') + ' a ' + (_prodPeriodoAte||'').split('-').reverse().join('/'))
+    : ('Dia: ' + (_prodDiaAtual || ''));
   document.getElementById('prod-quadro-meta').textContent = rotuloPeriodo + ' · ' + base.length + (base.length === 1 ? ' veículo' : ' veículos');
 
   _renderBotoesCategoria('prod-quadro-categoria-btns');
@@ -2772,7 +2804,10 @@ function _renderPerdaPorRota() {
     return;
   }
 
-  const rotuloPeriodo = _prodModoView === 'dia' ? (_prodDiaAtual||'—') : _prodModoView === 'mes' ? _mesParaLabel(_prodMesAtual) : (_prodAnoAtual||'—');
+  const rotuloPeriodo = _prodModoView === 'dia' ? (_prodDiaAtual||'—')
+    : _prodModoView === 'mes' ? _mesParaLabel(_prodMesAtual)
+    : _prodModoView === 'periodo' ? `${(_prodPeriodoDe||'').split('-').reverse().join('/')} a ${(_prodPeriodoAte||'').split('-').reverse().join('/')}`
+    : (_prodAnoAtual||'—');
   metaEl.textContent = `Período: ${rotuloPeriodo}`;
 
   const categorias = {
@@ -2934,7 +2969,10 @@ window.exportarAderenciaCompletaExcel = function exportarAderenciaCompletaExcel(
   const ws = XLSX.utils.json_to_sheet(dados);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Aderência - Todos');
-  const rotulo = _prodModoView === 'dia' ? (_prodDiaAtual||'dia') : _prodModoView === 'mes' ? (_prodMesAtual||'mes') : (_prodAnoAtual||'ano');
+  const rotulo = _prodModoView === 'dia' ? (_prodDiaAtual||'dia')
+    : _prodModoView === 'mes' ? (_prodMesAtual||'mes')
+    : _prodModoView === 'periodo' ? `${_prodPeriodoDe||'de'}_a_${_prodPeriodoAte||'ate'}`
+    : (_prodAnoAtual||'ano');
   XLSX.writeFile(wb, `aderencia_todos_${rotulo.toString().replace(/\//g,'-')}.xlsx`);
   showToast('✔ Arquivo exportado.');
 };
@@ -3251,7 +3289,8 @@ function _renderProdResumoEBlocos(linhas) {
   const modoMes = _prodModoView !== 'dia';
   const geralC = modoMes ? _mediaDiariaPorGrupo(null) : _contagemTrabalho(linhasCat);
   const disponibilidadeMedia = geralC.total > 0 ? (geralC.verdes / geralC.total) * 100 : 0;
-  const aderenciaMedia = linhasCat.length ? linhasCat.reduce((s,l) => s + l.aderencia, 0) / linhasCat.length : 0;
+  const linhasComAderencia = linhasCat.filter(l => (l.aderencia||0) > 0);
+  const aderenciaMedia = linhasComAderencia.length ? linhasComAderencia.reduce((s,l) => s + l.aderencia, 0) / linhasComAderencia.length : 0;
   _prodRenderResumoProgramacao(linhasCat);
   _prodRenderDistribuicaoAderencia(linhasCat);
 
@@ -3273,9 +3312,13 @@ function _renderProdResumoEBlocos(linhas) {
 let _prodModoView = 'mes';  // 'dia' | 'mes' | 'ano'
 let _prodMesAtual = null;   // 'YYYY-MM'
 let _prodAnoAtual = null;   // 'YYYY'
+let _prodPeriodoDe = null;  // 'YYYY-MM-DD' — filtro por período, complementa Dia/Mês/Ano (não substitui)
+let _prodPeriodoAte = null; // 'YYYY-MM-DD'
 let _prodDiasRegistrosPeriodo = []; // [{ dia:'DD/MM/YYYY', linhas:[...] }] — registros brutos por dia do período carregado (mês ou ano, p/ média diária do DF e gráfico)
 
 const MESES_LBL_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const DIAS_SEMANA_ABREV = ['dom','seg','ter','qua','qui','sex','sáb'];
 
 function _mesParaLabel(mesKey) {
   const [ano, mes] = mesKey.split('-');
@@ -3571,6 +3614,81 @@ async function _carregarAno(anoKey) {
   }
 }
 
+// Carrega um intervalo de datas arbitrário (De/Até) — complementa Dia/Mês/Ano, com a mesma
+// mistura de fontes (ADERENCIA importada antes do corte, Gestão do Dia a partir dele) já usada
+// em _carregarAno, só que filtrando por um range de datas em vez de um ano inteiro.
+async function _carregarPeriodo(de, ate) {
+  _prodPeriodoDe = de;
+  _prodPeriodoAte = ate;
+  const cont = document.getElementById('prod-cards-trabalho');
+  if (!de || !ate) {
+    document.getElementById('prod-resumo').innerHTML = '';
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Selecione o período (de/até).</div>';
+    return;
+  }
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando período...</div>';
+  try {
+    const diasAntesCorte = (_prodMeta.dias || []).filter(d => {
+      const iso = _diaParaChave(d);
+      return iso >= de && iso <= ate && iso < GESTAO_ADERENCIA_CUTOFF;
+    });
+    const diasReais = await _obterDiasVolumeReal();
+    const diasDepoisCorte = diasReais.filter(d => {
+      const iso = _diaParaChave(d);
+      return iso >= de && iso <= ate && iso >= GESTAO_ADERENCIA_CUTOFF;
+    });
+    const diasDoPeriodo = diasAntesCorte.concat(diasDepoisCorte).sort((a,b) => _diaParaChave(a).localeCompare(_diaParaChave(b)));
+
+    if (diasDoPeriodo.length === 0) {
+      _prodDiasRegistrosPeriodo = [];
+      _renderProdResumoEBlocos([]);
+      return;
+    }
+
+    const linhasPorDia = await Promise.all(diasDoPeriodo.map(d => _obterLinhasDoDia(d)));
+    _prodDiasRegistrosPeriodo = diasDoPeriodo.map((d, i) => ({ dia: d, linhas: linhasPorDia[i] }));
+    const linhas = _agregarRegistrosDiarios(_prodDiasRegistrosPeriodo);
+    _renderProdResumoEBlocos(linhas);
+  } catch (err) {
+    console.error('Erro ao carregar período:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Erro ao carregar dados do período.</div>';
+  }
+}
+
+window.abrirFiltroPeriodoModal = function abrirFiltroPeriodoModal() {
+  document.getElementById('filtro-periodo-de').value = _prodPeriodoDe || '';
+  document.getElementById('filtro-periodo-ate').value = _prodPeriodoAte || '';
+  document.getElementById('filtro-periodo-overlay').style.display = 'flex';
+};
+
+window.fecharFiltroPeriodoModal = function fecharFiltroPeriodoModal() {
+  document.getElementById('filtro-periodo-overlay').style.display = 'none';
+};
+
+window.aplicarFiltroPeriodo = function aplicarFiltroPeriodo() {
+  const de = document.getElementById('filtro-periodo-de').value;
+  const ate = document.getElementById('filtro-periodo-ate').value;
+  if (!de || !ate) { showToast('✖ Preencha as duas datas (de/até).'); return; }
+  if (de > ate) { showToast('✖ A data "de" não pode ser depois da data "até".'); return; }
+
+  _prodModoView = 'periodo';
+  // Dia/Mês/Ano ficam todos inativos enquanto o Período estiver em uso — é um filtro à parte,
+  // não um quarto botão do mesmo grupo, mas só um dos dois pode estar "valendo" por vez.
+  ['prod-modo-dia-btn','prod-modo-mes-btn','prod-modo-ano-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    b.style.background = 'var(--bg3)'; b.style.color = 'var(--text3)';
+  });
+  ['prod-dia-select','prod-mes-select','prod-ano-select'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+
+  const label = document.getElementById('prod-periodo-label');
+  const fmtBr = (iso) => { const [a,m,d] = iso.split('-'); return `${d}/${m}`; };
+  label.innerHTML = `${fmtBr(de)} — ${fmtBr(ate)} <span style="cursor:pointer;color:#388bfd;" onclick="abrirFiltroPeriodoModal()">✎</span>`;
+  label.style.display = 'flex';
+
+  fecharFiltroPeriodoModal();
+  _carregarPeriodo(de, ate);
+};
+
 window._onProdDiaChange = function _onProdDiaChange(diaStr) {
   _carregarDia(diaStr);
 };
@@ -3596,6 +3714,7 @@ window._setModoView = function _setModoView(modo) {
   const inativo = { background: 'var(--bg3)', color: 'var(--text3)' };
   [btnDia, btnMes, btnAno].forEach(b => { b.style.background = inativo.background; b.style.color = inativo.color; });
   [selDia, selMes, selAno].forEach(s => { s.style.display = 'none'; });
+  document.getElementById('prod-periodo-label').style.display = 'none'; // Dia/Mês/Ano desativa o filtro por Período
 
   if (modo === 'dia') {
     btnDia.style.background = ativo.background; btnDia.style.color = ativo.color;
@@ -3672,7 +3791,17 @@ window.renderProdutividade = async function renderProdutividade() {
     selectAno.innerHTML = anos.length ? anos.map(a => `<option value="${a}">${a}</option>`).join('') : '<option value="">—</option>';
     selectAno.value = anoPadrao;
 
-    if (_prodModoView === 'ano') {
+    if (_prodModoView === 'periodo' && _prodPeriodoDe && _prodPeriodoAte) {
+      ['prod-modo-dia-btn','prod-modo-mes-btn','prod-modo-ano-btn'].forEach(id => {
+        const b = document.getElementById(id);
+        b.style.background = 'var(--bg3)'; b.style.color = 'var(--text3)';
+      });
+      const label = document.getElementById('prod-periodo-label');
+      const fmtBr = (iso) => { const [a,m,d] = iso.split('-'); return `${d}/${m}`; };
+      label.innerHTML = `${fmtBr(_prodPeriodoDe)} — ${fmtBr(_prodPeriodoAte)} <span style="cursor:pointer;color:#388bfd;" onclick="abrirFiltroPeriodoModal()">✎</span>`;
+      label.style.display = 'flex';
+      await _carregarPeriodo(_prodPeriodoDe, _prodPeriodoAte);
+    } else if (_prodModoView === 'ano') {
       await _carregarAno(anoPadrao);
     } else if (_prodModoView === 'mes') {
       await _carregarMes(mesPadrao);
@@ -3723,7 +3852,8 @@ async function abrirDetalheVeiculo(placaKey) {
         historicoVivo.push({
           data: diasFaltando[i], fr: linha.fr, forca: linha.forca, tipo2: linha.tipo2,
           volume: linha.volume, viagens: linha.viagens, percTon: linha.percTon, aderencia: linha.aderencia,
-          ofensor: linha.ofensor, tipoOfensor: linha.tipoOfensor, responsavel: linha.responsavel, justificativa: ''
+          ofensor: linha.ofensor, tipoOfensor: linha.tipoOfensor, responsavel: linha.responsavel, justificativa: '',
+          origem: linha.origem || '', destino: linha.destino || ''
         });
       }
     });
@@ -3799,38 +3929,46 @@ function _prodRenderDetalheVeiculo() {
     </div>`;
   }
 
+  const diaSemanaAbrev = (dataBr) => {
+    const [d,m,a] = dataBr.split('/').map(Number);
+    return DIAS_SEMANA_ABREV[new Date(a, m-1, d).getDay()];
+  };
+
   html += `<div style="overflow-x:auto;">
     <table class="viagens-table">
       <thead>
         <tr>
-          <th>Data</th>
-          <th>Motivo / Justificativa</th>
-          <th style="text-align:right;">Aderência</th>
-          <th style="text-align:right;">Viagens</th>
-          <th style="text-align:right;">Volume</th>
-          <th style="text-align:right;">Perc. Ton.</th>
+          <th style="text-align:center;">Data</th>
+          <th style="text-align:center;">DS</th>
+          <th style="text-align:center;">AD%</th>
+          <th style="text-align:center;">Rota</th>
+          <th style="text-align:center;">Ofensor</th>
+          <th style="text-align:center;">VG</th>
+          <th style="text-align:center;">Volume</th>
+          <th style="text-align:center;">Perc. Ton.</th>
         </tr>
       </thead>
       <tbody>
         ${historicoExibido.length === 0
-          ? `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);">Nenhum registro com esse ofensor.</td></tr>`
+          ? `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3);">Nenhum registro com esse ofensor.</td></tr>`
           : historicoExibido.map(d => `<tr${d.data===_prodDiaAtual ? ' style="background:var(--bg3);"' : ''}>
-              <td style="font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
-              <td class="td-orig" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
-              <td class="td-fat" style="color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
-              <td class="td-km">${d.viagens}</td>
-              <td class="td-km">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
-              <td class="td-km">${(d.percTon||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+              <td style="text-align:center;font-family:'DM Mono',monospace;font-size:14px;white-space:nowrap;">${d.data}</td>
+              <td style="text-align:center;font-size:13px;color:var(--text3);text-transform:capitalize;">${diaSemanaAbrev(d.data)}</td>
+              <td class="td-fat" style="text-align:center;color:${d.aderencia<70?'#f85149':'var(--text3)'}">${d.aderencia}%</td>
+              <td style="text-align:center;font-size:13px;white-space:nowrap;">${(d.origem && d.destino) ? `${d.origem} → ${d.destino}` : '—'}</td>
+              <td class="td-orig" style="text-align:center;" title="${(d.justificativa||'').replace(/"/g,'&quot;')}">${d.ofensor ? `<span style="color:#f85149;">${d.ofensor}</span>${d.tipoOfensor ? ' · '+d.tipoOfensor : ''}` : (d.justificativa || '—')}</td>
+              <td class="td-km" style="text-align:center;">${d.viagens}</td>
+              <td class="td-km" style="text-align:center;">${d.volume.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+              <td class="td-km" style="text-align:center;">${(d.percTon||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
             </tr>`).join('')
         }
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" style="color:var(--text3);font-size:14px;">TOTAL${_prodVeiculoOfensorFiltro ? ' (filtrado)' : ''}</td>
-          <td></td>
-          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.viagens,0)}</td>
-          <td class="td-km">${historicoExibido.reduce((s,l)=>s+l.volume,0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
-          <td class="td-km">${historicoExibido.reduce((s,l)=>s+(l.percTon||0),0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+          <td colspan="5" style="text-align:center;color:var(--text3);font-size:14px;">TOTAL${_prodVeiculoOfensorFiltro ? ' (filtrado)' : ''}</td>
+          <td class="td-km" style="text-align:center;">${historicoExibido.reduce((s,l)=>s+l.viagens,0)}</td>
+          <td class="td-km" style="text-align:center;">${historicoExibido.reduce((s,l)=>s+l.volume,0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
+          <td class="td-km" style="text-align:center;">${historicoExibido.reduce((s,l)=>s+(l.percTon||0),0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
         </tr>
       </tfoot>
     </table>
@@ -9358,7 +9496,11 @@ function showToast(msg) {
 // ══════════════════════════════════════
 function init() {
   const now = new Date();
-  document.getElementById('topbar-date').textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  const diaAbrev = DIAS_SEMANA_ABREV[now.getDay()];
+  const ddTopo = String(now.getDate()).padStart(2,'0');
+  const mmTopo = String(now.getMonth()+1).padStart(2,'0');
+  const yyTopo = String(now.getFullYear()).slice(-2);
+  document.getElementById('topbar-date').textContent = `${diaAbrev}-${ddTopo}/${mmTopo}/${yyTopo}`;
 
   // Listener em tempo real no Firestore
   mostrarLoading(true);
