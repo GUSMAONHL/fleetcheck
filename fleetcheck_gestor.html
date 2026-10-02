@@ -5033,7 +5033,7 @@ async function _volObterMetasParaCards(mesKey) {
   }
 }
 
-function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
+function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados, detalheHtml) {
   const fmt = (n) => _fmtPesoCard(n);
   if (totalMeta <= 0) {
     return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border2);font-size:15px;color:var(--text3);text-align:center;">🎯 Nenhuma meta cadastrada para este mês</div>`;
@@ -5079,6 +5079,7 @@ function _volBlocoMetaHTML(totalMeta, totalReal, diasOperacao, diasComDados) {
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
         <div style="font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;">🎯 Meta: <strong style="color:var(--text);font-family:'DM Mono',monospace;font-size:16px;">${fmt(totalMeta)}</strong></div>
+        ${detalheHtml || ''}
         <div style="font-size:14px;color:var(--text2);margin-top:2px;">Diferença: <strong style="color:${dif>=0?'#2ea043':'#f85149'};font-size:15px;">${difTxt}</strong></div>
       </div>
       <div style="text-align:right;">
@@ -5121,9 +5122,32 @@ async function _volAtualizarMetasNosCards() {
   const metaSaida = itens.filter(_volOrigemPatio4).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
   const metaGeral = itens.reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
 
+  // Meta da Fábrica é a soma de duas origens diferentes — mostra a quebra ao lado da meta geral
+  // do card, pra ficar claro quanto vem de cada fonte.
+  const metaFabricaNovo = itens.filter(m => _volDestinoFabrica(m) && _volOrigemDiferentePatio(m)).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaFabricaPatio = itens.filter(m => _volDestinoFabrica(m) && !_volOrigemDiferentePatio(m)).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const fmtDetalhe = (n) => _fmtPesoCard(n);
+  const detalheFabrica = (metaFabricaNovo > 0 || metaFabricaPatio > 0)
+    ? `<div style="font-size:12px;color:var(--text3);margin-top:2px;">
+        <div>⛏️ Material Novo: ${fmtDetalhe(metaFabricaNovo)}</div>
+        <div>🏭 Pátio 4: ${fmtDetalhe(metaFabricaPatio)}</div>
+      </div>`
+    : '';
+
+  // Meta do Volume Novo também é a soma de duas rotas diferentes (Mina → Pátio 4 e Mina →
+  // Fábrica direto) — mesma quebra, no mesmo modelo da Fábrica acima.
+  const metaNovoPatio = itens.filter(m => _volOrigemDiferentePatio(m) && _volDestinoPatio4(m)).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const metaNovoFabrica = itens.filter(m => _volOrigemDiferentePatio(m) && _volDestinoFabrica(m)).reduce((s,m) => s+(parseFloat(m.meta)||0), 0);
+  const detalheNovo = (metaNovoPatio > 0 || metaNovoFabrica > 0)
+    ? `<div style="font-size:12px;color:var(--text3);margin-top:2px;">
+        <div>⬇️ Pátio 4: ${fmtDetalhe(metaNovoPatio)}</div>
+        <div>🏭 Fábrica: ${fmtDetalhe(metaNovoFabrica)}</div>
+      </div>`
+    : '';
+
   if (slotGeral) slotGeral.innerHTML = _volBlocoMetaHTML(metaGeral, realGeral, diasOperacao, diasComDados);
-  if (slotNovo) slotNovo.innerHTML = _volBlocoMetaHTML(metaNovo, realNovo, diasOperacao, diasComDados);
-  if (slotFabrica) slotFabrica.innerHTML = _volBlocoMetaHTML(metaFabrica, realFabrica, diasOperacao, diasComDados);
+  if (slotNovo) slotNovo.innerHTML = _volBlocoMetaHTML(metaNovo, realNovo, diasOperacao, diasComDados, detalheNovo);
+  if (slotFabrica) slotFabrica.innerHTML = _volBlocoMetaHTML(metaFabrica, realFabrica, diasOperacao, diasComDados, detalheFabrica);
   if (slotEntrada) slotEntrada.innerHTML = _volBlocoMetaHTML(metaEntrada, realEntrada, diasOperacao, diasComDados);
   if (slotSaida) slotSaida.innerHTML = _volBlocoMetaHTML(metaSaida, realSaida, diasOperacao, diasComDados);
 
