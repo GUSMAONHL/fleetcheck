@@ -1361,7 +1361,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <div class="panel-title" id="prod-modal-title">Veículo</div>
         <div class="panel-meta" id="prod-modal-meta"></div>
       </div>
-      <button class="panel-close" onclick="document.getElementById('prod-overlay').style.display='none'">&#x2715;</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="exportarHistoricoVeiculo()" title="Exportar histórico (com resumo de ofensores e do período)" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#2ea043;cursor:pointer;font-size:13px;font-weight:600;">📊 Exportar</button>
+        <button class="panel-close" onclick="document.getElementById('prod-overlay').style.display='none'">&#x2715;</button>
+      </div>
     </div>
     <div class="panel-body" id="prod-modal-body"></div>
   </div>
@@ -3941,6 +3944,29 @@ window.fecharProdModal = function fecharProdModal(e) {
 
 let _prodVeiculoCache = null; // { historicoCronologico, placaKey } — guardado pra poder refiltrar sem rebuscar
 let _prodVeiculoOfensorFiltro = null; // ofensor selecionado como filtro da tabela (null = mostra tudo)
+let _prodVeiculoModoCompleto = false; // true = ignora o período da tela principal e mostra o histórico inteiro
+
+// Traduz o filtro de período que está ativo na tela principal de Aderência (Dia/Mês/Ano/Período)
+// num intervalo [de, ate] em ISO — usado pra restringir o histórico do veículo ao mesmo período
+// que o gestor está olhando no resto da tela, em vez de sempre mostrar tudo.
+function _prodObterPeriodoAtivo() {
+  if (_prodModoView === 'dia' && _prodDiaAtual) {
+    const iso = _diaParaChave(_prodDiaAtual);
+    return { de: iso, ate: iso };
+  }
+  if (_prodModoView === 'mes' && _prodMesAtual) {
+    const [ano, mes] = _prodMesAtual.split('-').map(Number);
+    const ultimoDia = new Date(ano, mes, 0).getDate();
+    return { de: `${_prodMesAtual}-01`, ate: `${_prodMesAtual}-${String(ultimoDia).padStart(2,'0')}` };
+  }
+  if (_prodModoView === 'ano' && _prodAnoAtual) {
+    return { de: `${_prodAnoAtual}-01-01`, ate: `${_prodAnoAtual}-12-31` };
+  }
+  if (_prodModoView === 'periodo' && _prodPeriodoDe && _prodPeriodoAte) {
+    return { de: _prodPeriodoDe, ate: _prodPeriodoAte };
+  }
+  return null;
+}
 
 async function abrirDetalheVeiculo(placaKey) {
   document.getElementById('prod-modal-title').textContent = placaKey;
@@ -3948,6 +3974,7 @@ async function abrirDetalheVeiculo(placaKey) {
   document.getElementById('prod-modal-body').innerHTML = '';
   document.getElementById('prod-overlay').style.display = 'flex';
   _prodVeiculoOfensorFiltro = null;
+  _prodVeiculoModoCompleto = false;
 
   try {
     const snap = await getDoc(doc(db, 'base_volume_veiculos', placaKey));
@@ -4016,9 +4043,89 @@ async function abrirDetalheVeiculo(placaKey) {
 
 // Reaproveitado tanto na abertura do modal quanto ao clicar num filtro de ofensor — refiltra e
 // redesenha sem precisar buscar o histórico de novo no Firestore.
+// Exporta o histórico do veículo exatamente como está sendo exibido no modal (mesmo período —
+// ou histórico completo, se essa opção tiver sido escolhida — e mesmo filtro de ofensor, se
+// algum estiver ativo), com um resumo do período e um resumo de ofensores em abas separadas.
+window.exportarHistoricoVeiculo = function exportarHistoricoVeiculo() {
+  if (!_prodVeiculoCache) { showToast('✖ Nada pra exportar.'); return; }
+  const { historicoCronologico: historicoCompleto, placaKey } = _prodVeiculoCache;
+
+  const periodoAtivo = _prodVeiculoModoCompleto ? null : _prodObterPeriodoAtivo();
+  const historico = (periodoAtivo
+    ? historicoCompleto.filter(d => { const iso = _diaParaChave(d.dataReal); return iso >= periodoAtivo.de && iso <= periodoAtivo.ate; })
+    : historicoCompleto
+  ).filter(d => !_prodVeiculoOfensorFiltro || d.ofensor === _prodVeiculoOfensorFiltro);
+
+  if (historico.length === 0) { showToast('✖ Nada pra exportar nesse período.'); return; }
+
+  const diaSemanaAbrevExp = (dataBr) => { const [d,m,a] = dataBr.split('/').map(Number); return DIAS_SEMANA_ABREV[new Date(a, m-1, d).getDay()]; };
+
+  // Aba 1: Resumo do período
+  const volumeTotal = historico.reduce((s,l) => s + l.volume, 0);
+  const viagensTotal = historico.reduce((s,l) => s + l.viagens, 0);
+  const aderenciaMedia = historico.reduce((s,l) => s + l.aderencia, 0) / historico.length;
+  const primeiro = historico[0], ultimo = historico[historico.length - 1];
+  const resumo = [{
+    'Veículo': placaKey,
+    'Força': ultimo.forca || '',
+    'Tipo': ultimo.tipo2 || '',
+    'Período': periodoAtivo ? `${periodoAtivo.de.split('-').reverse().join('/')} a ${periodoAtivo.ate.split('-').reverse().join('/')}` : `${primeiro.dataReal} a ${ultimo.dataReal} (histórico completo)`,
+    'Ofensor filtrado': _prodVeiculoOfensorFiltro || 'Todos',
+    'Dias com registro': historico.length,
+    'Toneladas': Math.round(volumeTotal*100)/100,
+    'Viagens': viagensTotal,
+    'Aderência Média': `${Math.round(aderenciaMedia)}%`
+  }];
+
+  // Aba 2: Resumo de ofensores (quantidade de DIAS com cada ofensor, dentro do período exportado)
+  const ofensoresCont = {};
+  historico.forEach(l => { if (l.ofensor) ofensoresCont[l.ofensor] = (ofensoresCont[l.ofensor] || 0) + 1; });
+  const resumoOfensores = Object.entries(ofensoresCont)
+    .sort((a,b) => b[1]-a[1])
+    .map(([ofensor, dias]) => ({ 'Ofensor': ofensor, 'Dias': dias }));
+
+  // Aba 3: Histórico detalhado, dia a dia
+  const detalhado = historico.map(l => ({
+    'Data': l.dataReal,
+    'Dia da Semana': diaSemanaAbrevExp(l.dataReal),
+    'Aderência': `${l.aderencia}%`,
+    'Rota': (l.origem && l.destino) ? `${l.origem} → ${l.destino}` : '—',
+    'Ofensor': l.ofensor || '',
+    'Tipo Ofensor': l.tipoOfensor || '',
+    'VG': l.viagens,
+    'Volume': Math.round((l.volume||0)*100)/100,
+    'Perc. Ton.': Math.round((l.percTon||0)*100)/100
+  }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumo), 'Resumo');
+  if (resumoOfensores.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumoOfensores), 'Ofensores');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detalhado), 'Histórico');
+
+  const sufixo = periodoAtivo ? `${periodoAtivo.de}_a_${periodoAtivo.ate}` : 'completo';
+  XLSX.writeFile(wb, `historico_${placaKey}_${sufixo}.xlsx`);
+  showToast('✔ Arquivo exportado.');
+};
+
 function _prodRenderDetalheVeiculo() {
   if (!_prodVeiculoCache) return;
-  const { historicoCronologico, placaKey } = _prodVeiculoCache;
+  const { historicoCronologico: historicoCompleto, placaKey } = _prodVeiculoCache;
+
+  // Restringe ao mesmo período que está selecionado na tela principal (Dia/Mês/Ano/Período),
+  // a menos que o gestor tenha pedido pra ver o histórico completo.
+  const periodoAtivo = _prodVeiculoModoCompleto ? null : _prodObterPeriodoAtivo();
+  const historicoCronologico = periodoAtivo
+    ? historicoCompleto.filter(d => { const iso = _diaParaChave(d.dataReal); return iso >= periodoAtivo.de && iso <= periodoAtivo.ate; })
+    : historicoCompleto;
+
+  if (historicoCronologico.length === 0) {
+    document.getElementById('prod-modal-meta').textContent = '';
+    document.getElementById('prod-modal-body').innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3);font-size:16px;">
+      Nenhum registro deste veículo no período selecionado na tela principal.
+      <div style="margin-top:10px;"><button onclick="_prodVeiculoModoCompleto=true;_prodRenderDetalheVeiculo();" style="cursor:pointer;background:none;border:1px solid var(--border2);border-radius:8px;padding:6px 14px;color:#388bfd;font-size:14px;">Ver histórico completo</button></div>
+    </div>`;
+    return;
+  }
 
   const ultimo = historicoCronologico[historicoCronologico.length - 1];
   const primeiro = historicoCronologico[0];
@@ -4030,7 +4137,13 @@ function _prodRenderDetalheVeiculo() {
   const ofensores = {};
   historicoCronologico.forEach(l => { if (l.ofensor) ofensores[l.ofensor] = (ofensores[l.ofensor] || 0) + 1; });
 
-  document.getElementById('prod-modal-meta').textContent = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${primeiro.dataReal} a ${ultimo.dataReal}`;
+  let rotuloToggle = '';
+  if (periodoAtivo) {
+    rotuloToggle = `<span style="cursor:pointer;color:#388bfd;" onclick="_prodVeiculoModoCompleto=true;_prodRenderDetalheVeiculo();">Ver histórico completo</span>`;
+  } else if (_prodVeiculoModoCompleto && _prodObterPeriodoAtivo()) {
+    rotuloToggle = `<span style="cursor:pointer;color:#388bfd;" onclick="_prodVeiculoModoCompleto=false;_prodRenderDetalheVeiculo();">Ver só o período selecionado</span>`;
+  }
+  document.getElementById('prod-modal-meta').innerHTML = `${ultimo.forca||'—'} · ${ultimo.tipo2||'—'} · ${primeiro.dataReal} a ${ultimo.dataReal}${rotuloToggle ? ' · '+rotuloToggle : ''}`;
 
   // histórico mais recente primeiro na tabela; filtra por ofensor se algum estiver selecionado
   const historicoExibido = historicoCronologico.slice().reverse()
@@ -4058,7 +4171,7 @@ function _prodRenderDetalheVeiculo() {
     html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;align-items:center;">
       <span style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-right:2px;">Filtrar por ofensor:</span>
       ${chip('Todos', !_prodVeiculoOfensorFiltro, `_prodFiltrarOfensorVeiculo(null)`)}
-      ${ofensoresList.map(([mot,n]) => chip(`${mot} · ${n}x`, _prodVeiculoOfensorFiltro === mot, `_prodFiltrarOfensorVeiculo('${mot.replace(/'/g,"\\'")}')`)).join('')}
+      ${ofensoresList.map(([mot,n]) => chip(`${mot} · ${n}d`, _prodVeiculoOfensorFiltro === mot, `_prodFiltrarOfensorVeiculo('${mot.replace(/'/g,"\\'")}')`)).join('')}
     </div>`;
   }
 
