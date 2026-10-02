@@ -3411,6 +3411,11 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
     let percTon;
     if (viagensProgramadas > 0) {
       percTon = Math.max(0, viagensProgramadas - viagensRealizadas) * (v.pesoMedio || 0);
+    } else if (_progEhCavalo(v.tipo2)) {
+      // Cavalo mecânico sem programação não entra no impacto de volume perdido, mesmo que o
+      // programador tenha preenchido "viagens que faria" no modal de Não Programados — essa
+      // particularidade vale só pra cavalo, não pra caminhão (Bitruck/Carreta).
+      percTon = 0;
     } else {
       const justNaoProg = justificativasNaoProgramados[v.placa];
       const viagensQueFaria = justNaoProg && justNaoProg.viagensPerdidas ? Number(justNaoProg.viagensPerdidas) : 0;
