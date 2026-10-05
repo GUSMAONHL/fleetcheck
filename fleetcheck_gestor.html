@@ -1151,6 +1151,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">KM Inicial do Dia</label>
         <input type="number" min="0" id="abastecimento-km-inicial" class="filter-input" style="width:100%;" placeholder="ex: 128450">
+        <div id="abastecimento-km-hint" style="font-size:11px;color:var(--text3);margin-top:4px;"></div>
       </div>
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">KM Final do Dia</label>
@@ -6617,25 +6618,47 @@ window.abrirAbastecimentoModal = async function abrirAbastecimentoModal(placa) {
   });
   _atualizarPreviaAbastecimento();
 
-  // Se ainda não tem KM inicial preenchido pra hoje, sugere com o KM final do dia anterior — na
-  // ordem REAL de operação (não na ordem gravada, que pode ter domingos-disfarce no meio).
+  // Se ainda não tem KM inicial preenchido pra hoje, sugere o ÚLTIMO KM final válido desse
+  // veículo — voltando dia a dia (na ordem REAL de operação, não na gravada, que pode ter
+  // domingos-disfarce no meio) até achar um registro. Se o veículo não trabalhou/lançou ontem,
+  // continua procurando nos dias anteriores em vez de desistir.
+  document.getElementById('abastecimento-km-hint').textContent = '';
   if (atual.kmInicial == null) {
     try {
       const mapa = await _obterMapaDiasDisfarce();
       const mapaInv = _inverterMapa(mapa);
       const dataRealHoje = mapa[_gestaoDataAtual] || _gestaoDataAtual;
-      const dataRealOntem = _somarDiasISO(dataRealHoje, -1);
-      const dataGravadaOntem = mapaInv[dataRealOntem] || dataRealOntem;
-      if (dataGravadaOntem !== _gestaoDataAtual) {
-        const snapOntem = await getDoc(doc(db, 'programacao_dias', dataGravadaOntem));
-        const abastOntem = snapOntem.exists() ? (snapOntem.data().abastecimentos || {})[placa] : null;
-        if (abastOntem && abastOntem.kmFinal != null && _gestaoPlacaAbastecendo === placa) {
-          document.getElementById('abastecimento-km-inicial').value = abastOntem.kmFinal;
-          _atualizarPreviaAbastecimento();
-        }
+
+      // monta a lista de documentos a consultar, do dia anterior pra trás (até 60 dias)
+      const candidatos = []; // { realISO, gravadaISO }
+      for (let i = 1; i <= 60; i++) {
+        const realISO = _somarDiasISO(dataRealHoje, -i);
+        if (mapa[realISO]) continue; // essa data gravada é um domingo-disfarce de outro dia — não é um dia real próprio
+        const gravadaISO = mapaInv[realISO] || realISO;
+        if (gravadaISO === _gestaoDataAtual) continue;
+        candidatos.push({ realISO, gravadaISO });
+      }
+      const snaps = await Promise.all(candidatos.map(c => getDoc(doc(db, 'programacao_dias', c.gravadaISO)).catch(() => null)));
+
+      let achado = null;
+      for (let i = 0; i < candidatos.length; i++) {
+        const s = snaps[i];
+        const ab = s && s.exists() ? (s.data().abastecimentos || {})[placa] : null;
+        if (ab && ab.kmFinal != null && !isNaN(Number(ab.kmFinal))) { achado = { km: ab.kmFinal, realISO: candidatos[i].realISO }; break; }
+      }
+
+      if (_gestaoPlacaAbastecendo !== placa) return; // usuário trocou de veículo/fechou enquanto buscava
+      const hint = document.getElementById('abastecimento-km-hint');
+      if (achado) {
+        document.getElementById('abastecimento-km-inicial').value = achado.km;
+        const [a,m,d] = achado.realISO.split('-');
+        hint.textContent = `Sugerido a partir do último KM final registrado (${d}/${m}/${a}).`;
+        _atualizarPreviaAbastecimento();
+      } else {
+        hint.textContent = 'Nenhum KM anterior encontrado pra esse veículo nos últimos 60 dias.';
       }
     } catch (err) {
-      console.error('Erro ao buscar KM do dia anterior:', err);
+      console.error('Erro ao buscar último KM do veículo:', err);
     }
   }
 };
