@@ -472,6 +472,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button class="filtros-acao-btn" onclick="exportarVolumeAnalitico()" title="Exportar Excel" style="color:#2ea043;">📊</button>
     </div>
 
+    <div class="filtros-painel" id="filtros-volumeestratificado">
+      <button class="filtros-acao-btn" onclick="exportarVolumeEstratificado()" title="Exportar Excel" style="color:#2ea043;">📊</button>
+    </div>
+
     <div class="filtros-painel" id="filtros-programacao">
       <button class="filtros-acao-btn" onclick="abrirFormProgItem()" title="Cadastrar Meta do Dia" style="color:#388bfd;">📅</button>
       <button class="filtros-acao-btn" onclick="exportarNotaWhatsapp()" title="Exportar nota resumida (WhatsApp)" style="color:#2ea043;">💬</button>
@@ -563,6 +567,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Volume Analítico
         </button>
+        <button onclick="showPage('volumeestratificado')" title="Volume Estratificado" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:#a371f7;cursor:pointer;font-size:13px;font-weight:600;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M3 6h18M3 12h14M3 18h8"/></svg>
+          Volume Estratificado
+        </button>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-volumeanalitico">
@@ -593,6 +601,23 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <select id="va-veiculo-select" class="filter-input" style="min-width:0;width:120px;padding:6px 8px;font-size:13px;" onchange="_vaOnFiltroChange()">
           <option value="">Veículo: Todos</option>
         </select>
+      </div>
+
+      <div class="topbar-filtros-painel" id="topbar-filtros-volumeestratificado">
+        <div class="topbar-modo-toggle">
+          <button id="ve-modo-dia-btn" onclick="_veSetModoView('dia')">Dia</button>
+          <button id="ve-modo-mes-btn" onclick="_veSetModoView('mes')" style="background:#388bfd;color:#fff;">Mês</button>
+          <button id="ve-modo-periodo-btn" onclick="_veSetModoView('periodo')">Período</button>
+        </div>
+        <input type="date" id="ve-dia-input" class="filter-input" style="display:none;min-width:0;width:135px;padding:6px 8px;font-size:13px;" onchange="_veOnDiaChange(this.value)">
+        <select id="ve-mes-select" class="filter-input" style="min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_veOnMesChange(this.value)">
+          <option value="">—</option>
+        </select>
+        <div id="ve-periodo-inputs" style="display:none;align-items:center;gap:4px;">
+          <input type="date" id="ve-periodo-de" class="filter-input" style="min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_veOnPeriodoChange()">
+          <span style="color:var(--text3);font-size:12px;">até</span>
+          <input type="date" id="ve-periodo-ate" class="filter-input" style="min-width:0;width:130px;padding:6px 8px;font-size:13px;" onchange="_veOnPeriodoChange()">
+        </div>
       </div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-programacao">
@@ -874,6 +899,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- PAGE: VOLUME ESTRATIFICADO -->
+    <div class="page" id="page-volumeestratificado">
+      <div id="ve-conteudo"></div>
     </div>
 
     <!-- PAGE: VOLUME ANALÍTICO -->
@@ -2052,7 +2082,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico', ofensores: 'Ofensores — Impacto de Volume' };
+const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico', volumeestratificado: 'Volume Estratificado', ofensores: 'Ofensores — Impacto de Volume' };
 
 // Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
 // diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
@@ -2185,6 +2215,7 @@ window.showPage = function showPage(id) {
   if (id === 'ofensores') setTimeout(() => window.renderOfensores(), 0);
   if (id === 'volume') setTimeout(() => window.renderVolume(), 0);
   if (id === 'volumeanalitico') setTimeout(() => window.renderVolumeAnalitico(), 0);
+  if (id === 'volumeestratificado') setTimeout(() => window.renderVolumeEstratificado(), 0);
 
   if (id === 'programacao') setTimeout(() => window.renderProgramacao(), 0);
   if (id === 'gestao') setTimeout(() => window.renderGestaoDia(), 0);
@@ -9001,6 +9032,227 @@ window.renderVolumeAnalitico = async function renderVolumeAnalitico() {
   if (!_vaPeriodoAte) { _vaPeriodoAte = hojeISO; document.getElementById('va-periodo-ate').value = hojeISO; }
 
   await _vaCarregar();
+};
+
+// ══════════════════════════════════════
+// VOLUME ESTRATIFICADO — peso médio por viagem, estratificado por tipo de veículo (Caminhão /
+// Cavalo), por força (Frota / Terceiro) e por tipo específico (Bitruck / Truck / Cavalo), no
+// geral e rota a rota. Peso médio = volume total ÷ nº de viagens do estrato (mesma conta usada em
+// Volume Analítico).
+// ══════════════════════════════════════
+let _veModoView = 'mes'; // 'dia' | 'mes' | 'periodo'
+let _veDiaAtual = null;  // 'YYYY-MM-DD'
+let _veMesAtual = null;  // 'YYYY-MM'
+let _vePeriodoDe = null;
+let _vePeriodoAte = null;
+let _veDadosAtuais = null; // { geral, porRota } — cache usado na exportação
+
+const VE_GRUPOS = [
+  { rotulo: 'CAMINHÃO', tipos: ['BT','TR'], filhos: [
+    { forca: 'FROTA',    tipo2: 'BT', rotulo: 'FROTA - BITRUCK' },
+    { forca: 'FROTA',    tipo2: 'TR', rotulo: 'FROTA - TRUCK' },
+    { forca: 'TERCEIRO', tipo2: 'BT', rotulo: 'TERCEIRO - BITRUCK' },
+    { forca: 'TERCEIRO', tipo2: 'TR', rotulo: 'TERCEIRO - TRUCK' },
+  ]},
+  { rotulo: 'CAVALO', tipos: ['CV'], filhos: [
+    { forca: 'FROTA',    tipo2: 'CV', rotulo: 'FROTA - CAVALO' },
+    { forca: 'TERCEIRO', tipo2: 'CV', rotulo: 'TERCEIRO - CAVALO' },
+  ]},
+];
+
+const _veFmt = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const _veNorm = (s) => (s || '').toString().trim().toUpperCase();
+
+function _veEstiloModo() {
+  const ativo = 'background:#388bfd;color:#fff;';
+  document.getElementById('ve-modo-dia-btn').style.cssText = _veModoView === 'dia' ? ativo : '';
+  document.getElementById('ve-modo-mes-btn').style.cssText = _veModoView === 'mes' ? ativo : '';
+  document.getElementById('ve-modo-periodo-btn').style.cssText = _veModoView === 'periodo' ? ativo : '';
+  document.getElementById('ve-dia-input').style.display = _veModoView === 'dia' ? '' : 'none';
+  document.getElementById('ve-mes-select').style.display = _veModoView === 'mes' ? '' : 'none';
+  document.getElementById('ve-periodo-inputs').style.display = _veModoView === 'periodo' ? 'flex' : 'none';
+}
+
+window._veSetModoView = function _veSetModoView(modo) { _veModoView = modo; _veEstiloModo(); _veCarregar(); };
+window._veOnDiaChange = function _veOnDiaChange(v) { _veDiaAtual = v; _veCarregar(); };
+window._veOnMesChange = function _veOnMesChange(v) { _veMesAtual = v; _veCarregar(); };
+window._veOnPeriodoChange = function _veOnPeriodoChange() {
+  _vePeriodoDe = document.getElementById('ve-periodo-de').value;
+  _vePeriodoAte = document.getElementById('ve-periodo-ate').value;
+  if (_vePeriodoDe && _vePeriodoAte) _veCarregar();
+};
+
+async function _veObterDias() {
+  if (_veModoView === 'dia') return _veDiaAtual ? [_veDiaAtual] : [];
+  const diasReais = await _obterDiasVolumeReal();
+  if (_veModoView === 'mes') {
+    if (!_veMesAtual) return [];
+    const [ano, mes] = _veMesAtual.split('-');
+    return diasReais.filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; }).map(d => _diaParaChave(d));
+  }
+  if (!_vePeriodoDe || !_vePeriodoAte) return [];
+  return diasReais.map(d => _diaParaChave(d)).filter(iso => iso >= _vePeriodoDe && iso <= _vePeriodoAte);
+}
+
+// Soma peso e conta viagens das que passam no filtro; média = peso ÷ viagens (null se não houve viagem)
+function _veAcumular(viagens, filtro) {
+  let peso = 0, vg = 0;
+  viagens.forEach(v => { if (filtro(v)) { peso += Number(v.peso) || 0; vg++; } });
+  return { peso, viagens: vg, media: vg > 0 ? peso / vg : null };
+}
+
+function _veEstratificar(viagens) {
+  const grupos = VE_GRUPOS.map(g => {
+    const geral = _veAcumular(viagens, v => g.tipos.includes(_veNorm(v.tipo2)));
+    const filhos = g.filhos.map(f => ({
+      rotulo: f.rotulo,
+      ..._veAcumular(viagens, v => _veNorm(v.forca) === f.forca && _veNorm(v.tipo2) === f.tipo2)
+    }));
+    return { rotulo: g.rotulo, ...geral, filhos };
+  });
+  // viagens que não caem em nenhuma combinação força × tipo conhecida (ex.: força em branco)
+  const conhecidas = new Set(VE_GRUPOS.flatMap(g => g.filhos.map(f => `${f.forca}|${f.tipo2}`)));
+  const semClassificacao = viagens.filter(v => !conhecidas.has(`${_veNorm(v.forca)}|${_veNorm(v.tipo2)}`)).length;
+  return { grupos, semClassificacao };
+}
+
+async function _veCarregar() {
+  const cont = document.getElementById('ve-conteudo');
+  if (!cont) return;
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Carregando...</div>';
+  try {
+    const dias = await _veObterDias();
+    if (dias.length === 0) {
+      const msg = _veModoView === 'dia' ? 'Selecione um dia.' : _veModoView === 'mes' ? 'Selecione um mês.' : 'Selecione o período (de/até).';
+      cont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3);">${msg}</div>`;
+      _veDadosAtuais = null;
+      return;
+    }
+    const snaps = await Promise.all(dias.map(d => getDoc(doc(db, 'volume_dias', d))));
+    let viagens = [];
+    snaps.forEach(snap => { if (snap.exists() && Array.isArray(snap.data().viagens)) viagens = viagens.concat(snap.data().viagens); });
+
+    if (viagens.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhuma viagem encontrada nesse período.</div>';
+      _veDadosAtuais = null;
+      return;
+    }
+
+    // agrupa por rota (origem → destino normalizados)
+    const porRotaMapa = {};
+    viagens.forEach(v => {
+      const chave = `${_progNormalizarOD(v.origem)} → ${_progNormalizarOD(v.destino)}`;
+      (porRotaMapa[chave] = porRotaMapa[chave] || []).push(v);
+    });
+    const porRota = Object.entries(porRotaMapa).map(([rota, vs]) => ({
+      rota,
+      volume: vs.reduce((s, v) => s + (Number(v.peso) || 0), 0),
+      viagens: vs.length,
+      ...(_veEstratificar(vs))
+    })).sort((a, b) => b.volume - a.volume);
+
+    const geral = {
+      volume: viagens.reduce((s, v) => s + (Number(v.peso) || 0), 0),
+      viagens: viagens.length,
+      ...(_veEstratificar(viagens))
+    };
+    _veDadosAtuais = { geral, porRota };
+    _veRender();
+  } catch (err) {
+    console.error('Erro ao carregar Volume Estratificado:', err);
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#f85149;">Erro ao carregar os dados.</div>';
+  }
+}
+
+function _veLinhaHTML(item, ehPai, primeiro) {
+  const val = item.media != null ? _veFmt(item.media) : '—';
+  const cor = item.media != null ? 'var(--text)' : 'var(--text3)';
+  const borda = ehPai && !primeiro ? 'border-top:1px solid var(--border2);margin-top:6px;' : '';
+  return `<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:${ehPai ? '8px 0 4px' : '3px 0 3px 14px'};${borda}">
+    <span style="font-size:${ehPai ? 14 : 13}px;font-weight:${ehPai ? 700 : 500};color:${ehPai ? 'var(--text)' : 'var(--text2)'};">${item.rotulo}</span>
+    <span style="text-align:right;white-space:nowrap;"><strong style="font-family:'DM Mono',monospace;font-size:${ehPai ? 17 : 14}px;color:${cor};">${val}</strong> <span style="font-size:11px;color:var(--text3);">${item.viagens} VG</span></span>
+  </div>`;
+}
+
+function _veCardHTML(titulo, resumo, dados, cor) {
+  const linhas = dados.grupos.map((g, i) =>
+    _veLinhaHTML(g, true, i === 0) + g.filhos.map(f => _veLinhaHTML(f, false, false)).join('')
+  ).join('');
+  const aviso = dados.semClassificacao > 0
+    ? `<div style="font-size:11px;color:#d29922;margin-top:8px;">⚠ ${dados.semClassificacao} VG sem força/tipo reconhecido (fora das linhas por força × tipo)</div>`
+    : '';
+  return `<div class="table-card" style="padding:16px 18px;border-top:3px solid ${cor};">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);">${titulo}</div>
+      <div style="font-size:12px;color:var(--text3);white-space:nowrap;">${resumo}</div>
+    </div>
+    ${linhas}${aviso}
+  </div>`;
+}
+
+function _veRender() {
+  const cont = document.getElementById('ve-conteudo');
+  if (!cont || !_veDadosAtuais) return;
+  const { geral, porRota } = _veDadosAtuais;
+  const resumo = (d) => `${d.viagens} VG · ${_veFmt(d.volume)}`;
+
+  const cardGeral = _veCardHTML('📦 Geral — todas as rotas', resumo(geral), geral, '#388bfd');
+  const cardsRota = porRota.map(r => _veCardHTML(r.rota, resumo(r), r, '#a371f7')).join('');
+
+  cont.innerHTML = `
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px;">Peso médio por viagem (volume ÷ viagens), por tipo de veículo, força e rota.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:start;">
+      ${cardGeral}
+    </div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin:22px 0 10px;">Por Rota <span style="font-weight:400;color:var(--text3);font-size:12px;">(${porRota.length} rotas, ordenadas por volume)</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:start;">
+      ${cardsRota}
+    </div>`;
+}
+
+window.renderVolumeEstratificado = async function renderVolumeEstratificado() {
+  const hoje = new Date();
+  const hojeISO = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+  const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  if (!_veDiaAtual) _veDiaAtual = hojeISO;
+  document.getElementById('ve-dia-input').value = _veDiaAtual;
+
+  const diasReais = await _obterDiasVolumeReal();
+  const mesesSet = new Set(diasReais.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+  mesesSet.add(mesAtualKey);
+  const meses = Array.from(mesesSet).sort().reverse();
+  if (!_veMesAtual) _veMesAtual = meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || '');
+  const selectMes = document.getElementById('ve-mes-select');
+  selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_volMesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
+  selectMes.value = _veMesAtual;
+
+  const primeiroDiaMes = mesAtualKey + '-01';
+  if (!_vePeriodoDe) { _vePeriodoDe = primeiroDiaMes; document.getElementById('ve-periodo-de').value = primeiroDiaMes; }
+  if (!_vePeriodoAte) { _vePeriodoAte = hojeISO; document.getElementById('ve-periodo-ate').value = hojeISO; }
+
+  _veEstiloModo();
+  await _veCarregar();
+};
+
+window.exportarVolumeEstratificado = function exportarVolumeEstratificado() {
+  if (!_veDadosAtuais) { showToast('✖ Nada pra exportar — selecione um período com dados.'); return; }
+  const linhas = [];
+  const adicionar = (rotaRotulo, dados) => {
+    dados.grupos.forEach(g => {
+      linhas.push({ 'Rota': rotaRotulo, 'Estrato': g.rotulo, 'Peso Médio': g.media != null ? Math.round(g.media * 100) / 100 : '', 'VG': g.viagens, 'Volume': Math.round(g.peso * 100) / 100 });
+      g.filhos.forEach(f => {
+        linhas.push({ 'Rota': rotaRotulo, 'Estrato': f.rotulo, 'Peso Médio': f.media != null ? Math.round(f.media * 100) / 100 : '', 'VG': f.viagens, 'Volume': Math.round(f.peso * 100) / 100 });
+      });
+    });
+  };
+  adicionar('GERAL (todas as rotas)', _veDadosAtuais.geral);
+  _veDadosAtuais.porRota.forEach(r => adicionar(r.rota, r));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(linhas), 'Volume Estratificado');
+  const rotulo = _veModoView === 'dia' ? (_veDiaAtual || 'dia') : _veModoView === 'mes' ? (_veMesAtual || 'mes') : `${_vePeriodoDe || 'de'}_a_${_vePeriodoAte || 'ate'}`;
+  XLSX.writeFile(wb, `volume_estratificado_${rotulo}.xlsx`);
+  showToast('✔ Arquivo exportado.');
 };
 
 window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
