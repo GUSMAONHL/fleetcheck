@@ -481,7 +481,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <button class="filtros-acao-btn" onclick="exportarNotaWhatsapp()" title="Exportar nota resumida (WhatsApp)" style="color:#2ea043;">💬</button>
       <button class="filtros-acao-btn" onclick="excluirVolumeRealDoDia()" title="Excluir dado real (Volume Poços) desse dia — use pra limpar teste/dado incorreto que ficou preso" style="color:#f85149;">🗑</button>
     </div>
-    <div class="filtros-painel" id="filtros-gestao"></div>
+    <div class="filtros-painel" id="filtros-gestao">
+      <button class="filtros-acao-btn" onclick="exportarGestaoDia()" title="Exportar Excel (uma linha por viagem realizada)" style="color:#2ea043;">📊</button>
+    </div>
   </div>
 
   <div class="sidebar-user" title="Gestor — Novo Horizonte Logística">
@@ -4603,6 +4605,7 @@ window.importarVolume = async function importarVolume(input) {
     _gestaoTotalUltimoDiaCache = null; // idem pro total do último dia na Gestão do Dia
     _minasPesoMedioCache = null; // idem pro peso médio por rota mostrado na tela de Minas
     _veiculoPesoMedioRealCache = null; // idem pro peso médio real por veículo, usado no roster de Programação/Gestão do Dia
+    _pesoMedioVeiculoRotaCache = null; // idem pro peso médio por veículo×rota, usado na exportação da Gestão do Dia
     _mapaDiasDisfarceCache = null; // idem pro mapa de domingos-disfarce, usado na timeline do veículo e no KM
     _volMetaDiasCache = null; // idem pra lista de dias com volume real, usada na Aderência a partir do corte
     showToast(`✔ Base importada! ${diasOrdenadosAder.length} dias de aderência · ${diasOrdenadosVol.length} dias de volume · ${totalViagensVol.toLocaleString('pt-BR')} viagens`);
@@ -6071,6 +6074,34 @@ function _chaveRota(origem, destino) {
 
 let _minasPesoMedioCache = null; // 'ORIGEM|||DESTINO' -> { caminhao: pesoMedio|null, cavalo: pesoMedio|null }
 let _veiculoPesoMedioRealCache = null; // placa -> pesoMedio real (viagens já rodadas), ou null se não achou
+
+// Peso médio real por viagem de cada VEÍCULO em cada ROTA (placa|origem|destino), varrendo o
+// histórico da Volume Poços já importado. Usado na exportação da Gestão do Dia.
+let _pesoMedioVeiculoRotaCache = null;
+async function _calcularPesoMedioVeiculoRota() {
+  if (_pesoMedioVeiculoRotaCache) return _pesoMedioVeiculoRotaCache;
+  const resultado = {};
+  try {
+    const dias = await _obterDiasVolumeReal();
+    const snaps = await Promise.all(dias.map(d => getDoc(doc(db, 'volume_dias', _diaParaChave(d)))));
+    const somas = {};
+    snaps.forEach(snap => {
+      if (!snap.exists()) return;
+      (snap.data().viagens || []).forEach(v => {
+        if (!v.placa) return;
+        const k = v.placa.toString().trim().toUpperCase() + '|' + _progNormalizarOD(v.origem) + '|' + _progNormalizarOD(v.destino);
+        if (!somas[k]) somas[k] = { peso: 0, viagens: 0 };
+        somas[k].peso += Number(v.peso)||0;
+        somas[k].viagens += 1;
+      });
+    });
+    Object.entries(somas).forEach(([k, x]) => { if (x.viagens > 0) resultado[k] = x.peso / x.viagens; });
+    _pesoMedioVeiculoRotaCache = resultado;
+  } catch (err) {
+    console.error('Erro ao calcular peso médio veículo×rota:', err);
+  }
+  return resultado;
+}
 
 // Peso médio real por viagem, por PLACA — mesma fonte e mesmo padrão de _calcularPesoMedioPorRota
 // (varre o histórico da Volume Poços já importado), só que agrupando por veículo em vez de rota.
@@ -9253,6 +9284,46 @@ window.exportarVolumeEstratificado = function exportarVolumeEstratificado() {
   const rotulo = _veModoView === 'dia' ? (_veDiaAtual || 'dia') : _veModoView === 'mes' ? (_veMesAtual || 'mes') : `${_vePeriodoDe || 'de'}_a_${_vePeriodoAte || 'ate'}`;
   XLSX.writeFile(wb, `volume_estratificado_${rotulo}.xlsx`);
   showToast('✔ Arquivo exportado.');
+};
+
+// Exporta a Gestão do Dia no modelo "modelo_gestao_exportar.xlsx": uma linha por viagem realizada
+// (as marcadas como feitas no dia). Peso médio = média real do veículo naquela rota, em kg.
+window.exportarGestaoDia = async function exportarGestaoDia() {
+  if (!_gestaoDataAtual) { showToast('✖ Selecione o dia antes de exportar.'); return; }
+  const semAcento = (t) => (t||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+  const [ano, mes, dia] = _gestaoDataAtual.split('-').map(Number);
+  const serial = Date.UTC(ano, mes-1, dia) / 86400000 + 25569;
+  const dataTexto = String(dia).padStart(2,'0') + '/' + String(mes).padStart(2,'0') + '/' + ano;
+  const pesoVR = await _calcularPesoMedioVeiculoRota();
+  const pesoVeic = await _calcularPesoMedioPorVeiculo();
+  const atribs = _gestaoAtribuicoes.slice().sort((a,b) => (parseInt(a.fr,10)||0) - (parseInt(b.fr,10)||0));
+  const linhas = [];
+  atribs.forEach(a => {
+    const feitas = _gestaoRealizacoes(a).filter(Boolean).length;
+    const fr = /^\d+$/.test(String(a.fr||'').trim()) ? Number(a.fr) : (a.fr || a.placa);
+    const chave = (a.placa||'').toString().trim().toUpperCase() + '|' + _progNormalizarOD(a.origem) + '|' + _progNormalizarOD(a.destino);
+    // 1º média real do veículo nessa rota; 2º média real do veículo; 3º peso médio do cadastro/roster
+    const pesoT = pesoVR[chave] || pesoVeic[(a.placa||'').toString().trim().toUpperCase()] || Number(a.pesoMedio) || 0;
+    const pesoKg = Math.round(pesoT * 1000);
+    for (let i = 0; i < feitas; i++) linhas.push({ fr, origem: semAcento(a.origem), destino: semAcento(a.destino), pesoKg });
+  });
+  if (linhas.length === 0) { showToast('✖ Nenhuma viagem realizada marcada nesse dia.'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([['NUMERO DE FROTA','DATA','DATA','ORIGEM','DESTINO','PESO MEDIO']]);
+  linhas.forEach((l, i) => {
+    const r = i + 2;
+    ws['A'+r] = { t: typeof l.fr === 'number' ? 'n' : 's', v: l.fr };
+    ws['B'+r] = { t: 'n', v: serial, z: 'dd/mm/yyyy' };
+    ws['C'+r] = { t: 's', v: dataTexto };
+    ws['D'+r] = { t: 's', v: l.origem };
+    ws['E'+r] = { t: 's', v: l.destino };
+    ws['F'+r] = { t: 'n', v: l.pesoKg };
+  });
+  ws['!ref'] = 'A1:F' + (linhas.length + 1);
+  ws['!cols'] = [{wch:14.29},{wch:12},{wch:12.86},{wch:17},{wch:13.57},{wch:12.29}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Planilha1');
+  XLSX.writeFile(wb, `gestao_do_dia_${String(dia).padStart(2,'0')}-${String(mes).padStart(2,'0')}-${ano}.xlsx`);
+  showToast(`✔ ${linhas.length} viagem(ns) exportada(s).`);
 };
 
 window.exportarVolumeAnalitico = function exportarVolumeAnalitico() {
