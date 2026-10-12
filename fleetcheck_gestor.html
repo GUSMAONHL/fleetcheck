@@ -5,6 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Novo Horizonte Logística — Painel do Gestor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script>
+// Tema (escuro | claro) — aplicado antes de pintar a página pra não piscar. Preferência fica no navegador.
+(function () {
+  var t = 'escuro';
+  try { t = localStorage.getItem('fleetcheck_tema') || 'escuro'; } catch (e) {}
+  if (t === 'claro') document.documentElement.setAttribute('data-tema', 'claro');
+})();
+window.alternarTema = function () {
+  var claro = document.documentElement.getAttribute('data-tema') === 'claro';
+  if (claro) document.documentElement.removeAttribute('data-tema'); else document.documentElement.setAttribute('data-tema', 'claro');
+  try { localStorage.setItem('fleetcheck_tema', claro ? 'escuro' : 'claro'); } catch (e) {}
+  var b = document.getElementById('tema-btn');
+  if (b) b.innerHTML = claro ? '☀️' : '🌙';
+};
+document.addEventListener('DOMContentLoaded', function () {
+  var b = document.getElementById('tema-btn');
+  if (b) b.innerHTML = document.documentElement.getAttribute('data-tema') === 'claro' ? '🌙' : '☀️';
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -33,6 +52,44 @@
   --blue-border: rgba(56,139,253,0.3);
   --accent: #f78166;
 }
+/* ── TEMA CLARO (fundo branco, cores vivas) — só redefine as variáveis; o tema escuro continua o padrão ── */
+:root { color-scheme: dark; }
+:root[data-tema="claro"] {
+  color-scheme: light;
+  --bg: #f1f5fd;
+  --bg2: #ffffff;
+  --bg3: #eaf0fb;
+  --bg4: #dbe6f9;
+  --border: rgba(15,23,42,0.10);
+  --border2: rgba(15,23,42,0.20);
+  --text: #0b1220;
+  --text2: #3d4b63;
+  --text3: #667791;
+  --green: #12b04a;
+  --green-bg: rgba(18,176,74,0.12);
+  --green-border: rgba(18,176,74,0.40);
+  --red: #f0213f;
+  --red-bg: rgba(240,33,63,0.10);
+  --red-border: rgba(240,33,63,0.38);
+  --yellow: #ff9f0a;
+  --yellow-bg: rgba(255,159,10,0.14);
+  --yellow-border: rgba(255,159,10,0.45);
+  --blue: #1f6bff;
+  --blue-bg: rgba(31,107,255,0.10);
+  --blue-border: rgba(31,107,255,0.38);
+  --accent: #ff4d2e;
+}
+:root[data-tema="claro"] body { background: linear-gradient(180deg, #e8f0ff 0%, #f1f5fd 260px); background-attachment: fixed; }
+:root[data-tema="claro"] .sidebar { box-shadow: 2px 0 14px rgba(31,107,255,0.10); }
+:root[data-tema="claro"] .nav-item.active { background: var(--blue); color: #fff; }
+:root[data-tema="claro"] .nav-item.active svg { opacity: 1; }
+:root[data-tema="claro"] .nav-item:hover { background: var(--blue-bg); color: var(--blue); }
+:root[data-tema="claro"] .table-card,
+:root[data-tema="claro"] .kpi-card { box-shadow: 0 2px 10px rgba(15,23,42,0.07); }
+:root[data-tema="claro"] .topbar { box-shadow: 0 2px 12px rgba(15,23,42,0.06); border-bottom: 3px solid var(--blue); }
+:root[data-tema="claro"] table thead th { background: var(--bg3); }
+.tema-btn { padding: 6px 10px; line-height: 1; font-size: 16px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); cursor: pointer; white-space: nowrap; font-family: inherit; }
+.tema-btn:hover { background: var(--bg4); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
@@ -652,6 +709,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <span id="import-progress-text">Lendo arquivo...</span>
         <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-fill" style="width:0%"></div></div>
       </div>
+      <button id="tema-btn" class="tema-btn" onclick="alternarTema()" title="Trocar tema (escuro / claro)">☀️</button>
     </div>
   </header>
   <div id="loading-bar" style="display:none;height:3px;background:linear-gradient(90deg,#388bfd 0%,#2ea043 50%,#388bfd 100%);background-size:200% 100%;animation:loadingAnim 1.2s linear infinite;position:sticky;top:58px;z-index:8;"></div>
@@ -1305,6 +1363,37 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 </div>
 
 <!-- FORM CADASTRO DE ITEM DA PROGRAMAÇÃO DO DIA -->
+<div id="rota-edit-overlay" onclick="if(event.target===this) fecharEditarRota()" style="display:none;position:fixed;inset:0;z-index:76;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
+  <div style="width:100%;max-width:440px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:700;color:var(--text);">✏️ Editar Rota</div>
+      <button onclick="fecharEditarRota()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:23px;line-height:1;padding:4px;">&#x2715;</button>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:14px;color:var(--text3);" id="rota-edit-info"></div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Origem</label>
+        <input type="text" id="rota-edit-origem" list="rota-edit-origens" class="filter-input" style="width:100%;">
+        <datalist id="rota-edit-origens"></datalist>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Destino</label>
+        <select id="rota-edit-destino" class="filter-input" style="width:100%;"></select>
+      </div>
+      <div id="rota-edit-meta-bloco">
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Meta (volume)</label>
+        <input type="number" id="rota-edit-meta" class="filter-input" style="width:100%;">
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+        <input type="checkbox" id="rota-edit-recalcular" checked style="margin-top:2px;">
+        <span>Atualizar as viagens dos veículos pelo padrão da nova rota (cadastro de Minas). Viagens ajustadas à mão e as já marcadas como realizadas são mantidas.</span>
+      </label>
+      <div style="font-size:12px;color:var(--text3);" id="rota-edit-aviso"></div>
+      <button onclick="salvarEditarRota()" style="margin-top:4px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#388bfd;color:#fff;">Salvar alteração</button>
+    </div>
+  </div>
+</div>
+
 <div id="prog-form-overlay" onclick="if(event.target===this) fecharFormProgItem()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -2120,7 +2209,7 @@ const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', 
 
 // Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
 // diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
-const ICONE_CAVALO = '<svg viewBox="0 0 32 20" width="15" height="15" fill="currentColor" style="vertical-align:-3px;display:inline-block;"><path d="M1 4a1 1 0 011-1h9a4 4 0 014 4v5H2a1 1 0 01-1-1V4z"/><path d="M16 8h6.5a1 1 0 01.8.4l3 4a1 1 0 01.2.6v1a1 1 0 01-1 1H16V8z" opacity="0.75"/><circle cx="7" cy="16" r="3.2" fill="#0d1117" stroke="currentColor" stroke-width="1.6"/><circle cx="24" cy="16" r="3.2" fill="#0d1117" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICONE_CAVALO = '<svg viewBox="0 0 32 20" width="15" height="15" fill="currentColor" style="vertical-align:-3px;display:inline-block;"><path d="M1 4a1 1 0 011-1h9a4 4 0 014 4v5H2a1 1 0 01-1-1V4z"/><path d="M16 8h6.5a1 1 0 01.8.4l3 4a1 1 0 01.2.6v1a1 1 0 01-1 1H16V8z" opacity="0.75"/><circle cx="7" cy="16" r="3.2" style="fill:var(--bg2)" stroke="currentColor" stroke-width="1.6"/><circle cx="24" cy="16" r="3.2" style="fill:var(--bg2)" stroke="currentColor" stroke-width="1.6"/></svg>';
 // ══════════════════════════════════════
 // DESEMPENHO KM MOTORISTAS
 // ══════════════════════════════════════
@@ -7194,6 +7283,8 @@ function _renderProgCorpo() {
               <div style="font-size:15px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.origem} <span style="color:var(--text3);">→</span> ${m.destino}</div>
               <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                 <div style="font-size:16px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;">${fmt(m.meta)}</div>
+ 
+                <button onclick="abrirEditarRotaProg(${idxGlobal})" title="Editar a rota (origem/destino/meta) sem desassociar os veículos" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:15px;line-height:1;">✏️</button>
                 <button onclick="removerItemProg(${idxGlobal})" title="Remover" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:16px;line-height:1;">🗑</button>
               </div>
             </div>
@@ -7989,7 +8080,7 @@ function _gestaoAgruparPorRota() {
   });
 }
 
-function _gestaoCardRota(grupo) {
+function _gestaoCardRota(grupo, idxGrupo) {
   const veiculosProgramados = grupo.atribs.length;
   const viagensProgramadas = grupo.atribs.reduce((s,a) => s + (Number(a.viagens)||0), 0);
   const pesoProgramado = grupo.atribs.reduce((s,a) => s + (Number(a.peso) || (Number(a.viagens)||0) * (Number(a.pesoMedio)||0)), 0);
@@ -8013,7 +8104,10 @@ function _gestaoCardRota(grupo) {
   const plural = (n, singular, pluralForma) => n === 1 ? singular : pluralForma;
 
   return `<div class="table-card" style="padding:18px 20px;">
-    <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">${grupo.origem} <span style="color:var(--text3);">→</span> ${grupo.destino}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;">
+      <div style="font-size:17px;font-weight:700;color:var(--text);">${grupo.origem} <span style="color:var(--text3);">→</span> ${grupo.destino}</div>
+      <button onclick="abrirEditarRotaGestao(${idxGrupo})" title="Editar / trocar a rota (os veículos continuam associados)" style="background:none;border:1px solid var(--border2);border-radius:6px;color:#388bfd;cursor:pointer;font-size:14px;line-height:1;padding:4px 8px;">✏️</button>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:20px;row-gap:9px;align-items:baseline;">
       <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Programado</div>
       <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Em Andamento</div>
@@ -8030,15 +8124,17 @@ function _gestaoCardRota(grupo) {
   </div>`;
 }
 
+let _gestaoGruposRota = [];
 function _gestaoRenderCardsRotas() {
   const cont = document.getElementById('gestao-rotas');
   if (!cont) return;
   const grupos = _gestaoAgruparPorRota();
+  _gestaoGruposRota = grupos;
   if (grupos.length === 0) { cont.innerHTML = ''; return; }
 
   cont.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">📍 Rotas Programadas do Dia</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:16px;">
-      ${grupos.map(_gestaoCardRota).join('')}
+      ${grupos.map((g, i) => _gestaoCardRota(g, i)).join('')}
     </div>`;
 }
 
@@ -8112,6 +8208,110 @@ window.adicionarItemProg = async function adicionarItemProg() {
     _renderProgCorpo();
   } catch (err) {
     console.error('Erro ao salvar programação:', err);
+    showToast('✖ Erro ao salvar: ' + err.message);
+  }
+};
+
+// ══════════════════════════════════════
+// EDITAR ROTA (Programação e Gestão do Dia)
+// Troca origem/destino (e a meta) de uma rota do dia SEM desassociar os veículos: os itens de
+// programacao_dias/{dia}.itens e todas as atribuições daquela rota são atualizados juntos. As
+// marcações de viagens realizadas, motoristas, justificativas e abastecimentos não são tocados.
+// ══════════════════════════════════════
+let _rotaEdit = null; // { dia, origem, destino, ctx }
+
+async function _rotaEditAbrir(dia, origem, destino, ctx) {
+  if (!dia) { showToast('✖ Selecione o dia antes.'); return; }
+  _rotaEdit = { dia, origem, destino, ctx };
+  try { if (!_minasCadastro || !_minasCarregado) await _carregarMinas(); } catch (e) {}
+  const origens = Array.from(new Set((_minasCadastro || []).map(m => (m.origem||'').toString().trim().toUpperCase()).filter(Boolean)));
+  document.getElementById('rota-edit-origens').innerHTML = origens.map(o => `<option value="${_motEsc(o)}">`).join('');
+  const destinos = Array.from(new Set(['FABRICA', 'PATIO 4', (destino||'').toString().trim().toUpperCase()].filter(Boolean)));
+  const selD = document.getElementById('rota-edit-destino');
+  selD.innerHTML = destinos.map(d => `<option value="${_motEsc(d)}">${_motEsc(d)}</option>`).join('');
+  selD.value = (destino||'').toString().trim().toUpperCase();
+  document.getElementById('rota-edit-origem').value = (origem||'').toString().trim().toUpperCase();
+  document.getElementById('rota-edit-info').textContent = `Dia ${_motDataBR(dia)} · rota atual: ${origem} → ${destino}`;
+  document.getElementById('rota-edit-recalcular').checked = true;
+  document.getElementById('rota-edit-aviso').textContent = '';
+  // meta atual (se a rota tiver item de meta no dia)
+  const metaEl = document.getElementById('rota-edit-meta');
+  metaEl.value = '';
+  document.getElementById('rota-edit-meta-bloco').style.display = 'block';
+  document.getElementById('rota-edit-overlay').style.display = 'flex';
+  try {
+    const snap = await getDoc(doc(db, 'programacao_dias', dia));
+    const itens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
+    const it = itens.find(m => _progNormalizarOD(m.origem) === _progNormalizarOD(origem) && _progNormalizarOD(m.destino) === _progNormalizarOD(destino));
+    if (it) metaEl.value = it.meta != null ? it.meta : '';
+    else document.getElementById('rota-edit-meta-bloco').style.display = 'none';
+  } catch (e) {}
+}
+
+window.abrirEditarRotaProg = function abrirEditarRotaProg(idx) {
+  const m = _progItens[idx];
+  if (!m) return;
+  _rotaEditAbrir(_progDataAtual, m.origem, m.destino, 'prog');
+};
+window.abrirEditarRotaGestao = function abrirEditarRotaGestao(idx) {
+  const g = _gestaoGruposRota[idx];
+  if (!g) return;
+  _rotaEditAbrir(_gestaoDataAtual, g.origem, g.destino, 'gestao');
+};
+window.fecharEditarRota = function fecharEditarRota() { document.getElementById('rota-edit-overlay').style.display = 'none'; _rotaEdit = null; };
+
+window.salvarEditarRota = async function salvarEditarRota() {
+  if (!_rotaEdit) return;
+  const { dia, origem: oAnt, destino: dAnt } = _rotaEdit;
+  const novaO = document.getElementById('rota-edit-origem').value.trim().toUpperCase();
+  const novoD = document.getElementById('rota-edit-destino').value.trim().toUpperCase();
+  const metaTxt = document.getElementById('rota-edit-meta').value;
+  const recalcular = document.getElementById('rota-edit-recalcular').checked;
+  if (!novaO || !novoD) { showToast('✖ Informe origem e destino.'); return; }
+  const mesmaRota = _progNormalizarOD(novaO) === _progNormalizarOD(oAnt) && _progNormalizarOD(novoD) === _progNormalizarOD(dAnt);
+  const mesmaOD = (m) => _progNormalizarOD(m.origem) === _progNormalizarOD(oAnt) && _progNormalizarOD(m.destino) === _progNormalizarOD(dAnt);
+  try {
+    const ref = doc(db, 'programacao_dias', dia);
+    const snap = await getDoc(ref);
+    const dados = snap.exists() ? snap.data() : {};
+    const itens = Array.isArray(dados.itens) ? dados.itens.map(m => ({ ...m })) : [];
+    const atribs = Array.isArray(dados.atribuicoes) ? dados.atribuicoes.map(a => ({ ...a })) : [];
+
+    // itens (metas): atualiza o item da rota; se a nova rota já existir no dia, junta nela (meta existente é mantida)
+    const iAnt = itens.findIndex(mesmaOD);
+    let aviso = '';
+    if (iAnt >= 0) {
+      const iNovo = itens.findIndex((m, k) => k !== iAnt && _progNormalizarOD(m.origem) === _progNormalizarOD(novaO) && _progNormalizarOD(m.destino) === _progNormalizarOD(novoD));
+      if (iNovo >= 0) { itens.splice(iAnt, 1); aviso = ' A nova rota já existia no dia — os veículos foram juntados nela.'; }
+      else {
+        const meta = metaTxt === '' ? itens[iAnt].meta : parseFloat(metaTxt);
+        if (isNaN(meta) || meta < 0) { showToast('✖ Meta inválida.'); return; }
+        itens[iAnt] = { ...itens[iAnt], origem: novaO, destino: novoD, meta };
+      }
+    }
+
+    // atribuições: troca a rota de todos os veículos dela; viagens/peso só se pedido e se não ajustados à mão
+    let afetados = 0;
+    atribs.forEach(a => {
+      if (!mesmaOD(a)) return;
+      afetados++;
+      a.origem = novaO; a.destino = novoD;
+      if (recalcular && !mesmaRota && !a.viagensManual) {
+        const padrao = _progBuscarViagensPadrao(novaO, novoD);
+        if (padrao > 0) a.viagens = padrao;
+      }
+      a.peso = Math.round((Number(a.viagens)||0) * (Number(a.pesoMedio)||0) * 100) / 100;
+    });
+
+    await setDoc(ref, { itens, atribuicoes: atribs, atualizadoEm: new Date().toISOString() }, { merge: true });
+
+    // mantém as telas em memória em dia
+    if (_progDataAtual === dia) { _progItens = itens; _progAtribuicoes = atribs; if (typeof _renderProgCorpo === 'function') _renderProgCorpo(); }
+    if (_gestaoDataAtual === dia) { _gestaoAtribuicoes = atribs; _gestaoRenderGrade(); }
+    fecharEditarRota();
+    showToast(`✔ Rota atualizada: ${novaO} → ${novoD} (${afetados} veículo(s)).${aviso}`);
+  } catch (err) {
+    console.error('Erro ao editar rota:', err);
     showToast('✖ Erro ao salvar: ' + err.message);
   }
 };
@@ -9485,6 +9685,7 @@ let _motProgDiasCache = null;   // { 'YYYY-MM-DD': dados do documento programaca
 let _motVolumeCache = {};       // 'YYYY-MM-DD' -> viagens[] | null
 let _motLinhas = [];            // linhas (dia × veículo × motorista) do período
 let _motResumo = [];            // consolidado por motorista
+let _motVeiculos = [];          // consolidado por veículo (com o detalhe por motorista)
 
 function _motEsc(t) { return (t == null ? '' : String(t)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _motFmt(n, casas) { return (Number(n)||0).toLocaleString('pt-BR', { maximumFractionDigits: casas == null ? 2 : casas }); }
@@ -9503,10 +9704,10 @@ async function _motCarregarVolumeDia(iso) {
 
 // Indicadores de ranking: valor por motorista, formatação e como ler (maior = melhor em todos).
 const _MOT_INDICADORES = [
-  { chave: 'vol',  titulo: 'Peso carregado',            un: '',   casas: 2, pareto: true,  desc: 'Volume transportado no período' },
+  { chave: 'vol',  titulo: 'Peso carregado',            un: '',   casas: 2, pareto: true,  desc: 'Volume transportado no período (caminhões)' },
   { chave: 'kml',  titulo: 'Consumo — média km/L',      un: 'km/L', casas: 2, desc: 'KM rodado ÷ litros abastecidos' },
-  { chave: 'ad',   titulo: 'Aderência',                 un: '%',   casas: 1, desc: 'Viagens realizadas ÷ programadas' },
-  { chave: 'manut', titulo: 'Manutenção — impacto na aderência', un: 'p.p.', casas: 1, pareto: true, inverso: true, soPositivos: true, desc: 'Pontos percentuais de aderência perdidos com ofensor Manutenção (menor = melhor)' },
+  { chave: 'ad',   titulo: 'Aderência',                 un: '%',   sufixo: '%', casas: 1, desc: 'Viagens realizadas ÷ programadas (caminhões e cavalos)' },
+  { chave: 'manut', titulo: 'Manutenção — aderência perdida', un: '%', sufixo: '%', casas: 1, pareto: true, inverso: true, soPositivos: true, desc: '% das viagens programadas de caminhão que se perderam por manutenção (menor = melhor)' },
   { chave: 'km',   titulo: 'KM rodado',                 un: 'km',  casas: 0, desc: 'KM final − inicial dos abastecimentos' }
 ];
 
@@ -9530,7 +9731,7 @@ function _motGraficoRank(ind) {
   let media = soma / lista.length;
   if (ind.chave === 'ad') { const p = _motResumo.reduce((s,m)=>s+m.prog,0), r = _motResumo.reduce((s,m)=>s+m.real,0); if (p > 0) media = r / p * 100; }
   if (ind.chave === 'kml') { const km = _motResumo.reduce((s,m)=>s+m.kmAbast,0), l = _motResumo.reduce((s,m)=>s+m.litros,0); if (l > 0) media = km / l; }
-  if (ind.chave === 'manut') { const p = _motResumo.reduce((s,m)=>s+m.prog,0), v = _motResumo.reduce((s,m)=>s+m.manutVg,0); if (p > 0) media = v / p * 100; }
+  if (ind.chave === 'manut') { const p = _motResumo.reduce((s,m)=>s+m.progCam,0), v = _motResumo.reduce((s,m)=>s+m.manutVg,0); if (p > 0) media = v / p * 100; }
   const pctMedia = Math.min(100, (media / max) * 100);
   let acum = 0;
   const linhas = lista.map((m, i) => {
@@ -9550,7 +9751,7 @@ function _motGraficoRank(ind) {
           <div style="position:absolute;left:0;top:2px;height:14px;width:${larg}%;background:${acima ? '#388bfd' : 'rgba(56,139,253,0.40)'};border-radius:0 4px 4px 0;"></div>
           <div style="position:absolute;left:${pctMedia}%;top:-2px;bottom:-2px;border-left:2px dashed var(--text2);opacity:0.7;"></div>
         </div>
-        <span style="width:78px;text-align:right;font-size:12.5px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0;">${_motFmt(v, ind.casas)}</span>${extra}
+        <span style="width:78px;text-align:right;font-size:12.5px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0;">${_motFmt(v, ind.casas)}${ind.sufixo || ''}</span>${extra}
       </div>${corte80}`;
   }).join('');
   const legenda = `<div style="display:flex;gap:14px;align-items:center;font-size:11.5px;color:var(--text3);margin-top:10px;flex-wrap:wrap;">
@@ -9561,6 +9762,47 @@ function _motGraficoRank(ind) {
       <span style="margin-left:auto;">${lista.length} motorista(s)${ind.soPositivos && todos.length > lista.length ? ' · ' + (todos.length - lista.length) + ' sem perda' : ''}</span></div>`;
   return card(`<div style="max-height:360px;overflow-y:auto;padding-right:4px;">${linhas}</div>${legenda}`);
 }
+
+// Manutenção por veículo: quanto cada veículo custou de aderência por manutenção (todos os motoristas)
+function _motGraficoVeiculos() {
+  const lista = _motVeiculos.filter(v => v.manutVg > 0).sort((a,b) => b.manutVg - a.manutVg);
+  const cab = `<div style="font-size:15px;font-weight:700;">Manutenção por veículo</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Viagens perdidas por manutenção em cada veículo — clique para comparar os motoristas nele</div>`;
+  if (lista.length === 0) return `<div class="table-card" style="padding:16px 18px;">${cab}<div style="padding:24px 0;text-align:center;color:var(--text3);font-size:13px;">Nenhuma perda por manutenção no período. 👍</div></div>`;
+  const max = lista[0].manutVg;
+  const linhas = lista.map((v, i) => `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;cursor:pointer;" onclick="abrirVeiculoMotoristasModal(this.dataset.placa)" data-placa="${_motEsc(v.placa)}" title="${_motEsc(`${v.fr ? v.fr + ' · ' : ''}${v.placa}\n${v.manutVg} viagem(ns) perdida(s) de ${v.prog} programada(s)\nVolume perdido: ${_motFmt(v.manutVol)}\n${v.mot.length} motorista(s)`)}">
+      <span style="width:22px;text-align:right;font-size:12px;color:var(--text3);flex-shrink:0;">${i+1}</span>
+      <span style="width:150px;flex-shrink:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_motEsc(v.fr ? v.fr + ' · ' : '')}${_motEsc(v.placa)}</span>
+      <div style="flex:1;position:relative;height:18px;"><div style="position:absolute;left:0;top:2px;height:14px;width:${Math.max(1.5, v.manutVg / max * 100)}%;background:#388bfd;border-radius:0 4px 4px 0;"></div></div>
+      <span style="width:78px;text-align:right;font-size:12.5px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0;">${v.manutVg} vg</span>
+      <span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="% das viagens programadas do veículo">${v.taxa === null ? '—' : _motFmt(v.taxa, 1) + '%'}</span></div>`).join('');
+  return `<div class="table-card" style="padding:16px 18px;">${cab}<div style="max-height:360px;overflow-y:auto;padding-right:4px;">${linhas}</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-top:10px;">coluna à direita: % das viagens programadas do veículo perdidas por manutenção · ${lista.length} veículo(s)</div></div>`;
+}
+
+window.abrirVeiculoMotoristasModal = function abrirVeiculoMotoristasModal(placa) {
+  const v = _motVeiculos.find(x => x.placa === placa);
+  if (!v) return;
+  const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
+  document.getElementById('mot-modal-titulo').textContent = `${v.fr ? v.fr + ' · ' : ''}${v.placa}`;
+  document.getElementById('mot-modal-sub').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · ${v.dias} dia(s) com motorista escalado · ${v.mot.length} motorista(s)`;
+  const tile = (rot, val, sub) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);"><div style="font-size:12px;color:var(--text3);margin-bottom:4px;">${rot}</div><div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${val}</div><span style="font-size:12px;color:var(--text3);">${sub}</span></div>`;
+  const tiles = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;">
+    ${tile('Aderência perdida (manutenção)', v.taxa === null ? '—' : _motFmt(v.taxa, 1) + '%', 'de todos os motoristas no veículo')}
+    ${tile('Viagens perdidas', v.manutVg, `de ${v.prog} programadas`)}
+    ${tile('Volume perdido', _motFmt(v.manutVol), 'estimado pelo peso médio')}
+  </div>`;
+  const trs = v.mot.map(g => {
+    const dif = (g.taxa === null || v.taxa === null) ? null : g.taxa - v.taxa;
+    const leitura = dif === null ? '—' : (Math.abs(dif) < 0.05 ? 'igual ao veículo' : (dif > 0 ? `▲ ${_motFmt(dif, 1)} p.p. acima do veículo` : `▼ ${_motFmt(-dif, 1)} p.p. abaixo do veículo`));
+    return `<tr style="cursor:pointer;" onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(g.nome)}"><td style="font-weight:600;">${_motEsc(g.nome)}</td><td style="text-align:center;">${g.dias}</td><td style="text-align:center;">${g.prog}</td><td style="text-align:center;">${g.manutVg}</td><td style="text-align:center;font-weight:700;">${g.taxa === null ? '—' : _motFmt(g.taxa, 1) + '%'}</td><td>${leitura}</td></tr>`;
+  }).join('');
+  document.getElementById('mot-modal-corpo').innerHTML = tiles + `<div style="font-size:13px;font-weight:600;margin-bottom:6px;">Motoristas nesse veículo</div>
+    <div style="overflow-x:auto;"><table id="mot-veic-tabela"><thead><tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG PERDIDAS</th><th style="text-align:center;">MANUT. %</th><th>COMPARADO AO VEÍCULO</th></tr></thead><tbody>${trs}</tbody></table></div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px;">Se os motoristas perdem proporções parecidas no mesmo veículo, o problema tende a ser do veículo; se um deles destoa, vale olhar a condução.</div>`;
+  _tornarTabelaOrdenavel(document.getElementById('mot-veic-tabela'));
+  document.getElementById('mot-modal').style.display = 'flex';
+};
 
 window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar) {
   const iniEl = document.getElementById('mot-data-ini'), fimEl = document.getElementById('mot-data-fim');
@@ -9600,16 +9842,19 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         } else if (a) {
           vol = manual * (Number(a.pesoMedio)||0);
         }
+        const ehCavalo = !!a && _progEhCavalo(a.tipo2);
         // Impacto de Manutenção: viagens programadas que ficaram sem realizar com ofensor MANUTENÇÃO
         const ofTxt = (a && a.justificativa && a.justificativa.ofensor || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
-        const manutVg = (prog > 0 && ofTxt.includes('MANUTENCAO')) ? Math.max(0, prog - real) : 0;
+        const manutVg = (!ehCavalo && prog > 0 && ofTxt.includes('MANUTENCAO')) ? Math.max(0, prog - real) : 0;
         const manutVol = manutVg * (a ? (Number(a.pesoMedio)||0) : 0);
         const ab = abasts[placa];
-        const abOk = ab && ab.kmInicial != null && ab.kmFinal != null && ab.litros != null && Number(ab.litros) > 0 && Number(ab.kmFinal) >= Number(ab.kmInicial);
+        // CAVALO: ainda sem dados de consumo/KM/volume — conta só a aderência à programação
+        const abOk = !ehCavalo && ab && ab.kmInicial != null && ab.kmFinal != null && ab.litros != null && Number(ab.litros) > 0 && Number(ab.kmFinal) >= Number(ab.kmInicial);
         const km = abOk ? Number(ab.kmFinal) - Number(ab.kmInicial) : 0;
         const litros = abOk ? Number(ab.litros) : 0;
+        if (ehCavalo) vol = 0;
         linhas.push({
-          dia, nome, placa, fr: a ? (a.fr||'') : '', rota: a && a.origem && a.destino ? `${a.origem} → ${a.destino}` : '—',
+          dia, nome, placa, ehCavalo, fr: a ? (a.fr||'') : '', rota: a && a.origem && a.destino ? `${a.origem} → ${a.destino}` : '—',
           prog, real, vol, status: a ? (a.status||'') : '', fonte, km, litros, temAbast: !!abOk, manutVg, manutVol
         });
       });
@@ -9618,7 +9863,8 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
 
     const por = {};
     linhas.forEach(l => {
-      const g = por[l.nome] || (por[l.nome] = { nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0 });
+      const g = por[l.nome] || (por[l.nome] = { progCam: 0, realCam: 0, progCav: 0, realCav: 0, nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0 });
+      if (l.ehCavalo) { g.progCav += l.prog; g.realCav += l.real; } else { g.progCam += l.prog; g.realCam += l.real; }
       g.dias.add(l.dia); g.placas.add(l.placa); g.prog += l.prog; g.real += l.real; g.vol += l.vol;
       if (l.status === 'fora') g.fora++;
       g.manutVg += l.manutVg; g.manutVol += l.manutVol; g.kmAbast += l.km; g.litros += l.litros;
@@ -9629,9 +9875,23 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
       ad: g.prog > 0 ? (g.real / g.prog) * 100 : null,
       kml: g.litros > 0 ? g.kmAbast / g.litros : null,
       km: g.litros > 0 ? g.kmAbast : null,
+      progCam: g.progCam, realCam: g.realCam, progCav: g.progCav, realCav: g.realCav,
+      adCam: g.progCam > 0 ? g.realCam / g.progCam * 100 : null, adCav: g.progCav > 0 ? g.realCav / g.progCav * 100 : null,
       manutVg: g.manutVg, manutVol: g.manutVol,
-      manut: g.prog > 0 ? g.manutVg / g.prog * 100 : null
+      manut: g.progCam > 0 ? g.manutVg / g.progCam * 100 : null
     })).sort((a,b) => a.nome.localeCompare(b.nome));
+
+    // Visão por veículo: perda por manutenção do veículo (todos os motoristas) e de cada motorista nele
+    const pv = {};
+    linhas.forEach(l => {
+      const v = pv[l.placa] || (pv[l.placa] = { placa: l.placa, fr: l.fr, prog: 0, real: 0, manutVg: 0, manutVol: 0, dias: new Set(), mot: {} });
+      if (l.fr && !v.fr) v.fr = l.fr;
+      v.prog += l.prog; v.real += l.real; v.manutVg += l.manutVg; v.manutVol += l.manutVol; v.dias.add(l.dia);
+      const g = v.mot[l.nome] || (v.mot[l.nome] = { nome: l.nome, dias: new Set(), prog: 0, real: 0, manutVg: 0 });
+      g.dias.add(l.dia); g.prog += l.prog; g.real += l.real; g.manutVg += l.manutVg;
+    });
+    _motVeiculos = Object.values(pv).map(v => ({ ...v, dias: v.dias.size, taxa: v.prog > 0 ? v.manutVg / v.prog * 100 : null,
+      mot: Object.values(v.mot).map(g => ({ ...g, dias: g.dias.size, taxa: g.prog > 0 ? g.manutVg / g.prog * 100 : null })).sort((a,b) => (b.taxa||0) - (a.taxa||0)) }));
 
     const totProg = _motResumo.reduce((s,m) => s + m.prog, 0), totReal = _motResumo.reduce((s,m) => s + m.real, 0), totVol = _motResumo.reduce((s,m) => s + m.vol, 0);
     const card = (rot, val, cor) => `<div class="kpi-card" style="border-color:${cor};"><div class="kpi-label">${rot}</div><div class="kpi-value" style="color:${cor};">${val}</div></div>`;
@@ -9642,10 +9902,10 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
       ${card('Volume', _motFmt(totVol), '#d29922')}
     </div>`;
     document.getElementById('mot-contagem').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · aderência geral ${totProg > 0 ? _motFmt((totReal/totProg)*100) + '%' : '—'}`;
-    document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('');
+    document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('') + _motGraficoVeiculos();
 
     const tbl = document.getElementById('mot-tabela');
-    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VEÍCULOS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. (p.p.)</th><th style="text-align:center;">FORA OP.</th></tr>';
+    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VEÍCULOS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. %</th><th style="text-align:center;">FORA OP.</th></tr>';
     tbl.querySelector('tbody').innerHTML = _motResumo.length === 0
       ? '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3);">Nenhum motorista escalado na Gestão do Dia nesse período.</td></tr>'
       : _motResumo.map(m => `<tr style="cursor:pointer;" onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(m.nome)}">
@@ -9654,7 +9914,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
             <td style="text-align:center;font-weight:700;color:${_motCorAd(m.ad)};">${m.ad === null ? '—' : _motFmt(m.ad, 1) + '%'}</td>
             <td style="text-align:right;font-family:'DM Mono',monospace;">${_motFmt(m.vol)}</td>
             <td style="text-align:center;">${m.kml === null ? '—' : _motFmt(m.kml)}</td><td style="text-align:right;">${m.km === null ? '—' : _motFmt(m.km, 0)}</td>
-            <td style="text-align:center;">${m.manut === null ? '—' : _motFmt(m.manut, 1)}</td><td style="text-align:center;">${m.fora}</td></tr>`).join('');
+            <td style="text-align:center;">${m.manut === null ? '—' : _motFmt(m.manut, 1) + '%'}</td><td style="text-align:center;">${m.fora}</td></tr>`).join('');
     _tornarTabelaOrdenavel(tbl);
   } catch (err) {
     console.error('Erro ao carregar Gestão de Motoristas:', err);
@@ -9699,7 +9959,7 @@ window.abrirMotoristaModal = function abrirMotoristaModal(nome) {
     const pos = lista.findIndex(x => x.nome === nome);
     const rank = pos >= 0 ? `<span style="font-size:12px;color:var(--text3);">#${pos + 1} de ${lista.length}</span>` : '<span style="font-size:12px;color:var(--text3);">sem dados</span>';
     return `<div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">${ind.titulo.split(' — ')[0]}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">${ind.chave === 'manut' ? 'Aderência perdida (manutenção)' : ind.titulo.split(' — ')[0]}</div>
       <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${valor}</div>${rank}</div>`;
   };
   const I = (c) => _MOT_INDICADORES.find(x => x.chave === c);
@@ -9708,41 +9968,53 @@ window.abrirMotoristaModal = function abrirMotoristaModal(nome) {
     ${tile(I('ad'), m.ad === null ? '—' : _motFmt(m.ad, 1) + '%')}
     ${tile(I('kml'), m.kml === null ? '—' : _motFmt(m.kml) + ' km/L')}
     ${tile(I('km'), m.km === null ? '—' : _motFmt(m.km, 0) + ' km')}
-    ${tile(I('manut'), m.manut === null ? '—' : _motFmt(m.manut, 1) + ' p.p.')}
+    ${tile(I('manut'), m.manut === null ? '—' : _motFmt(m.manut, 1) + '%')}
     <div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
       <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Viagens</div>
       <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${m.real}<span style="font-size:14px;color:var(--text3);"> / ${m.prog}</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px;">🚚 caminhão ${m.realCam}/${m.progCam}${m.adCam === null ? '' : ' · ' + _motFmt(m.adCam, 1) + '%'}<br>${ICONE_CAVALO} cavalo ${m.realCav}/${m.progCav}${m.adCav === null ? '' : ' · ' + _motFmt(m.adCav, 1) + '%'}</div>
       <span style="font-size:12px;color:var(--text3);">${m.fora} dia(s) fora de operação</span></div>
     <div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Perda por manutenção</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Viagens perdidas por manutenção</div>
       <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${m.manutVg}<span style="font-size:14px;color:var(--text3);"> viagem(ns)</span></div>
       <span style="font-size:12px;color:var(--text3);">volume perdido ${_motFmt(m.manutVol)}</span></div>
   </div>`;
 
   const pDia = (l, v) => ({ v, rot: _motDataBR(l.dia) + ' · ' + l.placa, curto: l.dia.slice(8) });
-  const volPts = linhas.map(l => pDia(l, l.vol));
+  const volPts = linhas.filter(l => !l.ehCavalo).map(l => pDia(l, l.vol));
   const adPts = linhas.filter(l => l.prog > 0).map(l => pDia(l, l.real / l.prog * 100));
   const kmlPts = linhas.filter(l => l.temAbast).map(l => pDia(l, l.km / l.litros));
   const graf = (tit, pts, un, casas) => `<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;"><div style="font-size:13px;font-weight:600;margin-bottom:6px;">${tit}</div>${_motMiniColunas(pts, un, casas)}</div>`;
   const graficos = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:18px;">
     ${graf('Peso carregado por dia', volPts, '', 2)}${graf('Aderência por dia (%)', adPts, '%', 1)}${graf('Consumo por dia (km/L)', kmlPts, 'km/L', 2)}</div>`;
 
+  // Veículos conduzidos: perda por manutenção do motorista x do veículo (todos os motoristas)
+  const veicRows = _motVeiculos.filter(v => v.mot.some(g => g.nome === nome)).map(v => {
+    const g = v.mot.find(x => x.nome === nome);
+    const dif = (g.taxa === null || v.taxa === null) ? null : g.taxa - v.taxa;
+    const leitura = dif === null ? '—' : (Math.abs(dif) < 0.05 ? 'igual ao veículo' : (dif > 0 ? `▲ ${_motFmt(dif, 1)} p.p. acima do veículo` : `▼ ${_motFmt(-dif, 1)} p.p. abaixo do veículo`));
+    return `<tr style="cursor:pointer;" onclick="abrirVeiculoMotoristasModal(this.dataset.placa)" data-placa="${_motEsc(v.placa)}"><td>${_motEsc(v.fr ? v.fr + ' · ' : '')}${_motEsc(v.placa)}</td><td style="text-align:center;">${g.dias}</td><td style="text-align:center;">${g.manutVg} / ${g.prog}</td><td style="text-align:center;font-weight:700;">${g.taxa === null ? '—' : _motFmt(g.taxa, 1) + '%'}</td><td style="text-align:center;">${v.taxa === null ? '—' : _motFmt(v.taxa, 1) + '%'}</td><td style="text-align:center;">${v.mot.length - 1}</td><td>${leitura}</td></tr>`;
+  }).join('');
+  const veicTabela = `<div style="font-size:13px;font-weight:600;margin:4px 0 6px;">Manutenção por veículo conduzido <span style="font-weight:400;color:var(--text3);">— clique para ver os outros motoristas no veículo</span></div>
+    <div style="overflow-x:auto;margin-bottom:18px;"><table id="mot-veic-motorista-tabela"><thead><tr><th>VEÍCULO</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VG PERDIDAS / PROG.</th><th style="text-align:center;">MANUT. % (MOTORISTA)</th><th style="text-align:center;">MANUT. % (VEÍCULO)</th><th style="text-align:center;">OUTROS MOT.</th><th>COMPARAÇÃO</th></tr></thead><tbody>${veicRows}</tbody></table></div>`;
+
   const stTxt = { operando: 'Operando', finalizado: 'Finalizado', fora: 'Fora de operação' };
   const trs = linhas.map(l => {
     const [y, mo, d] = l.dia.split('-').map(Number);
     const ad = l.prog > 0 ? (l.real / l.prog) * 100 : null;
     return `<tr><td style="text-align:center;">${_motDataBR(l.dia)}</td><td style="text-align:center;">${dsem[new Date(y, mo-1, d).getDay()]}</td>
-      <td>${_motEsc(l.fr ? l.fr + ' · ' : '')}${_motEsc(l.placa)}</td><td>${_motEsc(l.rota)}</td>
+      <td>${_motEsc(l.fr ? l.fr + ' · ' : '')}${_motEsc(l.placa)}</td><td style="text-align:center;">${l.ehCavalo ? 'Cavalo' : 'Caminhão'}</td><td>${_motEsc(l.rota)}</td>
       <td style="text-align:center;">${l.prog}</td><td style="text-align:center;" title="Fonte: ${l.fonte === 'base' ? 'base de volume importada' : 'viagens marcadas à mão'}">${l.real}</td>
       <td style="text-align:center;font-weight:700;color:${_motCorAd(ad)};">${ad === null ? '—' : _motFmt(ad, 1) + '%'}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;">${_motFmt(l.vol)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${l.ehCavalo ? '—' : _motFmt(l.vol)}</td>
       <td style="text-align:center;">${l.temAbast ? _motFmt(l.km / l.litros) : '—'}</td><td style="text-align:right;">${l.temAbast ? _motFmt(l.km, 0) : '—'}</td>
-      <td style="text-align:center;">${l.manutVg || '—'}</td>
+      <td style="text-align:center;">${l.ehCavalo ? '—' : (l.manutVg || '—')}</td>
       <td style="text-align:center;">${stTxt[l.status] || '—'}</td></tr>`;
   }).join('');
-  const tabela = `<div style="overflow-x:auto;"><table id="mot-detalhe-tabela"><thead><tr><th style="text-align:center;">DATA</th><th style="text-align:center;">DS</th><th>VEÍCULO</th><th>ROTA</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. VG</th><th style="text-align:center;">STATUS</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  const tabela = `<div style="overflow-x:auto;"><table id="mot-detalhe-tabela"><thead><tr><th style="text-align:center;">DATA</th><th style="text-align:center;">DS</th><th>VEÍCULO</th><th style="text-align:center;">TIPO</th><th>ROTA</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. VG</th><th style="text-align:center;">STATUS</th></tr></thead><tbody>${trs}</tbody></table></div>`;
 
-  document.getElementById('mot-modal-corpo').innerHTML = tiles + graficos + tabela;
+  document.getElementById('mot-modal-corpo').innerHTML = tiles + graficos + veicTabela + tabela;
+  _tornarTabelaOrdenavel(document.getElementById('mot-veic-motorista-tabela'));
   _tornarTabelaOrdenavel(document.getElementById('mot-detalhe-tabela'));
   document.getElementById('mot-modal').style.display = 'flex';
 };
@@ -9753,10 +10025,10 @@ window.exportarMotoristas = function exportarMotoristas() {
   if (_motLinhas.length === 0) { showToast('✖ Nada pra exportar nesse período.'); return; }
   const dados = _motLinhas.slice().sort((a,b) => a.nome.localeCompare(b.nome) || a.dia.localeCompare(b.dia)).map(l => ({
     'Motorista': l.nome, 'Data': _motDataBR(l.dia), 'FR': l.fr, 'Placa': l.placa, 'Rota': l.rota,
-    'Viagens Programadas': l.prog, 'Viagens Realizadas': l.real, 'Aderência %': l.prog > 0 ? (l.real / l.prog) * 100 : '',
+    'Tipo': l.ehCavalo ? 'Cavalo' : 'Caminhão', 'Viagens Programadas': l.prog, 'Viagens Realizadas': l.real, 'Aderência %': l.prog > 0 ? (l.real / l.prog) * 100 : '',
     'Volume': l.vol, 'KM Rodado': l.temAbast ? l.km : '', 'Litros': l.temAbast ? l.litros : '', 'KM/L': l.temAbast ? l.km / l.litros : '', 'Viagens Perdidas Manutenção': l.manutVg, 'Volume Perdido Manutenção': l.manutVol, 'Status': l.status || ''
   }));
-  const resumo = _motResumo.map(m => ({ 'Motorista': m.nome, 'Dias': m.dias, 'Veículos': m.veiculos, 'Viagens Programadas': m.prog, 'Viagens Realizadas': m.real, 'Aderência %': m.ad === null ? '' : m.ad, 'Volume': m.vol, 'KM Rodado': m.km === null ? '' : m.km, 'KM/L': m.kml === null ? '' : m.kml, 'Impacto Manutenção (p.p.)': m.manut === null ? '' : m.manut, 'Viagens Perdidas Manutenção': m.manutVg, 'Volume Perdido Manutenção': m.manutVol, 'Dias Fora de Operação': m.fora }));
+  const resumo = _motResumo.map(m => ({ 'Motorista': m.nome, 'Dias': m.dias, 'Veículos': m.veiculos, 'Viagens Programadas': m.prog, 'Viagens Realizadas': m.real, 'Aderência %': m.ad === null ? '' : m.ad, 'Volume': m.vol, 'KM Rodado': m.km === null ? '' : m.km, 'KM/L': m.kml === null ? '' : m.kml, 'Aderência Perdida Manutenção %': m.manut === null ? '' : m.manut, 'Viagens Perdidas Manutenção': m.manutVg, 'Volume Perdido Manutenção': m.manutVol, 'Dias Fora de Operação': m.fora }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumo), 'Consolidado');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dados), 'Dia a dia');
