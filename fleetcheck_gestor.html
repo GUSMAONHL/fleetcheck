@@ -171,14 +171,18 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 /* ── MAIN ── */
 .main { margin-left: 64px; min-height: 100vh; display: flex; flex-direction: column; }
 
+.mot-tab { width:100%; border-collapse:collapse; }
+.mot-tab thead th { padding:4px 10px; font-size:10.5px; letter-spacing:0.3px; }
+.mot-tab td { padding:3px 10px; font-size:12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.mot-tab tbody tr:hover { background:var(--bg3); }
 /* ── TOPBAR ── */
 .topbar {
   min-height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 16px;
   padding: 8px 28px; position: sticky; top: 0; z-index: 9; row-gap: 8px;
 }
 .topbar-title { font-size:18px; font-weight: 500; color: var(--text); }
-.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: auto; }
 .topbar-date { font-size:15px; color: var(--text3); font-family: 'DM Mono', monospace; }
 
 .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size:16px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
@@ -563,7 +567,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 <!-- MAIN -->
 <main class="main">
   <header class="topbar">
-    <div style="display:flex;align-items:center;gap:20px;min-width:0;flex-wrap:wrap;row-gap:8px;">
+    <div style="display:flex;align-items:center;gap:20px;min-width:0;flex:1 1 0;flex-wrap:wrap;row-gap:8px;">
       <div class="topbar-title" id="page-title">Volume Transportado</div>
 
       <div class="topbar-filtros-painel" id="topbar-filtros-produtividade">
@@ -1086,13 +1090,23 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       </div>
     </div>
 
-    <div id="mot-modal" onclick="if(event.target===this)fecharMotoristaModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px;">
-      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:980px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);">
-          <div><div id="mot-modal-titulo" style="font-size:18px;font-weight:700;"></div><div id="mot-modal-sub" style="font-size:13px;color:var(--text3);margin-top:2px;"></div></div>
-          <button onclick="fecharMotoristaModal()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:8px;cursor:pointer;padding:6px 12px;font-size:14px;">✕</button>
+    <div id="mot-det-modal" onclick="if(event.target===this)fecharDetalheMotorista()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1100px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <div><div style="font-size:11px;color:var(--text3);">DETALHAMENTO</div><div id="mot-det-titulo" style="font-size:15px;font-weight:700;"></div></div>
+          <button onclick="fecharDetalheMotorista()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:8px;cursor:pointer;padding:4px 10px;font-size:13px;">✕</button>
         </div>
-        <div id="mot-modal-corpo" style="padding:20px 22px;"></div>
+        <div id="mot-det-corpo" style="padding:12px 16px;flex:1;min-height:0;overflow:auto;"></div>
+      </div>
+    </div>
+
+    <div id="mot-modal" onclick="if(event.target===this)fecharMotoristaModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:12px;">
+      <div id="mot-modal-caixa" style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:980px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <div><div id="mot-modal-titulo" style="font-size:16px;font-weight:700;"></div><div id="mot-modal-sub" style="font-size:12px;color:var(--text3);margin-top:1px;"></div></div>
+          <button onclick="fecharMotoristaModal()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:8px;cursor:pointer;padding:4px 10px;font-size:13px;">✕</button>
+        </div>
+        <div id="mot-modal-corpo" style="padding:12px 16px;flex:1;min-height:0;overflow:auto;"></div>
       </div>
     </div>
 
@@ -9684,6 +9698,7 @@ window.exportarGestaoDia = async function exportarGestaoDia() {
 let _motProgDiasCache = null;   // { 'YYYY-MM-DD': dados do documento programacao_dias }
 let _motVolumeCache = {};       // 'YYYY-MM-DD' -> viagens[] | null
 let _motLinhas = [];            // linhas (dia × veículo × motorista) do período
+let _motDiasOp = [];            // dias de operação do período (YYYY-MM-DD)
 let _motResumo = [];            // consolidado por motorista
 let _motVeiculos = [];          // consolidado por veículo (com o detalhe por motorista)
 
@@ -9801,6 +9816,7 @@ window.abrirVeiculoMotoristasModal = function abrirVeiculoMotoristasModal(placa)
     <div style="overflow-x:auto;"><table id="mot-veic-tabela"><thead><tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG PERDIDAS</th><th style="text-align:center;">MANUT. %</th><th>COMPARADO AO VEÍCULO</th></tr></thead><tbody>${trs}</tbody></table></div>
     <div style="font-size:12px;color:var(--text3);margin-top:10px;">Se os motoristas perdem proporções parecidas no mesmo veículo, o problema tende a ser do veículo; se um deles destoa, vale olhar a condução.</div>`;
   _tornarTabelaOrdenavel(document.getElementById('mot-veic-tabela'));
+  document.getElementById('mot-modal-caixa').style.maxWidth = '980px';
   document.getElementById('mot-modal').style.display = 'flex';
 };
 
@@ -9855,11 +9871,17 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         if (ehCavalo) vol = 0;
         linhas.push({
           dia, nome, placa, ehCavalo, fr: a ? (a.fr||'') : '', rota: a && a.origem && a.destino ? `${a.origem} → ${a.destino}` : '—',
-          prog, real, vol, status: a ? (a.status||'') : '', fonte, km, litros, temAbast: !!abOk, manutVg, manutVol
+          prog, real, vol, status: a ? (a.status||'') : '', fonte, km, litros, temAbast: !!abOk, manutVg, manutVol,
+          tipo: a ? (a.tipo2||'') : '', ofensor: a && a.justificativa ? (a.justificativa.ofensor||'') : '', tipoOf: a && a.justificativa ? (a.justificativa.tipoOfensor||'') : ''
         });
       });
     });
     _motLinhas = linhas;
+    // Dias de operação do período: dias com motorista escalado, viagem programada ou viagem realizada
+    _motDiasOp = Object.keys(_motProgDiasCache).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= ini && d <= fim).filter(d => {
+      const dd = _motProgDiasCache[d] || {}, at = Array.isArray(dd.atribuicoes) ? dd.atribuicoes : [];
+      return (dd.motoristas && Object.values(dd.motoristas).some(Boolean)) || at.some(a => (Number(a.viagens)||0) > 0 || _gestaoRealizacoes(a).some(Boolean));
+    }).sort();
 
     const por = {};
     linhas.forEach(l => {
@@ -9922,100 +9944,230 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
   }
 };
 
-// Mini gráfico de colunas por dia (SVG) pro popup do motorista
-function _motMiniColunas(pontos, un, casas) {
-  if (pontos.length === 0) return '<div style="padding:18px 0;text-align:center;color:var(--text3);font-size:13px;">Sem dados no período.</div>';
-  const W = 440, H = 150, pad = { l: 8, r: 8, t: 16, b: 24 };
+// ── Popup do motorista: tela única (sem rolagem), cards clicáveis que filtram os dias ──
+let _motModalNome = null;
+
+// Barras por dia (SVG compacto). cor(v) devolve a cor da barra; sem média para indicadores em faixas.
+function _motBarrasDia(pontos, un, casas, corFn, semMedia) {
+  if (pontos.length === 0) return '<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Sem dados no período.</div>';
+  const W = 440, H = 70, pad = { l: 2, r: 2, t: 8, b: 12 };
   const max = Math.max(...pontos.map(p => p.v), 0) || 1;
   const media = pontos.reduce((s,p) => s + p.v, 0) / pontos.length;
-  const bw = Math.min(26, (W - pad.l - pad.r) / pontos.length - 4);
   const passo = (W - pad.l - pad.r) / pontos.length;
+  const bw = Math.max(3, Math.min(22, passo - 2));
   const y = (v) => pad.t + (H - pad.t - pad.b) * (1 - v / max);
   const barras = pontos.map((p, i) => {
     const x = pad.l + passo * i + (passo - bw) / 2;
-    const h = (H - pad.b) - y(p.v);
+    const h = Math.max(1.5, (H - pad.b) - y(p.v));
     return `<g><title>${_motEsc(p.rot)}: ${_motFmt(p.v, casas)} ${un}</title>
-      <rect x="${x}" y="${y(p.v)}" width="${bw}" height="${Math.max(1, h)}" rx="3" fill="#388bfd" opacity="${p.v >= media ? 1 : 0.45}"/>
-      <text x="${x + bw/2}" y="${H - 8}" text-anchor="middle" font-size="9.5" fill="var(--text3)">${_motEsc(p.curto)}</text></g>`;
+      <rect x="${x}" y="${(H - pad.b) - h}" width="${bw}" height="${h}" rx="2" fill="${corFn(p.v, media)}"/>
+      ${pontos.length <= 31 ? `<text x="${x + bw/2}" y="${H - 2}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${_motEsc(p.curto)}</text>` : ''}</g>`;
   }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">
-    <line x1="${pad.l}" x2="${W - pad.r}" y1="${y(media)}" y2="${y(media)}" stroke="var(--text2)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
-    <text x="${W - pad.r}" y="${y(media) - 4}" text-anchor="end" font-size="10" fill="var(--text2)">média ${_motFmt(media, casas)}</text>
-    ${barras}</svg>`;
+  const linhaMedia = semMedia ? '' : `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(media)}" y2="${y(media)}" stroke="var(--text2)" stroke-width="1" stroke-dasharray="4 3" opacity="0.6"/>
+    <text x="${W - pad.r}" y="${Math.max(8, y(media) - 2)}" text-anchor="end" font-size="8" fill="var(--text2)">média ${_motFmt(media, casas)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:70px;display:block;" preserveAspectRatio="none">${linhaMedia}${barras}</svg>`;
 }
+
+// Faixa de presença: um bloco por dia de operação (verde = escalado, cinza = não escalado)
+function _motFaixaPresenca(diasOp, escalados) {
+  if (diasOp.length === 0) return '<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Sem dias de operação no período.</div>';
+  const W = 440, H = 70, pad = 2, passo = (W - pad * 2) / diasOp.length, bw = Math.max(3, Math.min(22, passo - 2));
+  const blocos = diasOp.map((d, i) => {
+    const ok = escalados.has(d), x = pad + passo * i + (passo - bw) / 2;
+    return `<g><title>${_motDataBR(d)}: ${ok ? 'escalado' : 'não escalado'}</title>
+      <rect x="${x}" y="${ok ? 8 : 40}" width="${bw}" height="${ok ? 50 : 18}" rx="2" fill="${ok ? '#2ea043' : 'var(--border2)'}"/>
+      ${diasOp.length <= 31 ? `<text x="${x + bw/2}" y="${H - 2}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${d.slice(8)}</text>` : ''}</g>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:70px;display:block;" preserveAspectRatio="none">${blocos}</svg>`;
+}
+
+function _motTabelaCompacta(cols, rows) {
+  if (rows.length === 0) return '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">Sem dias com esse indicador no período.</div>';
+  const mk = (rs) => `<div style="flex:1;min-width:0;"><table class="mot-tab"><thead><tr>${cols.map(c => `<th style="text-align:${c.al || 'left'};">${c.h}</th>`).join('')}</tr></thead><tbody>${
+    rs.map(r => `<tr${r.title ? ` title="${_motEsc(r.title)}"` : ''}>${r.cel.map((c, i) => `<td style="text-align:${cols[i].al || 'left'};${(r.est && r.est[i]) || ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const n = rows.length > 60 ? 2 : 1;
+  const por = Math.ceil(rows.length / n);
+  return `<div style="display:flex;gap:14px;align-items:flex-start;">${Array.from({ length: n }, (_, i) => mk(rows.slice(i * por, (i + 1) * por))).join('')}</div>`;
+}
+
+// Gráfico de pizza/rosca (SVG) com legenda
+const _MOT_PALETA = ['#388bfd','#2ea043','#d29922','#f0883e','#a371f7','#f85149','#39c5cf','#db61a2','#8b949e'];
+function _motPizza(fatias, rosca, un) {
+  const total = fatias.reduce((s, f) => s + f.v, 0);
+  if (total <= 0) return '<div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Sem dados no período.</div>';
+  // agrupa o excedente em "Outros" (máx. 8 fatias)
+  let lista = fatias.slice().sort((a,b) => b.v - a.v);
+  if (lista.length > 8) { const resto = lista.slice(7).reduce((s,f) => s + f.v, 0); lista = lista.slice(0, 7).concat([{ nome: 'Outros', v: resto }]); }
+  const R = 48, r = rosca ? 28 : 0, cx = 55, cy = 55;
+  // sentido horário: a maior fatia fica centrada à esquerda (9h) e as seguintes seguem para cima/direita
+  let ang = Math.PI - (lista[0].v / total) * Math.PI;
+  const pt = (rad, a) => `${(cx + rad * Math.cos(a)).toFixed(2)},${(cy + rad * Math.sin(a)).toFixed(2)}`;
+  const fat = lista.map((f, i) => {
+    const frac = f.v / total, cor = _MOT_PALETA[i % _MOT_PALETA.length];
+    const titulo = `<title>${_motEsc(f.nome)}: ${_motFmt(f.v, 0)} ${un} (${_motFmt(frac * 100, 1)}%)</title>`;
+    if (frac >= 0.9999) return `<g>${titulo}<circle cx="${cx}" cy="${cy}" r="${(R + r) / 2}" fill="none" stroke="${cor}" stroke-width="${R - r}"/></g>`;
+    const a2 = ang + frac * 2 * Math.PI, grande = frac > 0.5 ? 1 : 0;
+    const d = r > 0
+      ? `M${pt(R, ang)} A${R},${R} 0 ${grande} 1 ${pt(R, a2)} L${pt(r, a2)} A${r},${r} 0 ${grande} 0 ${pt(r, ang)} Z`
+      : `M${cx},${cy} L${pt(R, ang)} A${R},${R} 0 ${grande} 1 ${pt(R, a2)} Z`;
+    ang = a2;
+    return `<g>${titulo}<path d="${d}" fill="${cor}" stroke="var(--bg3)" stroke-width="1"/></g>`;
+  }).join('');
+  const centro = rosca ? `<text x="${cx}" y="${cy + 1}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text)">${_motFmt(total, 0)}</text><text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${un}</text>` : '';
+  const leg = lista.map((f, i) => `<div style="display:flex;align-items:center;gap:5px;font-size:10.5px;min-width:0;" title="${_motEsc(f.nome)}: ${_motFmt(f.v, 0)} ${un}">
+      <span style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${_MOT_PALETA[i % _MOT_PALETA.length]};"></span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${_motEsc(f.nome)}</span>
+      <span style="color:var(--text3);font-family:'DM Mono',monospace;">${_motFmt(f.v / total * 100, 0)}%</span></div>`).join('');
+  return `<div style="display:flex;align-items:center;gap:12px;"><svg viewBox="0 0 110 110" style="width:118px;height:118px;flex-shrink:0;">${fat}${centro}</svg>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">${leg}</div></div>`;
+}
+
+// Contexto do motorista (linhas, dias de operação, etc.) compartilhado entre a tela e o detalhamento
+function _motCtx(nome) {
+  const linhas = _motLinhas.filter(l => l.nome === nome).sort((a,b) => a.dia.localeCompare(b.dia) || a.placa.localeCompare(b.placa));
+  const diasOp = _motDiasOp || [];
+  const escalados = new Set(linhas.map(l => l.dia));
+  const nEsc = diasOp.filter(d => escalados.has(d)).length;
+  return { linhas, diasOp, escalados, nEsc, pres: diasOp.length > 0 ? nEsc / diasOp.length * 100 : null };
+}
+const _MOT_DSEM = ['dom','seg','ter','qua','qui','sex','sáb'];
+function _motDataCel(iso) { const [y, mo, d] = iso.split('-').map(Number); return `${iso.slice(8)}/${iso.slice(5,7)} <span style="color:var(--text3);">${_MOT_DSEM[new Date(y, mo-1, d).getDay()]}</span>`; }
+function _motVeicCel(l) {
+  const t = (l.tipo || '').toString().toUpperCase();
+  return `${_motEsc(l.fr ? l.fr + ' · ' : '')}${_motEsc(l.placa)}${t ? ` <span style="font-size:9.5px;font-weight:700;padding:0 4px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${_motEsc(t)}</span>` : ''}`;
+}
+
+function _motModalRender() {
+  const nome = _motModalNome;
+  const m = _motResumo.find(x => x.nome === nome);
+  if (!m) return;
+  const { linhas, diasOp, escalados, nEsc, pres } = _motCtx(nome);
+  const AZUL = '#388bfd', AZUL_CLARO = 'rgba(56,139,253,0.45)';
+  const corRel = (v, media) => v >= media ? AZUL : AZUL_CLARO;
+
+  const porDia = {};
+  linhas.forEach(l => {
+    const g = porDia[l.dia] || (porDia[l.dia] = { dia: l.dia, prog: 0, real: 0, vol: 0, temCam: false, km: 0, litros: 0, manutVg: 0, progCam: 0, placas: [] });
+    g.prog += l.prog; g.real += l.real; g.placas.push(l.placa);
+    if (!l.ehCavalo) { g.temCam = true; g.vol += l.vol; g.progCam += l.prog; g.manutVg += l.manutVg; }
+    if (l.temAbast) { g.km += l.km; g.litros += l.litros; }
+  });
+  const dias = Object.values(porDia).sort((a,b) => a.dia.localeCompare(b.dia));
+  const pt = (g, v) => ({ v, rot: _motDataBR(g.dia) + ' · ' + g.placas.join(', '), curto: g.dia.slice(8) });
+  const adPts = dias.filter(g => g.prog > 0).map(g => pt(g, g.real / g.prog * 100));
+  const volPts = dias.filter(g => g.temCam).map(g => pt(g, g.vol));
+  const kmlPts = dias.filter(g => g.litros > 0).map(g => pt(g, g.km / g.litros));
+  const kmPts = dias.filter(g => g.litros > 0).map(g => pt(g, g.km));
+  const manutPts = dias.filter(g => g.progCam > 0).map(g => pt(g, g.manutVg));
+  const semPerda = manutPts.length > 0 && manutPts.every(p => p.v === 0);
+
+  const posRank = (chave) => { const lista = _motRank(chave); const pos = lista.findIndex(x => x.nome === nome); return pos >= 0 ? `#${pos + 1} de ${lista.length}` : 'sem dados'; };
+  const card = (chave, titulo, valor, cor, sub, graf, rank, tinge) => `<div onclick="abrirDetalheMotorista('${chave}')" title="Clique para ver o detalhamento por dia" style="cursor:pointer;min-width:0;border:2px solid ${tinge ? cor : 'var(--border2)'};border-radius:10px;padding:8px 12px 6px;background:${tinge ? (cor === '#2ea043' ? 'rgba(46,160,67,0.10)' : cor === '#d29922' ? 'rgba(210,153,34,0.10)' : cor === '#f85149' ? 'rgba(248,81,73,0.10)' : 'var(--bg3)') : 'var(--bg3)'};">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${titulo} <span style="color:var(--text3);font-weight:400;text-transform:none;">🔍</span></span>
+        <span style="font-size:10.5px;color:var(--text3);">${rank}</span></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:2px 0 4px;">
+        <span style="font-size:24px;font-weight:700;font-family:'DM Mono',monospace;color:${cor};line-height:1.1;">${valor}</span>
+        <span style="font-size:10.5px;color:var(--text3);">${sub}</span></div>
+      ${graf}</div>`;
+  const cards = [
+    card('ad', 'Aderência', m.ad === null ? '—' : _motFmt(m.ad, 1) + '%', _motCorAd(m.ad),
+      `${m.real}/${m.prog} vg · cam ${m.realCam}/${m.progCam} · cav ${m.realCav}/${m.progCav}${m.fora ? ' · ' + m.fora + ' dia(s) fora' : ''}`,
+      _motBarrasDia(adPts, '%', 1, (v) => _motCorAd(v), true), posRank('ad'), true),
+    card('pres', 'Dias escalado / operação', pres === null ? '—' : `${nEsc}/${diasOp.length}`, _motCorAd(pres),
+      pres === null ? 'sem dias de operação' : `${_motFmt(pres, 1)}% dos dias de operação`, _motFaixaPresenca(diasOp, escalados), '', true),
+    card('vol', 'Peso carregado', _motFmt(m.vol), AZUL, 'caminhões', _motBarrasDia(volPts, '', 2, corRel), posRank('vol')),
+    card('kml', 'Consumo (km/L)', m.kml === null ? '—' : _motFmt(m.kml), AZUL, m.kml === null ? 'sem abastecimento' : `${_motFmt(m.kmAbast, 0)} km · ${_motFmt(m.litros, 0)} L`, _motBarrasDia(kmlPts, 'km/L', 2, corRel), posRank('kml')),
+    card('km', 'KM rodado', m.km === null ? '—' : _motFmt(m.km, 0), AZUL, 'km', _motBarrasDia(kmPts, 'km', 0, corRel), posRank('km')),
+    card('manut', 'Perda por manutenção', m.manut === null ? '—' : _motFmt(m.manut, 1) + '%', AZUL, `${m.manutVg} vg perdida(s) · vol ${_motFmt(m.manutVol)}`,
+      semPerda ? '<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Nenhuma perda por manutenção no período. 👍</div>' : _motBarrasDia(manutPts, 'vg', 0, () => '#f0883e', true), posRank('manut'))
+  ].join('');
+
+  // Gráficos de composição: veículos (rosca), rotas (pizza) e ofensores (pizza)
+  const soma = (chaveFn, valFn) => { const o = {}; linhas.forEach(l => { const k = chaveFn(l); const v = valFn(l); if (k && v > 0) o[k] = (o[k] || 0) + v; }); return Object.entries(o).map(([nome, v]) => ({ nome, v })); };
+  const veicFat = soma(l => `${l.fr ? l.fr + ' · ' : ''}${l.placa}${l.tipo ? ' (' + String(l.tipo).toUpperCase() + ')' : ''}`, () => 1);
+  let rotaFat = soma(l => l.rota !== '—' ? l.rota : '', l => l.real);
+  let rotaUn = 'viagens';
+  if (rotaFat.length === 0) { rotaFat = soma(l => l.rota !== '—' ? l.rota : '', l => l.prog); rotaUn = 'prog.'; }
+  const ofFat = soma(l => (l.prog > l.real) ? (l.ofensor || 'Sem justificativa') : '', l => Math.max(0, l.prog - l.real));
+  // Peso médio por viagem, por tipo de veículo do motorista, e posição entre os motoristas do mesmo tipo
+  const pmTipo = {};
+  _motLinhas.forEach(l => { const t = (l.tipo || '').toString().toUpperCase(); if (l.ehCavalo || !t || !(l.real > 0)) return;
+    const g = (pmTipo[t] || (pmTipo[t] = {}))[l.nome] || (pmTipo[t][l.nome] = { vol: 0, real: 0 }); g.vol += l.vol; g.real += l.real; });
+  const pmLinhas = Object.keys(pmTipo).filter(t => pmTipo[t][nome]).sort().map(t => {
+    const lista = Object.entries(pmTipo[t]).map(([n, g]) => ({ n, v: g.vol / g.real })).sort((a,b) => b.v - a.v);
+    const pos = lista.findIndex(x => x.n === nome), meu = pmTipo[t][nome];
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:11px;" title="Peso total ÷ viagens realizadas, entre os motoristas que conduziram ${t}">
+      <span style="font-size:9.5px;font-weight:700;padding:0 4px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${t}</span>
+      <span style="color:var(--text3);">peso médio</span><b style="font-family:'DM Mono',monospace;">${_motFmt(meu.vol / meu.real)}</b>
+      <span style="margin-left:auto;color:var(--text2);">rank <b>#${pos + 1}</b> de ${lista.length}</span></div>`;
+  }).join('');
+  const pmBloco = pmLinhas ? `<div style="border-top:1px solid var(--border2);margin-top:6px;padding-top:5px;display:flex;flex-direction:column;gap:3px;">${pmLinhas}</div>` : '';
+  const gcard = (tit, sub, corpo) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:8px 12px;background:var(--bg3);min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${tit} <span style="font-weight:400;color:var(--text3);text-transform:none;">${sub}</span></div>
+      <div style="margin-top:6px;">${corpo}</div></div>`;
+  document.getElementById('mot-modal-corpo').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;">${cards}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;">
+      ${gcard('Veículos conduzidos', '· dias em cada veículo', _motPizza(veicFat, true, 'dia(s)') + pmBloco)}
+      ${gcard('Rotas trabalhadas', `· ${rotaUn} por rota`, _motPizza(rotaFat, false, rotaUn))}
+      ${gcard('Ofensores', '· viagens não realizadas', _motPizza(ofFat, false, 'viagens'))}
+    </div>
+    <div style="font-size:10.5px;color:var(--text3);margin-top:6px;">Clique em um card de indicador para abrir o detalhamento por dia.</div>`;
+}
+
+// Detalhamento por dia do indicador, em popup
+window.abrirDetalheMotorista = function abrirDetalheMotorista(chave) {
+  const nome = _motModalNome;
+  const { linhas, diasOp, nEsc, pres } = _motCtx(nome);
+  const cam = linhas.filter(l => !l.ehCavalo);
+  const rota = (l) => _motEsc(l.rota);
+  const of = (l) => l.ofensor ? _motEsc(l.ofensor) : '—';
+  const tof = (l) => l.tipoOf ? _motEsc(l.tipoOf) : '—';
+  let titulo = '', cols = [], rows = [];
+  if (chave === 'ad') {
+    titulo = 'Aderência';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'AD%',al:'center'},{h:'OFENSOR'},{h:'TIPO DE OFENSOR'}];
+    rows = linhas.map(l => { const ad = l.prog > 0 ? l.real / l.prog * 100 : null;
+      return { title: `${l.rota} · ${l.real}/${l.prog} viagens`, cel: [_motDataCel(l.dia), _motVeicCel(l), ad === null ? '—' : _motFmt(ad, 1) + '%', of(l), tof(l)], est: [,, `font-weight:700;color:${_motCorAd(ad)};`] }; });
+  } else if (chave === 'pres') {
+    titulo = `Dias de operação: ${diasOp.length} · escalado em ${nEsc}${pres === null ? '' : ' (' + _motFmt(pres, 1) + '%)'}`;
+    cols = [{h:'DIA'},{h:'SITUAÇÃO'},{h:'VEÍCULO(S)'}];
+    rows = diasOp.map(d => { const ls = linhas.filter(l => l.dia === d); const ok = ls.length > 0;
+      return { cel: [_motDataCel(d), ok ? '✔ Escalado' : '— Não escalado', ok ? ls.map(_motVeicCel).join(', ') : ''], est: [, `font-weight:700;color:${ok ? '#2ea043' : 'var(--text3)'};`] }; });
+  } else if (chave === 'vol') {
+    titulo = 'Peso carregado (caminhões)';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'VIAGENS',al:'center'},{h:'PESO MÉDIO',al:'right'},{h:'VOLUME',al:'right'}];
+    rows = cam.map(l => ({ cel: [_motDataCel(l.dia), _motVeicCel(l), rota(l), l.real, _motFmt(l.real > 0 ? l.vol / l.real : 0), _motFmt(l.vol)], est: [,,,,, "font-family:'DM Mono',monospace;"] }));
+  } else if (chave === 'kml') {
+    titulo = 'Consumo (dias com abastecimento completo)';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'PESO TOTAL NO DIA',al:'right'},{h:'KM',al:'right'},{h:'LITROS',al:'right'},{h:'KM/L',al:'center'}];
+    rows = linhas.filter(l => l.temAbast).map(l => ({ cel: [_motDataCel(l.dia), _motVeicCel(l), rota(l), _motFmt(l.vol), _motFmt(l.km, 0), _motFmt(l.litros, 0), _motFmt(l.km / l.litros)], est: [,,, "font-family:'DM Mono',monospace;",,, 'font-weight:700;'] }));
+  } else if (chave === 'km') {
+    titulo = 'KM rodado (dias com abastecimento completo)';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'KM',al:'right'},{h:'KM MÉDIO POR VIAGEM',al:'right'}];
+    rows = linhas.filter(l => l.temAbast).map(l => ({ cel: [_motDataCel(l.dia), _motVeicCel(l), rota(l), _motFmt(l.km, 0), l.real > 0 ? _motFmt(l.km / l.real, 1) : '—'] }));
+  } else {
+    titulo = 'Perda por manutenção (viagens programadas não realizadas)';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'VG PERDIDAS',al:'center'},{h:'OFENSOR'},{h:'TIPO DE OFENSOR'}];
+    rows = cam.filter(l => l.manutVg > 0).map(l => ({ title: `volume perdido: ${_motFmt(l.manutVol)}`, cel: [_motDataCel(l.dia), _motVeicCel(l), rota(l), l.manutVg, of(l), tof(l)], est: [,,, 'font-weight:700;color:#f0883e;'] }));
+  }
+  document.getElementById('mot-det-titulo').textContent = `${nome} — ${titulo}`;
+  const corpo = document.getElementById('mot-det-corpo');
+  corpo.innerHTML = _motTabelaCompacta(cols, rows);
+  document.getElementById('mot-det-modal').style.display = 'flex';
+};
+window.fecharDetalheMotorista = function fecharDetalheMotorista() { document.getElementById('mot-det-modal').style.display = 'none'; };
 
 window.abrirMotoristaModal = function abrirMotoristaModal(nome) {
   const m = _motResumo.find(x => x.nome === nome);
   if (!m) return;
-  const linhas = _motLinhas.filter(l => l.nome === nome).sort((a,b) => a.dia.localeCompare(b.dia));
-  const dsem = ['dom','seg','ter','qua','qui','sex','sáb'];
+  _motModalNome = nome;
   const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
   document.getElementById('mot-modal-titulo').textContent = nome;
   document.getElementById('mot-modal-sub').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · ${m.dias} dia(s) escalado(s) · ${m.veiculos} veículo(s)`;
-
-  // posição no rank de cada indicador
-  const tile = (ind, valor) => {
-    const lista = _motRank(ind.chave);
-    const pos = lista.findIndex(x => x.nome === nome);
-    const rank = pos >= 0 ? `<span style="font-size:12px;color:var(--text3);">#${pos + 1} de ${lista.length}</span>` : '<span style="font-size:12px;color:var(--text3);">sem dados</span>';
-    return `<div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">${ind.chave === 'manut' ? 'Aderência perdida (manutenção)' : ind.titulo.split(' — ')[0]}</div>
-      <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${valor}</div>${rank}</div>`;
-  };
-  const I = (c) => _MOT_INDICADORES.find(x => x.chave === c);
-  const tiles = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;">
-    ${tile(I('vol'), _motFmt(m.vol))}
-    ${tile(I('ad'), m.ad === null ? '—' : _motFmt(m.ad, 1) + '%')}
-    ${tile(I('kml'), m.kml === null ? '—' : _motFmt(m.kml) + ' km/L')}
-    ${tile(I('km'), m.km === null ? '—' : _motFmt(m.km, 0) + ' km')}
-    ${tile(I('manut'), m.manut === null ? '—' : _motFmt(m.manut, 1) + '%')}
-    <div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Viagens</div>
-      <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${m.real}<span style="font-size:14px;color:var(--text3);"> / ${m.prog}</span></div>
-      <div style="font-size:12px;color:var(--text2);margin-top:2px;">🚚 caminhão ${m.realCam}/${m.progCam}${m.adCam === null ? '' : ' · ' + _motFmt(m.adCam, 1) + '%'}<br>${ICONE_CAVALO} cavalo ${m.realCav}/${m.progCav}${m.adCav === null ? '' : ' · ' + _motFmt(m.adCav, 1) + '%'}</div>
-      <span style="font-size:12px;color:var(--text3);">${m.fora} dia(s) fora de operação</span></div>
-    <div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Viagens perdidas por manutenção</div>
-      <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${m.manutVg}<span style="font-size:14px;color:var(--text3);"> viagem(ns)</span></div>
-      <span style="font-size:12px;color:var(--text3);">volume perdido ${_motFmt(m.manutVol)}</span></div>
-  </div>`;
-
-  const pDia = (l, v) => ({ v, rot: _motDataBR(l.dia) + ' · ' + l.placa, curto: l.dia.slice(8) });
-  const volPts = linhas.filter(l => !l.ehCavalo).map(l => pDia(l, l.vol));
-  const adPts = linhas.filter(l => l.prog > 0).map(l => pDia(l, l.real / l.prog * 100));
-  const kmlPts = linhas.filter(l => l.temAbast).map(l => pDia(l, l.km / l.litros));
-  const graf = (tit, pts, un, casas) => `<div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;"><div style="font-size:13px;font-weight:600;margin-bottom:6px;">${tit}</div>${_motMiniColunas(pts, un, casas)}</div>`;
-  const graficos = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:18px;">
-    ${graf('Peso carregado por dia', volPts, '', 2)}${graf('Aderência por dia (%)', adPts, '%', 1)}${graf('Consumo por dia (km/L)', kmlPts, 'km/L', 2)}</div>`;
-
-  // Veículos conduzidos: perda por manutenção do motorista x do veículo (todos os motoristas)
-  const veicRows = _motVeiculos.filter(v => v.mot.some(g => g.nome === nome)).map(v => {
-    const g = v.mot.find(x => x.nome === nome);
-    const dif = (g.taxa === null || v.taxa === null) ? null : g.taxa - v.taxa;
-    const leitura = dif === null ? '—' : (Math.abs(dif) < 0.05 ? 'igual ao veículo' : (dif > 0 ? `▲ ${_motFmt(dif, 1)} p.p. acima do veículo` : `▼ ${_motFmt(-dif, 1)} p.p. abaixo do veículo`));
-    return `<tr style="cursor:pointer;" onclick="abrirVeiculoMotoristasModal(this.dataset.placa)" data-placa="${_motEsc(v.placa)}"><td>${_motEsc(v.fr ? v.fr + ' · ' : '')}${_motEsc(v.placa)}</td><td style="text-align:center;">${g.dias}</td><td style="text-align:center;">${g.manutVg} / ${g.prog}</td><td style="text-align:center;font-weight:700;">${g.taxa === null ? '—' : _motFmt(g.taxa, 1) + '%'}</td><td style="text-align:center;">${v.taxa === null ? '—' : _motFmt(v.taxa, 1) + '%'}</td><td style="text-align:center;">${v.mot.length - 1}</td><td>${leitura}</td></tr>`;
-  }).join('');
-  const veicTabela = `<div style="font-size:13px;font-weight:600;margin:4px 0 6px;">Manutenção por veículo conduzido <span style="font-weight:400;color:var(--text3);">— clique para ver os outros motoristas no veículo</span></div>
-    <div style="overflow-x:auto;margin-bottom:18px;"><table id="mot-veic-motorista-tabela"><thead><tr><th>VEÍCULO</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VG PERDIDAS / PROG.</th><th style="text-align:center;">MANUT. % (MOTORISTA)</th><th style="text-align:center;">MANUT. % (VEÍCULO)</th><th style="text-align:center;">OUTROS MOT.</th><th>COMPARAÇÃO</th></tr></thead><tbody>${veicRows}</tbody></table></div>`;
-
-  const stTxt = { operando: 'Operando', finalizado: 'Finalizado', fora: 'Fora de operação' };
-  const trs = linhas.map(l => {
-    const [y, mo, d] = l.dia.split('-').map(Number);
-    const ad = l.prog > 0 ? (l.real / l.prog) * 100 : null;
-    return `<tr><td style="text-align:center;">${_motDataBR(l.dia)}</td><td style="text-align:center;">${dsem[new Date(y, mo-1, d).getDay()]}</td>
-      <td>${_motEsc(l.fr ? l.fr + ' · ' : '')}${_motEsc(l.placa)}</td><td style="text-align:center;">${l.ehCavalo ? 'Cavalo' : 'Caminhão'}</td><td>${_motEsc(l.rota)}</td>
-      <td style="text-align:center;">${l.prog}</td><td style="text-align:center;" title="Fonte: ${l.fonte === 'base' ? 'base de volume importada' : 'viagens marcadas à mão'}">${l.real}</td>
-      <td style="text-align:center;font-weight:700;color:${_motCorAd(ad)};">${ad === null ? '—' : _motFmt(ad, 1) + '%'}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;">${l.ehCavalo ? '—' : _motFmt(l.vol)}</td>
-      <td style="text-align:center;">${l.temAbast ? _motFmt(l.km / l.litros) : '—'}</td><td style="text-align:right;">${l.temAbast ? _motFmt(l.km, 0) : '—'}</td>
-      <td style="text-align:center;">${l.ehCavalo ? '—' : (l.manutVg || '—')}</td>
-      <td style="text-align:center;">${stTxt[l.status] || '—'}</td></tr>`;
-  }).join('');
-  const tabela = `<div style="overflow-x:auto;"><table id="mot-detalhe-tabela"><thead><tr><th style="text-align:center;">DATA</th><th style="text-align:center;">DS</th><th>VEÍCULO</th><th style="text-align:center;">TIPO</th><th>ROTA</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. VG</th><th style="text-align:center;">STATUS</th></tr></thead><tbody>${trs}</tbody></table></div>`;
-
-  document.getElementById('mot-modal-corpo').innerHTML = tiles + graficos + veicTabela + tabela;
-  _tornarTabelaOrdenavel(document.getElementById('mot-veic-motorista-tabela'));
-  _tornarTabelaOrdenavel(document.getElementById('mot-detalhe-tabela'));
+  document.getElementById('mot-modal-caixa').style.maxWidth = '1320px';
+  _motModalRender();
   document.getElementById('mot-modal').style.display = 'flex';
 };
 
