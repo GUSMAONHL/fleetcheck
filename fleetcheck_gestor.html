@@ -883,6 +883,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
     <!-- PAGE: OFENSORES — IMPACTO DE VOLUME -->
     <div class="page" id="page-ofensores">
+      <div id="ofn-filtros-ativos" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
       <div id="ofn-kpis" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:16px;"></div>
 
       <div id="ofn-pizzas-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
@@ -3562,7 +3563,7 @@ async function _gestaoConstruirLinhasAderencia(diaISO) {
   const linhasRoster = roster.map(v => {
     const atrib = atribPorPlaca[v.placa];
     const viagensProgramadas = atrib ? (Number(atrib.viagens)||0) : 0;
-    const realizacoes = atrib ? _gestaoRealizacoes(atrib) : [];
+    const realizacoes = atrib ? _gestaoRealizacoesPersistidas(atrib) : [];
     const viagensRealizadas = realizacoes.filter(Boolean).length;
 
     // Volume: usa o dado real da planilha Volume se ela já tiver sido importada pra esse dia;
@@ -7514,6 +7515,7 @@ async function _gestaoCarregarDia(dataISO) {
     if (meuToken !== _gestaoCarregarToken) return;
     _gestaoAtribuicoes = (snap.exists() && Array.isArray(snap.data().atribuicoes)) ? snap.data().atribuicoes : [];
     _gestaoJustificativas = (snap.exists() && snap.data().justificativas && typeof snap.data().justificativas === 'object') ? snap.data().justificativas : {};
+    _gestaoGpsFechado = !!(snap.exists() && snap.data().gpsFechado);
     _gestaoMotoristas = (snap.exists() && snap.data().motoristas && typeof snap.data().motoristas === 'object') ? snap.data().motoristas : {};
     _gestaoAbastecimentos = (snap.exists() && snap.data().abastecimentos && typeof snap.data().abastecimentos === 'object') ? snap.data().abastecimentos : {};
 
@@ -7533,14 +7535,17 @@ async function _gestaoCarregarDia(dataISO) {
     // TESTE (GPS): passagens por áreas (areas_passagens, gravadas pelo outro projeto) — só do dia de hoje.
     // Só visual — não grava nada nem altera as marcações manuais. Falha aqui não pode travar a tela.
     _gestaoPassagensPorPlaca = {};
+    _gestaoPassagensOk = false;
     try {
       // Só o dia vigente (hoje) é alimentado pelo GPS. Dias anteriores não são consultados nem alterados.
       const _hoje = new Date();
       const _hojeISO = _hoje.getFullYear()+'-'+String(_hoje.getMonth()+1).padStart(2,'0')+'-'+String(_hoje.getDate()).padStart(2,'0');
-      const snapPass = dataISO === _hojeISO
+      // hoje, e até 2 dias atrás (fechamento da virada de dia, uma única vez por dia)
+      const snapPass = _gestaoGpsAplicavel()
         ? await getDocs(query(collection(db, 'areas_passagens'), where('data', '==', dataISO)))
         : { docs: [] };
       if (meuToken !== _gestaoCarregarToken) return;
+      _gestaoPassagensOk = _gestaoGpsAplicavel();
       snapPass.docs.forEach(d => {
         const p = d.data();
         if (!p.placa) return;
@@ -7550,6 +7555,8 @@ async function _gestaoCarregarDia(dataISO) {
     } catch (err) {
       console.warn('Passagens por área indisponíveis (teste GPS):', err);
     }
+    // grava as viagens que o GPS já confirmou hoje (para não se perderem no dia seguinte)
+    try { if (meuToken === _gestaoCarregarToken) await _gestaoPersistirGPS(); } catch (err) { console.warn('Não foi possível gravar as viagens do GPS:', err); }
 
     _gestaoRenderGrade();
   } catch (err) {
@@ -7623,10 +7630,76 @@ function _gestaoEhHoje() {
 // Viagens consideradas realizadas: as marcadas à mão OU concluídas pelo GPS (verde). Em dias que
 // não são hoje, é exatamente o que foi marcado/gravado — o GPS não interfere.
 function _gestaoRealizacoesEfetivas(atrib) {
-  const manual = _gestaoRealizacoes(atrib);
-  if (!_gestaoEhHoje()) return manual;
+  const base = _gestaoRealizacoesPersistidas(atrib);
+  if (!_gestaoEhHoje()) return base;
+  // viagens que o GPS acabou de confirmar e ainda não foram gravadas como marcação (gpsAplicado)
   const gps = _gestaoEstadoGPS(atrib.placa, atrib);
-  return manual.map((m, i) => m || (!!gps[i] && gps[i].estado === 'verde'));
+  const aplicado = Array.isArray(atrib.gpsAplicado) ? atrib.gpsAplicado : [];
+  return base.map((m, i) => m || (!aplicado[i] && !!gps[i] && gps[i].estado === 'verde'));
+}
+
+// O que está gravado como realizado (marcação). A viagem confirmada pelo GPS é gravada como marcação
+// normal (realizacoes) — o campo legado realizacoesGPS (versão anterior) também é respeitado.
+function _gestaoRealizacoesPersistidas(atrib) {
+  const manual = _gestaoRealizacoes(atrib);
+  const g = Array.isArray(atrib.realizacoesGPS) ? atrib.realizacoesGPS : [];
+  return manual.map((m, i) => m || !!g[i]);
+}
+
+// Dias de diferença entre o dia aberto e hoje (0 = hoje, 1 = ontem...)
+function _gestaoDiasAtras() {
+  if (!_gestaoDataAtual) return null;
+  const h = new Date();
+  const hojeUTC = Date.UTC(h.getFullYear(), h.getMonth(), h.getDate());
+  const [y, m, d] = _gestaoDataAtual.split('-').map(Number);
+  return Math.round((hojeUTC - Date.UTC(y, m - 1, d)) / 86400000);
+}
+// O GPS alimenta o dia vigente e, por até 2 dias, serve para fechar o dia anterior (virada de dia).
+function _gestaoGpsAplicavel() { const n = _gestaoDiasAtras(); return n !== null && n >= 0 && n <= 2; }
+
+let _gestaoPassagensOk = false;   // a consulta das passagens do dia deu certo (sem isso nunca se "fecha" um dia)
+let _gestaoGpsFechado = false;    // dia passado já fechado com o GPS (não reaplica)
+
+// A viagem confirmada pelo GPS (verde) vira marcação normal: grava em realizacoes, como se tivesse
+// sido clicada. Só acrescenta; gpsAplicado guarda o que já foi aplicado, para que desmarcar à mão
+// continue valendo. Hoje aplica o que já chegou; em dia passado (até 2 dias) aplica uma vez e fecha o dia.
+async function _gestaoPersistirGPS() {
+  if (!_gestaoGpsAplicavel()) return false;
+  const hoje = _gestaoEhHoje();
+  if (!hoje && (_gestaoGpsFechado || !_gestaoPassagensOk)) return false;
+  let mudou = false;
+  _gestaoAtribuicoes.forEach(a => {
+    const n = Number(a.viagens) || 0;
+    if (!n) return;
+    const gps = _gestaoEstadoGPS(a.placa, a);
+    const legado = Array.isArray(a.realizacoesGPS) ? a.realizacoesGPS : [];
+    const aplicado = Array.isArray(a.gpsAplicado) ? a.gpsAplicado.slice(0, n) : [];
+    const real = _gestaoRealizacoes(a);
+    for (let i = 0; i < n; i++) {
+      const verde = (!!gps[i] && gps[i].estado === 'verde') || !!legado[i];
+      if (verde && !aplicado[i]) { real[i] = true; aplicado[i] = true; mudou = true; }
+    }
+    while (aplicado.length < n) aplicado.push(false);
+    if (mudou) { a.realizacoes = real; a.gpsAplicado = aplicado; }
+  });
+  const fechar = !hoje;
+  if (mudou) await _gestaoSalvarAtribuicoes();
+  if (fechar) {
+    try { await setDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { gpsFechado: true }, { merge: true }); _gestaoGpsFechado = true; } catch (err) { console.warn(err); }
+  }
+  return mudou;
+}
+
+// Busca de novo as passagens do dia (usado antes de exportar, pra não depender do que estava na tela)
+async function _gestaoRecarregarPassagens() {
+  if (!_gestaoGpsAplicavel()) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'areas_passagens'), where('data', '==', _gestaoDataAtual)));
+    const novo = {};
+    snap.docs.forEach(d => { const p = d.data(); if (!p.placa) return; const k = p.placa.toString().trim().toUpperCase(); (novo[k] = novo[k] || []).push(p); });
+    _gestaoPassagensPorPlaca = novo;
+    _gestaoPassagensOk = true;
+  } catch (err) { console.warn('Não foi possível atualizar as passagens por área:', err); }
 }
 
 // Status do veículo no dia: o que foi definido à mão (operando/finalizado/fora) tem prioridade;
@@ -7661,8 +7734,15 @@ window.toggleRealizacaoViagem = async function toggleRealizacaoViagem(placa, ind
   const atrib = _gestaoAtribuicaoDoVeiculo(placa);
   if (!atrib) return;
   const realizacoes = _gestaoRealizacoes(atrib);
-  realizacoes[indice] = !realizacoes[indice];
+  const efetiva = _gestaoRealizacoesEfetivas(atrib);
+  realizacoes[indice] = !efetiva[indice];
   atrib.realizacoes = realizacoes;
+  // clique manual tem a palavra final: o GPS não reaplica essa viagem
+  const ap = Array.isArray(atrib.gpsAplicado) ? atrib.gpsAplicado.slice() : [];
+  while (ap.length < realizacoes.length) ap.push(false);
+  ap[indice] = true;
+  atrib.gpsAplicado = ap;
+  if (Array.isArray(atrib.realizacoesGPS)) { atrib.realizacoesGPS = atrib.realizacoesGPS.slice(); atrib.realizacoesGPS[indice] = false; }
   await _gestaoSalvarAtribuicoes();
   _gestaoRenderGrade();
 };
@@ -9654,6 +9734,9 @@ window.exportarGestaoDia = async function exportarGestaoDia() {
   const [ano, mes, dia] = _gestaoDataAtual.split('-').map(Number);
   const serial = Date.UTC(ano, mes-1, dia) / 86400000 + 25569;
   const dataTexto = String(dia).padStart(2,'0') + '/' + String(mes).padStart(2,'0') + '/' + ano;
+  // hoje: atualiza as passagens do GPS e grava as viagens confirmadas antes de montar a planilha
+  await _gestaoRecarregarPassagens();
+  try { if (await _gestaoPersistirGPS()) _gestaoRenderGrade(); } catch (err) { console.warn(err); }
   const pesoVR = await _calcularPesoMedioVeiculoRota();
   const pesoVeic = await _calcularPesoMedioPorVeiculo();
   const atribs = _gestaoAtribuicoes.slice().sort((a,b) => (parseInt(a.fr,10)||0) - (parseInt(b.fr,10)||0));
@@ -9799,24 +9882,33 @@ window.abrirVeiculoMotoristasModal = function abrirVeiculoMotoristasModal(placa)
   const v = _motVeiculos.find(x => x.placa === placa);
   if (!v) return;
   const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
-  document.getElementById('mot-modal-titulo').textContent = `${v.fr ? v.fr + ' · ' : ''}${v.placa}`;
+  const dosVeic = _motLinhas.filter(l => l.placa === placa);
+  const tipo = ((dosVeic.find(l => l.tipo) || {}).tipo || '').toString().toUpperCase();
+  document.getElementById('mot-modal-titulo').textContent = `${v.fr ? v.fr + ' · ' : ''}${v.placa}${tipo ? ' (' + tipo + ')' : ''}`;
   document.getElementById('mot-modal-sub').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · ${v.dias} dia(s) com motorista escalado · ${v.mot.length} motorista(s)`;
-  const tile = (rot, val, sub) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg3);"><div style="font-size:12px;color:var(--text3);margin-bottom:4px;">${rot}</div><div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;">${val}</div><span style="font-size:12px;color:var(--text3);">${sub}</span></div>`;
-  const tiles = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;">
+  const tile = (rot, val, sub) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:8px 12px;background:var(--bg3);"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${rot}</div><div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1.2;">${val}</div><span style="font-size:11px;color:var(--text3);">${sub}</span></div>`;
+  const tiles = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;">
     ${tile('Aderência perdida (manutenção)', v.taxa === null ? '—' : _motFmt(v.taxa, 1) + '%', 'de todos os motoristas no veículo')}
-    ${tile('Viagens perdidas', v.manutVg, `de ${v.prog} programadas`)}
-    ${tile('Volume perdido', _motFmt(v.manutVol), 'estimado pelo peso médio')}
+    ${tile('Viagens perdidas (manutenção)', v.manutVg, `de ${v.prog} programadas`)}
+    ${tile('Volume perdido (manutenção)', _motFmt(v.manutVol), 'estimado pelo peso médio')}
   </div>`;
-  const trs = v.mot.map(g => {
-    const dif = (g.taxa === null || v.taxa === null) ? null : g.taxa - v.taxa;
-    const leitura = dif === null ? '—' : (Math.abs(dif) < 0.05 ? 'igual ao veículo' : (dif > 0 ? `▲ ${_motFmt(dif, 1)} p.p. acima do veículo` : `▼ ${_motFmt(-dif, 1)} p.p. abaixo do veículo`));
-    return `<tr style="cursor:pointer;" onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(g.nome)}"><td style="font-weight:600;">${_motEsc(g.nome)}</td><td style="text-align:center;">${g.dias}</td><td style="text-align:center;">${g.prog}</td><td style="text-align:center;">${g.manutVg}</td><td style="text-align:center;font-weight:700;">${g.taxa === null ? '—' : _motFmt(g.taxa, 1) + '%'}</td><td>${leitura}</td></tr>`;
-  }).join('');
-  document.getElementById('mot-modal-corpo').innerHTML = tiles + `<div style="font-size:13px;font-weight:600;margin-bottom:6px;">Motoristas nesse veículo</div>
-    <div style="overflow-x:auto;"><table id="mot-veic-tabela"><thead><tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG PERDIDAS</th><th style="text-align:center;">MANUT. %</th><th>COMPARADO AO VEÍCULO</th></tr></thead><tbody>${trs}</tbody></table></div>
-    <div style="font-size:12px;color:var(--text3);margin-top:10px;">Se os motoristas perdem proporções parecidas no mesmo veículo, o problema tende a ser do veículo; se um deles destoa, vale olhar a condução.</div>`;
-  _tornarTabelaOrdenavel(document.getElementById('mot-veic-tabela'));
-  document.getElementById('mot-modal-caixa').style.maxWidth = '980px';
+
+  // Só o ofensor Manutenção: viagens programadas e não realizadas por manutenção, em cada dia/motorista deste veículo
+  const perdas = dosVeic.filter(l => l.manutVg > 0).sort((a,b) => a.dia.localeCompare(b.dia));
+  const soma = (chaveFn) => { const o = {}; perdas.forEach(l => { const k = chaveFn(l); o[k] = (o[k] || 0) + l.manutVg; }); return Object.entries(o).map(([nome, v]) => ({ nome, v })); };
+  const gcard = (tit, sub, corpo) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:8px 12px;background:var(--bg3);min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${tit} <span style="font-weight:400;color:var(--text3);text-transform:none;">${sub}</span></div>
+      <div style="margin-top:6px;">${corpo}</div></div>`;
+  const pizzas = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;">
+    ${gcard('Motoristas', '· viagens perdidas por manutenção', _motPizza(soma(l => l.nome), true, 'viagens'))}
+    ${gcard('Ofensor', '· apenas Manutenção', _motPizza(soma(l => l.ofensor), false, 'viagens'))}
+    ${gcard('Tipos de ofensor', '· dentro de Manutenção', _motPizza(soma(l => l.tipoOf || 'Sem tipo'), false, 'viagens'))}
+  </div>`;
+  const cols = [{h:'DATA'},{h:'MOTORISTA'},{h:'ROTA'},{h:'VG PERDIDA',al:'center'},{h:'OFENSOR'},{h:'TIPO DE OFENSOR'}];
+  const rows = perdas.map(l => ({ cel: [_motDataCel(l.dia), _motEsc(l.nome), _motEsc(l.rota), l.manutVg, _motEsc(l.ofensor), l.tipoOf ? _motEsc(l.tipoOf) : '—'], est: [,,, 'font-weight:700;color:#f0883e;'] }));
+  document.getElementById('mot-modal-corpo').innerHTML = tiles + pizzas +
+    `<div style="font-size:12.5px;font-weight:700;margin-bottom:4px;">Detalhamento <span style="font-weight:400;color:var(--text3);">— viagens perdidas por ofensor Manutenção</span></div>` + _motTabelaCompacta(cols, rows);
+  document.getElementById('mot-modal-caixa').style.maxWidth = '1100px';
   document.getElementById('mot-modal').style.display = 'flex';
 };
 
@@ -9850,7 +9942,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         if (!nome) return;
         const a = atribs.find(x => x.placa === placa) || null;
         const prog = a ? (Number(a.viagens)||0) : 0;
-        const manual = a ? _gestaoRealizacoes(a).filter(Boolean).length : 0;
+        const manual = a ? _gestaoRealizacoesPersistidas(a).filter(Boolean).length : 0;
         let real = manual, vol = 0, fonte = 'marcação';
         if (volViagens) {
           const doVeic = volViagens.filter(v => (v.placa||'').toString().trim().toUpperCase() === placa.toString().trim().toUpperCase());
@@ -9880,7 +9972,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
     // Dias de operação do período: dias com motorista escalado, viagem programada ou viagem realizada
     _motDiasOp = Object.keys(_motProgDiasCache).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= ini && d <= fim).filter(d => {
       const dd = _motProgDiasCache[d] || {}, at = Array.isArray(dd.atribuicoes) ? dd.atribuicoes : [];
-      return (dd.motoristas && Object.values(dd.motoristas).some(Boolean)) || at.some(a => (Number(a.viagens)||0) > 0 || _gestaoRealizacoes(a).some(Boolean));
+      return (dd.motoristas && Object.values(dd.motoristas).some(Boolean)) || at.some(a => (Number(a.viagens)||0) > 0 || _gestaoRealizacoesPersistidas(a).some(Boolean));
     }).sort();
 
     const por = {};
@@ -9969,13 +10061,14 @@ function _motBarrasDia(pontos, un, casas, corFn, semMedia) {
 }
 
 // Faixa de presença: um bloco por dia de operação (verde = escalado, cinza = não escalado)
-function _motFaixaPresenca(diasOp, escalados) {
+function _motFaixaPresenca(diasOp, escalados, corOk, txtOk, txtNao) {
+  corOk = corOk || '#2ea043'; txtOk = txtOk || 'escalado'; txtNao = txtNao || 'não escalado';
   if (diasOp.length === 0) return '<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Sem dias de operação no período.</div>';
   const W = 440, H = 70, pad = 2, passo = (W - pad * 2) / diasOp.length, bw = Math.max(3, Math.min(22, passo - 2));
   const blocos = diasOp.map((d, i) => {
     const ok = escalados.has(d), x = pad + passo * i + (passo - bw) / 2;
-    return `<g><title>${_motDataBR(d)}: ${ok ? 'escalado' : 'não escalado'}</title>
-      <rect x="${x}" y="${ok ? 8 : 40}" width="${bw}" height="${ok ? 50 : 18}" rx="2" fill="${ok ? '#2ea043' : 'var(--border2)'}"/>
+    return `<g><title>${_motDataBR(d)}: ${ok ? txtOk : txtNao}</title>
+      <rect x="${x}" y="${ok ? 8 : 40}" width="${bw}" height="${ok ? 50 : 18}" rx="2" fill="${ok ? corOk : 'var(--border2)'}"/>
       ${diasOp.length <= 31 ? `<text x="${x + bw/2}" y="${H - 2}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${d.slice(8)}</text>` : ''}</g>`;
   }).join('');
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:70px;display:block;" preserveAspectRatio="none">${blocos}</svg>`;
@@ -9992,7 +10085,8 @@ function _motTabelaCompacta(cols, rows) {
 
 // Gráfico de pizza/rosca (SVG) com legenda
 const _MOT_PALETA = ['#388bfd','#2ea043','#d29922','#f0883e','#a371f7','#f85149','#39c5cf','#db61a2','#8b949e'];
-function _motPizza(fatias, rosca, un) {
+function _motPizza(fatias, rosca, un, casas) {
+  const cs = casas == null ? 0 : casas;
   const total = fatias.reduce((s, f) => s + f.v, 0);
   if (total <= 0) return '<div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Sem dados no período.</div>';
   // agrupa o excedente em "Outros" (máx. 8 fatias)
@@ -10004,7 +10098,7 @@ function _motPizza(fatias, rosca, un) {
   const pt = (rad, a) => `${(cx + rad * Math.cos(a)).toFixed(2)},${(cy + rad * Math.sin(a)).toFixed(2)}`;
   const fat = lista.map((f, i) => {
     const frac = f.v / total, cor = _MOT_PALETA[i % _MOT_PALETA.length];
-    const titulo = `<title>${_motEsc(f.nome)}: ${_motFmt(f.v, 0)} ${un} (${_motFmt(frac * 100, 1)}%)</title>`;
+    const titulo = `<title>${_motEsc(f.nome)}: ${_motFmt(f.v, cs)} ${un} (${_motFmt(frac * 100, 1)}%)</title>`;
     if (frac >= 0.9999) return `<g>${titulo}<circle cx="${cx}" cy="${cy}" r="${(R + r) / 2}" fill="none" stroke="${cor}" stroke-width="${R - r}"/></g>`;
     const a2 = ang + frac * 2 * Math.PI, grande = frac > 0.5 ? 1 : 0;
     const d = r > 0
@@ -10013,8 +10107,8 @@ function _motPizza(fatias, rosca, un) {
     ang = a2;
     return `<g>${titulo}<path d="${d}" fill="${cor}" stroke="var(--bg3)" stroke-width="1"/></g>`;
   }).join('');
-  const centro = rosca ? `<text x="${cx}" y="${cy + 1}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text)">${_motFmt(total, 0)}</text><text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${un}</text>` : '';
-  const leg = lista.map((f, i) => `<div style="display:flex;align-items:center;gap:5px;font-size:10.5px;min-width:0;" title="${_motEsc(f.nome)}: ${_motFmt(f.v, 0)} ${un}">
+  const centro = rosca ? `<text x="${cx}" y="${cy + 1}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text)">${_motFmt(total, cs)}</text><text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${un}</text>` : '';
+  const leg = lista.map((f, i) => `<div style="display:flex;align-items:center;gap:5px;font-size:10.5px;min-width:0;" title="${_motEsc(f.nome)}: ${_motFmt(f.v, cs)} ${un}">
       <span style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${_MOT_PALETA[i % _MOT_PALETA.length]};"></span>
       <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${_motEsc(f.nome)}</span>
       <span style="color:var(--text3);font-family:'DM Mono',monospace;">${_motFmt(f.v / total * 100, 0)}%</span></div>`).join('');
@@ -10347,7 +10441,31 @@ async function _ofnCarregar() {
   }
 }
 
-function _ofnLinhasFiltradas() {
+// Filtro pela legenda dos gráficos (clicar no item filtra a página; clicar de novo, limpa)
+let _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null };
+const _OFN_ROT_FILTRO = { ofensor: 'Ofensor', tipo: 'Tipo de ofensor', veiculo: 'Veículo' };
+window.ofnFiltrarLegenda = function ofnFiltrarLegenda(dim, chave) {
+  _ofnFiltroLegenda[dim] = (_ofnFiltroLegenda[dim] === chave) ? null : chave;
+  _ofnRenderTudo();
+};
+window.ofnLimparFiltros = function ofnLimparFiltros(dim) {
+  if (dim) _ofnFiltroLegenda[dim] = null; else _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null };
+  _ofnRenderTudo();
+};
+function _ofnRenderChips() {
+  const cont = document.getElementById('ofn-filtros-ativos');
+  if (!cont) return;
+  const ativos = Object.keys(_ofnFiltroLegenda).filter(d => _ofnFiltroLegenda[d]);
+  if (ativos.length === 0) { cont.style.display = 'none'; cont.innerHTML = ''; return; }
+  cont.style.display = 'flex';
+  cont.innerHTML = '<span style="font-size:12px;color:var(--text3);">Filtrando por:</span>' + ativos.map(d =>
+    `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(56,139,253,0.15);border:1px solid #388bfd;border-radius:14px;padding:3px 10px;font-size:12px;">${_OFN_ROT_FILTRO[d]}: <b>${_motEsc(_ofnFiltroLegenda[d])}</b>
+      <span onclick="ofnLimparFiltros('${d}')" style="cursor:pointer;color:var(--text3);" title="Remover este filtro">✕</span></span>`).join('')
+    + (ativos.length > 1 ? '<span onclick="ofnLimparFiltros()" style="cursor:pointer;font-size:12px;color:#388bfd;">limpar todos</span>' : '');
+}
+
+// Linhas do período com os filtros de veículo/tipo de veículo do topo (sem o filtro da legenda)
+function _ofnLinhasBase() {
   const filtroVeiculo = (document.getElementById('ofn-veiculo-input').value || '').trim().toUpperCase();
   const filtroTipo = document.getElementById('ofn-tipo-select').value;
 
@@ -10363,7 +10481,17 @@ function _ofnLinhasFiltradas() {
   return linhas;
 }
 
+// Base + filtro pela legenda dos gráficos
+function _ofnLinhasFiltradas() {
+  let linhas = _ofnLinhasBase();
+  if (_ofnFiltroLegenda.ofensor) linhas = linhas.filter(l => l.ofensor === _ofnFiltroLegenda.ofensor);
+  if (_ofnFiltroLegenda.tipo) linhas = linhas.filter(l => l.tipoOfensor === _ofnFiltroLegenda.tipo);
+  if (_ofnFiltroLegenda.veiculo) linhas = linhas.filter(l => l.placa === _ofnFiltroLegenda.veiculo);
+  return linhas;
+}
+
 function _ofnRenderTudo() {
+  _ofnRenderChips();
   const linhas = _ofnLinhasFiltradas();
   const comOfensor = linhas.filter(l => l.ofensor);
   const totalPerdido = linhas.reduce((s,l) => s + (Number(l.percTon)||0), 0);
@@ -10433,9 +10561,9 @@ function _ofnRenderPizzasRow(rankOfensores, rankTipos, rankVeiculos) {
   if (!cont) return;
 
   const blocos = [
-    { titulo: 'Ofensores', total: rankOfensores.reduce((s,o)=>s+o.perdido,0), pizza: _ofnSvgPizza(rankOfensores.map(o => ({ nome: o.nome, valor: o.perdido }))) },
-    { titulo: 'Tipo de Ofensor', total: rankTipos.reduce((s,t)=>s+t.perdido,0), pizza: _ofnSvgPizza(rankTipos.map(t => ({ nome: t.nome, valor: t.perdido }))) },
-    { titulo: 'Veículos (Top 10)', total: rankVeiculos.reduce((s,v)=>s+v.perdido,0), pizza: _ofnSvgPizza(rankVeiculos.map(v => ({ nome: `${v.fr||'—'} ${v.placa}`, valor: v.perdido })), { agrupar: false }) },
+    { titulo: 'Ofensores', total: rankOfensores.reduce((s,o)=>s+o.perdido,0), pizza: _ofnSvgPizza(rankOfensores.map(o => ({ nome: o.nome, valor: o.perdido, dim: 'ofensor', chave: o.nome }))) },
+    { titulo: 'Tipo de Ofensor', total: rankTipos.reduce((s,t)=>s+t.perdido,0), pizza: _ofnSvgPizza(rankTipos.map(t => ({ nome: t.nome, valor: t.perdido, dim: 'tipo', chave: t.nome }))) },
+    { titulo: 'Veículos (Top 10)', total: rankVeiculos.reduce((s,v)=>s+v.perdido,0), pizza: _ofnSvgPizza(rankVeiculos.map(v => ({ nome: `${v.fr||'—'} ${v.placa}`, valor: v.perdido, dim: 'veiculo', chave: v.placa })), { agrupar: false }) },
   ].sort((a,b) => b.total - a.total);
 
   cont.innerHTML = blocos.map(b => `<div class="table-card" style="padding:14px 16px;">
@@ -10480,7 +10608,8 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
   }
 
   const tamanho = 140, raio = tamanho/2 - 4, cx = tamanho/2, cy = tamanho/2;
-  let anguloAtual = -90;
+  // sentido horário: a maior fatia centrada à esquerda (9h), as seguintes seguem para cima/direita
+  let anguloAtual = 180 - (dados[0].valor / total) * 180;
   const fatias = dados.map((d, i) => {
     const fracao = d.valor / total;
     const cor = OFN_CORES_PIE[i % OFN_CORES_PIE.length];
@@ -10500,7 +10629,7 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
     }
     anguloAtual = anguloFim;
     const pct = Math.round(fracao*1000)/10;
-    return { path, cor, nome: d.nome, pct, valor: d.valor };
+    return { path, cor, nome: d.nome, pct, valor: d.valor, dim: d.dim, chave: d.chave };
   });
 
   const svg = `<svg viewBox="0 0 ${tamanho} ${tamanho}" width="${tamanho}" height="${tamanho}" style="flex-shrink:0;">
@@ -10510,7 +10639,7 @@ function _ofnSvgPizza(dadosBrutos, { topN = 7, agrupar = true } = {}) {
   // Padrão fixo: legenda sempre ao LADO do gráfico, nunca embaixo — por isso sem flex-wrap aqui,
   // e o texto de cada item quebra/trunca dentro da própria linha (min-width:0 permite isso).
   const legenda = `<div style="display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:0;flex:1;">
-    ${fatias.map(f => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;min-width:0;">
+    ${fatias.map(f => `<div ${f.dim && f.chave ? `onclick="ofnFiltrarLegenda('${f.dim}', this.dataset.chave)" data-chave="${_motEsc(f.chave)}" title="Clique para filtrar a página por este item"` : ''} style="display:flex;align-items:center;gap:6px;font-size:11px;min-width:0;${f.dim && f.chave ? 'cursor:pointer;padding:1px 3px;border-radius:4px;' : ''}${_ofnFiltroLegenda[f.dim] && _ofnFiltroLegenda[f.dim] === f.chave ? 'background:rgba(56,139,253,0.18);' : ''}" ${f.dim && f.chave ? `onmouseover="this.style.background='rgba(56,139,253,0.12)'" onmouseout="this.style.background='${_ofnFiltroLegenda[f.dim] && _ofnFiltroLegenda[f.dim] === f.chave ? 'rgba(56,139,253,0.18)' : ''}'"` : ''}>
       <span style="width:10px;height:10px;border-radius:2px;background:${f.cor};flex-shrink:0;"></span>
       <span style="color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;">${f.nome}</span>
       <span style="color:var(--text3);flex-shrink:0;">${f.pct}%</span>
@@ -10526,7 +10655,7 @@ function _ofnRenderTabelaOfensores(rank, totalPerdido) {
   if (rank.length === 0) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text3);">Nenhum ofensor registrado nesse período.</td></tr>'; return; }
   body.innerHTML = rank.map(o => {
     const pct = totalPerdido > 0 ? Math.round((o.perdido/totalPerdido)*1000)/10 : 0;
-    return `<tr>
+    return `<tr style="cursor:pointer;" title="Clique para ver os indicadores deste ofensor" onclick="abrirOfensorModal('ofensor', this.dataset.nome)" data-nome="${_motEsc(o.nome)}">
       <td class="text-primary">${o.nome}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;">${o.ocorrencias}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${_fmtPesoCard(o.perdido)}</td>
@@ -10542,7 +10671,7 @@ function _ofnRenderTabelaTipos(rank, totalPerdido) {
     ? '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3);">Nenhum tipo de ofensor registrado.</td></tr>'
     : rank.map(t => {
         const pct = totalPerdido > 0 ? Math.round((t.perdido/totalPerdido)*1000)/10 : 0;
-        return `<tr>
+        return `<tr style="cursor:pointer;" title="Clique para ver os indicadores deste tipo de ofensor" onclick="abrirOfensorModal('tipo', this.dataset.nome)" data-nome="${_motEsc(t.nome)}">
           <td>${t.nome}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;">${t.ocorrencias}</td>
           <td style="text-align:right;font-family:'DM Mono',monospace;color:#f85149;">${_fmtPesoCard(t.perdido)}</td>
@@ -10571,6 +10700,136 @@ function _ofnRenderTabelaVeiculos(rank, totalPerdido) {
         </tr>`;
       }).join('');
 }
+
+// ── Popup do ofensor / tipo de ofensor: indicadores grandes, com gráfico por dia (mesmo padrão da Gestão de Motoristas) ──
+let _ofnPopKind = 'ofensor';
+let _ofnPopNome = null;
+
+function _ofnPopContexto() {
+  const base = _ofnLinhasBase();
+  const campo = _ofnPopKind === 'ofensor' ? 'ofensor' : 'tipoOfensor';
+  const comOf = base.filter(l => l.ofensor);
+  const sel = comOf.filter(l => l[campo] === _ofnPopNome).map(l => Object.assign({}, l, { _iso: _diaParaChave(l._dia) }));
+  const diasPeriodo = Array.from(new Set(_ofnLinhasBrutas.map(l => _diaParaChave(l._dia)))).sort();
+  // grupos para o rank (todos os ofensores / tipos do período)
+  const grupos = {};
+  comOf.filter(l => l[campo]).forEach(l => { (grupos[l[campo]] = grupos[l[campo]] || []).push(l); });
+  return { sel, diasPeriodo, grupos, campo, totalPeriodo: base.reduce((s, l) => s + (Number(l.percTon) || 0), 0) };
+}
+function _ofnVeicCel(l) {
+  return _motVeicCel({ fr: l.fr && l.fr !== '—' ? l.fr : '', placa: l.placa, tipo: l.tipo2 });
+}
+function _ofnRota(l) { return l.origem && l.destino ? `${l.origem} → ${l.destino}` : '—'; }
+
+window.abrirOfensorModal = function abrirOfensorModal(kind, nome) {
+  _ofnPopKind = kind; _ofnPopNome = nome;
+  const { sel, diasPeriodo, grupos, totalPeriodo } = _ofnPopContexto();
+  if (sel.length === 0) return;
+  const rotuloKind = kind === 'ofensor' ? 'Ofensor' : 'Tipo de ofensor';
+  document.getElementById('mot-modal-titulo').textContent = `${rotuloKind}: ${nome}`;
+  document.getElementById('mot-modal-sub').textContent = `${diasPeriodo.length ? _motDataBR(diasPeriodo[0]) + ' a ' + _motDataBR(diasPeriodo[diasPeriodo.length - 1]) : ''} · ${sel.length} ocorrência(s)`;
+
+  const perd = (ls) => ls.reduce((s, l) => s + (Number(l.percTon) || 0), 0);
+  const metricas = {
+    ton: (ls) => perd(ls), oc: (ls) => ls.length, vei: (ls) => new Set(ls.map(l => l.placa)).size,
+    media: (ls) => ls.length ? perd(ls) / ls.length : 0
+  };
+  const posRank = (m) => { const lista = Object.entries(grupos).map(([n, ls]) => ({ n, v: metricas[m](ls) })).sort((a,b) => b.v - a.v); const pos = lista.findIndex(x => x.n === nome); return pos >= 0 ? `#${pos + 1} de ${lista.length}` : ''; };
+
+  // série por dia
+  const porDia = {};
+  sel.forEach(l => { const g = porDia[l._iso] || (porDia[l._iso] = { iso: l._iso, ls: [] }); g.ls.push(l); });
+  const dias = Object.values(porDia).sort((a,b) => a.iso.localeCompare(b.iso));
+  const pt = (g, v) => ({ v, rot: _motDataBR(g.iso) + ' · ' + Array.from(new Set(g.ls.map(l => l.placa))).join(', '), curto: g.iso.slice(8) });
+  const AZUL = '#388bfd', AZUL_CLARO = 'rgba(56,139,253,0.45)';
+  const corRel = (v, media) => v >= media ? AZUL : AZUL_CLARO;
+  const adMedia = (ls) => { const v = ls.filter(l => typeof l.aderencia === 'number'); return v.length ? v.reduce((s, l) => s + l.aderencia, 0) / v.length : null; };
+  const adGeral = adMedia(sel);
+  const tonTotal = perd(sel), mediaOc = tonTotal / sel.length;
+  const diasOcor = new Set(sel.map(l => l._iso));
+
+  const card = (chave, titulo, valor, cor, sub, graf, rank, tinge) => `<div onclick="abrirDetalheOfensor('${chave}')" title="Clique para ver o detalhamento por dia" style="cursor:pointer;min-width:0;border:2px solid ${tinge ? cor : 'var(--border2)'};border-radius:10px;padding:8px 12px 6px;background:${tinge ? (cor === '#2ea043' ? 'rgba(46,160,67,0.10)' : cor === '#d29922' ? 'rgba(210,153,34,0.10)' : cor === '#f85149' ? 'rgba(248,81,73,0.10)' : 'var(--bg3)') : 'var(--bg3)'};">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${titulo} <span style="color:var(--text3);font-weight:400;text-transform:none;">🔍</span></span>
+        <span style="font-size:10.5px;color:var(--text3);">${rank}</span></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin:2px 0 4px;">
+        <span style="font-size:24px;font-weight:700;font-family:'DM Mono',monospace;color:${cor};line-height:1.1;">${valor}</span>
+        <span style="font-size:10.5px;color:var(--text3);">${sub}</span></div>
+      ${graf}</div>`;
+  const cards = [
+    card('ton', 'Toneladas perdidas', _fmtPesoCard(tonTotal), '#f85149', totalPeriodo > 0 ? `${_motFmt(tonTotal / totalPeriodo * 100, 1)}% do total perdido no período` : '',
+      _motBarrasDia(dias.map(g => pt(g, perd(g.ls))), '', 2, () => '#f85149', true), posRank('ton')),
+    card('oc', 'Ocorrências', sel.length, AZUL, `em ${diasOcor.size} dia(s)`,
+      _motBarrasDia(dias.map(g => pt(g, g.ls.length)), '', 0, corRel), posRank('oc')),
+    card('vei', 'Veículos afetados', metricas.vei(sel), AZUL, 'veículos diferentes',
+      _motBarrasDia(dias.map(g => pt(g, new Set(g.ls.map(l => l.placa)).size)), '', 0, corRel), posRank('vei')),
+    card('ad', 'Aderência dos veículos', adGeral === null ? '—' : _motFmt(adGeral, 1) + '%', _motCorAd(adGeral), 'média nos dias da ocorrência',
+      _motBarrasDia(dias.map(g => pt(g, adMedia(g.ls) || 0)), '%', 1, (v) => _motCorAd(v), true), '', true),
+    card('dias', 'Dias com ocorrência', `${diasOcor.size}/${diasPeriodo.length}`, '#f0883e', `${diasPeriodo.length ? _motFmt(diasOcor.size / diasPeriodo.length * 100, 1) : 0}% dos dias do período`,
+      _motFaixaPresenca(diasPeriodo, diasOcor, '#f0883e', 'com ocorrência', 'sem ocorrência'), ''),
+    card('media', 'Perda média por ocorrência', _fmtPesoCard(mediaOc), AZUL, 'toneladas por ocorrência',
+      _motBarrasDia(dias.map(g => pt(g, perd(g.ls) / g.ls.length)), '', 2, corRel), posRank('media'))
+  ].join('');
+
+  // composição: veículos (rosca), tipos/ofensores e rotas (pizzas), em toneladas perdidas
+  const soma = (chaveFn) => { const o = {}; sel.forEach(l => { const k = chaveFn(l); const v = Number(l.percTon) || 0; if (k && v > 0) o[k] = (o[k] || 0) + v; }); return Object.entries(o).map(([n, v]) => ({ nome: n, v })); };
+  const veicFat = soma(l => `${l.fr && l.fr !== '—' ? l.fr + ' · ' : ''}${l.placa}${l.tipo2 ? ' (' + String(l.tipo2).toUpperCase() + ')' : ''}`);
+  const outraFat = kind === 'ofensor' ? soma(l => l.tipoOfensor || 'Sem tipo') : soma(l => l.ofensor);
+  const rotaFat = soma(l => l.origem && l.destino ? `${l.origem} → ${l.destino}` : 'Sem rota');
+  const gcard = (tit, sub, corpo) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:8px 12px;background:var(--bg3);min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${tit} <span style="font-weight:400;color:var(--text3);text-transform:none;">${sub}</span></div>
+      <div style="margin-top:6px;">${corpo}</div></div>`;
+  document.getElementById('mot-modal-corpo').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;">${cards}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;">
+      ${gcard('Veículos', '· toneladas perdidas', _motPizza(veicFat, true, 't', 1))}
+      ${gcard(kind === 'ofensor' ? 'Tipos de ofensor' : 'Ofensores', '· toneladas perdidas', _motPizza(outraFat, false, 't', 1))}
+      ${gcard('Rotas', '· toneladas perdidas', _motPizza(rotaFat, false, 't', 1))}
+    </div>
+    <div style="font-size:10.5px;color:var(--text3);margin-top:6px;">Clique em um card de indicador para abrir o detalhamento por dia.</div>`;
+  document.getElementById('mot-modal-caixa').style.maxWidth = '1320px';
+  document.getElementById('mot-modal').style.display = 'flex';
+};
+
+window.abrirDetalheOfensor = function abrirDetalheOfensor(chave) {
+  const { sel, diasPeriodo } = _ofnPopContexto();
+  const ton = (l) => Number(l.percTon) || 0;
+  const of = (l) => l.ofensor ? _motEsc(l.ofensor) : '—';
+  const tof = (l) => l.tipoOfensor ? _motEsc(l.tipoOfensor) : '—';
+  const resp = (l) => l.responsavel ? _motEsc(l.responsavel) : '—';
+  const ord = sel.slice().sort((a, b) => a._iso.localeCompare(b._iso) || String(a.placa).localeCompare(String(b.placa)));
+  let titulo = '', cols = [], rows = [];
+  if (chave === 'ton' || chave === 'oc') {
+    titulo = chave === 'ton' ? 'Toneladas perdidas por ocorrência' : 'Ocorrências';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'OFENSOR'},{h:'TIPO DE OFENSOR'},{h:'RESPONSÁVEL'},{h:'TON. PERDIDAS',al:'right'}];
+    rows = (chave === 'ton' ? ord.slice().sort((a, b) => ton(b) - ton(a)) : ord).map(l => ({ cel: [_motDataCel(l._iso), _ofnVeicCel(l), _motEsc(_ofnRota(l)), of(l), tof(l), resp(l), _motFmt(ton(l))], est: [,,,,,, "font-family:'DM Mono',monospace;color:#f85149;"] }));
+  } else if (chave === 'vei') {
+    titulo = 'Veículos afetados';
+    const o = {};
+    sel.forEach(l => { const g = o[l.placa] || (o[l.placa] = { l, oc: 0, dias: new Set(), ton: 0 }); g.oc++; g.dias.add(l._iso); g.ton += ton(l); });
+    const tot = sel.reduce((s, l) => s + ton(l), 0);
+    cols = [{h:'VEÍCULO'},{h:'OCORRÊNCIAS',al:'center'},{h:'DIAS',al:'center'},{h:'TON. PERDIDAS',al:'right'},{h:'% DO TOTAL',al:'right'}];
+    rows = Object.values(o).sort((a, b) => b.ton - a.ton).map(g => ({ cel: [_ofnVeicCel(g.l), g.oc, g.dias.size, _motFmt(g.ton), tot > 0 ? _motFmt(g.ton / tot * 100, 1) + '%' : '—'], est: [,,, "font-family:'DM Mono',monospace;color:#f85149;"] }));
+  } else if (chave === 'ad') {
+    titulo = 'Aderência dos veículos nos dias da ocorrência';
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'AD%',al:'center'},{h:'VIAGENS REALIZ.',al:'center'},{h:'TON. PERDIDAS',al:'right'}];
+    rows = ord.map(l => ({ cel: [_motDataCel(l._iso), _ofnVeicCel(l), typeof l.aderencia === 'number' ? _motFmt(l.aderencia, 0) + '%' : '—', l.viagens != null ? l.viagens : '—', _motFmt(ton(l))], est: [,, `font-weight:700;color:${typeof l.aderencia === 'number' ? _motCorAd(l.aderencia) : 'var(--text3)'};`,,"font-family:'DM Mono',monospace;"] }));
+  } else if (chave === 'dias') {
+    titulo = `Dias do período: ${diasPeriodo.length} · com ocorrência em ${new Set(sel.map(l => l._iso)).size}`;
+    cols = [{h:'DIA'},{h:'SITUAÇÃO'},{h:'OCORRÊNCIAS',al:'center'},{h:'VEÍCULO(S)'},{h:'TON. PERDIDAS',al:'right'}];
+    rows = diasPeriodo.map(d => { const ls = sel.filter(l => l._iso === d); const ok = ls.length > 0;
+      return { cel: [_motDataCel(d), ok ? '● Com ocorrência' : '— Sem ocorrência', ok ? ls.length : '', ok ? Array.from(new Set(ls.map(l => l.placa))).map(pl => _ofnVeicCel(ls.find(x => x.placa === pl))).join(', ') : '', ok ? _motFmt(ls.reduce((s, l) => s + ton(l), 0)) : ''], est: [, `font-weight:700;color:${ok ? '#f0883e' : 'var(--text3)'};`] }; });
+  } else {
+    titulo = 'Perda por ocorrência comparada à média';
+    const media = sel.reduce((s, l) => s + ton(l), 0) / sel.length;
+    cols = [{h:'DIA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'TON. PERDIDAS',al:'right'},{h:'VS MÉDIA',al:'right'}];
+    rows = ord.map(l => { const dif = ton(l) - media;
+      return { cel: [_motDataCel(l._iso), _ofnVeicCel(l), _motEsc(_ofnRota(l)), _motFmt(ton(l)), Math.abs(dif) < 0.005 ? '=' : (dif > 0 ? '▲ ' : '▼ ') + _motFmt(Math.abs(dif))], est: [,,, "font-family:'DM Mono',monospace;", `color:${dif > 0.005 ? '#f85149' : dif < -0.005 ? '#2ea043' : 'var(--text3)'};`] }; });
+  }
+  document.getElementById('mot-det-titulo').textContent = `${_ofnPopNome} — ${titulo}`;
+  document.getElementById('mot-det-corpo').innerHTML = _motTabelaCompacta(cols, rows);
+  document.getElementById('mot-det-modal').style.display = 'flex';
+};
 
 window.renderOfensores = async function renderOfensores() {
   const hoje = new Date();
