@@ -5581,6 +5581,8 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
 // Estoque do Pátio 4 é um saldo acumulado (entrada - saída) desde o início da base, não só do
 // período filtrado no topo da página — por isso varre TODOS os dias importados, não só os do
 // filtro Dia/Mês/Ano atual. Guarda em cache pra não refazer a varredura toda hora.
+// Ajuste interno do estoque (t): descontado do saldo calculado, sem aparecer na tela.
+const VOL_ESTOQUE_PATIO4_AJUSTE_T = 1000;
 let _volEstoquePatio4Cache = null; // { estoque, mediaSaida30d, diasRestantes, ultimoDia, importadoEm }
 
 async function _volAtualizarCardEstoque() {
@@ -5615,6 +5617,7 @@ async function _volAtualizarCardEstoque() {
       if (saidaDia > 0) saidasDiarias.push(saidaDia);
     });
 
+    saldo -= VOL_ESTOQUE_PATIO4_AJUSTE_T;
     const ultimos30 = saidasDiarias.slice(-30);
     const mediaSaida30d = ultimos30.length > 0 ? ultimos30.reduce((s,v) => s+v, 0) / ultimos30.length : 0;
     const diasRestantes = mediaSaida30d > 0 ? saldo / mediaSaida30d : null;
