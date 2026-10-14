@@ -1279,12 +1279,13 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
 <!-- REGISTRAR ABASTECIMENTO / KM (Gestão do Dia) -->
 <div id="abastecimento-overlay" onclick="if(event.target===this) fecharAbastecimentoModal()" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
-  <div style="width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+  <div style="width:100%;max-width:560px;max-height:96vh;display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div style="font-size:16px;font-weight:700;color:var(--text);" id="abastecimento-titulo">⛽ Abastecimento</div>
       <button onclick="fecharAbastecimentoModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:22px;line-height:1;padding:4px;">&#x2715;</button>
     </div>
-    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
+      <div id="abastecimento-status" style="font-size:12px;color:var(--text3);"></div>
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">KM Inicial do Dia</label>
         <input type="number" min="0" id="abastecimento-km-inicial" class="filter-input" style="width:100%;" placeholder="ex: 128450">
@@ -1299,7 +1300,14 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <input type="number" min="0" step="0.01" id="abastecimento-litros" class="filter-input" style="width:100%;" placeholder="ex: 85.5">
       </div>
       <div id="abastecimento-media-preview" style="font-size:13px;color:var(--text3);"></div>
-      <button onclick="salvarAbastecimento()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar</button>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button onclick="salvarAbastecimento()" style="flex:1;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;" id="abastecimento-salvar-btn">💾 Salvar</button>
+        <button onclick="excluirAbastecimento()" id="abastecimento-excluir-btn" style="display:none;padding:10px 16px;font-size:15px;font-weight:600;border:1px solid #f85149;border-radius:8px;cursor:pointer;background:none;color:#f85149;" title="Apagar o registro deste dia">🗑️ Excluir</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;">
+        <button onclick="toggleHistoricoAbastecimento()" id="abastecimento-hist-btn" style="background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;cursor:pointer;padding:6px 12px;font-size:13px;">📜 Ver histórico de abastecimento do veículo</button>
+        <div id="abastecimento-historico" style="display:none;margin-top:10px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1741,7 +1749,7 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 // ══ FIREBASE SDK ══
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc, setDoc, getDocs, deleteDoc, getDoc, writeBatch, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, onSnapshot, query, limit, doc, updateDoc, setDoc, getDocs, deleteDoc, getDoc, writeBatch, where, deleteField } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWR3Q1VxRpNn7cSGvoDK8VUkjB-_9pr6A",
@@ -6815,6 +6823,9 @@ window.abrirAbastecimentoModal = async function abrirAbastecimentoModal(placa) {
   document.getElementById('abastecimento-km-final').value = atual.kmFinal ?? '';
   document.getElementById('abastecimento-litros').value = atual.litros ?? '';
   document.getElementById('abastecimento-media-preview').textContent = '';
+  _abastAtualizarEstadoForm();
+  document.getElementById('abastecimento-historico').style.display = 'none';
+  document.getElementById('abastecimento-hist-btn').textContent = '📜 Ver histórico de abastecimento do veículo';
   ['abastecimento-km-inicial','abastecimento-km-final','abastecimento-litros'].forEach(id => {
     document.getElementById(id).oninput = _atualizarPreviaAbastecimento;
   });
@@ -6865,6 +6876,18 @@ window.abrirAbastecimentoModal = async function abrirAbastecimentoModal(placa) {
   }
 };
 
+// Mostra se é um registro novo ou um registro já salvo (editar / excluir)
+function _abastAtualizarEstadoForm() {
+  const placa = _gestaoPlacaAbastecendo;
+  const existe = !!(placa && _gestaoAbastecimentos[placa]);
+  const [a, m, d] = (_gestaoDataAtual || '').split('-');
+  document.getElementById('abastecimento-status').innerHTML = existe
+    ? `✏️ Registro já salvo em ${d}/${m}/${a} — altere os campos e clique em <b>Salvar</b> para corrigir, ou em <b>Excluir</b> para apagar.`
+    : `Novo registro para ${d}/${m}/${a}.`;
+  document.getElementById('abastecimento-excluir-btn').style.display = existe ? '' : 'none';
+  document.getElementById('abastecimento-salvar-btn').textContent = existe ? '💾 Salvar alteração' : '💾 Salvar';
+}
+
 function _atualizarPreviaAbastecimento() {
   const kmInicial = parseFloat(document.getElementById('abastecimento-km-inicial').value);
   const kmFinal = parseFloat(document.getElementById('abastecimento-km-final').value);
@@ -6898,12 +6921,84 @@ window.salvarAbastecimento = async function salvarAbastecimento() {
   try {
     _gestaoAbastecimentos[placa] = { kmInicial, kmFinal, litros };
     await setDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { abastecimentos: _gestaoAbastecimentos, atualizadoEm: new Date().toISOString() }, { merge: true });
+    if (_motProgDiasCache && _motProgDiasCache[_gestaoDataAtual]) _motProgDiasCache[_gestaoDataAtual].abastecimentos = Object.assign({}, _gestaoAbastecimentos);
     showToast(`✔ Abastecimento registrado pro veículo ${placa}.`);
     fecharAbastecimentoModal();
     _gestaoRenderGrade();
   } catch (err) {
     console.error('Erro ao salvar abastecimento:', err);
     showToast('✖ Erro ao salvar: ' + err.message);
+  }
+};
+
+// Apaga o registro de abastecimento deste veículo neste dia (só o campo dele, sem tocar no resto do dia)
+window.excluirAbastecimento = async function excluirAbastecimento() {
+  const placa = _gestaoPlacaAbastecendo;
+  if (!placa || !_gestaoDataAtual || !_gestaoAbastecimentos[placa]) return;
+  if (!confirm(`Excluir o abastecimento do veículo ${placa} neste dia?`)) return;
+  try {
+    await updateDoc(doc(db, 'programacao_dias', _gestaoDataAtual), { ['abastecimentos.' + placa]: deleteField(), atualizadoEm: new Date().toISOString() });
+    delete _gestaoAbastecimentos[placa];
+    if (_motProgDiasCache && _motProgDiasCache[_gestaoDataAtual] && _motProgDiasCache[_gestaoDataAtual].abastecimentos) delete _motProgDiasCache[_gestaoDataAtual].abastecimentos[placa];
+    showToast(`✔ Abastecimento do veículo ${placa} excluído.`);
+    fecharAbastecimentoModal();
+    _gestaoRenderGrade();
+  } catch (err) {
+    console.error('Erro ao excluir abastecimento:', err);
+    showToast('✖ Erro ao excluir: ' + err.message);
+  }
+};
+
+// Histórico: todos os dias com abastecimento registrado para o veículo
+window.toggleHistoricoAbastecimento = async function toggleHistoricoAbastecimento() {
+  const placa = _gestaoPlacaAbastecendo;
+  const box = document.getElementById('abastecimento-historico'), btn = document.getElementById('abastecimento-hist-btn');
+  if (!placa) return;
+  if (box.style.display !== 'none') { box.style.display = 'none'; btn.textContent = '📜 Ver histórico de abastecimento do veículo'; return; }
+  box.style.display = 'block';
+  btn.textContent = '🔼 Ocultar histórico';
+  box.innerHTML = '<div style="color:var(--text3);font-size:13px;">Carregando histórico...</div>';
+  try {
+    if (!_motProgDiasCache) {
+      const snap = await getDocs(collection(db, 'programacao_dias'));
+      _motProgDiasCache = {};
+      snap.docs.forEach(d => { _motProgDiasCache[d.id] = d.data(); });
+      _motVolumeCache = {};
+    }
+    if (_gestaoPlacaAbastecendo !== placa) return;
+    let mapa = {};
+    try { mapa = await _obterMapaDiasDisfarce(); } catch (e) { mapa = {}; }
+    const linhas = [];
+    Object.entries(_motProgDiasCache).forEach(([dia, dados]) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dia)) return;
+      // o dia aberto na tela usa o valor mais recente (pode ter sido editado agora)
+      const ab = dia === _gestaoDataAtual ? _gestaoAbastecimentos[placa] : (dados.abastecimentos || {})[placa];
+      if (!ab) return;
+      const ki = Number(ab.kmInicial), kf = Number(ab.kmFinal), l = Number(ab.litros);
+      const ok = !isNaN(ki) && !isNaN(kf) && !isNaN(l) && l > 0 && kf >= ki;
+      linhas.push({ iso: mapa[dia] || dia, gravada: dia, ki, kf, l, km: ok ? kf - ki : null, kml: ok ? (kf - ki) / l : null });
+    });
+    if (_gestaoDataAtual && _gestaoAbastecimentos[placa] && !linhas.some(x => x.gravada === _gestaoDataAtual)) {
+      const ab = _gestaoAbastecimentos[placa]; const ki = Number(ab.kmInicial), kf = Number(ab.kmFinal), l = Number(ab.litros);
+      linhas.push({ iso: mapa[_gestaoDataAtual] || _gestaoDataAtual, gravada: _gestaoDataAtual, ki, kf, l, km: kf >= ki && l > 0 ? kf - ki : null, kml: kf >= ki && l > 0 ? (kf - ki) / l : null });
+    }
+    linhas.sort((a, b) => b.iso.localeCompare(a.iso));
+    if (linhas.length === 0) { box.innerHTML = '<div style="color:var(--text3);font-size:13px;">Nenhum abastecimento registrado para este veículo.</div>'; return; }
+    const fmt = (n, c) => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('pt-BR', { maximumFractionDigits: c == null ? 0 : c });
+    const kmTot = linhas.reduce((s, x) => s + (x.km || 0), 0), lTot = linhas.reduce((s, x) => s + (x.km != null ? x.l : 0), 0);
+    const dBR = (iso) => iso.split('-').reverse().join('/');
+    const tdS = 'padding:4px 8px;border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap;';
+    box.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:6px;">${linhas.length} registro(s) · ${fmt(kmTot)} km · ${fmt(lTot, 1)} L · média geral <b style="color:var(--text);">${lTot > 0 ? fmt(kmTot / lTot, 2) : '—'} km/L</b></div>
+      <div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:8px;"><table style="width:100%;border-collapse:collapse;">
+      <thead><tr>${['DATA','KM INICIAL','KM FINAL','KM RODADO','LITROS','KM/L'].map((h, i) => `<th style="padding:5px 8px;font-size:10.5px;text-align:${i ? 'right' : 'left'};position:sticky;top:0;">${h}</th>`).join('')}</tr></thead>
+      <tbody>${linhas.map(x => `<tr style="${x.gravada === _gestaoDataAtual ? 'background:rgba(56,139,253,0.12);' : ''}">
+        <td style="${tdS}">${dBR(x.iso)}${x.gravada === _gestaoDataAtual ? ' <span style="color:#388bfd;">· dia aberto</span>' : ''}</td>
+        <td style="${tdS}text-align:right;">${fmt(x.ki)}</td><td style="${tdS}text-align:right;">${fmt(x.kf)}</td>
+        <td style="${tdS}text-align:right;">${fmt(x.km)}</td><td style="${tdS}text-align:right;">${fmt(x.l, 1)}</td>
+        <td style="${tdS}text-align:right;font-weight:700;">${x.kml == null ? '—' : fmt(x.kml, 2)}</td></tr>`).join('')}</tbody></table></div>`;
+  } catch (err) {
+    console.error('Erro ao carregar histórico de abastecimento:', err);
+    box.innerHTML = '<div style="color:#f85149;font-size:13px;">Erro ao carregar o histórico.</div>';
   }
 };
 
