@@ -441,6 +441,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 .km-resumo-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
 .km-resumo-num { font-size:23px; font-weight:600; font-family:'DM Mono',monospace; }
 .km-resumo-lbl { font-size:13px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+/* Tela de Aderência: títulos e legendas em branco no tema escuro e preto no tema claro (var(--text)) */
+#page-produtividade .km-resumo-lbl,
+#page-produtividade thead th,
+#page-produtividade [style*="color:var(--text3)"][style*="text-transform:uppercase"] { color: var(--text) !important; }
 
 /* ── EMPTY ── */
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
