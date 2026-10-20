@@ -5595,6 +5595,8 @@ function _volLinhaMetaHTML(metaTotal, dados, diasOperacao, diasComDados) {
 // filtro Dia/Mês/Ano atual. Guarda em cache pra não refazer a varredura toda hora.
 // Ajuste interno do estoque (t): descontado do saldo calculado, sem aparecer na tela.
 const VOL_ESTOQUE_PATIO4_AJUSTE_T = 1000;
+// Composição por mina: só entradas a partir desta data (YYYY-MM-DD)
+const VOL_ESTOQUE_MINAS_DESDE = '2026-10-19';
 let _volEstoquePatio4Cache = null; // { estoque, mediaSaida30d, diasRestantes, ultimoDia, importadoEm }
 
 async function _volAtualizarCardEstoque() {
@@ -5617,12 +5619,20 @@ async function _volAtualizarCardEstoque() {
 
     let saldo = 0;
     const saidasDiarias = [];
+    // Por mina de origem: por enquanto só as ENTRADAS acumuladas no Pátio 4 (origem da viagem).
+    // Nenhuma lógica de saída é aplicada à composição por mina.
+    const porMinaMap = {};      // chave normalizada -> { nome, t }
+    const addMina = (nome, t) => {
+      const chave = _progNormalizarOD(nome) || '—';
+      const m = porMinaMap[chave] || (porMinaMap[chave] = { nome: (nome || '—').toString().trim() || '—', t: 0 });
+      m.t += t;
+    };
     todosDias.forEach((d, i) => {
       const snap = snaps[i];
       const viagensDia = snap.exists() ? (snap.data().viagens || []) : [];
       let entradaDia = 0, saidaDia = 0;
       viagensDia.forEach(v => {
-        if (_volEhPatio4(v.destino)) entradaDia += (v.peso || 0);
+        if (_volEhPatio4(v.destino)) { entradaDia += (v.peso || 0); if (_volDiaParaChave(d) >= VOL_ESTOQUE_MINAS_DESDE) addMina(v.origem, (v.peso || 0)); }
         if (_volEhPatio4(v.origem)) saidaDia += (v.peso || 0);
       });
       saldo += entradaDia - saidaDia;
@@ -5630,12 +5640,14 @@ async function _volAtualizarCardEstoque() {
     });
 
     saldo -= VOL_ESTOQUE_PATIO4_AJUSTE_T;
+    const porMina = Object.values(porMinaMap).filter(m => Math.abs(m.t) >= 0.005).sort((a, b) => b.t - a.t);
     const ultimos30 = saidasDiarias.slice(-30);
     const mediaSaida30d = ultimos30.length > 0 ? ultimos30.reduce((s,v) => s+v, 0) / ultimos30.length : 0;
     const diasRestantes = mediaSaida30d > 0 ? saldo / mediaSaida30d : null;
 
     _volEstoquePatio4Cache = {
       estoque: saldo,
+      porMina,
       mediaSaida30d,
       diasRestantes,
       nDiasAmostra: ultimos30.length,
@@ -5647,6 +5659,29 @@ async function _volAtualizarCardEstoque() {
     console.error('Erro ao calcular estoque do Pátio 4:', err);
     cardEl.innerHTML += '<div style="text-align:center;padding:10px;color:#f85149;font-size:14px;">Erro ao calcular o estoque.</div>';
   }
+}
+
+// Composição do estoque por mina de origem (barras horizontais + toneladas + % do estoque positivo)
+function _volHtmlEstoquePorMina(dados) {
+  const lista = dados.porMina || [];
+  if (lista.length === 0) return '';
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const positivos = lista.filter(m => m.t > 0);
+  const totPos = positivos.reduce((s, m) => s + m.t, 0);
+  const max = Math.max(...lista.map(m => Math.abs(m.t)), 1);
+  const cores = ['#a371f7', '#388bfd', '#2ea043', '#d29922', '#f0883e', '#db61a2', '#39c5cf', '#8b949e'];
+  const linhas = lista.map((m, i) => {
+    const neg = m.t < 0;
+    const cor = neg ? '#f85149' : cores[i % cores.length];
+    const pct = !neg && totPos > 0 ? Math.round(m.t / totPos * 1000) / 10 : null;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;" title="${m.nome}: ${fmt(m.t)} t${pct !== null ? ' (' + pct + '% do estoque)' : ''}">
+      <span style="width:110px;flex-shrink:0;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.nome}</span>
+      <div style="flex:1;height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${Math.max(2, Math.abs(m.t) / max * 100)}%;background:${cor};"></div></div>
+      <span style="width:84px;text-align:right;font-size:12.5px;font-weight:600;font-family:'DM Mono',monospace;color:${neg ? '#f85149' : 'var(--text)'};">${fmt(m.t)}</span>
+      <span style="width:42px;text-align:right;font-size:11px;color:var(--text3);">${pct !== null ? pct + '%' : ''}</span></div>`;
+  }).join('');
+  return `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);">
+    <div style="font-size:12px;color:var(--text);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Entradas por mina de origem · desde 19/10/2026</div>${linhas}</div>`;
 }
 
 function _volPintarCardEstoque(dados) {
@@ -5681,6 +5716,7 @@ function _volPintarCardEstoque(dados) {
       <div style="font-size:30px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;line-height:1.1;">${diasTxt}</div>
       <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Dias de operação estimados</div>
     </div>
+    ${_volHtmlEstoquePorMina(dados)}
     ${dados.estoque < 0 ? '<div style="margin-top:8px;font-size:12px;color:#f85149;text-align:center;">⚠ saldo negativo — provável estoque inicial não contabilizado antes do início da base</div>' : ''}`;
 }
 
