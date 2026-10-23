@@ -462,6 +462,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .sobrev-amarelo{background:#2d1f00;color:#e3b341;border:1px solid #9e6a03;}
 .sobrev-vermelho{background:#2d0e0e;color:#f85149;border:1px solid #da3633;}
 .sobrev-off    {color:var(--text3);font-weight:400;font-size:12px;}
+
+/* ══ TIMELINE TRECHOS TELEMETRIA ══ */
+.tel-timeline-wrap{margin-top:1.25rem;}
+.tel-trecho{display:flex;gap:0;position:relative;}
+.tel-hora{width:58px;flex-shrink:0;text-align:right;padding-top:14px;padding-right:12px;font-size:11px;color:var(--text3);white-space:nowrap;}
+.tel-linha{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px;}
+.tel-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--bg2);margin-top:15px;flex-shrink:0;z-index:1;background:#185FA5;}
+.tel-fio{width:2px;background:var(--border);flex:1;}
+.tel-trecho:last-child .tel-fio{display:none;}
+.tel-card{flex:1;margin:6px 0 6px 10px;background:var(--bg3);border:.5px solid var(--border);border-radius:12px;padding:12px 14px;}
+.tel-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.tel-card-dur{font-size:13px;font-weight:500;color:var(--text);}
+.tel-card-km{font-size:12px;color:var(--text2);}
+.tel-sec{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin:8px 0 6px;padding-bottom:4px;border-bottom:.5px solid var(--border);}
+.tel-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.tel-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tel-met-lbl{font-size:10px;color:var(--text3);}
+.tel-met-val{font-size:13px;font-weight:500;color:var(--text);}
+.tel-faixas{display:flex;height:5px;border-radius:3px;overflow:hidden;gap:1px;margin-bottom:4px;}
+.tel-fx-v{background:#16a34a;}.tel-fx-a{background:#ca8a04;}.tel-fx-p{background:#dc2626;}.tel-fx-m{background:var(--border2);}
+.tel-fleg{display:flex;gap:8px;flex-wrap:wrap;}
+.tel-fl{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text3);}
+.tel-fl-d{width:7px;height:7px;border-radius:50%;}
+.tel-hr{border:none;border-top:.5px solid var(--border);margin:8px 0;}
+.tel-loading{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -480,13 +505,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
       PCM
     </button>
-    <button class="nav-item" id="nav-estoque" onclick="showPage('estoque',this)" title="Estoque">
+    <button class="nav-item" id="nav-estoque" onclick="showPage('estoque',this)" title="Estoque" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       Estoque
     </button>
     <button class="nav-item" id="nav-historico" onclick="showPage('historico',this)" title="Histórico">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Histórico
+    </button>
+    <button class="nav-item" id="nav-servicos" onclick="showPage('servicos',this)" title="Serviços">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Serviços
     </button>
     <button class="nav-item" id="nav-veiculos" onclick="showPage('veiculos',this)" title="Veículos">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 17l3-9h16l3 9"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
@@ -907,7 +936,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             <option value="">Todos os veículos</option>
           </select>
         </div>
-        <div class="hist-kpi-row">
+        </div><!-- /tel-panel-resumo -->
+      <div id="tel-panel-resumo-body">
+      <div class="hist-kpi-row">
           <div class="hist-kpi"><div class="hist-kpi-lbl">Total de inspeções</div><div class="hist-kpi-val" style="color:#185FA5;" id="hist-kpi-total">—</div><div class="hist-kpi-sub" id="hist-kpi-periodo">—</div></div>
           <div class="hist-kpi"><div class="hist-kpi-lbl">Resultados OK</div><div class="hist-kpi-val" style="color:#27500A;" id="hist-kpi-ok">—</div><div class="hist-kpi-sub" id="hist-kpi-ok-pct">—</div></div>
           <div class="hist-kpi"><div class="hist-kpi-lbl">Com substituição</div><div class="hist-kpi-val" style="color:#A32D2D;" id="hist-kpi-sub">—</div><div class="hist-kpi-sub" id="hist-kpi-sub-pct">—</div></div>
@@ -985,33 +1016,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         </div>
         <div style="margin-top:8px;font-size:11px;color:var(--text3);">Clique em qualquer linha para ver o histórico detalhado do veículo no painel de produtividade.</div>
 
-        <!-- Modal detalhe veículo -->
-        <div id="sobrev-modal-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:9999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)fecharSobrevModal()">
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:780px;max-width:96vw;max-height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden;">
-            <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-              <div>
-                <div style="font-size:15px;font-weight:500;color:var(--text);" id="sobrev-modal-title">—</div>
-                <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="sobrev-modal-meta">—</div>
-              </div>
-              <button onclick="fecharSobrevModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);flex-shrink:0;">
-              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
-                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Aderência média</div>
-                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;" id="sobrev-kpi-adr">—</div>
-              </div>
-              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
-                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Total de viagens</div>
-                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;color:#27500A;" id="sobrev-kpi-viagens">—</div>
-              </div>
-              <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
-                <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Volume (t)</div>
-                <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;color:#185FA5;" id="sobrev-kpi-volume">—</div>
-              </div>
-            </div>
-            <div style="overflow-y:auto;flex:1;min-height:0;" id="sobrev-modal-body"></div>
-          </div>
-        </div>
       </div>
       <!-- PAINEL CONTROLE DE REGULAGEM -->
       <div id="hist-panel-regulagem" style="display:none;">
@@ -1051,6 +1055,111 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       </div>
     </div>
 
+
+    <!-- ══ SERVIÇOS ══ -->
+    <div class="page" id="page-servicos">
+
+      <!-- Formulário de cadastro -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          <span style="font-size:14px;font-weight:600;color:var(--text);">Cadastrar Serviço</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+          <!-- Nome do Serviço -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Nome do Serviço</label>
+            <input id="srv-nome" type="text" placeholder="Ex: Troca de óleo motor" autocomplete="off"
+              style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+              onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <!-- Tipo de Serviço -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Serviço</label>
+            <div style="display:flex;gap:8px;">
+              <select id="srv-tipo" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border .15s;"
+                onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+                <option value="">Selecione ou cadastre...</option>
+              </select>
+              <button onclick="window.abrirModalNovoTipoServico()"
+                style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 10px;cursor:pointer;color:var(--text2);transition:all .15s;"
+                title="Cadastrar novo tipo"
+                onmouseover="this.style.background='var(--bg4)';this.style.color='var(--blue)'"
+                onmouseout="this.style.background='var(--bg3)';this.style.color='var(--text2)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Unidade de Controle -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Unidade de Controle</label>
+            <div style="display:flex;gap:8px;">
+              <button id="srv-unid-km" onclick="window.selecionarUnidadeServico('KM')"
+                style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+                📏 KM
+              </button>
+              <button id="srv-unid-dias" onclick="window.selecionarUnidadeServico('DIAS')"
+                style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+                📅 Dias
+              </button>
+            </div>
+          </div>
+
+          <!-- Ciclo de Controle -->
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;" id="srv-ciclo-label">Ciclo de Controle</label>
+            <div id="srv-ciclo-wrap" style="position:relative;">
+              <input id="srv-ciclo" type="number" min="1" placeholder="—" disabled
+                style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;padding-right:56px;font-size:13px;color:var(--text3);outline:none;box-sizing:border-box;transition:border .15s;cursor:not-allowed;"
+                onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+              <span id="srv-ciclo-unit" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--text3);pointer-events:none;">—</span>
+            </div>
+          </div>
+
+        </div><!-- /grid -->
+
+        <!-- Botão Salvar -->
+        <div style="margin-top:1.25rem;display:flex;justify-content:flex-end;">
+          <button onclick="window.salvarServico()"
+            style="background:var(--blue);color:#fff;border:none;border-radius:9px;padding:10px 28px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;"
+            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            Salvar Serviço
+          </button>
+        </div>
+      </div><!-- /card cadastro -->
+
+      <!-- Tabela de serviços cadastrados -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:13px;font-weight:600;color:var(--text);">Serviços Cadastrados</span>
+          <span id="srv-count" style="font-size:12px;color:var(--text3);">—</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:var(--bg3);">
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Nome do Serviço</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Tipo</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Unidade</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Ciclo</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Criado em</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Status</th>
+                <th style="padding:10px 14px;"></th>
+              </tr>
+            </thead>
+            <tbody id="srv-tbody">
+              <tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);font-size:13px;">Nenhum serviço cadastrado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /tabela -->
+
+    </div><!-- /page-servicos -->
+
     <!-- ══ TELEMETRIA ══ -->
     <div class="page" id="page-veiculos">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
@@ -1075,10 +1184,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     </div>
 
     <div class="page" id="page-telemetria">
-      <div class="hist-filtros">
-        <input class="hist-date-input" id="tel-filtro" placeholder="Filtrar por placa..." style="width:180px;" oninput="renderTelemetriaPagina()">
-        <button class="hist-btn-apply" onclick="carregarTelemetriaPagina()">🔄 Atualizar</button>
-        <span style="font-size:11px;color:var(--text3);margin-left:auto;" id="tel-atualizado">—</span>
+      <!-- Abas telemetria -->
+      <div class="reg-tabs" style="margin-bottom:1.25rem;">
+        <button class="reg-tab at" id="tel-tab-resumo" onclick="telSwitchTab('resumo')">Resumo do dia</button>
+        <button class="reg-tab" id="tel-tab-trechos" onclick="telSwitchTab('trechos')">Linha do tempo</button>
+      </div>
+
+      <!-- Painel resumo -->
+      <div id="tel-panel-resumo">
+        <div class="hist-filtros">
+          <input class="hist-date-input" id="tel-filtro" placeholder="Filtrar por placa..." style="width:180px;" oninput="renderTelemetriaPagina()">
+          <button class="hist-btn-apply" onclick="carregarTelemetriaPagina()">🔄 Atualizar</button>
+          <span style="font-size:11px;color:var(--text3);margin-left:auto;" id="tel-atualizado">—</span>
+        </div>
+      </div>
+
+      <!-- Painel linha do tempo -->
+      <div id="tel-panel-trechos" style="display:none;">
+        <div class="hist-filtros">
+          <select id="tel-tr-veiculo" style="padding:6px 10px;border-radius:var(--radius);border:.5px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text);font-family:inherit;min-width:220px;">
+            <option value="">— selecione o veículo —</option>
+          </select>
+          <input class="hist-date-input" type="date" id="tel-tr-data">
+          <button class="hist-btn-apply" onclick="carregarTrechos()">Carregar trechos</button>
+          <span style="font-size:11px;color:var(--text3);margin-left:auto;" id="tel-tr-info">—</span>
+        </div>
+        <div id="tel-timeline" class="tel-timeline-wrap">
+          <div class="tel-loading">Selecione um veículo e uma data para visualizar os trechos.</div>
+        </div>
       </div>
       <div class="hist-kpi-row">
         <div class="hist-kpi"><div class="hist-kpi-lbl">Veículos com dado hoje</div><div class="hist-kpi-val" style="color:#185FA5;" id="tel-kpi-total">—</div></div>
@@ -1096,6 +1229,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           <tbody id="tel-tbl-body"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr></tbody>
         </table>
       </div>
+      </div><!-- /tel-panel-resumo-body -->
     </div>
   </div>
 
@@ -2169,7 +2303,8 @@ window.showPage = function(page,btn) {
     pcm: 'PCM — Planejamento e Controle da Manutenção',
     estoque: 'Controle de Estoque',
     veiculos: 'Gerenciamento de Veículos',
-    telemetria: 'Telemetria — Consumo, Manutenção e Segurança'
+    telemetria: 'Telemetria — Consumo, Manutenção e Segurança',
+    servicos: 'Serviços — Cadastro'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
@@ -2177,6 +2312,7 @@ window.showPage = function(page,btn) {
   if (page === 'veiculos') carregarGerenciamentoVeiculos();
   if (page === 'historico') { histPopularSelectVeiculo(); histSetPeriodo(7); }
   if (page === 'telemetria') carregarTelemetriaPagina();
+  if (page === 'servicos') { carregarTiposServico(); carregarTabelaServicos(); }
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -4126,172 +4262,133 @@ async function carregarSobrev() {
 
 // ── Modal detalhe veículo ──
 async function abrirSobrevModal(placa) {
-  const v = TODOS.find(x => x.placa === placa);
+  // ── Setup UI ──
+  const v   = TODOS.find(x => x.placa === placa);
   const nfr = String(v?.nfr||'—').padStart(2,'0');
   document.getElementById('sobrev-modal-title').textContent = nfr + ' · ' + placa + (v?.marca?' — '+v.marca:'') + (v?.modelo?' '+v.modelo:'');
-  document.getElementById('sobrev-modal-meta').textContent = (v?.tipo||'—') + ' · ' + (v?.bloco||'—');
-  document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);">Carregando histórico...</div>';
-  document.getElementById('sobrev-kpi-adr').textContent = '—';
+  document.getElementById('sobrev-modal-meta').textContent  = (v?.tipo||'—') + ' · ' + (v?.bloco||'—');
+  document.getElementById('sobrev-modal-body').innerHTML    = '<div style="text-align:center;padding:32px;color:var(--text3);">Carregando...</div>';
+  document.getElementById('sobrev-kpi-adr').textContent     = '—';
   document.getElementById('sobrev-kpi-viagens').textContent = '—';
-  document.getElementById('sobrev-kpi-volume').textContent = '—';
-  document.getElementById('sobrev-modal-ov').style.display = 'flex';
+  document.getElementById('sobrev-modal-ov').style.display  = 'flex';
 
-  const CUTOFF = '2026-09-01';
-  const toBR  = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-  const toISO = s => { const p = s.split('/'); return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : s; };
+  // ── Constantes ──
+  const CUTOFF  = '2026-09-01';
+  const DSEM    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const toBR    = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const toISO   = s => { const p=s.split('/'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:s; };
+  const dtLabel = s => { const [dd,mm,yy]=s.split('/'); const d=new Date(+yy,+mm-1,+dd); return DSEM[d.getDay()]+', '+dd+'/'+mm; };
+
+  // ── Período do filtro ──
+  const de  = new Date(_sobrevDe  || (() => { const d=new Date(); d.setDate(d.getDate()-29); return d; })());
+  const ate = new Date(_sobrevAte || new Date());
+  de.setHours(0,0,0,0); ate.setHours(0,0,0,0);
+  const deISO  = de.getFullYear()+'-'+String(de.getMonth()+1).padStart(2,'0')+'-'+String(de.getDate()).padStart(2,'0');
+  const ateISO = ate.getFullYear()+'-'+String(ate.getMonth()+1).padStart(2,'0')+'-'+String(ate.getDate()).padStart(2,'0');
 
   try {
-    // ── FONTE 1: base_volume_veiculos — histórico importado (todos os dias) ──
-    // Tentar placa uppercase e lowercase (o painel de produtividade pode salvar diferente)
-    let snapHist = await getDoc(doc(db, 'base_volume_veiculos', placa));
-    if (!snapHist.exists()) snapHist = await getDoc(doc(db, 'base_volume_veiculos', placa.toLowerCase()));
-    if (!snapHist.exists()) snapHist = await getDoc(doc(db, 'base_volume_veiculos', placa.toUpperCase()));
-    const histImport = snapHist.exists() ? (snapHist.data().historico || []) : [];
-    // Log sempre visível
-    const logEl = document.getElementById('sobrev-modal-body');
-    const logMsg = '[Modal] ' + placa + ' | base_volume_veiculos: ' + histImport.length + ' dias | exists: ' + snapHist.exists();
-    logEl.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:12px;">' + logMsg + '</div>';
-    console.log(logMsg);
-    if (histImport.length) console.log('[Modal] primeiro:', histImport[0]?.data, 'último:', histImport[histImport.length-1]?.data);
+    // ── FONTE 1: base_volume_veiculos (histórico importado) ──
+    const snapH = await getDoc(doc(db,'base_volume_veiculos',placa));
+    const importado = snapH.exists() ? (snapH.data().historico||[]) : [];
 
-    // ── FONTE 2: base_volume_dias — dias por dia (mesma info, formato diferente) ──
-    // Buscar apenas os dias que estão nos dias importados (meta.dias)
-    const snapMeta = await getDoc(doc(db, 'base_volume', 'meta'));
-    const diasImportados = snapMeta.exists() ? (snapMeta.data().dias || []) : [];
-    console.log('[Modal] base_volume/meta dias:', diasImportados.length);
-
-    // ── FONTE 3: programacao_dias + volume_dias (a partir do CUTOFF) ──
+    // ── FONTE 2: ao vivo (programacao_dias + volume_dias) para dias >= CUTOFF ──
     const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const cutoffDate = new Date(CUTOFF + 'T00:00:00');
     const diasLive = [];
-    const cur = new Date(hoje);
-    while (cur >= cutoffDate) {
-      diasLive.push(new Date(cur));
-      cur.setDate(cur.getDate() - 1);
+    const c = new Date(ate);
+    while (c >= de) {
+      const iso = c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0')+'-'+String(c.getDate()).padStart(2,'0');
+      if (iso >= CUTOFF) diasLive.push(new Date(c));
+      c.setDate(c.getDate()-1);
     }
-    console.log('[Modal] dias live a buscar:', diasLive.length, '(', CUTOFF, 'até hoje )');
 
-    // frota_cadastro para filtro ativo
+    // frota_cadastro para verificar se veículo estava ativo
     const frotaSnap = await getDocs(collection(db,'frota_cadastro'));
-    const fc = frotaSnap.docs.find(d => d.id === placa)?.data();
-
-    const veiculoAtivoNoDia = iso => {
+    const fc = frotaSnap.docs.find(d => d.id===placa)?.data();
+    const ativo = iso => {
       if (!fc) return true;
       if (fc.dataInicio && iso < fc.dataInicio) return false;
       if (fc.dataInativacao && iso >= fc.dataInativacao) return false;
       return true;
     };
 
-    // Buscar programacao+volume em lotes
-    const histLive = [];
-    for (let i = 0; i < diasLive.length; i += 10) {
-      const lote = diasLive.slice(i, i+10);
-      const pares = await Promise.all(lote.map(async d => {
+    const liveMap = {};
+    for (let i=0; i<diasLive.length; i+=10) {
+      const lote = diasLive.slice(i,i+10);
+      await Promise.all(lote.map(async d => {
         const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-        const [sp, sv] = await Promise.all([
+        if (!ativo(iso)) return;
+        const [sp,sv] = await Promise.all([
           getDoc(doc(db,'programacao_dias',iso)),
           getDoc(doc(db,'volume_dias',iso))
         ]);
-        return {d, iso, sp, sv};
-      }));
-
-      pares.forEach(({d, iso, sp, sv}) => {
         if (!sp.exists() && !sv.exists()) return;
-        if (!veiculoAtivoNoDia(iso)) return;
-
-        const dtBR = toBR(d);
-        const atribs = sp.exists() ? (sp.data().atribuicoes || []) : [];
-        const justMap = sp.exists() ? (sp.data().justificativas || {}) : {};
-        const atrib  = atribs.find(a => a.placa === placa);
-
-        let volumeReal = 0;
-        if (sv.exists()) (sv.data().viagens||[]).forEach(vj => { if(vj.placa===placa) volumeReal += Number(vj.peso)||0; });
-
+        const atribs = sp.exists() ? (sp.data().atribuicoes||[]) : [];
+        const justM  = sp.exists() ? (sp.data().justificativas||{}) : {};
+        const atrib  = atribs.find(a => a.placa===placa);
+        let vol = 0;
+        if (sv.exists()) (sv.data().viagens||[]).forEach(vj=>{ if(vj.placa===placa) vol+=Number(vj.peso)||0; });
         const prog   = atrib ? (Number(atrib.viagens)||0) : 0;
-        const realizacoes = atrib && Array.isArray(atrib.realizacoes) ? atrib.realizacoes : [];
-        const realiz = realizacoes.filter(Boolean).length;
-
-        // incluir se foi programado OU fez viagem real
-        if (prog === 0 && volumeReal === 0) return;
-
-        const aderencia = prog > 0 ? Math.round((realiz/prog)*100) : 100;
-
+        const realiz = atrib && Array.isArray(atrib.realizacoes) ? atrib.realizacoes.filter(Boolean).length : 0;
+        if (prog===0 && vol===0) return;
+        const adr = prog>0 ? Math.round((realiz/prog)*100) : 100;
         let ofensor = '';
-        if (atrib?.justificativa) {
-          ofensor = [atrib.justificativa.ofensor, atrib.justificativa.justificativa].filter(Boolean).join(' · ');
-        } else {
-          const j = justMap[placa];
-          if (j) ofensor = [j.motivo, j.justificativa].filter(Boolean).join(' · ');
-        }
-
-        histLive.push({data:dtBR, viagens:realiz, aderencia, volume:Math.round(volumeReal*100)/100, ofensor});
-      });
+        if (atrib?.justificativa) ofensor=[atrib.justificativa.ofensor,atrib.justificativa.justificativa].filter(Boolean).join(' · ');
+        else { const j=justM[placa]; if(j) ofensor=[j.motivo,j.justificativa].filter(Boolean).join(' · '); }
+        liveMap[iso] = { data:toBR(d), aderencia:adr, ofensor, viagens:realiz };
+      }));
     }
-    console.log('[Modal] dias live encontrados:', histLive.length);
 
-    // ── Mesclar: importado + live, live tem prioridade ──
+    // ── Mesclar: importado primeiro, live sobrescreve ──
     const mapa = {};
-    // Primeiro o importado
-    histImport.forEach(h => {
+    importado.forEach(h => {
       if (!h.data) return;
-      mapa[toISO(h.data)] = {
-        data: h.data,
-        viagens: Number(h.viagens)||0,
-        aderencia: Number(h.aderencia)||0,
-        volume: Number(h.volume)||0,
-        ofensor: [h.ofensor, h.tipoOfensor].filter(Boolean).join(' · ')
-      };
+      const iso = toISO(h.data);
+      mapa[iso] = { data:h.data, aderencia:Number(h.aderencia)||0, ofensor:[h.ofensor,h.tipoOfensor].filter(Boolean).join(' · '), viagens:Number(h.viagens)||0 };
     });
-    // Live sobrescreve
-    histLive.forEach(h => { mapa[toISO(h.data)] = h; });
+    Object.entries(liveMap).forEach(([iso,h]) => { mapa[iso]=h; });
 
-    const hist = Object.values(mapa).sort((a,b) => toISO(b.data).localeCompare(toISO(a.data)));
-    console.log('[Modal] histImport:', histImport.length, '| histLive:', histLive.length, '| mapa keys:', Object.keys(mapa).length, '| hist final:', hist.length);
-    if (hist.length) console.log('[Modal] mais recente:', hist[0].data, '| mais antigo:', hist[hist.length-1].data);
+    // ── Filtrar pelo período selecionado ──
+    const hist = Object.entries(mapa)
+      .filter(([iso]) => iso>=deISO && iso<=ateISO)
+      .sort(([a],[b]) => b.localeCompare(a))
+      .map(([,h]) => h);
 
     if (!hist.length) {
-      document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum histórico encontrado.</div>';
+      document.getElementById('sobrev-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Nenhum dado no período.</div>';
       return;
     }
 
-    // KPIs
-    const totalViag = hist.reduce((s,h)=>s+(Number(h.viagens)||0),0);
-    const totalVol  = hist.reduce((s,h)=>s+(Number(h.volume)||0),0);
-    const adrMedia  = hist.reduce((s,h)=>s+(Number(h.aderencia)||0),0)/hist.length;
-    const corA = adrMedia>=90?'#3fb950':adrMedia>=60?'#e3b341':'#f85149';
+    // ── KPIs ──
+    const adrMedia = hist.reduce((s,h)=>s+(Number(h.aderencia)||0),0)/hist.length;
+    const totalV   = hist.reduce((s,h)=>s+(Number(h.viagens)||0),0);
+    const corA     = adrMedia>=90?'#3fb950':adrMedia>=60?'#e3b341':'#f85149';
+    document.getElementById('sobrev-kpi-adr').textContent     = Math.round(adrMedia)+'%';
+    document.getElementById('sobrev-kpi-adr').style.color     = corA;
+    document.getElementById('sobrev-kpi-viagens').textContent  = totalV;
 
-    document.getElementById('sobrev-kpi-adr').textContent = Math.round(adrMedia)+'%';
-    document.getElementById('sobrev-kpi-adr').style.color = corA;
-    document.getElementById('sobrev-kpi-viagens').textContent = totalViag;
-    document.getElementById('sobrev-kpi-volume').textContent = totalVol.toLocaleString('pt-BR',{maximumFractionDigits:1});
-
-    const thS = 'padding:7px 12px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);';
-    const tdS = 'padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px;';
-
+    // ── Tabela: Data (com dia da semana) | Motivo/Ofensor | Aderência ──
+    const thS = 'padding:8px 14px;text-align:left;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:1px solid var(--border);';
+    const tdS = 'padding:9px 14px;border-bottom:0.5px solid var(--border);font-size:13px;';
     document.getElementById('sobrev-modal-body').innerHTML = `
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr>
           <th style="${thS}">Data</th>
           <th style="${thS}">Motivo / Ofensor</th>
           <th style="${thS}text-align:center;">Aderência</th>
-          <th style="${thS}text-align:right;">Viagens</th>
-          <th style="${thS}text-align:right;">Volume (t)</th>
         </tr></thead>
         <tbody>${hist.map((h,i)=>{
           const pct=Math.round(h.aderencia||0);
           const cls=pct>=90?'sobrev-verde':pct>=60?'sobrev-amarelo':'sobrev-vermelho';
           return `<tr style="${i%2===1?'background:var(--bg3);':''}">
-            <td style="${tdS}color:var(--text2);">${h.data||'—'}</td>
+            <td style="${tdS}color:var(--text2);white-space:nowrap;">${dtLabel(h.data)}</td>
             <td style="${tdS}color:var(--text2);font-size:12px;">${h.ofensor||'—'}</td>
             <td style="${tdS}text-align:center;"><span class="sobrev-cell ${cls}" style="margin:0 auto;">${pct}%</span></td>
-            <td style="${tdS}text-align:right;font-family:Arial,sans-serif;color:#3fb950;">${Number(h.viagens)||0}</td>
-            <td style="${tdS}text-align:right;font-family:Arial,sans-serif;color:#58a6ff;">${(Number(h.volume)||0).toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
           </tr>`;
         }).join('')}</tbody>
       </table>`;
 
   } catch(e) {
-    console.error('[Modal] Erro:', e);
+    console.error('[Sobrev Modal]', e);
     document.getElementById('sobrev-modal-body').innerHTML = `<div style="text-align:center;padding:32px;color:var(--text3);">Erro: ${e.message}</div>`;
   }
 }
@@ -4608,6 +4705,210 @@ async function carregarTelemetria() {
 }
 
 
+
+// ══ TELEMETRIA TRECHOS ══
+const API_SASINTEGRA = 'http://localhost:3000';
+
+function telSwitchTab(tab) {
+  document.getElementById('tel-panel-resumo').style.display       = tab==='resumo'  ? '' : 'none';
+  document.getElementById('tel-panel-resumo-body').style.display  = tab==='resumo'  ? '' : 'none';
+  document.getElementById('tel-panel-trechos').style.display      = tab==='trechos' ? '' : 'none';
+  document.getElementById('tel-tab-resumo').classList.toggle('at',  tab==='resumo');
+  document.getElementById('tel-tab-trechos').classList.toggle('at', tab==='trechos');
+  if (tab === 'trechos') telPopularSelectVeiculo();
+}
+
+function telPopularSelectVeiculo() {
+  const sel = document.getElementById('tel-tr-veiculo');
+  if (!sel || sel.options.length > 1) return;
+  const hoje = new Date().toISOString().split('T')[0];
+  const dataEl = document.getElementById('tel-tr-data');
+  if (dataEl && !dataEl.value) dataEl.value = hoje;
+  const sorted = [...TODOS].sort((a,b)=>(a.nfr||0)-(b.nfr||0));
+  sorted.forEach(v => {
+    const nfr = String(v.nfr||'').padStart(2,'0');
+    const opt = document.createElement('option');
+    opt.value = v.placa;
+    opt.textContent = nfr + ' · ' + v.placa + ' — ' + (v.tipo||'');
+    sel.appendChild(opt);
+  });
+}
+
+function fmtDuracao(seg) {
+  if (!seg) return '—';
+  const h = Math.floor(seg/3600);
+  const m = Math.floor((seg%3600)/60);
+  const s = seg%60;
+  if (h > 0) return h+'h '+(m>0?m+'min':'');
+  if (m > 0) return m+' min'+(s>0?' '+s+'s':'');
+  return s+'s';
+}
+
+function fmtHora(dataPosicao) {
+  if (!dataPosicao) return '—';
+  // formato: "DD/MM/AAAA HH:MM:SS"
+  const partes = dataPosicao.split(' ');
+  return partes[1] ? partes[1].slice(0,5) : dataPosicao;
+}
+
+function kmDoTrecho(delta) {
+  // Km rodado = (odometro do próximo - odometro atual) não disponível por trecho
+  // Usar velocidadeMedia * tempoDuracaoMovimento
+  const velMed = parseFloat(delta.velocidadeMedia) || 0;
+  const tempoMov = parseFloat(delta.tempoDuracaoMovimento) || 0;
+  return (velMed * (tempoMov / 3600)).toFixed(1);
+}
+
+function consumoDoTrecho(delta) {
+  const ml = parseFloat(delta.consumoCombustivel) || 0;
+  return (ml / 1000).toFixed(1);
+}
+
+function faixasPct(delta) {
+  const total = parseFloat(delta.tempoDuracaoTotal) || 1;
+  const marcha    = parseFloat(delta.tempoDuracaoFaixaMarchaLenta) || 0;
+  const verdeCI   = parseFloat(delta.tempoDuracaoFaixaVerdeComInercia) || 0;
+  const verdeSI   = parseFloat(delta.tempoDuracaoFaixaVerdeSemInercia) || 0;
+  const verdeECI  = parseFloat(delta.tempoDuracaoFaixaVerdeEconomicaComInercia) || 0;
+  const verdeESI  = parseFloat(delta.tempoDuracaoFaixaVerdeEconomicaSemInercia) || 0;
+  const amCI      = parseFloat(delta.tempoDuracaoFaixaAmarelaComInercia) || 0;
+  const amSI      = parseFloat(delta.tempoDuracaoFaixaAmarerlaSemInercia) || 0;
+  const transCI   = parseFloat(delta.tempoDuracaoFaixaDeTransicaoComInercia) || 0;
+  const transSI   = parseFloat(delta.tempoDuracaoFaixaDeTransicaoSemInercia) || 0;
+  const periCI    = parseFloat(delta.tempoDuracaoFaixaDePerigoComInercia) || 0;
+  const periSI    = parseFloat(delta.tempoDuracaoFaixaDePerigoSemInercia) || 0;
+  const verde   = verdeCI + verdeSI + verdeECI + verdeESI;
+  const amarela = amCI + amSI + transCI + transSI;
+  const perigo  = periCI + periSI;
+  const pct = v => Math.round((v/total)*100);
+  return { verde:pct(verde), amarela:pct(amarela), perigo:pct(perigo), marcha:pct(marcha) };
+}
+
+function renderTrecho(delta, idx, total) {
+  const hora = fmtHora(delta.dataPosicao);
+  const durTotal = fmtDuracao(parseFloat(delta.tempoDuracaoTotal)||0);
+  const durMov   = fmtDuracao(parseFloat(delta.tempoDuracaoMovimento)||0);
+  const km       = kmDoTrecho(delta);
+  const consumo  = consumoDoTrecho(delta);
+  const rpmMed   = Math.round(parseFloat(delta.rpmMedia)||0);
+  const rpmMax   = Math.round(parseFloat(delta.rpmMaximo)||0);
+  const velMed   = Math.round(parseFloat(delta.velocidadeMedia)||0);
+  const fx = faixasPct(delta);
+
+  // Saúde do motor
+  const oleTemp  = parseFloat(delta.temperaturaMediaDoOleoDoMotor)||0;
+  const arrefec  = parseFloat(delta.temperaturaMediaDoArrefecimento)||0;
+  const combTemp = parseFloat(delta.temperaturaMediaDoCombustivel)||0;
+  const batMed   = parseFloat(delta.tensaoMediaDaBateria)||0;
+  const oleKPa   = parseFloat(delta.pressaoMediaDoOleoDoMotor)||0;
+  const olePSI   = (oleKPa / 6.89476).toFixed(1);
+  const freiokPa = parseFloat(delta.pressaoMediaDoSistemaDeFreioAAr)||0;
+  const freioBAR = (freiokPa / 100).toFixed(2);
+  const cinto    = parseFloat(delta.tempoTotalComCinto)||0;
+  const mov      = parseFloat(delta.tempoDuracaoMovimento)||0;
+  const cintoPct = mov > 0 ? Math.round((cinto/mov)*100) : 0;
+
+  // Cor do dot conforme faixa predominante
+  const dotCor = fx.verde >= 60 ? '#16a34a' : fx.amarela >= 40 ? '#ca8a04' : fx.perigo >= 20 ? '#dc2626' : '#185FA5';
+
+  return `<div class="tel-trecho">
+    <div class="tel-hora">${hora}</div>
+    <div class="tel-linha">
+      <div class="tel-dot" style="background:${dotCor};"></div>
+      ${idx < total-1 ? '<div class="tel-fio"></div>' : ''}
+    </div>
+    <div class="tel-card">
+      <div class="tel-card-top">
+        <span class="tel-card-dur">${durMov} movimento &nbsp;·&nbsp; trecho ${idx+1} de ${total}</span>
+        <span class="tel-card-km">${km} km &nbsp;·&nbsp; ${consumo} L &nbsp;·&nbsp; total ${durTotal}</span>
+      </div>
+
+      <div class="tel-sec">Condução</div>
+      <div class="tel-grid3">
+        <div><div class="tel-met-lbl">RPM médio</div><div class="tel-met-val">${rpmMed.toLocaleString('pt-BR')}</div></div>
+        <div><div class="tel-met-lbl">Vel. média</div><div class="tel-met-val">${velMed} km/h</div></div>
+        <div><div class="tel-met-lbl">RPM máx</div><div class="tel-met-val">${rpmMax.toLocaleString('pt-BR')}</div></div>
+      </div>
+      <div class="tel-faixas">
+        <div class="tel-fx-v" style="flex:${fx.verde||1}"></div>
+        <div class="tel-fx-a" style="flex:${fx.amarela||0}"></div>
+        <div class="tel-fx-p" style="flex:${fx.perigo||0}"></div>
+        <div class="tel-fx-m" style="flex:${fx.marcha||0}"></div>
+      </div>
+      <div class="tel-fleg">
+        <span class="tel-fl"><span class="tel-fl-d" style="background:#16a34a;"></span>Verde ${fx.verde}%</span>
+        <span class="tel-fl"><span class="tel-fl-d" style="background:#ca8a04;"></span>Amarela ${fx.amarela}%</span>
+        <span class="tel-fl"><span class="tel-fl-d" style="background:#dc2626;"></span>Perigo ${fx.perigo}%</span>
+        <span class="tel-fl"><span class="tel-fl-d" style="background:var(--border2);"></span>Marcha lenta ${fx.marcha}%</span>
+      </div>
+
+      <hr class="tel-hr">
+      <div class="tel-sec">Saúde do motor</div>
+      <div class="tel-grid4">
+        <div><div class="tel-met-lbl">Óleo (°C)</div><div class="tel-met-val">${oleTemp||'—'}</div></div>
+        <div><div class="tel-met-lbl">Arrefec. (°C)</div><div class="tel-met-val">${arrefec||'—'}</div></div>
+        <div><div class="tel-met-lbl">Combustível (°C)</div><div class="tel-met-val">${combTemp||'—'}</div></div>
+        <div><div class="tel-met-lbl">Bateria méd. (V)</div><div class="tel-met-val">${batMed||'—'}</div></div>
+        <div><div class="tel-met-lbl">Óleo (PSI)</div><div class="tel-met-val">${olePSI}</div></div>
+        <div><div class="tel-met-lbl">Freio ar (BAR)</div><div class="tel-met-val">${freioBAR}</div></div>
+        <div><div class="tel-met-lbl">Cinto (%mov)</div><div class="tel-met-val">${cintoPct}%</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function carregarTrechos() {
+  const placa = document.getElementById('tel-tr-veiculo')?.value;
+  const data  = document.getElementById('tel-tr-data')?.value;  // YYYY-MM-DD
+  const info  = document.getElementById('tel-tr-info');
+  const tl    = document.getElementById('tel-timeline');
+
+  if (!placa) { alert('Selecione um veículo.'); return; }
+  if (!data)  { alert('Selecione uma data.'); return; }
+
+  tl.innerHTML = '<div class="tel-loading">Carregando trechos...</div>';
+  if (info) info.textContent = '—';
+
+  try {
+    const hojeISO = new Date().toISOString().split('T')[0];
+    let snap;
+
+    if (data === hojeISO) {
+      // Hoje: ler de telemetria_veiculos/{placa}
+      snap = await getDoc(doc(db, 'telemetria_veiculos', placa));
+    } else {
+      // Dias anteriores: ler de telemetria_historico_diario/{placa}_{YYYY-MM-DD}
+      snap = await getDoc(doc(db, 'telemetria_historico_diario', `${placa}_${data}`));
+    }
+
+    if (!snap.exists()) {
+      tl.innerHTML = '<div class="tel-loading">Sem dados de telemetria salvos para esse dia.</div>';
+      if (info) info.textContent = '0 trechos';
+      return;
+    }
+
+    const t = snap.data();
+    const deltas = (t.deltas || [])
+      .sort((a,b) => (a.dataPosicao||'').localeCompare(b.dataPosicao||''));
+
+    if (!deltas.length) {
+      tl.innerHTML = '<div class="tel-loading">Nenhum trecho registrado para esse dia.</div>';
+      if (info) info.textContent = '0 trechos';
+      return;
+    }
+
+    if (info) info.textContent = deltas.length + ' trecho' + (deltas.length!==1?'s':'') + ' · ' + data.split('-').reverse().join('/');
+    tl.innerHTML = deltas.map((d,i) => renderTrecho(d, i, deltas.length)).join('');
+
+  } catch(e) {
+    console.error('[Trechos]', e);
+    tl.innerHTML = `<div class="tel-loading">Erro ao carregar: ${e.message}</div>`;
+    if (info) info.textContent = 'Erro';
+  }
+}
+
+window.telSwitchTab = telSwitchTab;
+window.carregarTrechos = carregarTrechos;
 window.carregarTelemetriaPagina = carregarTelemetriaPagina;
 window.renderTelemetriaPagina = renderTelemetriaPagina;
 
@@ -4779,6 +5080,222 @@ async function carregarRegulagem() {
 window.histSwitchTab   = histSwitchTab;
 window.regSetPeriodo   = regSetPeriodo;
 window.regAplicarFiltro= regAplicarFiltro;
+
+
+// ═══════════════════════════════════════════════════════════════
+//  SERVIÇOS — Cadastro
+// ═══════════════════════════════════════════════════════════════
+
+// Estado da unidade selecionada
+let _srvUnidadeSelecionada = null;
+
+function selecionarUnidadeServico(unidade) {
+  _srvUnidadeSelecionada = unidade;
+
+  const btnKm   = document.getElementById('srv-unid-km');
+  const btnDias = document.getElementById('srv-unid-dias');
+  const cicloIn = document.getElementById('srv-ciclo');
+  const cicloUn = document.getElementById('srv-ciclo-unit');
+  const cicloLb = document.getElementById('srv-ciclo-label');
+
+  // Reset ambos
+  btnKm.style.borderColor   = 'var(--border)';
+  btnKm.style.background    = 'var(--bg3)';
+  btnKm.style.color         = 'var(--text2)';
+  btnDias.style.borderColor = 'var(--border)';
+  btnDias.style.background  = 'var(--bg3)';
+  btnDias.style.color       = 'var(--text2)';
+
+  if (unidade === 'KM') {
+    btnKm.style.borderColor = 'var(--blue)';
+    btnKm.style.background  = 'rgba(59,130,246,0.12)';
+    btnKm.style.color       = 'var(--blue)';
+    cicloLb.textContent     = 'Ciclo de Controle';
+    cicloUn.textContent     = 'km';
+    cicloIn.disabled        = false;
+    cicloIn.style.cursor    = 'auto';
+    cicloIn.style.color     = 'var(--text)';
+    cicloIn.placeholder     = 'Ex: 5000';
+  } else {
+    btnDias.style.borderColor = 'var(--blue)';
+    btnDias.style.background  = 'rgba(59,130,246,0.12)';
+    btnDias.style.color       = 'var(--blue)';
+    cicloLb.textContent       = 'Ciclo de Controle';
+    cicloUn.textContent       = 'dias';
+    cicloIn.disabled          = false;
+    cicloIn.style.cursor      = 'auto';
+    cicloIn.style.color       = 'var(--text)';
+    cicloIn.placeholder       = 'Ex: 30';
+  }
+}
+
+// ─── Modal Novo Tipo ───
+function abrirModalNovoTipoServico() {
+  const m = document.getElementById('modal-novo-tipo-srv');
+  m.style.display = 'flex';
+  setTimeout(() => document.getElementById('novo-tipo-srv-input').focus(), 100);
+}
+function fecharModalNovoTipoServico() {
+  document.getElementById('modal-novo-tipo-srv').style.display = 'none';
+  document.getElementById('novo-tipo-srv-input').value = '';
+}
+async function salvarNovoTipoServico() {
+  const input = document.getElementById('novo-tipo-srv-input');
+  const nome = input.value.trim().toUpperCase();
+  if (!nome) { input.focus(); return; }
+  try {
+    await setDoc(doc(db, 'srv_cad_tipo', nome), { nome, criadoEm: new Date().toISOString() });
+    fecharModalNovoTipoServico();
+    await carregarTiposServico();
+    document.getElementById('srv-tipo').value = nome;
+  } catch(e) {
+    alert('Erro ao salvar tipo: ' + e.message);
+  }
+}
+
+// ─── Carregar tipos no select ───
+async function carregarTiposServico() {
+  const sel = document.getElementById('srv-tipo');
+  if (!sel) return;
+  const snap = await getDocs(collection(db, 'srv_cad_tipo'));
+  sel.innerHTML = '<option value="">Selecione ou cadastre...</option>';
+  snap.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.id;
+    o.textContent = d.data().nome || d.id;
+    sel.appendChild(o);
+  });
+}
+
+// ─── Salvar serviço ───
+async function salvarServico() {
+  const nome   = document.getElementById('srv-nome').value.trim();
+  const tipo   = document.getElementById('srv-tipo').value;
+  const ciclo  = parseInt(document.getElementById('srv-ciclo').value) || 0;
+  const unid   = _srvUnidadeSelecionada;
+
+  if (!nome) {
+    document.getElementById('srv-nome').focus();
+    document.getElementById('srv-nome').style.borderColor = '#ef4444';
+    return;
+  }
+  if (!tipo) {
+    document.getElementById('srv-tipo').style.borderColor = '#ef4444';
+    return;
+  }
+  if (!unid) {
+    alert('Selecione a Unidade de Controle (KM ou Dias).');
+    return;
+  }
+  if (!ciclo || ciclo <= 0) {
+    document.getElementById('srv-ciclo').focus();
+    document.getElementById('srv-ciclo').style.borderColor = '#ef4444';
+    return;
+  }
+
+  const id = nome.toUpperCase().replace(/\s+/g,'_') + '_' + Date.now();
+  const dados = {
+    nome,
+    tipo,
+    unidadeControle: unid,
+    ciclo,
+    ativo: true,
+    criadoEm: new Date().toISOString()
+  };
+  try {
+    await setDoc(doc(db, 'servicos_cadastro', id), dados);
+    // Limpar form
+    document.getElementById('srv-nome').value  = '';
+    document.getElementById('srv-tipo').value  = '';
+    document.getElementById('srv-ciclo').value = '';
+    document.getElementById('srv-ciclo').disabled = true;
+    document.getElementById('srv-ciclo').style.color = 'var(--text3)';
+    document.getElementById('srv-ciclo-unit').textContent = '—';
+    document.getElementById('srv-ciclo-label').textContent = 'Ciclo de Controle';
+    const btnKm   = document.getElementById('srv-unid-km');
+    const btnDias = document.getElementById('srv-unid-dias');
+    btnKm.style.borderColor = 'var(--border)'; btnKm.style.background = 'var(--bg3)'; btnKm.style.color = 'var(--text2)';
+    btnDias.style.borderColor = 'var(--border)'; btnDias.style.background = 'var(--bg3)'; btnDias.style.color = 'var(--text2)';
+    _srvUnidadeSelecionada = null;
+    await carregarTabelaServicos();
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+}
+
+// ─── Renderizar tabela ───
+async function carregarTabelaServicos() {
+  const tbody = document.getElementById('srv-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);">Carregando...</td></tr>';
+  try {
+    const snap = await getDocs(collection(db, 'servicos_cadastro'));
+    const docs = [];
+    snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+    // Ordenar por nome
+    docs.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+
+    const ativos = docs.filter(d => d.ativo !== false);
+    document.getElementById('srv-count').textContent = ativos.length + ' serviço(s)';
+
+    if (!docs.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);">Nenhum serviço cadastrado</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = docs.map(s => {
+      const criadoEm = s.criadoEm ? s.criadoEm.substring(0,10).split('-').reverse().join('/') : '—';
+      const ativo    = s.ativo !== false;
+      const unidBadge = s.unidadeControle === 'KM'
+        ? '<span style="background:rgba(59,130,246,.15);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">📏 KM</span>'
+        : '<span style="background:rgba(168,85,247,.15);color:#a855f7;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">📅 Dias</span>';
+      const cicloStr = s.ciclo
+        ? s.ciclo + ' ' + (s.unidadeControle === 'KM' ? 'km' : 'dias')
+        : '—';
+      const statusBadge = ativo
+        ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Ativo</span>'
+        : '<span style="background:rgba(239,68,68,.12);color:#ef4444;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Inativo</span>';
+      return `<tr style="border-top:1px solid var(--border);">
+        <td style="padding:12px 14px;font-weight:500;color:var(--text);">${s.nome||'—'}</td>
+        <td style="padding:12px 14px;color:var(--text2);">${s.tipo||'—'}</td>
+        <td style="padding:12px 14px;text-align:center;">${unidBadge}</td>
+        <td style="padding:12px 14px;text-align:center;color:var(--text);font-weight:500;">${cicloStr}</td>
+        <td style="padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;">${criadoEm}</td>
+        <td style="padding:12px 14px;text-align:center;">${statusBadge}</td>
+        <td style="padding:12px 14px;text-align:center;">
+          ${ativo
+            ? `<button onclick="window.inativarServico('${s.id}')" title="Inativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
+            : `<button onclick="window.reativarServico('${s.id}')" title="Reativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
+          }
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:2rem;text-align:center;color:#ef4444;">Erro: ${e.message}</td></tr>`;
+  }
+}
+
+async function inativarServico(id) {
+  if (!confirm('Inativar este serviço?')) return;
+  await setDoc(doc(db,'servicos_cadastro',id), { ativo: false }, { merge: true });
+  await carregarTabelaServicos();
+}
+async function reativarServico(id) {
+  await setDoc(doc(db,'servicos_cadastro',id), { ativo: true }, { merge: true });
+  await carregarTabelaServicos();
+}
+
+// ─── Expor ───
+window.selecionarUnidadeServico  = selecionarUnidadeServico;
+window.abrirModalNovoTipoServico = abrirModalNovoTipoServico;
+window.fecharModalNovoTipoServico= fecharModalNovoTipoServico;
+window.salvarNovoTipoServico     = salvarNovoTipoServico;
+window.salvarServico             = salvarServico;
+window.carregarTabelaServicos    = carregarTabelaServicos;
+window.inativarServico           = inativarServico;
+window.reativarServico           = reativarServico;
+
+
 </script>
 
 
@@ -4798,7 +5315,7 @@ window.regAplicarFiltro= regAplicarFiltro;
       <button onclick="fecharResumoDia()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;">✕</button>
     </div>
     <!-- KPIs rápidos -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);flex-shrink:0;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);flex-shrink:0;">
       <div style="background:var(--bg2);padding:14px 18px;text-align:center;">
         <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Inspecionados hoje</div>
         <div style="font-size:30px;font-weight:500;color:#27500A;font-family:Arial,sans-serif;" id="rd-kpi-insp">—</div>
@@ -5015,5 +5532,61 @@ window.regAplicarFiltro= regAplicarFiltro;
     </div>
   </div>
 </div>
+
+<!-- MODAL SOBREVIVÊNCIA DETALHE VEÍCULO -->
+<div id="sobrev-modal-ov" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:9999;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)fecharSobrevModal()">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:780px;max-width:96vw;height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:15px;font-weight:500;color:var(--text);" id="sobrev-modal-title">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="sobrev-modal-meta">—</div>
+      </div>
+      <button onclick="fecharSobrevModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);flex-shrink:0;">
+      <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Aderência média</div>
+        <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;" id="sobrev-kpi-adr">—</div>
+      </div>
+      <div style="background:var(--bg2);padding:12px 16px;text-align:center;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px;">Total de viagens</div>
+        <div style="font-size:26px;font-weight:500;font-family:Arial,sans-serif;color:#27500A;" id="sobrev-kpi-viagens">—</div>
+      </div>
+
+    </div>
+    <div style="overflow-y:auto;flex:1;" id="sobrev-modal-body"></div>
+  </div>
+</div>
+
+
+  <!-- ══ Modal: Novo Tipo de Serviço ══ -->
+  <div id="modal-novo-tipo-srv" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.75rem;min-width:340px;max-width:420px;width:90%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <span style="font-size:15px;font-weight:600;color:var(--text);">Novo Tipo de Serviço</span>
+        <button onclick="window.fecharModalNovoTipoServico()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;">
+        <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Nome do Tipo</label>
+        <input id="novo-tipo-srv-input" type="text" placeholder="Ex: Revisão, Lavagem, Inspeção..."
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')window.salvarNovoTipoServico()">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="window.fecharModalNovoTipoServico()"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">
+          Cancelar
+        </button>
+        <button onclick="window.salvarNovoTipoServico()"
+          style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
+          Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
