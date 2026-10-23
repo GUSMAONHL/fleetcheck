@@ -525,6 +525,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Telemetria
     </button>
+    <button class="nav-item" id="nav-revisoes" onclick="showPage('revisoes',this)" title="Quadro de Revisões">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/><circle cx="4.5" cy="19.5" r="2" fill="currentColor" stroke="none" opacity=".4"/></svg>
+      Revisões
+    </button>
   </nav>
   <div class="sidebar-user">
     <div class="sidebar-avatar" title="Gestor — NHL/ALCOA">GR</div>
@@ -1059,106 +1063,291 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <!-- ══ SERVIÇOS ══ -->
     <div class="page" id="page-servicos">
 
-      <!-- Formulário de cadastro -->
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-          <span style="font-size:14px;font-weight:600;color:var(--text);">Cadastrar Serviço</span>
-        </div>
+      <!-- Sub-abas -->
+      <div style="display:flex;gap:4px;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:0;">
+        <button id="srv-tab-cadastro" onclick="window.srvMostrarTab('cadastro')"
+          style="padding:8px 18px;font-size:13px;font-weight:500;border:none;border-bottom:2px solid var(--blue);background:none;color:var(--text);cursor:pointer;margin-bottom:-1px;">
+          Cadastro de Serviços
+        </button>
+        <button id="srv-tab-km" onclick="window.srvMostrarTab('km')"
+          style="padding:8px 18px;font-size:13px;font-weight:500;border:none;border-bottom:2px solid transparent;background:none;color:var(--text2);cursor:pointer;margin-bottom:-1px;">
+          Controle por KM
+        </button>
+      </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <!-- ── SUB-ABA: CADASTRO ── -->
+      <div id="srv-pane-cadastro">
 
-          <!-- Nome do Serviço -->
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Nome do Serviço</label>
-            <input id="srv-nome" type="text" placeholder="Ex: Troca de óleo motor" autocomplete="off"
-              style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
-              onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        <!-- Formulário de cadastro -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            <span style="font-size:14px;font-weight:600;color:var(--text);">Cadastrar Serviço</span>
           </div>
 
-          <!-- Tipo de Serviço -->
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Serviço</label>
-            <div style="display:flex;gap:8px;">
-              <select id="srv-tipo" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border .15s;"
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+            <!-- Nome do Serviço -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Nome do Serviço</label>
+              <input id="srv-nome" type="text" placeholder="Ex: Troca de óleo motor" autocomplete="off"
+                style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
                 onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
-                <option value="">Selecione ou cadastre...</option>
-              </select>
-              <button onclick="window.abrirModalNovoTipoServico()"
-                style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 10px;cursor:pointer;color:var(--text2);transition:all .15s;"
-                title="Cadastrar novo tipo"
-                onmouseover="this.style.background='var(--bg4)';this.style.color='var(--blue)'"
-                onmouseout="this.style.background='var(--bg3)';this.style.color='var(--text2)'">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+
+            <!-- Tipo de Serviço -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Serviço</label>
+              <div style="display:flex;gap:8px;">
+                <select id="srv-tipo" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border .15s;"
+                  onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+                  <option value="">Selecione ou cadastre...</option>
+                </select>
+                <button onclick="window.abrirModalNovoTipoServico()"
+                  style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 10px;cursor:pointer;color:var(--text2);transition:all .15s;"
+                  title="Cadastrar novo tipo"
+                  onmouseover="this.style.background='var(--bg4)';this.style.color='var(--blue)'"
+                  onmouseout="this.style.background='var(--bg3)';this.style.color='var(--text2)'">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Unidade de Controle -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Unidade de Controle</label>
+              <div style="display:flex;gap:8px;">
+                <button id="srv-unid-km" onclick="window.selecionarUnidadeServico('KM')"
+                  style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  📏 KM
+                </button>
+                <button id="srv-unid-dias" onclick="window.selecionarUnidadeServico('DIAS')"
+                  style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  📅 Dias
+                </button>
+              </div>
+            </div>
+
+            <!-- Ciclo de Controle -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;" id="srv-ciclo-label">Ciclo de Controle</label>
+              <div id="srv-ciclo-wrap" style="position:relative;">
+                <input id="srv-ciclo" type="number" min="1" placeholder="—" disabled
+                  style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;padding-right:56px;font-size:13px;color:var(--text3);outline:none;box-sizing:border-box;transition:border .15s;cursor:not-allowed;"
+                  onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+                <span id="srv-ciclo-unit" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--text3);pointer-events:none;">—</span>
+              </div>
+            </div>
+
+          </div><!-- /grid -->
+
+          <!-- Segunda linha: Força de Trabalho + Tipos de Veículo -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+
+            <!-- Força de Trabalho -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Força de Trabalho</label>
+              <div style="display:flex;gap:8px;">
+                <button id="srv-frota-btn" onclick="window.toggleForcaTrabalho('FROTA')"
+                  data-sel="0"
+                  style="flex:1;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  🏠 Frota
+                </button>
+                <button id="srv-terceiro-btn" onclick="window.toggleForcaTrabalho('TERCEIRO')"
+                  data-sel="0"
+                  style="flex:1;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  🤝 Terceiro
+                </button>
+              </div>
+              <span style="font-size:10px;color:var(--text3);">Selecione um ou ambos.</span>
+              <span id="srv-forca-alerta" style="display:none;font-size:11px;color:#ef4444;">⚠ Selecione ao menos uma força de trabalho.</span>
+            </div>
+
+            <!-- Tipos de Veículo -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Veículo Aplicável</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="srv-tipo-bitruck" onclick="window.toggleTipoVeiculo('BITRUCK')"
+                  data-sel="0"
+                  style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  🚛 Bitruck
+                </button>
+                <button id="srv-tipo-cavalo" onclick="window.toggleTipoVeiculo('CAVALO')"
+                  data-sel="0"
+                  style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  🐴 Cavalo
+                </button>
+                <button id="srv-tipo-carreta" onclick="window.toggleTipoVeiculo('CARRETA')"
+                  data-sel="0"
+                  style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+                  🚚 Carreta
+                </button>
+              </div>
+              <span style="font-size:10px;color:var(--text3);">Selecione um ou mais tipos.</span>
+              <span id="srv-tipovei-alerta" style="display:none;font-size:11px;color:#ef4444;">⚠ Selecione ao menos um tipo de veículo.</span>
+            </div>
+
+          </div><!-- /segunda linha -->
+
+          <!-- Botão Salvar -->
+          <div style="margin-top:1.25rem;display:flex;justify-content:flex-end;">
+            <button onclick="window.salvarServico()"
+              style="background:var(--blue);color:#fff;border:none;border-radius:9px;padding:10px 28px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;"
+              onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+              Salvar Serviço
+            </button>
+          </div>
+        </div><!-- /card cadastro -->
+
+        <!-- Tabela de serviços cadastrados -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+          <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;color:var(--text);">Serviços Cadastrados</span>
+            <span id="srv-count" style="font-size:12px;color:var(--text3);">—</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="background:var(--bg3);">
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Nome do Serviço</th>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Tipo</th>
+                  <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Unidade</th>
+                  <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Ciclo</th>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Força / Veículo</th>
+                  <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Status</th>
+                  <th style="padding:10px 14px;"></th>
+                </tr>
+              </thead>
+              <tbody id="srv-tbody">
+                <tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);font-size:13px;">Nenhum serviço cadastrado</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div><!-- /tabela -->
+
+      </div><!-- /pane-cadastro -->
+
+      <!-- ── SUB-ABA: CONTROLE KM ── -->
+      <div id="srv-pane-km" style="display:none;">
+
+        <!-- Header com botão atualizar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);">Controle de KM por Serviço</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="km-ctrl-info">Odômetro baseado nos registros de abastecimento</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="km-ctrl-status" style="font-size:11px;color:var(--text3);"></div>
+            <button onclick="window.carregarControleKm(true)"
+              style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;"
+              onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Atualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;">
+
+          <!-- Filtro por tipo de veículo -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span style="font-size:12px;color:var(--text3);min-width:52px;">Veículo:</span>
+            <button class="km-pill-tipo active" data-tipo="todos" onclick="window.kmFiltrarTipo('todos',this)"
+              style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--blue);background:rgba(59,130,246,.15);color:var(--blue);cursor:pointer;">
+              Todos
+            </button>
+            <button class="km-pill-tipo" data-tipo="BITRUCK" onclick="window.kmFiltrarTipo('BITRUCK',this)"
+              style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;">
+              🚛 Bitruck
+            </button>
+            <button class="km-pill-tipo" data-tipo="CAVALO" onclick="window.kmFiltrarTipo('CAVALO',this)"
+              style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;">
+              🐴 Cavalo
+            </button>
+            <button class="km-pill-tipo" data-tipo="CARRETA" onclick="window.kmFiltrarTipo('CARRETA',this)"
+              style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;">
+              🚚 Carreta
+            </button>
+          </div>
+
+          <!-- Filtro por serviço -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span style="font-size:12px;color:var(--text3);min-width:52px;">Serviço:</span>
+            <div id="km-filtro-servicos" style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="km-pill-srv active" data-id="todos" onclick="window.kmFiltrarServico('todos',this)"
+                style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--blue);background:rgba(59,130,246,.15);color:var(--blue);cursor:pointer;">
+                Todos
               </button>
             </div>
           </div>
 
-          <!-- Unidade de Controle -->
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Unidade de Controle</label>
-            <div style="display:flex;gap:8px;">
-              <button id="srv-unid-km" onclick="window.selecionarUnidadeServico('KM')"
-                style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
-                📏 KM
-              </button>
-              <button id="srv-unid-dias" onclick="window.selecionarUnidadeServico('DIAS')"
-                style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
-                📅 Dias
-              </button>
-            </div>
+        </div>
+
+        <!-- Tabela controle KM -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;" id="km-ctrl-table">
+              <thead>
+                <tr style="background:var(--bg3);">
+                  <th data-col="placa" onclick="window.kmOrdenar('placa')" style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Veículo <span id="km-sort-placa"></span></th>
+                  <th data-col="kmAtual" onclick="window.kmOrdenar('kmAtual')" style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">KM Atual <span id="km-sort-kmAtual"></span></th>
+                  <th data-col="servico" onclick="window.kmOrdenar('servico')" style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Serviço <span id="km-sort-servico"></span></th>
+                  <th data-col="ciclo" onclick="window.kmOrdenar('ciclo')" style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Ciclo <span id="km-sort-ciclo"></span></th>
+                  <th data-col="kmUltimo" onclick="window.kmOrdenar('kmUltimo')" style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Últ. Serviço KM <span id="km-sort-kmUltimo"></span></th>
+                  <th data-col="kmProximo" onclick="window.kmOrdenar('kmProximo')" style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Próx. Serviço <span id="km-sort-kmProximo"></span></th>
+                  <th data-col="situacao" onclick="window.kmOrdenar('situacao')" style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">Situação <span id="km-sort-situacao"></span></th>
+                  <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">OS</th>
+                  <th style="padding:10px 14px;"></th>
+                </tr>
+              </thead>
+              <tbody id="km-ctrl-tbody">
+                <tr><td colspan="9" style="padding:2.5rem;text-align:center;color:var(--text3);">Clique em Atualizar para carregar</td></tr>
+              </tbody>
+            </table>
           </div>
-
-          <!-- Ciclo de Controle -->
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;" id="srv-ciclo-label">Ciclo de Controle</label>
-            <div id="srv-ciclo-wrap" style="position:relative;">
-              <input id="srv-ciclo" type="number" min="1" placeholder="—" disabled
-                style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;padding-right:56px;font-size:13px;color:var(--text3);outline:none;box-sizing:border-box;transition:border .15s;cursor:not-allowed;"
-                onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
-              <span id="srv-ciclo-unit" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--text3);pointer-events:none;">—</span>
-            </div>
-          </div>
-
-        </div><!-- /grid -->
-
-        <!-- Botão Salvar -->
-        <div style="margin-top:1.25rem;display:flex;justify-content:flex-end;">
-          <button onclick="window.salvarServico()"
-            style="background:var(--blue);color:#fff;border:none;border-radius:9px;padding:10px 28px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;"
-            onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-            Salvar Serviço
-          </button>
         </div>
-      </div><!-- /card cadastro -->
 
-      <!-- Tabela de serviços cadastrados -->
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-        <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:13px;font-weight:600;color:var(--text);">Serviços Cadastrados</span>
-          <span id="srv-count" style="font-size:12px;color:var(--text3);">—</span>
-        </div>
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:var(--bg3);">
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;">Nome do Serviço</th>
-                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Tipo</th>
-                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Unidade</th>
-                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Ciclo</th>
-                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Criado em</th>
-                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Status</th>
-                <th style="padding:10px 14px;"></th>
-              </tr>
-            </thead>
-            <tbody id="srv-tbody">
-              <tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);font-size:13px;">Nenhum serviço cadastrado</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div><!-- /tabela -->
+      </div><!-- /pane-km -->
 
     </div><!-- /page-servicos -->
+
+    <!-- ══ REVISÕES ══ -->
+    <div class="page" id="page-revisoes">
+      <!-- KPIs -->
+      <div class="kpi-row" id="rev-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+        <div class="kpi-card" id="rev-kpi-venc" style="border-color:var(--err,#ef4444);background:rgba(239,68,68,.08);">
+          <div class="kpi-val" id="rev-kpi-venc-val" style="color:var(--err,#ef4444);">—</div>
+          <div class="kpi-lbl">Vencidas</div>
+        </div>
+        <div class="kpi-card" id="rev-kpi-warn" style="border-color:var(--warn,#f59e0b);background:rgba(245,158,11,.08);">
+          <div class="kpi-val" id="rev-kpi-warn-val" style="color:var(--warn,#f59e0b);">—</div>
+          <div class="kpi-lbl">A Vencer (&lt;2.000 km)</div>
+        </div>
+        <div class="kpi-card" id="rev-kpi-ok" style="border-color:var(--ok,#22c55e);background:rgba(34,197,94,.08);">
+          <div class="kpi-val" id="rev-kpi-ok-val" style="color:var(--ok,#22c55e);">—</div>
+          <div class="kpi-lbl">Em Dia</div>
+        </div>
+        <div class="kpi-card" id="rev-kpi-pend" style="border-color:var(--text3,#8a9ab0);background:rgba(148,163,184,.08);">
+          <div class="kpi-val" id="rev-kpi-pend-val" style="color:var(--text3,#8a9ab0);">—</div>
+          <div class="kpi-lbl">Sem Registro</div>
+        </div>
+      </div>
+
+      <!-- Botão Atualizar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--text3);" id="rev-ultima-atualiz">—</div>
+        <button onclick="window.carregarQuadroRevisoes()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
+          onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
+          onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Atualizar
+        </button>
+      </div>
+
+      <!-- Corpo dinâmico dos blocos por tipo de veículo -->
+      <div id="rev-corpo"></div>
+    </div><!-- /page-revisoes -->
 
     <!-- ══ TELEMETRIA ══ -->
     <div class="page" id="page-veiculos">
@@ -2304,7 +2493,8 @@ window.showPage = function(page,btn) {
     estoque: 'Controle de Estoque',
     veiculos: 'Gerenciamento de Veículos',
     telemetria: 'Telemetria — Consumo, Manutenção e Segurança',
-    servicos: 'Serviços — Cadastro'
+    servicos: 'Serviços — Cadastro',
+    revisoes: 'Quadro de Revisões — Controle por KM'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
@@ -2313,6 +2503,7 @@ window.showPage = function(page,btn) {
   if (page === 'historico') { histPopularSelectVeiculo(); histSetPeriodo(7); }
   if (page === 'telemetria') carregarTelemetriaPagina();
   if (page === 'servicos') { carregarTiposServico(); carregarTabelaServicos(); }
+  if (page === 'revisoes') carregarQuadroRevisoes();
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -5088,6 +5279,58 @@ window.regAplicarFiltro= regAplicarFiltro;
 
 // Estado da unidade selecionada
 let _srvUnidadeSelecionada = null;
+let _srvForcaTrabalho  = new Set(); // 'FROTA' | 'TERCEIRO'
+let _srvTiposVeiculo   = new Set(); // 'BITRUCK' | 'CAVALO' | 'CARRETA'
+
+function toggleForcaTrabalho(valor) {
+  const btn = document.getElementById('srv-' + valor.toLowerCase() + '-btn');
+  if (_srvForcaTrabalho.has(valor)) {
+    _srvForcaTrabalho.delete(valor);
+    btn.style.borderColor  = 'var(--border)';
+    btn.style.background   = 'var(--bg3)';
+    btn.style.color        = 'var(--text2)';
+    btn.dataset.sel        = '0';
+  } else {
+    _srvForcaTrabalho.add(valor);
+    btn.style.borderColor  = 'var(--blue)';
+    btn.style.background   = 'rgba(59,130,246,.12)';
+    btn.style.color        = 'var(--blue)';
+    btn.dataset.sel        = '1';
+  }
+  document.getElementById('srv-forca-alerta').style.display = 'none';
+}
+
+function toggleTipoVeiculo(valor) {
+  const idMap = { BITRUCK: 'srv-tipo-bitruck', CAVALO: 'srv-tipo-cavalo', CARRETA: 'srv-tipo-carreta' };
+  const btn = document.getElementById(idMap[valor]);
+  if (_srvTiposVeiculo.has(valor)) {
+    _srvTiposVeiculo.delete(valor);
+    btn.style.borderColor = 'var(--border)';
+    btn.style.background  = 'var(--bg3)';
+    btn.style.color       = 'var(--text2)';
+    btn.dataset.sel       = '0';
+  } else {
+    _srvTiposVeiculo.add(valor);
+    btn.style.borderColor = 'var(--blue)';
+    btn.style.background  = 'rgba(59,130,246,.12)';
+    btn.style.color       = 'var(--blue)';
+    btn.dataset.sel       = '1';
+  }
+  document.getElementById('srv-tipovei-alerta').style.display = 'none';
+}
+
+function resetForcaTipoButtons() {
+  ['frota','terceiro'].forEach(id => {
+    const btn = document.getElementById('srv-' + id + '-btn');
+    if (btn) { btn.style.borderColor='var(--border)'; btn.style.background='var(--bg3)'; btn.style.color='var(--text2)'; btn.dataset.sel='0'; }
+  });
+  ['srv-tipo-bitruck','srv-tipo-cavalo','srv-tipo-carreta'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.style.borderColor='var(--border)'; btn.style.background='var(--bg3)'; btn.style.color='var(--text2)'; btn.dataset.sel='0'; }
+  });
+  _srvForcaTrabalho.clear();
+  _srvTiposVeiculo.clear();
+}
 
 function selecionarUnidadeServico(unidade) {
   _srvUnidadeSelecionada = unidade;
@@ -5192,6 +5435,16 @@ async function salvarServico() {
     document.getElementById('srv-ciclo').style.borderColor = '#ef4444';
     return;
   }
+  if (_srvForcaTrabalho.size === 0) {
+    document.getElementById('srv-forca-alerta').style.display = 'block';
+    document.getElementById('srv-frota-btn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (_srvTiposVeiculo.size === 0) {
+    document.getElementById('srv-tipovei-alerta').style.display = 'block';
+    document.getElementById('srv-tipo-bitruck').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
 
   const id = nome.toUpperCase().replace(/\s+/g,'_') + '_' + Date.now();
   const dados = {
@@ -5199,6 +5452,8 @@ async function salvarServico() {
     tipo,
     unidadeControle: unid,
     ciclo,
+    forcaTrabalho:   [..._srvForcaTrabalho],
+    tiposVeiculo:    [..._srvTiposVeiculo],
     ativo: true,
     criadoEm: new Date().toISOString()
   };
@@ -5217,7 +5472,9 @@ async function salvarServico() {
     btnKm.style.borderColor = 'var(--border)'; btnKm.style.background = 'var(--bg3)'; btnKm.style.color = 'var(--text2)';
     btnDias.style.borderColor = 'var(--border)'; btnDias.style.background = 'var(--bg3)'; btnDias.style.color = 'var(--text2)';
     _srvUnidadeSelecionada = null;
+    resetForcaTipoButtons();
     await carregarTabelaServicos();
+    showToast('Serviço cadastrado!');
   } catch(e) {
     alert('Erro ao salvar: ' + e.message);
   }
@@ -5244,7 +5501,6 @@ async function carregarTabelaServicos() {
     }
 
     tbody.innerHTML = docs.map(s => {
-      const criadoEm = s.criadoEm ? s.criadoEm.substring(0,10).split('-').reverse().join('/') : '—';
       const ativo    = s.ativo !== false;
       const unidBadge = s.unidadeControle === 'KM'
         ? '<span style="background:rgba(59,130,246,.15);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">📏 KM</span>'
@@ -5255,18 +5511,36 @@ async function carregarTabelaServicos() {
       const statusBadge = ativo
         ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Ativo</span>'
         : '<span style="background:rgba(239,68,68,.12);color:#ef4444;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;">Inativo</span>';
+      // Força de trabalho + tipos de veículo
+      const forcas = (s.forcaTrabalho||[]);
+      const tipos  = (s.tiposVeiculo||[]);
+      const fBadges = forcas.map(f => f === 'FROTA'
+        ? '<span style="background:rgba(34,197,94,.12);color:#22c55e;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;">🏠 Frota</span>'
+        : '<span style="background:rgba(251,191,36,.12);color:#f59e0b;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;">🤝 Terceiro</span>'
+      ).join(' ');
+      const tBadges = tipos.map(t => ({
+        BITRUCK: '<span style="background:rgba(99,102,241,.12);color:#6366f1;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;">🚛 Bitruck</span>',
+        CAVALO:  '<span style="background:rgba(99,102,241,.12);color:#6366f1;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;">🐴 Cavalo</span>',
+        CARRETA: '<span style="background:rgba(99,102,241,.12);color:#6366f1;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;">🚚 Carreta</span>',
+      }[t]||t)).join(' ');
+      const forcaTipoCell = (fBadges || tBadges)
+        ? `<div style="display:flex;flex-direction:column;gap:3px;">${fBadges ? '<div>'+fBadges+'</div>' : ''}${tBadges ? '<div>'+tBadges+'</div>' : ''}</div>`
+        : '<span style="color:var(--text3);font-size:11px;">—</span>';
       return `<tr style="border-top:1px solid var(--border);">
         <td style="padding:12px 14px;font-weight:500;color:var(--text);">${s.nome||'—'}</td>
         <td style="padding:12px 14px;color:var(--text2);">${s.tipo||'—'}</td>
         <td style="padding:12px 14px;text-align:center;">${unidBadge}</td>
         <td style="padding:12px 14px;text-align:center;color:var(--text);font-weight:500;">${cicloStr}</td>
-        <td style="padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;">${criadoEm}</td>
+        <td style="padding:12px 14px;">${forcaTipoCell}</td>
         <td style="padding:12px 14px;text-align:center;">${statusBadge}</td>
         <td style="padding:12px 14px;text-align:center;">
-          ${ativo
-            ? `<button onclick="window.inativarServico('${s.id}')" title="Inativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
-            : `<button onclick="window.reativarServico('${s.id}')" title="Reativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
-          }
+          <div style="display:flex;gap:4px;align-items:center;justify-content:center;">
+            <button onclick="window.abrirModalEditarServico('${s.id}')" title="Editar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            ${ativo
+              ? `<button onclick="window.inativarServico('${s.id}')" title="Inativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
+              : `<button onclick="window.reativarServico('${s.id}')" title="Reativar" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;transition:color .15s;" onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='var(--text3)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>`
+            }
+          </div>
         </td>
       </tr>`;
     }).join('');
@@ -5292,8 +5566,1070 @@ window.fecharModalNovoTipoServico= fecharModalNovoTipoServico;
 window.salvarNovoTipoServico     = salvarNovoTipoServico;
 window.salvarServico             = salvarServico;
 window.carregarTabelaServicos    = carregarTabelaServicos;
+window.toggleForcaTrabalho       = toggleForcaTrabalho;
+window.toggleTipoVeiculo         = toggleTipoVeiculo;
+
 window.inativarServico           = inativarServico;
 window.reativarServico           = reativarServico;
+
+// ═══════════════════════════════════════════════════════════════
+//  SERVIÇOS — Sub-abas
+// ═══════════════════════════════════════════════════════════════
+function srvMostrarTab(tab) {
+  const panes = { cadastro: 'srv-pane-cadastro', km: 'srv-pane-km' };
+  const tabs  = { cadastro: 'srv-tab-cadastro',  km: 'srv-tab-km' };
+  Object.keys(panes).forEach(k => {
+    document.getElementById(panes[k]).style.display = k === tab ? '' : 'none';
+    const btn = document.getElementById(tabs[k]);
+    btn.style.borderBottom = k === tab ? '2px solid var(--blue)' : '2px solid transparent';
+    btn.style.color        = k === tab ? 'var(--text)' : 'var(--text2)';
+  });
+  if (tab === 'km') carregarControleKm(false);
+}
+window.srvMostrarTab = srvMostrarTab;
+
+// ═══════════════════════════════════════════════════════════════
+//  CONTROLE DE KM
+// ═══════════════════════════════════════════════════════════════
+
+// Cache odômetro: placa → { kmAtual, dataRef }
+let _kmOdometro = {};
+// Serviços KM cadastrados
+let _servicosKm = [];
+// Histórico de execuções: placa+servicoId → { kmRegistrado, dataRegistro }
+let _histExec = {};
+// Filtro ativo por serviço
+let _kmFiltroSrv  = 'todos';
+// Filtro ativo por tipo de veículo
+let _kmFiltroTipo = 'todos';
+// Ordenação: coluna e direção
+let _kmSortCol    = null;   // null = ordenação padrão (priority)
+let _kmSortDir    = 'asc';  // 'asc' | 'desc'
+// Estado modal
+let _execModal = { placa: '', nfr: '', tipo: '', servicoId: '', servicoNome: '' };
+
+// ─── 1. Buscar KM atual da frota nos últimos 60 dias ───
+async function buscarKmAtualFrota() {
+  const hoje = new Date();
+  const datas = [];
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(hoje);
+    d.setDate(hoje.getDate() - i);
+    datas.push(d.toISOString().substring(0, 10));
+  }
+
+  const mapa = {}; // placa → { kmFinal, data }
+
+  // Buscar em lotes de 10 (Firestore limit por consulta getDoc em paralelo)
+  const LOTE = 10;
+  for (let i = 0; i < datas.length; i += LOTE) {
+    const lote = datas.slice(i, i + LOTE);
+    const promises = lote.map(dt => getDoc(doc(db, 'programacao_dias', dt)).catch(() => null));
+    const snaps = await Promise.all(promises);
+    snaps.forEach((snap, idx) => {
+      if (!snap || !snap.exists()) return;
+      const data = snap.data();
+      const abast = data.abastecimentos || {};
+      Object.entries(abast).forEach(([placa, reg]) => {
+        const kmF = parseInt(reg.kmFinal) || 0;
+        if (!kmF) return;
+        const dataReg = lote[idx];
+        // Manter o maior kmFinal encontrado (= mais recente/maior odômetro)
+        if (!mapa[placa] || kmF > mapa[placa].kmFinal) {
+          mapa[placa] = { kmFinal: kmF, data: dataReg };
+        }
+      });
+    });
+  }
+  return mapa;
+}
+
+// ─── 2. Buscar histórico de execuções ───
+async function buscarHistoricoExec() {
+  const snap = await getDocs(collection(db, 'servicos_historico'));
+  const hist = {};
+  snap.forEach(d => {
+    const dd = d.data();
+    const key = dd.placa + '::' + dd.servicoId;
+    // Manter o mais recente (maior km)
+    if (!hist[key] || dd.kmRegistrado > hist[key].kmRegistrado) {
+      hist[key] = { kmRegistrado: parseInt(dd.kmRegistrado)||0, dataRegistro: dd.dataRegistro, os: dd.os||'', tecnico: dd.tecnico||'', obs: dd.obs||'' };
+    }
+  });
+  return hist;
+}
+
+// ─── 3. Carregar controle de KM ───
+async function carregarControleKm(forcar = false) {
+  const tbody = document.getElementById('km-ctrl-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="9" style="padding:2.5rem;text-align:center;color:var(--text3);">Carregando odômetros...</td></tr>';
+  document.getElementById('km-ctrl-status').textContent = '⏳ Buscando dados...';
+
+  try {
+    // Buscar em paralelo: odômetros + serviços KM + histórico exec
+    const [odometros, snapSrv, histExec] = await Promise.all([
+      buscarKmAtualFrota(),
+      getDocs(collection(db, 'servicos_cadastro')),
+      buscarHistoricoExec()
+    ]);
+
+    _kmOdometro = odometros;
+    _histExec   = histExec;
+
+    // Filtrar só serviços com unidade KM e ativos
+    _servicosKm = [];
+    snapSrv.forEach(d => {
+      const dd = d.data();
+      if (dd.unidadeControle === 'KM' && dd.ativo !== false) {
+        _servicosKm.push({ id: d.id, ...dd });
+      }
+    });
+
+    document.getElementById('km-ctrl-status').textContent = '';
+
+    if (_servicosKm.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="padding:2.5rem;text-align:center;color:var(--text3);">Nenhum serviço cadastrado com controle por KM</td></tr>';
+      return;
+    }
+
+    // Popular pills de filtro
+    const pillsDiv = document.getElementById('km-filtro-servicos');
+    pillsDiv.innerHTML = `<button class="km-pill-srv" data-id="todos" onclick="window.kmFiltrarServico('todos',this)" style="padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--blue);background:rgba(59,130,246,.15);color:var(--blue);cursor:pointer;">Todos</button>`;
+    _servicosKm.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'km-pill-srv';
+      btn.dataset.id = s.id;
+      btn.onclick = () => window.kmFiltrarServico(s.id, btn);
+      btn.textContent = s.nome;
+      btn.style.cssText = 'padding:5px 14px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;';
+      pillsDiv.appendChild(btn);
+    });
+
+    renderTabelaKm();
+
+    const total = Object.keys(odometros).length;
+    document.getElementById('km-ctrl-info').textContent =
+      `${total} veículo(s) com KM registrado · ${_servicosKm.length} serviço(s) KM`;
+
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="padding:2rem;text-align:center;color:#ef4444;">Erro: ${e.message}</td></tr>`;
+    document.getElementById('km-ctrl-status').textContent = '';
+  }
+}
+
+// ─── 4. Render tabela ───
+function renderTabelaKm() {
+  const tbody = document.getElementById('km-ctrl-tbody');
+  if (!tbody) return;
+
+  // Apenas FROTA (terceiros não têm odômetro no sistema), filtrado por tipo de veículo
+  const veiculosTodos = FROTA.filter(v => v.ativo !== false);
+  const veiculos = _kmFiltroTipo === 'todos' ? veiculosTodos : veiculosTodos.filter(v => v.tipo === _kmFiltroTipo);
+  const servsFiltrados = _kmFiltroSrv === 'todos' ? _servicosKm : _servicosKm.filter(s => s.id === _kmFiltroSrv);
+
+  if (!veiculos.length || !servsFiltrados.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:2.5rem;text-align:center;color:var(--text3);">Sem dados para exibir</td></tr>';
+    return;
+  }
+
+  const linhas = [];
+
+  veiculos.forEach(v => {
+    const placa = v.placa;
+    const kmInfo = _kmOdometro[placa];
+    const kmAtual = kmInfo ? kmInfo.kmFinal : null;
+
+    servsFiltrados.forEach(srv => {
+      // Respeitar força de trabalho e tipo de veículo configurados no serviço
+      const forcas = srv.forcaTrabalho || [];
+      const tipos  = srv.tiposVeiculo  || [];
+      // Se o serviço tem forcaTrabalho configurado e não inclui FROTA → pular
+      if (forcas.length > 0 && !forcas.includes('FROTA')) return;
+      // Se o serviço tem tiposVeiculo configurado e não inclui o tipo deste veículo → pular
+      if (tipos.length > 0 && !tipos.includes(v.tipo)) return;
+
+      const key = placa + '::' + srv.id;
+      const exec = _histExec[key] || null;
+      const kmUltimo = exec ? exec.kmRegistrado : null;
+      const kmProximo = (kmUltimo && srv.ciclo) ? kmUltimo + srv.ciclo : null;
+      const faltam = (kmAtual && kmProximo) ? kmProximo - kmAtual : null;
+
+      // Badge status
+      let badge = '';
+      let sortPrio = 3;
+      if (!kmUltimo) {
+        badge = '<span style="background:rgba(148,163,184,.15);color:#94a3b8;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;">Sem registro</span>';
+        sortPrio = 2;
+      } else if (faltam === null) {
+        badge = '<span style="background:rgba(148,163,184,.15);color:#94a3b8;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;">—</span>';
+        sortPrio = 3;
+      } else if (faltam < 0) {
+        badge = `<span style="background:rgba(239,68,68,.15);color:#ef4444;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;">Vencido ${Math.abs(faltam).toLocaleString('pt-BR')} km</span>`;
+        sortPrio = 0;
+      } else if (faltam <= srv.ciclo * 0.1) {
+        // ≤10% do ciclo restante = âmbar
+        badge = `<span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;">⚠ ${faltam.toLocaleString('pt-BR')} km</span>`;
+        sortPrio = 1;
+      } else {
+        badge = `<span style="background:rgba(34,197,94,.12);color:#22c55e;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;">${faltam.toLocaleString('pt-BR')} km</span>`;
+        sortPrio = 3;
+      }
+
+      linhas.push({
+        sortPrio, placa,
+        nfr: v.nfr, tipo: v.tipo, bloco: v.bloco||'', marca: v.marca||'', modelo: v.modelo||'',
+        kmAtual, kmInfo,
+        srv, kmUltimo, kmProximo, faltam, badge,
+        execData: exec ? exec.dataRegistro : null,
+        execOs:   exec ? exec.os||'' : '',
+        servicoId: srv.id
+      });
+    });
+  });
+
+  // Ordenar
+  if (_kmSortCol) {
+    const dir = _kmSortDir === 'asc' ? 1 : -1;
+    linhas.sort((a,b) => {
+      let va, vb;
+      switch (_kmSortCol) {
+        case 'placa':     va = a.placa||'';          vb = b.placa||'';          return dir * va.localeCompare(vb);
+        case 'kmAtual':   va = a.kmAtual||0;         vb = b.kmAtual||0;         return dir * (va - vb);
+        case 'servico':   va = a.srv.nome||'';       vb = b.srv.nome||'';       return dir * va.localeCompare(vb);
+        case 'ciclo':     va = a.srv.ciclo||0;       vb = b.srv.ciclo||0;       return dir * (va - vb);
+        case 'kmUltimo':  va = a.kmUltimo||0;        vb = b.kmUltimo||0;        return dir * (va - vb);
+        case 'kmProximo': va = a.kmProximo||0;       vb = b.kmProximo||0;       return dir * (va - vb);
+        case 'situacao':  va = a.sortPrio;           vb = b.sortPrio;
+          if (va !== vb) return dir * (va - vb);
+          if (a.faltam !== null && b.faltam !== null) return dir * (a.faltam - b.faltam);
+          return 0;
+        default:          return 0;
+      }
+    });
+  } else {
+    // Ordenação padrão: vencidos primeiro, depois âmbar, depois sem registro, depois ok
+    linhas.sort((a,b) => {
+      if (a.sortPrio !== b.sortPrio) return a.sortPrio - b.sortPrio;
+      if (a.faltam !== null && b.faltam !== null) return a.faltam - b.faltam;
+      return (a.placa||'').localeCompare(b.placa||'');
+    });
+  }
+
+  tbody.innerHTML = linhas.map(l => {
+    const kmAtualStr = l.kmAtual ? l.kmAtual.toLocaleString('pt-BR') + ' km' : '<span style="color:var(--text3)">—</span>';
+    const kmDataStr  = l.kmInfo  ? `<div style="font-size:10px;color:var(--text3);">${l.kmInfo.data.split('-').reverse().join('/')}</div>` : '';
+    const kmUltStr   = l.kmUltimo ? l.kmUltimo.toLocaleString('pt-BR') + ' km' : '<span style="color:var(--text3)">—</span>';
+    const kmProxStr  = l.kmProximo ? l.kmProximo.toLocaleString('pt-BR') + ' km' : '<span style="color:var(--text3)">—</span>';
+    const cicloStr   = l.srv.ciclo ? l.srv.ciclo.toLocaleString('pt-BR') + ' km' : '—';
+    return `<tr style="border-top:1px solid var(--border);" data-srv-id="${l.servicoId}">
+      <td style="padding:11px 14px;">
+        <div style="font-weight:600;color:var(--text);">${l.placa}</div>
+        <div style="font-size:11px;color:var(--text3);">N°${l.nfr} · ${l.tipo}${l.bloco?' · '+l.bloco:''}</div>
+        ${l.marca||l.modelo ? `<div style="font-size:10px;color:var(--text3);">${[l.marca,l.modelo].filter(Boolean).join(' ')}</div>` : ''}
+      </td>
+      <td style="padding:11px 14px;text-align:center;">
+        <div style="font-weight:600;color:var(--blue);">${kmAtualStr}</div>
+        ${kmDataStr}
+      </td>
+      <td style="padding:11px 14px;">
+        <div style="font-weight:500;color:var(--text);">${l.srv.nome}</div>
+        <div style="font-size:11px;color:var(--text3);">${l.srv.tipo||''}</div>
+      </td>
+      <td style="padding:11px 14px;text-align:center;color:var(--text2);">${cicloStr}</td>
+      <td style="padding:11px 14px;text-align:center;">
+        <div style="color:var(--text);">${kmUltStr}</div>
+        ${l.execData ? `<div style="font-size:10px;color:var(--text3);">${l.execData.substring(0,10).split('-').reverse().join('/')}</div>` : ''}
+      </td>
+      <td style="padding:11px 14px;text-align:center;color:var(--text);">${kmProxStr}</td>
+      <td style="padding:11px 14px;text-align:center;">${l.badge}</td>
+      <td style="padding:11px 14px;text-align:center;">
+        ${l.execOs
+          ? `<span style="background:rgba(59,130,246,.12);color:var(--blue);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;">${l.execOs}</span>`
+          : l.kmUltimo
+            ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <span style="background:rgba(239,68,68,.12);color:#ef4444;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;animation:pulse-os 1.4s ease-in-out infinite;">Sem OS</span>
+                <button onclick="window.abrirModalInformarOs('${l.placa}','${l.servicoId}','${(l.srv.nome||'').replace(/'/g,'&#39;')}')"
+                  style="font-size:10px;font-weight:700;background:rgba(26,95,212,.1);border:1px solid var(--blue);color:var(--blue);border-radius:5px;padding:2px 8px;cursor:pointer;white-space:nowrap;transition:all .15s;"
+                  onmouseover="this.style.background='var(--blue)';this.style.color='#fff'"
+                  onmouseout="this.style.background='rgba(26,95,212,.1)';this.style.color='var(--blue)'">+ Inf. OS</button>
+               </div>`
+            : `<span style="color:var(--text3);font-size:12px;">—</span>`
+        }
+      </td>
+      <td style="padding:11px 14px;text-align:center;">
+        <button onclick="window.abrirModalExecSrv('${l.placa}','${l.nfr}','${l.tipo}','${l.servicoId}','${(l.srv.nome||'').replace(/'/g,'&#39;')}',${l.kmAtual||0})"
+          title="Registrar execução"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;white-space:nowrap;transition:all .15s;"
+          onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
+          onmouseout="this.style.background='var(--bg3)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+          ✓ Registrar
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── 5. Filtro por serviço ───
+function kmFiltrarServico(id, btn) {
+  _kmFiltroSrv = id;
+  document.querySelectorAll('.km-pill-srv').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background  = 'var(--bg3)';
+    b.style.color       = 'var(--text2)';
+  });
+  btn.style.borderColor = 'var(--blue)';
+  btn.style.background  = 'rgba(59,130,246,.15)';
+  btn.style.color       = 'var(--blue)';
+  renderTabelaKm();
+}
+
+// ─── 6. Modal registrar execução ───
+function abrirModalExecSrv(placa, nfr, tipo, servicoId, servicoNome, kmAtual) {
+  _execModal = { placa, nfr, tipo, servicoId, servicoNome, kmAtual };
+  document.getElementById('exec-srv-subtitulo').textContent = servicoNome;
+  document.getElementById('exec-veiculo-placa').textContent = placa;
+  document.getElementById('exec-veiculo-info').textContent  = `N°${nfr} · ${tipo}`;
+  document.getElementById('exec-km-atual').textContent      = kmAtual ? kmAtual.toLocaleString('pt-BR') + ' km' : '—';
+  document.getElementById('exec-km-servico').value          = kmAtual || '';
+  document.getElementById('exec-tecnico').value             = '';
+  document.getElementById('exec-obs').value                 = '';
+  document.getElementById('exec-os').value                  = '';
+  document.getElementById('exec-os').style.borderColor      = 'var(--border)';
+  document.getElementById('exec-os-alerta').style.display   = 'none';
+  // Preenche data com hoje por padrão
+  const hoje = new Date();
+  const aaaa = hoje.getFullYear();
+  const mm   = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dd   = String(hoje.getDate()).padStart(2, '0');
+  document.getElementById('exec-data').value = `${aaaa}-${mm}-${dd}`;
+  document.getElementById('modal-reg-exec-srv').style.display = 'flex';
+  setTimeout(() => document.getElementById('exec-os').focus(), 100);
+}
+function fecharModalExecSrv() {
+  document.getElementById('modal-reg-exec-srv').style.display = 'none';
+}
+async function confirmarExecSrv() {
+  const kmVal    = parseInt(document.getElementById('exec-km-servico').value) || 0;
+  const tecnico  = document.getElementById('exec-tecnico').value.trim();
+  const obs      = document.getElementById('exec-obs').value.trim();
+  const osNum    = document.getElementById('exec-os').value.trim();
+  const dataExec = document.getElementById('exec-data').value; // formato YYYY-MM-DD
+
+  if (!kmVal || kmVal <= 0) {
+    document.getElementById('exec-km-servico').style.borderColor = '#ef4444';
+    document.getElementById('exec-km-servico').focus();
+    return;
+  }
+
+  // Montar ISO da data selecionada (meio-dia para evitar problema de fuso)
+  const dataISO = dataExec
+    ? new Date(dataExec + 'T12:00:00').toISOString()
+    : new Date().toISOString();
+
+  const id = _execModal.placa + '_' + _execModal.servicoId + '_' + Date.now();
+  await setDoc(doc(db, 'servicos_historico', id), {
+    placa:        _execModal.placa,
+    nfr:          _execModal.nfr,
+    tipo:         _execModal.tipo,
+    servicoId:    _execModal.servicoId,
+    servicoNome:  _execModal.servicoNome,
+    kmRegistrado: kmVal,
+    dataRegistro: dataISO,
+    dataExecucao: dataExec,      // campo legível YYYY-MM-DD
+    os:           osNum,
+    tecnico,
+    obs
+  });
+
+  fecharModalExecSrv();
+  // Atualizar cache local e re-renderizar sem nova busca completa
+  const key = _execModal.placa + '::' + _execModal.servicoId;
+  _histExec[key] = { kmRegistrado: kmVal, dataRegistro: dataISO, dataExecucao: dataExec, os: osNum, tecnico, obs };
+  renderTabelaKm();
+  showToast(osNum ? 'Serviço registrado! OS: ' + osNum : 'Serviço registrado com sucesso!');
+}
+
+window.carregarControleKm    = carregarControleKm;
+window.kmFiltrarServico      = kmFiltrarServico;
+window.abrirModalExecSrv     = abrirModalExecSrv;
+window.fecharModalExecSrv    = fecharModalExecSrv;
+window.confirmarExecSrv      = confirmarExecSrv;
+
+// ─── Filtro por tipo de veículo ───
+function kmFiltrarTipo(tipo, btn) {
+  _kmFiltroTipo = tipo;
+  document.querySelectorAll('.km-pill-tipo').forEach(b => {
+    const ativo = b.dataset.tipo === tipo;
+    b.style.borderColor = ativo ? 'var(--blue)' : 'var(--border)';
+    b.style.background  = ativo ? 'rgba(59,130,246,.15)' : 'var(--bg3)';
+    b.style.color       = ativo ? 'var(--blue)' : 'var(--text2)';
+    if (ativo) b.classList.add('active'); else b.classList.remove('active');
+  });
+  renderTabelaKm();
+}
+
+// ─── Ordenação de colunas ───
+function kmOrdenar(col) {
+  if (_kmSortCol === col) {
+    _kmSortDir = _kmSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    _kmSortCol = col;
+    _kmSortDir = 'asc';
+  }
+  const cols = ['placa','kmAtual','servico','ciclo','kmUltimo','kmProximo','situacao'];
+  cols.forEach(c => {
+    const el = document.getElementById('km-sort-' + c);
+    if (!el) return;
+    if (c === _kmSortCol) {
+      el.textContent = _kmSortDir === 'asc' ? ' ↑' : ' ↓';
+      el.style.color = 'var(--blue)';
+    } else {
+      el.textContent = '';
+    }
+  });
+  renderTabelaKm();
+}
+
+// ─── Estado modal editar serviço ───
+let _editSrvId      = null;
+let _editSrvUnidade = null;
+let _editSrvForca   = new Set();
+let _editSrvTipos   = new Set();
+
+function editSelecionarUnidade(unid) {
+  _editSrvUnidade = unid;
+  const km   = document.getElementById('edit-srv-unid-km');
+  const dias = document.getElementById('edit-srv-unid-dias');
+  const label = document.getElementById('edit-srv-ciclo-label');
+  const unit  = document.getElementById('edit-srv-ciclo-unit');
+  if (unid === 'KM') {
+    km.style.borderColor='var(--blue)'; km.style.background='rgba(59,130,246,.12)'; km.style.color='var(--blue)';
+    dias.style.borderColor='var(--border)'; dias.style.background='var(--bg3)'; dias.style.color='var(--text2)';
+    label.textContent = 'Ciclo de Controle (km)';
+    unit.textContent  = 'km';
+  } else {
+    dias.style.borderColor='var(--blue)'; dias.style.background='rgba(59,130,246,.12)'; dias.style.color='var(--blue)';
+    km.style.borderColor='var(--border)'; km.style.background='var(--bg3)'; km.style.color='var(--text2)';
+    label.textContent = 'Ciclo de Controle (dias)';
+    unit.textContent  = 'dias';
+  }
+  document.getElementById('edit-srv-ciclo').disabled = false;
+}
+
+function editToggleForca(valor) {
+  const idMap = { FROTA: 'edit-frota-btn', TERCEIRO: 'edit-terceiro-btn' };
+  const btn = document.getElementById(idMap[valor]);
+  if (!btn) return;
+  if (_editSrvForca.has(valor)) {
+    _editSrvForca.delete(valor);
+    btn.style.borderColor='var(--border)'; btn.style.background='var(--bg3)'; btn.style.color='var(--text2)';
+  } else {
+    _editSrvForca.add(valor);
+    btn.style.borderColor='var(--blue)'; btn.style.background='rgba(59,130,246,.12)'; btn.style.color='var(--blue)';
+  }
+  document.getElementById('edit-forca-alerta').style.display = 'none';
+}
+
+function editToggleTipo(valor) {
+  const idMap = { BITRUCK: 'edit-tipo-bitruck', CAVALO: 'edit-tipo-cavalo', CARRETA: 'edit-tipo-carreta' };
+  const btn = document.getElementById(idMap[valor]);
+  if (!btn) return;
+  if (_editSrvTipos.has(valor)) {
+    _editSrvTipos.delete(valor);
+    btn.style.borderColor='var(--border)'; btn.style.background='var(--bg3)'; btn.style.color='var(--text2)';
+  } else {
+    _editSrvTipos.add(valor);
+    btn.style.borderColor='var(--blue)'; btn.style.background='rgba(59,130,246,.12)'; btn.style.color='var(--blue)';
+  }
+  document.getElementById('edit-tipovei-alerta').style.display = 'none';
+}
+
+function _editResetBtns() {
+  ['edit-frota-btn','edit-terceiro-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--text2)'; }
+  });
+  ['edit-tipo-bitruck','edit-tipo-cavalo','edit-tipo-carreta'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--text2)'; }
+  });
+  ['edit-srv-unid-km','edit-srv-unid-dias'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--text2)'; }
+  });
+  _editSrvForca.clear();
+  _editSrvTipos.clear();
+  _editSrvUnidade = null;
+}
+
+async function abrirModalEditarServico(id) {
+  _editSrvId = id;
+  _editResetBtns();
+  document.getElementById('edit-forca-alerta').style.display   = 'none';
+  document.getElementById('edit-tipovei-alerta').style.display = 'none';
+  document.getElementById('edit-srv-subtitulo').textContent    = 'Carregando...';
+
+  // Copiar opções de tipo do select de cadastro
+  const editTipoSel  = document.getElementById('edit-srv-tipo');
+  const cadTipoSel   = document.getElementById('srv-tipo');
+  editTipoSel.innerHTML = cadTipoSel ? cadTipoSel.innerHTML : '<option value="">Selecione...</option>';
+
+  try {
+    const snap = await getDoc(doc(db, 'servicos_cadastro', id));
+    if (!snap.exists()) { alert('Serviço não encontrado.'); return; }
+    const s = snap.data();
+
+    document.getElementById('edit-srv-nome').value  = s.nome  || '';
+    document.getElementById('edit-srv-ciclo').value = s.ciclo || '';
+    editTipoSel.value = s.tipo || '';
+    document.getElementById('edit-srv-subtitulo').textContent = s.nome || id;
+
+    if (s.unidadeControle) editSelecionarUnidade(s.unidadeControle);
+    (s.forcaTrabalho || []).forEach(f => editToggleForca(f));
+    (s.tiposVeiculo  || []).forEach(t => editToggleTipo(t));
+
+    document.getElementById('modal-editar-srv').style.display = 'flex';
+  } catch(e) {
+    alert('Erro ao carregar serviço: ' + e.message);
+  }
+}
+
+function fecharModalEditarServico() {
+  document.getElementById('modal-editar-srv').style.display = 'none';
+  _editSrvId = null;
+}
+
+async function salvarEdicaoServico() {
+  const nome  = document.getElementById('edit-srv-nome').value.trim();
+  const tipo  = document.getElementById('edit-srv-tipo').value;
+  const ciclo = parseInt(document.getElementById('edit-srv-ciclo').value) || 0;
+
+  if (!nome) {
+    document.getElementById('edit-srv-nome').style.borderColor = '#ef4444';
+    document.getElementById('edit-srv-nome').focus();
+    return;
+  }
+  if (!tipo) {
+    document.getElementById('edit-srv-tipo').style.borderColor = '#ef4444';
+    return;
+  }
+  if (!_editSrvUnidade) {
+    alert('Selecione a Unidade de Controle (KM ou Dias).');
+    return;
+  }
+  if (!ciclo || ciclo <= 0) {
+    document.getElementById('edit-srv-ciclo').style.borderColor = '#ef4444';
+    document.getElementById('edit-srv-ciclo').focus();
+    return;
+  }
+  if (_editSrvForca.size === 0) {
+    document.getElementById('edit-forca-alerta').style.display = 'block';
+    return;
+  }
+  if (_editSrvTipos.size === 0) {
+    document.getElementById('edit-tipovei-alerta').style.display = 'block';
+    return;
+  }
+
+  const dados = {
+    nome,
+    tipo,
+    unidadeControle: _editSrvUnidade,
+    ciclo,
+    forcaTrabalho:   [..._editSrvForca],
+    tiposVeiculo:    [..._editSrvTipos],
+    atualizadoEm:    new Date().toISOString()
+  };
+
+  try {
+    await setDoc(doc(db, 'servicos_cadastro', _editSrvId), dados, { merge: true });
+    fecharModalEditarServico();
+    await carregarTabelaServicos();
+    showToast('Serviço atualizado!');
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+}
+
+window.kmFiltrarTipo            = kmFiltrarTipo;
+window.kmOrdenar                = kmOrdenar;
+window.editSelecionarUnidade    = editSelecionarUnidade;
+window.editToggleForca          = editToggleForca;
+window.editToggleTipo           = editToggleTipo;
+window.abrirModalEditarServico  = abrirModalEditarServico;
+window.fecharModalEditarServico = fecharModalEditarServico;
+window.salvarEdicaoServico      = salvarEdicaoServico;
+
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL — INFORMAR OS (retro-preencher OS em registro sem OS)
+// ══════════════════════════════════════════════════════════════
+let _iosCtx = { placa: '', servicoId: '', srvNome: '' };
+
+function abrirModalInformarOs(placa, servicoId, srvNome) {
+  _iosCtx = { placa, servicoId, srvNome };
+  document.getElementById('ios-subtitulo').textContent = placa + ' · ' + srvNome;
+  document.getElementById('ios-numero').value = '';
+  document.getElementById('ios-erro').style.display = 'none';
+  const ov = document.getElementById('modal-informar-os-ov');
+  ov.style.display = 'flex';
+  setTimeout(function(){ document.getElementById('ios-numero').focus(); }, 80);
+}
+
+function fecharModalInformarOs() {
+  document.getElementById('modal-informar-os-ov').style.display = 'none';
+}
+
+async function salvarOsModal() {
+  const osNum = (document.getElementById('ios-numero').value || '').trim();
+  if (!osNum) {
+    document.getElementById('ios-erro').style.display = 'block';
+    document.getElementById('ios-numero').focus();
+    return;
+  }
+  document.getElementById('ios-erro').style.display = 'none';
+  const btn = document.getElementById('ios-btn-salvar');
+  btn.textContent = 'Salvando…';
+  btn.disabled = true;
+  try {
+    const { placa, servicoId } = _iosCtx;
+    const histRef = collection(db, 'servicos_historico');
+    const snap = await getDocs(histRef);
+    let docId = null, bestKm = -1;
+    snap.forEach(function(d) {
+      const dd = d.data();
+      if (dd.placa === placa && dd.servicoId === servicoId) {
+        const km = parseInt(dd.kmRegistrado) || 0;
+        if (!dd.os || dd.os === '') {
+          if (km > bestKm) { bestKm = km; docId = d.id; }
+        }
+      }
+    });
+    if (!docId) {
+      // Fallback: qualquer doc desse placa+servicoId
+      snap.forEach(function(d) {
+        const dd = d.data();
+        if (dd.placa === placa && dd.servicoId === servicoId && !docId) docId = d.id;
+      });
+    }
+    if (!docId) {
+      alert('Registro não encontrado no histórico.');
+      btn.textContent = 'Salvar OS'; btn.disabled = false; return;
+    }
+    await setDoc(doc(db, 'servicos_historico', docId), { os: osNum }, { merge: true });
+    const key = placa + '::' + servicoId;
+    if (_histExec && _histExec[key]) _histExec[key].os = osNum;
+    if (_revHistorico && _revHistorico[key]) _revHistorico[key].os = osNum;
+    fecharModalInformarOs();
+    showToast('OS ' + osNum + ' salva com sucesso!');
+    renderTabelaKm();
+    if (_revCarregado) _doRenderRevisoes();
+  } catch(e) {
+    alert('Erro ao salvar OS: ' + e.message);
+  }
+  btn.textContent = 'Salvar OS'; btn.disabled = false;
+}
+
+window.abrirModalInformarOs = abrirModalInformarOs;
+window.fecharModalInformarOs = fecharModalInformarOs;
+window.salvarOsModal = salvarOsModal;
+
+
+// ══════════════════════════════════════════════════════════════
+//  QUADRO DE REVISÕES — Opção B (tabela por tipo de veículo)
+// ══════════════════════════════════════════════════════════════
+let _revServicos  = [];
+let _revHistorico = {};
+let _revCarregado = false;
+
+async function carregarQuadroRevisoes() {
+  document.getElementById('rev-corpo').innerHTML =
+    '<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px;">Carregando revisões…</div>';
+  try {
+    // ── 1. Serviços ──
+    if (!_servicosKm || _servicosKm.length === 0) {
+      const srvSnap = await getDocs(collection(db, 'servicos_cadastro'));
+      _revServicos = [];
+      srvSnap.forEach(function(d) {
+        const dd = d.data();
+        if (dd.unidadeControle === 'KM' && dd.ativo !== false) {
+          _revServicos.push(Object.assign({ id: d.id }, dd));
+        }
+      });
+    } else {
+      _revServicos = _servicosKm.slice();
+    }
+
+    // ── 2. Histórico (último por placa::serviço) ──
+    if (!_histExec || Object.keys(_histExec).length === 0) {
+      const histSnap = await getDocs(collection(db, 'servicos_historico'));
+      _revHistorico = {};
+      histSnap.forEach(function(d) {
+        const dd = d.data();
+        if (!dd.placa || !dd.servicoId) return;
+        const key = dd.placa + '::' + dd.servicoId;
+        const ex  = _revHistorico[key];
+        const km  = parseInt(dd.kmRegistrado) || 0;
+        if (!ex || km > ex.kmRegistrado) {
+          _revHistorico[key] = { kmRegistrado: km, dataRegistro: dd.dataRegistro||'', os: dd.os||'', tecnico: dd.tecnico||'' };
+        }
+      });
+    } else {
+      _revHistorico = _histExec;
+    }
+
+    // ── 3. Odômetro (KM atual) — buscar do abastecimento mais recente se não carregado ──
+    if (!_kmOdometro || Object.keys(_kmOdometro).length === 0) {
+      // Buscar os últimos 7 dias — parar quando encontrar o primeiro dia com registros
+      const hoje = new Date();
+      let kmEncontrado = false;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(hoje);
+        d.setDate(hoje.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm   = String(d.getMonth()+1).padStart(2,'0');
+        const dd2  = String(d.getDate()).padStart(2,'0');
+        const docId = yyyy + '-' + mm + '-' + dd2;
+        try {
+          const snap = await getDoc(doc(db, 'programacao_dias', docId));
+          if (snap.exists()) {
+            const docData = snap.data();
+            const abast = docData.abastecimentos || {};
+            const placas = Object.keys(abast);
+            placas.forEach(function(placa) {
+              const km = abast[placa] && abast[placa].kmFinal;
+              if (km) {
+                if (!_kmOdometro[placa] || km > (_kmOdometro[placa].kmFinal||0)) {
+                  _kmOdometro[placa] = { kmFinal: km, data: docId };
+                }
+                kmEncontrado = true;
+              }
+            });
+            if (kmEncontrado) break; // usar o dia mais recente com dados
+          }
+        } catch(e2) { /* ignorar dia sem documento */ }
+      }
+    }
+
+    _revCarregado = true;
+    document.getElementById('rev-ultima-atualiz').textContent =
+      'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+    _doRenderRevisoes();
+  } catch(e) {
+    document.getElementById('rev-corpo').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:#ef4444;font-size:13px;">Erro: ' + e.message + '</div>';
+  }
+}
+
+function _doRenderRevisoes() {
+  const corpo = document.getElementById('rev-corpo');
+  if (!corpo) return;
+  const tiposOrdem = ['BITRUCK','CAVALO','CARRETA'];
+  const veiculosPorTipo = { BITRUCK:[], CAVALO:[], CARRETA:[] };
+  const frota = (typeof FROTA !== 'undefined') ? FROTA : [];
+  frota.forEach(function(v){
+    if (v.ativo === false) return;
+    const t = (v.tipo||'').toUpperCase();
+    if (veiculosPorTipo[t]) veiculosPorTipo[t].push(v);
+  });
+
+  // Ordenação de colunas: REVISÃO primeiro, depois CAMBIO, DIFERENCIAL, restantes
+  function ordemServico(nome) {
+    const n = (nome||'').toUpperCase();
+    if (n.indexOf('REVIS') >= 0) return 0;
+    if (n.indexOf('CAMBIO') >= 0 || n.indexOf('CÂMBIO') >= 0) return 1;
+    if (n.indexOf('DIFERENCIAL') >= 0) return 2;
+    return 9;
+  }
+
+  function srvParaTipo(tipo) {
+    return _revServicos.filter(function(s){
+      const forcas = s.forcaTrabalho || [];
+      if (forcas.length > 0 && forcas.indexOf('FROTA') < 0) return false;
+      const tv = s.tiposVeiculo;
+      // sem restrição → todos os tipos
+      if (!tv || (Array.isArray(tv) && !tv.length)) return true;
+      // array: deve conter exatamente o tipo (ex: 'BITRUCK')
+      if (Array.isArray(tv)) return tv.indexOf(tipo) >= 0;
+      // string: verificar se menciona o tipo
+      return String(tv).toUpperCase().indexOf(tipo) >= 0;
+    }).sort(function(a,b){
+      const oa = ordemServico(a.nome), ob = ordemServico(b.nome);
+      if (oa !== ob) return oa - ob;
+      return (a.nome||'').localeCompare(b.nome||'','pt-BR');
+    });
+  }
+
+  function getKmAtual(placa) {
+    if (typeof _kmOdometro !== 'undefined' && _kmOdometro[placa]) {
+      const val = _kmOdometro[placa];
+      return (typeof val === 'object' && val !== null) ? (val.kmFinal || null) : val;
+    }
+    return null;
+  }
+
+  function calcStatus(placa, srv) {
+    const key  = placa + '::' + srv.id;
+    const hist = _revHistorico[key];
+    const kmAtual = getKmAtual(placa);
+    if (!hist || !hist.kmRegistrado) return { status:'pend', kmUltimo:null, kmProximo:null, faltam:null, os:'', dataRegistro:'' };
+    const kmUltimo  = hist.kmRegistrado;
+    const ciclo     = parseInt(srv.ciclo) || 0;
+    const kmProximo = ciclo ? kmUltimo + ciclo : null;
+    const faltam    = (kmProximo && kmAtual) ? kmProximo - kmAtual : null;
+    let status = 'ok';
+    if (faltam !== null) {
+      if (faltam < 0) status = 'venc';
+      else if (faltam <= 2000) status = 'warn';
+    }
+    return { status, kmUltimo, kmProximo, faltam, kmAtual, os: hist.os||'', dataRegistro: hist.dataRegistro||'' };
+  }
+
+  let kv=0, kw=0, ko=0, kp=0;
+  let html = '';
+
+  tiposOrdem.forEach(function(tipo) {
+    const veics = veiculosPorTipo[tipo] || [];
+    if (!veics.length) return;
+    const srvs = srvParaTipo(tipo);
+    if (!srvs.length) return;
+
+    const gc = '190px repeat(' + srvs.length + ',1fr) 80px';
+
+    // Cabeçalho de serviços — nome abreviado (até 1ª vírgula ou traço se longo)
+    const thSrv = srvs.map(function(s){
+      const nome = s.nome || s.id;
+      // Abreviar: pegar só a parte antes do primeiro " - " para caber na coluna
+      const nomeAbrev = nome.split(' - ')[0].trim();
+      return '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);line-height:1.3;" title="'+nome+'">' + nomeAbrev + '</div>';
+    }).join('');
+
+    let rowsHtml = '';
+    veics.forEach(function(v) {
+      const placa   = v.placa;
+      const kmAtual = getKmAtual(placa);
+      let nvenc=0, nwarn=0;
+
+      const cells = srvs.map(function(srv) {
+        const c = calcStatus(placa, srv);
+        if      (c.status==='venc') { kv++; nvenc++; }
+        else if (c.status==='warn') { kw++; nwarn++; }
+        else if (c.status==='pend') { kp++; }
+        else                        { ko++; }
+
+        const bgM  = {venc:'#ef4444',warn:'#f59e0b',ok:'#22c55e',pend:'#94a3b8'};
+        const clrM = {venc:'#fff',warn:'#fff',ok:'#fff',pend:'#fff'};
+        const bg   = bgM[c.status]  || '';
+        const clr  = clrM[c.status] || '#fff';
+
+        // ── Conteúdo da célula (igual layout da tela Controle KM) ──
+        const srvIdEsc  = srv.id.replace(/'/g,'&#39;');
+        const srvNomEsc = (srv.nome||'').replace(/'/g,'&#39;');
+
+        if (c.status === 'pend') {
+          // Sem registro — célula simples
+          return '<div onclick="window.abrirDetalheRevisao(\''+placa+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+            + ' style="padding:10px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+            + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+            + '<span style="color:rgba(255,255,255,.7);font-size:11px;font-style:italic;">Sem registro</span>'
+            + '</div>';
+        }
+
+        // Próx. km — label pequeno em branco
+        const proxLine = c.kmProximo
+          ? '<div style="font-size:10px;color:rgba(255,255,255,.75);margin-bottom:2px;">PROX '
+            + c.kmProximo.toLocaleString('pt-BR') + ' km</div>'
+          : '';
+
+        // Valor principal: km restante em destaque
+        let sitBadge = '';
+        if (c.faltam !== null) {
+          const sign = c.faltam < 0 ? '−' : '+';
+          sitBadge = '<div style="font-size:15px;font-weight:800;color:#fff;line-height:1.2;">'
+            + sign + Math.abs(c.faltam).toLocaleString('pt-BR') + ' km</div>';
+        }
+
+        const ultLine  = '';
+        const cicLine  = '';
+        const dataLine = '';
+
+        // OS badge / botão informar (sobre fundo colorido sólido)
+        let osBadge = '';
+        if (c.os) {
+          osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.18);color:#fff;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;">'+c.os+'</span></div>';
+        } else {
+          const sne = (srv.nome||'').replace(/'/g,'&#39;');
+          osBadge = '<div style="margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">'
+            + '<span style="background:#ef4444;color:#fff;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;animation:pulse-os 1.4s ease-in-out infinite;">⚠ Sem OS</span>'
+            + '<button onclick="event.stopPropagation();window.abrirModalInformarOs(\''+placa+'\',\''+srv.id+'\',\''+sne+'\')" style="font-size:9px;font-weight:700;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;" onmouseover="this.style.background=\'rgba(255,255,255,.4)\'" onmouseout="this.style.background=\'rgba(255,255,255,.25)\'">+ Inf. OS</button>'
+            + '</div>';
+        }
+
+        // Célula clicável
+        return '<div onclick="window.abrirDetalheRevisao(\''+placa+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+          + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+          + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+          + proxLine + sitBadge + ultLine + cicLine + dataLine + osBadge
+          + '</div>';
+      }).join('');
+
+      // Resumo do veículo
+      const rBg = nvenc>0 ? 'rgba(239,68,68,.09)' : nwarn>0 ? 'rgba(245,158,11,.09)' : 'var(--bg3)';
+      const rTxt = nvenc>0
+        ? '<span style="color:#ef4444;font-size:17px;font-weight:700;">'+nvenc+'</span><div style="font-size:9px;color:#ef4444;font-weight:600;">VENC.</div>'
+        : nwarn>0
+          ? '<span style="color:#f59e0b;font-size:17px;font-weight:700;">'+nwarn+'</span><div style="font-size:9px;color:#f59e0b;font-weight:600;">A VCR.</div>'
+          : '<span style="color:var(--ok,#22c55e);font-size:20px;">✓</span>';
+
+      // Célula do veículo com KM atual
+      const kmAtualStr = kmAtual ? kmAtual.toLocaleString('pt-BR')+' km' : '<span style="color:var(--text3);">—</span>';
+      rowsHtml += '<div style="display:grid;grid-template-columns:'+gc+';border-bottom:1px solid var(--border);">'
+        + '<div style="padding:9px 12px;display:flex;flex-direction:column;justify-content:center;">'
+        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.4px;">'+(v.nfr?v.nfr+' · ':'')+placa+'</div>'
+        + '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
+        + '<div style="font-size:11px;font-weight:600;color:var(--blue);margin-top:3px;">'+kmAtualStr+'</div>'
+        + '</div>'
+        + cells
+        + '<div style="padding:9px 10px;background:'+rBg+';border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">'+rTxt+'</div>'
+        + '</div>';
+    });
+
+    html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
+      + '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">'+tipo+'</span>'
+      + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<div style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);">Veículo</div>'
+      + thSrv
+      + '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);">Status</div></div>'
+      + rowsHtml
+      + '</div>';
+  });
+
+  document.getElementById('rev-kpi-venc-val').textContent = kv;
+  document.getElementById('rev-kpi-warn-val').textContent = kw;
+  document.getElementById('rev-kpi-ok-val').textContent   = ko;
+  document.getElementById('rev-kpi-pend-val').textContent = kp;
+  corpo.innerHTML = html || '<div style="padding:2rem;text-align:center;color:var(--text3);">Nenhum serviço de controle por KM encontrado.</div>';
+}
+
+// ══ Detalhe / Histórico de um serviço de revisão ══
+async function abrirDetalheRevisao(placa, servicoId, srvNome) {
+  const ov = document.getElementById('rev-detalhe-ov');
+  if (!ov) return;
+
+  // Preencher cabeçalho
+  document.getElementById('rev-det-titulo').textContent  = srvNome;
+  document.getElementById('rev-det-placa').textContent   = placa;
+  document.getElementById('rev-det-body').innerHTML =
+    '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:12px;">Carregando histórico…</div>';
+  ov.style.display = 'flex';
+
+  // Info do veículo
+  const veiculo = (typeof FROTA !== 'undefined') ? FROTA.find(function(v){ return v.placa === placa; }) : null;
+  document.getElementById('rev-det-veiculo').textContent =
+    veiculo ? (veiculo.marca||'') + ' ' + (veiculo.modelo||'') + ' · ' + (veiculo.tipo||'') : placa;
+
+  // KM atual
+  const kmAtualVal = (typeof _kmOdometro !== 'undefined' && _kmOdometro[placa])
+    ? (_kmOdometro[placa].kmFinal || _kmOdometro[placa] || null) : null;
+  document.getElementById('rev-det-km-atual').textContent =
+    kmAtualVal ? 'KM atual: ' + kmAtualVal.toLocaleString('pt-BR') + ' km' : '';
+
+  try {
+    // Buscar todos os registros desse placa+serviço (histórico completo)
+    const histSnap = await getDocs(collection(db, 'servicos_historico'));
+    const registros = [];
+    histSnap.forEach(function(d) {
+      const dd = d.data();
+      if (dd.placa === placa && dd.servicoId === servicoId) {
+        registros.push({ id: d.id, ...dd });
+      }
+    });
+    // Ordenar por kmRegistrado decrescente
+    registros.sort(function(a,b){ return (parseInt(b.kmRegistrado)||0) - (parseInt(a.kmRegistrado)||0); });
+
+    if (!registros.length) {
+      document.getElementById('rev-det-body').innerHTML =
+        '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:12px;">Nenhum registro encontrado.</div>';
+      return;
+    }
+
+    // Serviço: ciclo
+    const srv = (_revServicos||[]).find(function(s){ return s.id === servicoId; });
+    const ciclo = srv ? parseInt(srv.ciclo)||0 : 0;
+
+    // Montar tabela de histórico
+    let rows = '';
+    registros.forEach(function(r, idx) {
+      const km    = parseInt(r.kmRegistrado) || 0;
+      const prox  = ciclo ? km + ciclo : null;
+      const data  = (r.dataRegistro||r.dataExecucao||'').substring(0,10).split('-').reverse().join('/');
+      const os    = r.os || '';
+      const tec   = r.tecnico || '';
+      const obs   = r.obs || '';
+      const isMaisRecente = idx === 0;
+
+      // Calcular faltam (somente para o mais recente)
+      let situacao = '';
+      if (isMaisRecente && prox && kmAtualVal) {
+        const faltam = prox - kmAtualVal;
+        if (faltam < 0) {
+          situacao = '<span style="color:#ef4444;font-weight:700;">−'+Math.abs(faltam).toLocaleString('pt-BR')+' km</span><br><span style="font-size:10px;color:#ef4444;">VENCIDA</span>';
+        } else if (faltam <= 2000) {
+          situacao = '<span style="color:#f59e0b;font-weight:700;">+'+faltam.toLocaleString('pt-BR')+' km</span><br><span style="font-size:10px;color:#f59e0b;">A VENCER</span>';
+        } else {
+          situacao = '<span style="color:#22c55e;font-weight:700;">+'+faltam.toLocaleString('pt-BR')+' km</span><br><span style="font-size:10px;color:#22c55e;">EM DIA</span>';
+        }
+      }
+
+      rows += '<tr style="border-bottom:1px solid var(--border);'+(isMaisRecente?'background:rgba(59,130,246,.05);':'')+'">'
+        + '<td style="padding:10px 12px;font-size:12px;font-weight:'+(isMaisRecente?'700':'400')+';color:var(--text);">'
+        + km.toLocaleString('pt-BR') + ' km'
+        + (isMaisRecente ? ' <span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--blue);border-radius:4px;padding:1px 6px;font-weight:700;">+ RECENTE</span>' : '')
+        + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);">' + (prox ? prox.toLocaleString('pt-BR') + ' km' : '—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);">' + data + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);">'
+        + (os ? '<span style="background:rgba(59,130,246,.12);color:var(--blue);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">'+os+'</span>'
+              : '<span style="color:var(--text3);font-size:11px;">—</span>')
+        + '</td>'
+        + '<td style="padding:10px 12px;font-size:11px;color:var(--text2);">' + (tec||'—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:11px;color:var(--text2);">' + (situacao||'—') + '</td>'
+        + '</tr>';
+    });
+
+    document.getElementById('rev-det-body').innerHTML =
+      '<table style="width:100%;border-collapse:collapse;">'
+      + '<thead><tr style="background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">KM Registrado</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Próxima</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Data</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">OS</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Técnico</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Situação</th>'
+      + '</tr></thead>'
+      + '<tbody>' + rows + '</tbody>'
+      + '</table>';
+
+  } catch(e) {
+    document.getElementById('rev-det-body').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:#ef4444;font-size:12px;">Erro: '+e.message+'</div>';
+  }
+}
+
+function fecharDetalheRevisao() {
+  const ov = document.getElementById('rev-detalhe-ov');
+  if (ov) ov.style.display = 'none';
+}
+
+window.carregarQuadroRevisoes = carregarQuadroRevisoes;
+window.abrirDetalheRevisao    = abrirDetalheRevisao;
+window.fecharDetalheRevisao   = fecharDetalheRevisao;
+
 
 
 </script>
@@ -5585,6 +6921,274 @@ window.reativarServico           = reativarServico;
           Salvar
         </button>
       </div>
+    </div>
+  </div>
+
+
+  <!-- ══ Modal: Registrar Execução de Serviço (KM) ══ -->
+  <div id="modal-reg-exec-srv" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.75rem;min-width:380px;max-width:460px;width:92%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Registrar Serviço Executado</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="exec-srv-subtitulo">—</div>
+        </div>
+        <button onclick="window.fecharModalExecSrv()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Info veículo + KM atual -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:1rem;display:flex;gap:16px;">
+        <div style="flex:1;">
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">Veículo</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);" id="exec-veiculo-placa">—</div>
+          <div style="font-size:11px;color:var(--text3);" id="exec-veiculo-info">—</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">KM Atual (odômetro)</div>
+          <div style="font-size:14px;font-weight:700;color:var(--blue);" id="exec-km-atual">—</div>
+          <div style="font-size:11px;color:var(--text3);">último registro de abastecimento</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:1.25rem;">
+
+        <!-- Data da execução -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Data da Execução</label>
+          <input id="exec-data" type="date"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;cursor:pointer;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          <span style="font-size:10px;color:var(--text3);">Padrão: hoje. Altere para registros retroativos.</span>
+        </div>
+
+        <!-- Número da OS -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">
+            Nº da OS
+            <span style="font-size:10px;font-weight:400;text-transform:none;color:var(--text3);margin-left:4px;">(opcional)</span>
+          </label>
+          <input id="exec-os" type="text" placeholder="Ex: OS-2024-001"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)';document.getElementById('exec-os-alerta').style.display='none';this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+          <span id="exec-os-alerta" style="display:none;font-size:11px;color:#ef4444;font-weight:500;">⚠ Informe o número da OS antes de confirmar.</span>
+        </div>
+
+        <!-- KM no momento da execução -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">KM no momento do serviço</label>
+          <div style="position:relative;">
+            <input id="exec-km-servico" type="number" min="0" placeholder="Confirme ou ajuste o KM"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;padding-right:48px;font-size:13px;color:var(--text);outline:none;box-sizing:border-box;transition:border .15s;"
+              onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--text3);pointer-events:none;">km</span>
+          </div>
+        </div>
+
+        <!-- Técnico responsável -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Técnico / Responsável</label>
+          <input id="exec-tecnico" type="text" placeholder="Nome do técnico"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <!-- Observação -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Observação <span style="font-weight:400;text-transform:none;">(opcional)</span></label>
+          <textarea id="exec-obs" rows="2" placeholder="Peças trocadas, fornecedor, etc."
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;resize:vertical;transition:border .15s;font-family:inherit;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="window.fecharModalExecSrv()"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">
+          Cancelar
+        </button>
+        <button onclick="window.confirmarExecSrv()"
+          style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;">
+          Confirmar Execução
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR SERVIÇO -->
+  <div id="modal-editar-srv" style="display:none;position:fixed;inset:0;z-index:3200;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.75rem;min-width:520px;max-width:600px;width:92%;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Editar Serviço</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="edit-srv-subtitulo">—</div>
+        </div>
+        <button onclick="window.fecharModalEditarServico()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+
+        <!-- Nome do Serviço -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Nome do Serviço</label>
+          <input id="edit-srv-nome" type="text" autocomplete="off"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <!-- Tipo de Serviço -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Serviço</label>
+          <select id="edit-srv-tipo" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;cursor:pointer;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+
+        <!-- Unidade de Controle -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Unidade de Controle</label>
+          <div style="display:flex;gap:8px;">
+            <button id="edit-srv-unid-km" onclick="window.editSelecionarUnidade('KM')"
+              style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+              📏 KM
+            </button>
+            <button id="edit-srv-unid-dias" onclick="window.editSelecionarUnidade('DIAS')"
+              style="flex:1;padding:9px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;">
+              📅 Dias
+            </button>
+          </div>
+        </div>
+
+        <!-- Ciclo -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;" id="edit-srv-ciclo-label">Ciclo de Controle</label>
+          <div style="position:relative;">
+            <input id="edit-srv-ciclo" type="number" min="1"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;padding-right:56px;font-size:13px;color:var(--text);outline:none;box-sizing:border-box;transition:border .15s;"
+              onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+            <span id="edit-srv-ciclo-unit" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:var(--text3);pointer-events:none;">—</span>
+          </div>
+        </div>
+
+      </div><!-- /grid -->
+
+      <!-- Segunda linha: Força de Trabalho + Tipos de Veículo -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+
+        <!-- Força de Trabalho -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Força de Trabalho</label>
+          <div style="display:flex;gap:8px;">
+            <button id="edit-frota-btn" onclick="window.editToggleForca('FROTA')"
+              style="flex:1;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+              🏠 Frota
+            </button>
+            <button id="edit-terceiro-btn" onclick="window.editToggleForca('TERCEIRO')"
+              style="flex:1;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+              🤝 Terceiro
+            </button>
+          </div>
+          <span id="edit-forca-alerta" style="display:none;font-size:11px;color:#ef4444;">⚠ Selecione ao menos uma força de trabalho.</span>
+        </div>
+
+        <!-- Tipos de Veículo -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Tipo de Veículo Aplicável</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="edit-tipo-bitruck" onclick="window.editToggleTipo('BITRUCK')"
+              style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+              🚛 Bitruck
+            </button>
+            <button id="edit-tipo-cavalo" onclick="window.editToggleTipo('CAVALO')"
+              style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+              🐴 Cavalo
+            </button>
+            <button id="edit-tipo-carreta" onclick="window.editToggleTipo('CARRETA')"
+              style="flex:1;min-width:70px;padding:8px 6px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;">
+              🚚 Carreta
+            </button>
+          </div>
+          <span id="edit-tipovei-alerta" style="display:none;font-size:11px;color:#ef4444;">⚠ Selecione ao menos um tipo de veículo.</span>
+        </div>
+
+      </div><!-- /segunda linha -->
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem;">
+        <button onclick="window.fecharModalEditarServico()"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">
+          Cancelar
+        </button>
+        <button onclick="window.salvarEdicaoServico()"
+          style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;">
+          Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL — INFORMAR OS (KM + REVISÕES)
+  ══════════════════════════════════════════════════════ -->
+  <div id="modal-informar-os-ov" style="display:none;position:fixed;inset:0;z-index:3300;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;" onclick="if(event.target===this)window.fecharModalInformarOs()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.75rem;min-width:380px;max-width:440px;width:90%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Informar Número de OS</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px;" id="ios-subtitulo">—</div>
+        </div>
+        <button onclick="window.fecharModalInformarOs()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;margin-bottom:1.25rem;font-size:12px;color:var(--warn,#f59e0b);">
+        ⚠ Este serviço foi registrado sem OS. Informe o número para completar o registro.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;">
+        <label style="font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Número da OS</label>
+        <input id="ios-numero" type="text" placeholder="Ex: OS-2025-001" autocomplete="off"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);outline:none;transition:border .15s;"
+          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')window.salvarOsModal()">
+        <span id="ios-erro" style="display:none;font-size:11px;color:#ef4444;margin-top:2px;">Informe o número da OS.</span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="window.fecharModalInformarOs()"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">
+          Cancelar
+        </button>
+        <button onclick="window.salvarOsModal()" id="ios-btn-salvar"
+          style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          Salvar OS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal Detalhe / Histórico de Revisão ══ -->
+  <div id="rev-detalhe-ov" style="display:none;position:fixed;inset:0;z-index:3400;background:rgba(0,0,0,0.72);backdrop-filter:blur(5px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem;" onclick="if(event.target===this)window.fecharDetalheRevisao()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:860px;margin:auto;overflow:hidden;">
+      <!-- Cabeçalho -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:1.25rem 1.5rem;background:var(--bg3);border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);" id="rev-det-titulo">—</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;">
+            <span id="rev-det-placa" style="font-weight:600;color:var(--text2);"></span>
+            <span style="margin:0 6px;opacity:.4;">·</span>
+            <span id="rev-det-veiculo"></span>
+          </div>
+          <div style="font-size:11px;color:var(--blue);margin-top:4px;font-weight:600;" id="rev-det-km-atual"></div>
+        </div>
+        <button onclick="window.fecharDetalheRevisao()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;flex-shrink:0;margin-left:12px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <!-- Corpo: tabela de histórico -->
+      <div id="rev-det-body" style="overflow-x:auto;"></div>
     </div>
   </div>
 
