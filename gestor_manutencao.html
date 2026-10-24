@@ -28,14 +28,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .sidebar-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
 
 /* MAIN */
-.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;}
-.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5;flex-shrink:0;}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;z-index:5;}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
 .topbar-date{font-size:11px;color:var(--text3);font-family:Arial,sans-serif;}
 .btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
 .btn-sm:hover{background:var(--bg4);color:var(--text);}
-.content{padding:20px 24px;overflow-y:auto;flex:1;}
+.content{padding:0 24px 20px;overflow-y:auto;flex:1;}
 
 /* KPI */
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
@@ -150,6 +150,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .loading-bar.show{display:block;}
 @keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
 
+/* PRINT — Quadro de Revisões */
+@media print {
+  @page { size: A3 landscape; margin: 10mm; }
+  body > *:not(#rev-print-area) { display: none !important; }
+  #rev-print-area {
+    display: block !important;
+    position: static !important;
+    background: #fff !important;
+    color: #111 !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 9px !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  #rev-print-area table { width: 100%; border-collapse: collapse; font-size: 9px; }
+  #rev-print-area th { background: #f1f5f9 !important; color: #334155 !important; font-size: 8px; font-weight: 700; text-transform: uppercase; padding: 4px 5px; border: 1px solid #cbd5e1; text-align: center; white-space: nowrap; }
+  #rev-print-area td { padding: 4px 5px; border: 1px solid #e2e8f0; vertical-align: middle; text-align: center; color: #111 !important; }
+  #rev-print-area td:first-child { text-align: left; }
+  #rev-print-area .rpa-header { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+  #rev-print-area .rpa-sub { font-size: 9px; color: #666; margin-bottom: 10px; }
+  /* Células coloridas de status — forçar legibilidade */
+  #rev-print-area [data-pst="venc"] { background: #fee2e2 !important; color: #7f1d1d !important; }
+  #rev-print-area [data-pst="warn"] { background: #fef3c7 !important; color: #78350f !important; }
+  #rev-print-area [data-pst="ok"]   { background: #dcfce7 !important; color: #14532d !important; }
+  #rev-print-area [data-pst="pend"] { background: #f1f5f9 !important; color: #475569 !important; }
+  #rev-print-area button { display: none !important; }
+  #rev-print-area .rpa-tipo-titulo { font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; background: #f8fafc; padding: 5px 7px; border: 1px solid #e2e8f0; margin: 8px 0 0; color: #1e293b; }
+}
+
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(5,10,18,0.88);z-index:100;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
@@ -180,7 +209,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 .toast{position:fixed;bottom:18px;right:18px;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
 .toast.show{display:block;}
-.page{display:none;}.page.active{display:block;}
+.page{display:none;padding-top:20px;}.page.active{display:block;}
+#page-revisoes{padding-top:0;}
 
 /* Semana vigente */
 .semana-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
@@ -501,6 +531,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Quadro
     </button>
+    <button class="nav-item" id="nav-revisoes-side" onclick="showPage('revisoes',this)" title="Quadro de Revisões">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Revisões
+    </button>
     <button class="nav-item" id="nav-pcm" onclick="showPage('pcm',this)" title="PCM">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
       PCM
@@ -524,10 +558,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <button class="nav-item" id="nav-telemetria" onclick="showPage('telemetria',this)" title="Telemetria">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Telemetria
-    </button>
-    <button class="nav-item" id="nav-revisoes" onclick="showPage('revisoes',this)" title="Quadro de Revisões">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/><circle cx="4.5" cy="19.5" r="2" fill="currentColor" stroke="none" opacity=".4"/></svg>
-      Revisões
     </button>
   </nav>
   <div class="sidebar-user">
@@ -1314,39 +1344,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
     <!-- ══ REVISÕES ══ -->
     <div class="page" id="page-revisoes">
-      <!-- KPIs -->
-      <div class="kpi-row" id="rev-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
-        <div class="kpi-card" id="rev-kpi-venc" style="border-color:var(--err,#ef4444);background:rgba(239,68,68,.08);">
-          <div class="kpi-val" id="rev-kpi-venc-val" style="color:var(--err,#ef4444);">—</div>
-          <div class="kpi-lbl">Vencidas</div>
+      <!-- Sticky: KPIs + barra de ações -->
+      <div id="rev-sticky-top" style="position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 24px 10px;margin:0 -24px 4px;border-bottom:1px solid var(--border);">
+        <!-- KPIs -->
+        <div class="kpi-row" id="rev-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;">
+          <div class="kpi-card" id="rev-kpi-venc" onclick="window.toggleFiltroRevisao('venc')" style="border-color:var(--err,#ef4444);background:rgba(239,68,68,.08);cursor:pointer;transition:transform .15s,box-shadow .15s,filter .15s;" onmouseover="this.style.filter='brightness(.9)'" onmouseout="this.style.filter=''">
+            <div class="kpi-val" id="rev-kpi-venc-val" style="color:var(--err,#ef4444);">—</div>
+            <div class="kpi-lbl">Vencidas</div>
+          </div>
+          <div class="kpi-card" id="rev-kpi-warn" onclick="window.toggleFiltroRevisao('warn')" style="border-color:var(--warn,#f59e0b);background:rgba(245,158,11,.08);cursor:pointer;transition:transform .15s,box-shadow .15s,filter .15s;" onmouseover="this.style.filter='brightness(.9)'" onmouseout="this.style.filter=''">
+            <div class="kpi-val" id="rev-kpi-warn-val" style="color:var(--warn,#f59e0b);">—</div>
+            <div class="kpi-lbl">A Vencer (&lt;2.000 km)</div>
+          </div>
+          <div class="kpi-card" id="rev-kpi-ok" onclick="window.toggleFiltroRevisao('ok')" style="border-color:var(--ok,#22c55e);background:rgba(34,197,94,.08);cursor:pointer;transition:transform .15s,box-shadow .15s,filter .15s;" onmouseover="this.style.filter='brightness(.9)'" onmouseout="this.style.filter=''">
+            <div class="kpi-val" id="rev-kpi-ok-val" style="color:var(--ok,#22c55e);">—</div>
+            <div class="kpi-lbl">Em Dia</div>
+          </div>
+          <div class="kpi-card" id="rev-kpi-pend" onclick="window.toggleFiltroRevisao('pend')" style="border-color:var(--text3,#8a9ab0);background:rgba(148,163,184,.08);cursor:pointer;transition:transform .15s,box-shadow .15s,filter .15s;" onmouseover="this.style.filter='brightness(.9)'" onmouseout="this.style.filter=''">
+            <div class="kpi-val" id="rev-kpi-pend-val" style="color:var(--text3,#8a9ab0);">—</div>
+            <div class="kpi-lbl">Sem Registro</div>
+          </div>
         </div>
-        <div class="kpi-card" id="rev-kpi-warn" style="border-color:var(--warn,#f59e0b);background:rgba(245,158,11,.08);">
-          <div class="kpi-val" id="rev-kpi-warn-val" style="color:var(--warn,#f59e0b);">—</div>
-          <div class="kpi-lbl">A Vencer (&lt;2.000 km)</div>
+        <!-- Barra: última atualização + indicador de filtro + Atualizar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:12px;color:var(--text3);" id="rev-ultima-atualiz">—</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="rev-filtro-label" style="font-size:11px;color:var(--blue);font-weight:600;display:none;align-items:center;gap:4px;">
+              Filtro: <span id="rev-filtro-nome" style="text-decoration:underline;"></span>
+              <button onclick="window.toggleFiltroRevisao(window._revFiltroAtivo)" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:1;" title="Remover filtro">✕</button>
+            </span>
+            <button onclick="window.exportarRevisoesPDF()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.background='#ef4444';this.style.color='#fff';this.style.borderColor='#ef4444'"
+              onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              PDF
+            </button>
+            <button onclick="window.carregarQuadroRevisoes()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
+              onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Atualizar
+            </button>
+          </div>
         </div>
-        <div class="kpi-card" id="rev-kpi-ok" style="border-color:var(--ok,#22c55e);background:rgba(34,197,94,.08);">
-          <div class="kpi-val" id="rev-kpi-ok-val" style="color:var(--ok,#22c55e);">—</div>
-          <div class="kpi-lbl">Em Dia</div>
-        </div>
-        <div class="kpi-card" id="rev-kpi-pend" style="border-color:var(--text3,#8a9ab0);background:rgba(148,163,184,.08);">
-          <div class="kpi-val" id="rev-kpi-pend-val" style="color:var(--text3,#8a9ab0);">—</div>
-          <div class="kpi-lbl">Sem Registro</div>
-        </div>
-      </div>
-
-      <!-- Botão Atualizar -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="font-size:12px;color:var(--text3);" id="rev-ultima-atualiz">—</div>
-        <button onclick="window.carregarQuadroRevisoes()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
-          onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
-          onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          Atualizar
-        </button>
       </div>
 
       <!-- Corpo dinâmico dos blocos por tipo de veículo -->
-      <div id="rev-corpo"></div>
+      <div id="rev-corpo" style="padding-top:12px;"></div>
     </div><!-- /page-revisoes -->
 
     <!-- ══ TELEMETRIA ══ -->
@@ -1536,7 +1580,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, doc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, doc, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -6240,9 +6284,55 @@ window.salvarOsModal = salvarOsModal;
 // ══════════════════════════════════════════════════════════════
 //  QUADRO DE REVISÕES — Opção B (tabela por tipo de veículo)
 // ══════════════════════════════════════════════════════════════
-let _revServicos  = [];
-let _revHistorico = {};
-let _revCarregado = false;
+let _revServicos    = [];
+let _revHistorico   = {};
+let _revCarregado   = false;
+let _revFiltroAtivo = null; // null | 'venc' | 'warn' | 'ok' | 'pend'
+// Sort independente por tipo de veículo: col = -1 (placa) | índice do serviço; dir = 1 asc | -1 desc
+let _revSort = { BITRUCK: { col: null, dir: 1 }, CAVALO: { col: null, dir: 1 }, CARRETA: { col: null, dir: 1 } };
+
+function _revToggleSort(tipo, colIdx) {
+  if (!_revSort[tipo]) _revSort[tipo] = { col: null, dir: 1 };
+  if (_revSort[tipo].col === colIdx) {
+    _revSort[tipo].dir = _revSort[tipo].dir === 1 ? -1 : 1;
+  } else {
+    _revSort[tipo].col = colIdx;
+    _revSort[tipo].dir = 1;
+  }
+  _doRenderRevisoes();
+}
+window._revToggleSort = _revToggleSort;
+
+function toggleFiltroRevisao(status) {
+  _revFiltroAtivo = (_revFiltroAtivo === status) ? null : status;
+  window._revFiltroAtivo = _revFiltroAtivo; // expor para o botão ✕ inline
+  // Atualizar visual dos cards KPI
+  ['venc','warn','ok','pend'].forEach(function(s) {
+    const card = document.getElementById('rev-kpi-' + s);
+    if (!card) return;
+    if (_revFiltroAtivo === s) {
+      card.style.boxShadow = '0 0 0 3px var(--blue)';
+      card.style.transform = 'scale(1.04)';
+    } else {
+      card.style.boxShadow = '';
+      card.style.transform = '';
+    }
+  });
+  // Atualizar label do filtro ativo
+  const lbl = document.getElementById('rev-filtro-label');
+  const nome = document.getElementById('rev-filtro-nome');
+  if (lbl && nome) {
+    if (_revFiltroAtivo) {
+      const nomes = { venc:'Vencidas', warn:'A Vencer', ok:'Em Dia', pend:'Sem Registro' };
+      nome.textContent = nomes[_revFiltroAtivo] || _revFiltroAtivo;
+      lbl.style.display = 'flex';
+    } else {
+      lbl.style.display = 'none';
+    }
+  }
+  _doRenderRevisoes();
+}
+window.toggleFiltroRevisao = toggleFiltroRevisao;
 
 async function carregarQuadroRevisoes() {
   document.getElementById('rev-corpo').innerHTML =
@@ -6280,36 +6370,45 @@ async function carregarQuadroRevisoes() {
       _revHistorico = _histExec;
     }
 
-    // ── 3. Odômetro (KM atual) — buscar do abastecimento mais recente se não carregado ──
-    if (!_kmOdometro || Object.keys(_kmOdometro).length === 0) {
-      // Buscar os últimos 7 dias — parar quando encontrar o primeiro dia com registros
-      const hoje = new Date();
-      let kmEncontrado = false;
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(hoje);
-        d.setDate(hoje.getDate() - i);
-        const yyyy = d.getFullYear();
-        const mm   = String(d.getMonth()+1).padStart(2,'0');
-        const dd2  = String(d.getDate()).padStart(2,'0');
-        const docId = yyyy + '-' + mm + '-' + dd2;
-        try {
-          const snap = await getDoc(doc(db, 'programacao_dias', docId));
-          if (snap.exists()) {
-            const docData = snap.data();
-            const abast = docData.abastecimentos || {};
-            const placas = Object.keys(abast);
-            placas.forEach(function(placa) {
-              const km = abast[placa] && abast[placa].kmFinal;
-              if (km) {
-                if (!_kmOdometro[placa] || km > (_kmOdometro[placa].kmFinal||0)) {
+    // ── 3. Odômetro (KM atual) — buscar por veículo individualmente, até 30 dias atrás ──
+    {
+      // Montar set de placas da frota ativa
+      const placasFrota = new Set(
+        (typeof FROTA !== 'undefined' ? FROTA : [])
+          .filter(function(v){ return v.ativo !== false; })
+          .map(function(v){ return v.placa; })
+      );
+      // Quais placas ainda não têm KM registrado
+      let placasSemKm = Array.from(placasFrota).filter(function(p){
+        return !_kmOdometro[p] || !_kmOdometro[p].kmFinal;
+      });
+
+      if (placasSemKm.length > 0) {
+        const hoje = new Date();
+        // Varrer até 90 dias; a cada dia preencher as placas que ainda faltam
+        for (let i = 0; i < 90 && placasSemKm.length > 0; i++) {
+          const d = new Date(hoje);
+          d.setDate(hoje.getDate() - i);
+          const yyyy = d.getFullYear();
+          const mm   = String(d.getMonth()+1).padStart(2,'0');
+          const dd2  = String(d.getDate()).padStart(2,'0');
+          const docId = yyyy + '-' + mm + '-' + dd2;
+          try {
+            const snap = await getDoc(doc(db, 'programacao_dias', docId));
+            if (snap.exists()) {
+              const abast = snap.data().abastecimentos || {};
+              // Para cada placa ainda pendente, verificar se tem registro nesse dia
+              placasSemKm = placasSemKm.filter(function(placa) {
+                const km = abast[placa] && abast[placa].kmFinal;
+                if (km) {
                   _kmOdometro[placa] = { kmFinal: km, data: docId };
+                  return false; // removida da lista pendente
                 }
-                kmEncontrado = true;
-              }
-            });
-            if (kmEncontrado) break; // usar o dia mais recente com dados
-          }
-        } catch(e2) { /* ignorar dia sem documento */ }
+                return true; // ainda pendente
+              });
+            }
+          } catch(e2) { /* ignorar dia sem documento */ }
+        }
       }
     }
 
@@ -6321,6 +6420,55 @@ async function carregarQuadroRevisoes() {
     document.getElementById('rev-corpo').innerHTML =
       '<div style="text-align:center;padding:3rem;color:#ef4444;font-size:13px;">Erro: ' + e.message + '</div>';
   }
+}
+
+// ── Funções auxiliares de revisão (escopo global para uso no PDF) ──
+function _revOrdemServico(nome) {
+  const n = (nome||'').toUpperCase();
+  if (n.indexOf('REVIS') >= 0) return 0;
+  if (n.indexOf('CAMBIO') >= 0 || n.indexOf('CÂMBIO') >= 0) return 1;
+  if (n.indexOf('DIFERENCIAL') >= 0) return 2;
+  return 9;
+}
+
+function _revSrvParaTipo(tipo) {
+  return _revServicos.filter(function(s){
+    const forcas = s.forcaTrabalho || [];
+    if (forcas.length > 0 && forcas.indexOf('FROTA') < 0) return false;
+    const tv = s.tiposVeiculo;
+    if (!tv || (Array.isArray(tv) && !tv.length)) return true;
+    if (Array.isArray(tv)) return tv.indexOf(tipo) >= 0;
+    return String(tv).toUpperCase().indexOf(tipo) >= 0;
+  }).sort(function(a,b){
+    const oa = _revOrdemServico(a.nome), ob = _revOrdemServico(b.nome);
+    if (oa !== ob) return oa - ob;
+    return (a.nome||'').localeCompare(b.nome||'','pt-BR');
+  });
+}
+
+function _revGetKmAtual(placa) {
+  if (typeof _kmOdometro !== 'undefined' && _kmOdometro[placa]) {
+    const val = _kmOdometro[placa];
+    return (typeof val === 'object' && val !== null) ? (val.kmFinal || null) : val;
+  }
+  return null;
+}
+
+function _revCalcStatus(placa, srv) {
+  const key  = placa + '::' + srv.id;
+  const hist = _revHistorico[key];
+  const kmAtual = _revGetKmAtual(placa);
+  if (!hist || !hist.kmRegistrado) return { status:'pend', kmUltimo:null, kmProximo:null, faltam:null, os:'', dataRegistro:'' };
+  const kmUltimo  = hist.kmRegistrado;
+  const ciclo     = parseInt(srv.ciclo) || 0;
+  const kmProximo = ciclo ? kmUltimo + ciclo : null;
+  const faltam    = (kmProximo && kmAtual) ? kmProximo - kmAtual : null;
+  let status = 'ok';
+  if (faltam !== null) {
+    if (faltam < 0) status = 'venc';
+    else if (faltam <= 2000) status = 'warn';
+  }
+  return { status, kmUltimo, kmProximo, faltam, kmAtual, os: hist.os||'', dataRegistro: hist.dataRegistro||'' };
 }
 
 function _doRenderRevisoes() {
@@ -6335,59 +6483,24 @@ function _doRenderRevisoes() {
     if (veiculosPorTipo[t]) veiculosPorTipo[t].push(v);
   });
 
-  // Ordenação de colunas: REVISÃO primeiro, depois CAMBIO, DIFERENCIAL, restantes
-  function ordemServico(nome) {
-    const n = (nome||'').toUpperCase();
-    if (n.indexOf('REVIS') >= 0) return 0;
-    if (n.indexOf('CAMBIO') >= 0 || n.indexOf('CÂMBIO') >= 0) return 1;
-    if (n.indexOf('DIFERENCIAL') >= 0) return 2;
-    return 9;
-  }
-
-  function srvParaTipo(tipo) {
-    return _revServicos.filter(function(s){
-      const forcas = s.forcaTrabalho || [];
-      if (forcas.length > 0 && forcas.indexOf('FROTA') < 0) return false;
-      const tv = s.tiposVeiculo;
-      // sem restrição → todos os tipos
-      if (!tv || (Array.isArray(tv) && !tv.length)) return true;
-      // array: deve conter exatamente o tipo (ex: 'BITRUCK')
-      if (Array.isArray(tv)) return tv.indexOf(tipo) >= 0;
-      // string: verificar se menciona o tipo
-      return String(tv).toUpperCase().indexOf(tipo) >= 0;
-    }).sort(function(a,b){
-      const oa = ordemServico(a.nome), ob = ordemServico(b.nome);
-      if (oa !== ob) return oa - ob;
-      return (a.nome||'').localeCompare(b.nome||'','pt-BR');
-    });
-  }
-
-  function getKmAtual(placa) {
-    if (typeof _kmOdometro !== 'undefined' && _kmOdometro[placa]) {
-      const val = _kmOdometro[placa];
-      return (typeof val === 'object' && val !== null) ? (val.kmFinal || null) : val;
-    }
-    return null;
-  }
-
-  function calcStatus(placa, srv) {
-    const key  = placa + '::' + srv.id;
-    const hist = _revHistorico[key];
-    const kmAtual = getKmAtual(placa);
-    if (!hist || !hist.kmRegistrado) return { status:'pend', kmUltimo:null, kmProximo:null, faltam:null, os:'', dataRegistro:'' };
-    const kmUltimo  = hist.kmRegistrado;
-    const ciclo     = parseInt(srv.ciclo) || 0;
-    const kmProximo = ciclo ? kmUltimo + ciclo : null;
-    const faltam    = (kmProximo && kmAtual) ? kmProximo - kmAtual : null;
-    let status = 'ok';
-    if (faltam !== null) {
-      if (faltam < 0) status = 'venc';
-      else if (faltam <= 2000) status = 'warn';
-    }
-    return { status, kmUltimo, kmProximo, faltam, kmAtual, os: hist.os||'', dataRegistro: hist.dataRegistro||'' };
-  }
+  // aliases locais para as funções globais
+  const srvParaTipo = _revSrvParaTipo;
+  const getKmAtual  = _revGetKmAtual;
+  const calcStatus  = _revCalcStatus;
 
   let kv=0, kw=0, ko=0, kp=0;
+  // Breakdown por categoria de serviço (para os KPI cards)
+  // Estrutura: { venc: {REVISÃO:0, CÂMBIO:0, DIFERENCIAL:0}, warn:{...}, ok:{...}, pend:{...} }
+  const kpiBreak = {
+    venc: {}, warn: {}, ok: {}, pend: {}
+  };
+  function _catSrv(nome) {
+    const n = (nome||'').toUpperCase();
+    if (n.indexOf('REVIS') >= 0) return 'REVISÃO';
+    if (n.indexOf('CAMBIO') >= 0 || n.indexOf('CÂMBIO') >= 0) return 'CÂMBIO';
+    if (n.indexOf('DIFERENCIAL') >= 0) return 'DIFERENCIAL';
+    return 'OUTROS';
+  }
   let html = '';
 
   tiposOrdem.forEach(function(tipo) {
@@ -6398,26 +6511,73 @@ function _doRenderRevisoes() {
 
     const gc = '190px repeat(' + srvs.length + ',1fr) 80px';
 
-    // Cabeçalho de serviços — nome abreviado (até 1ª vírgula ou traço se longo)
-    const thSrv = srvs.map(function(s){
+    // Sort state para este tipo
+    const sortState = _revSort[tipo] || { col: null, dir: 1 };
+    function sortIcon(colIdx) {
+      if (sortState.col !== colIdx) return '<span style="opacity:.3;font-size:9px;margin-left:3px;">⇅</span>';
+      return '<span style="font-size:9px;margin-left:3px;color:var(--blue);">'+(sortState.dir===1?'↑':'↓')+'</span>';
+    }
+
+    // Cabeçalho de serviços clicáveis
+    const thSrv = srvs.map(function(s, si){
       const nome = s.nome || s.id;
-      // Abreviar: pegar só a parte antes do primeiro " - " para caber na coluna
       const nomeAbrev = nome.split(' - ')[0].trim();
-      return '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);line-height:1.3;" title="'+nome+'">' + nomeAbrev + '</div>';
+      const isActive = sortState.col === si;
+      return '<div onclick="window._revToggleSort(\''+tipo+'\','+si+')" '
+        + 'style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;'
+        + 'color:'+(isActive?'var(--blue)':'var(--text2)')+';text-align:center;border-left:1px solid var(--border);'
+        + 'line-height:1.3;cursor:pointer;user-select:none;transition:background .15s;" '
+        + 'title="'+nome+' — clique para ordenar" '
+        + 'onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'"> '
+        + nomeAbrev + sortIcon(si)
+        + '</div>';
     }).join('');
 
+    // Ordenar veículos conforme sortState
+    let veicsOrdenados = veics.slice(); // cópia para não alterar o array original
+    if (sortState.col === -1) {
+      // ordenar por placa
+      veicsOrdenados.sort(function(a,b){ return sortState.dir * (a.placa||'').localeCompare(b.placa||'','pt-BR'); });
+    } else if (sortState.col !== null && sortState.col >= 0 && sortState.col < srvs.length) {
+      const srv = srvs[sortState.col];
+      veicsOrdenados.sort(function(a,b){
+        const ca = calcStatus(a.placa, srv);
+        const cb = calcStatus(b.placa, srv);
+        // Prioridade de status: venc > warn > ok > pend
+        const ord = { venc:0, warn:1, ok:2, pend:3 };
+        const oa = ord[ca.status] !== undefined ? ord[ca.status] : 4;
+        const ob = ord[cb.status] !== undefined ? ord[cb.status] : 4;
+        if (oa !== ob) return sortState.dir * (oa - ob);
+        // Desempate por km faltando (menor = mais urgente)
+        const fa = ca.faltam !== null ? ca.faltam : 99999;
+        const fb = cb.faltam !== null ? cb.faltam : 99999;
+        return sortState.dir * (fa - fb);
+      });
+    }
+
     let rowsHtml = '';
-    veics.forEach(function(v) {
+    veicsOrdenados.forEach(function(v) {
       const placa   = v.placa;
       const kmAtual = getKmAtual(placa);
       let nvenc=0, nwarn=0;
 
-      const cells = srvs.map(function(srv) {
+      // Pré-calcular status de todas as células para o filtro
+      const statusCells = srvs.map(function(srv){ return calcStatus(placa, srv).status; });
+      // Contar KPIs globais independente do filtro, com breakdown por categoria
+      statusCells.forEach(function(st, si){
+        const cat = _catSrv(srvs[si] ? srvs[si].nome : '');
+        if      (st==='venc') { kv++; nvenc++; kpiBreak.venc[cat] = (kpiBreak.venc[cat]||0)+1; }
+        else if (st==='warn') { kw++; nwarn++; kpiBreak.warn[cat] = (kpiBreak.warn[cat]||0)+1; }
+        else if (st==='pend') { kp++;          kpiBreak.pend[cat] = (kpiBreak.pend[cat]||0)+1; }
+        else                  { ko++;          kpiBreak.ok[cat]   = (kpiBreak.ok[cat]  ||0)+1; }
+      });
+
+      // Aplicar filtro: se filtro ativo, apenas veículos que têm pelo menos uma célula com esse status
+      if (_revFiltroAtivo && statusCells.indexOf(_revFiltroAtivo) < 0) return;
+
+      const cells = srvs.map(function(srv, si) {
         const c = calcStatus(placa, srv);
-        if      (c.status==='venc') { kv++; nvenc++; }
-        else if (c.status==='warn') { kw++; nwarn++; }
-        else if (c.status==='pend') { kp++; }
-        else                        { ko++; }
+        // KPIs já contados acima — apenas renderizar
 
         const bgM  = {venc:'#ef4444',warn:'#f59e0b',ok:'#22c55e',pend:'#94a3b8'};
         const clrM = {venc:'#fff',warn:'#fff',ok:'#fff',pend:'#fff'};
@@ -6437,33 +6597,29 @@ function _doRenderRevisoes() {
             + '</div>';
         }
 
-        // Próx. km — label pequeno em branco
-        const proxLine = c.kmProximo
-          ? '<div style="font-size:10px;color:rgba(255,255,255,.75);margin-bottom:2px;">PROX '
-            + c.kmProximo.toLocaleString('pt-BR') + ' km</div>'
-          : '';
-
-        // Valor principal: km restante em destaque
+        // ── Km restante em destaque (fonte grande, negrito, preto) ──
         let sitBadge = '';
         if (c.faltam !== null) {
           const sign = c.faltam < 0 ? '−' : '+';
-          sitBadge = '<div style="font-size:15px;font-weight:800;color:#fff;line-height:1.2;">'
+          sitBadge = '<div style="font-size:17px;font-weight:900;color:#000;line-height:1.1;letter-spacing:-.3px;">'
             + sign + Math.abs(c.faltam).toLocaleString('pt-BR') + ' km</div>';
         }
 
-        const ultLine  = '';
-        const cicLine  = '';
-        const dataLine = '';
+        // ── Próx. km abaixo do destaque ──
+        const proxLine = c.kmProximo
+          ? '<div style="font-size:10px;font-weight:600;color:#000;opacity:.65;margin-top:3px;">Prox: '
+            + c.kmProximo.toLocaleString('pt-BR') + ' km</div>'
+          : '';
 
-        // OS badge / botão informar (sobre fundo colorido sólido)
+        // ── OS badge / botão informar ──
         let osBadge = '';
         if (c.os) {
-          osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.18);color:#fff;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;">'+c.os+'</span></div>';
+          osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.15);color:#000;border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;">'+c.os+'</span></div>';
         } else {
           const sne = (srv.nome||'').replace(/'/g,'&#39;');
           osBadge = '<div style="margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">'
             + '<span style="background:#ef4444;color:#fff;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;animation:pulse-os 1.4s ease-in-out infinite;">⚠ Sem OS</span>'
-            + '<button onclick="event.stopPropagation();window.abrirModalInformarOs(\''+placa+'\',\''+srv.id+'\',\''+sne+'\')" style="font-size:9px;font-weight:700;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;" onmouseover="this.style.background=\'rgba(255,255,255,.4)\'" onmouseout="this.style.background=\'rgba(255,255,255,.25)\'">+ Inf. OS</button>'
+            + '<button onclick="event.stopPropagation();window.abrirModalInformarOs(\''+placa+'\',\''+srv.id+'\',\''+sne+'\')" style="font-size:9px;font-weight:700;background:rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.25);color:#000;border-radius:4px;padding:2px 6px;cursor:pointer;" onmouseover="this.style.background=\'rgba(0,0,0,.28)\'" onmouseout="this.style.background=\'rgba(0,0,0,.15)\'">+ Inf. OS</button>'
             + '</div>';
         }
 
@@ -6471,7 +6627,7 @@ function _doRenderRevisoes() {
         return '<div onclick="window.abrirDetalheRevisao(\''+placa+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
           + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
           + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
-          + proxLine + sitBadge + ultLine + cicLine + dataLine + osBadge
+          + sitBadge + proxLine + osBadge
           + '</div>';
       }).join('');
 
@@ -6483,13 +6639,17 @@ function _doRenderRevisoes() {
           ? '<span style="color:#f59e0b;font-size:17px;font-weight:700;">'+nwarn+'</span><div style="font-size:9px;color:#f59e0b;font-weight:600;">A VCR.</div>'
           : '<span style="color:var(--ok,#22c55e);font-size:20px;">✓</span>';
 
-      // Célula do veículo com KM atual
-      const kmAtualStr = kmAtual ? kmAtual.toLocaleString('pt-BR')+' km' : '<span style="color:var(--text3);">—</span>';
+      // Célula do veículo com KM atual — Nº em destaque, placa pequena
+      const kmAtualStr = kmAtual ? kmAtual.toLocaleString('pt-BR')+' km' : '—';
       rowsHtml += '<div style="display:grid;grid-template-columns:'+gc+';border-bottom:1px solid var(--border);">'
-        + '<div style="padding:9px 12px;display:flex;flex-direction:column;justify-content:center;">'
-        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.4px;">'+(v.nfr?v.nfr+' · ':'')+placa+'</div>'
-        + '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
-        + '<div style="font-size:11px;font-weight:600;color:var(--blue);margin-top:3px;">'+kmAtualStr+'</div>'
+        + '<div style="padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;">'
+        + (v.nfr
+          ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;">'+v.nfr+'</div>'
+            + '<div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:-2px;">Nº frota</div>'
+          : '')
+        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-top:4px;">'+placa+'</div>'
+        + '<div style="font-size:10px;color:var(--text3);font-weight:500;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
+        + '<div style="font-size:11px;font-weight:700;color:var(--blue);margin-top:2px;">'+kmAtualStr+'</div>'
         + '</div>'
         + cells
         + '<div style="padding:9px 10px;background:'+rBg+';border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">'+rTxt+'</div>'
@@ -6502,7 +6662,7 @@ function _doRenderRevisoes() {
       + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
-      + '<div style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);">Veículo</div>'
+      + '<div onclick="window._revToggleSort(\''+tipo+'\',-1)" style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:'+(sortState.col===-1?'var(--blue)':'var(--text2)')+';cursor:pointer;user-select:none;transition:background .15s;" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'\'">Veículo'+sortIcon(-1)+'</div>'
       + thSrv
       + '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);">Status</div></div>'
       + rowsHtml
@@ -6513,6 +6673,38 @@ function _doRenderRevisoes() {
   document.getElementById('rev-kpi-warn-val').textContent = kw;
   document.getElementById('rev-kpi-ok-val').textContent   = ko;
   document.getElementById('rev-kpi-pend-val').textContent = kp;
+
+  // Breakdown por categoria nos KPI cards
+  function _renderBreak(breakObj, cor) {
+    const cats = Object.keys(breakObj).sort();
+    if (!cats.length) return '';
+    return '<div style="margin-top:7px;display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,.12);padding-top:6px;">'
+      + cats.map(function(cat){
+          return '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">'
+            + '<span style="font-size:9px;font-weight:600;color:'+cor+';opacity:.75;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;">'+cat+'</span>'
+            + '<span style="font-size:10px;font-weight:800;color:'+cor+';">'+breakObj[cat]+'</span>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+
+  function _setKpiBreak(cardId, breakObj, cor) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    let bd = card.querySelector('.kpi-break');
+    if (!bd) {
+      bd = document.createElement('div');
+      bd.className = 'kpi-break';
+      card.appendChild(bd);
+    }
+    bd.innerHTML = _renderBreak(breakObj, cor);
+  }
+
+  _setKpiBreak('rev-kpi-venc', kpiBreak.venc, '#ef4444');
+  _setKpiBreak('rev-kpi-warn', kpiBreak.warn, '#f59e0b');
+  _setKpiBreak('rev-kpi-ok',   kpiBreak.ok,   '#22c55e');
+  _setKpiBreak('rev-kpi-pend', kpiBreak.pend, '#8a9ab0');
+
   corpo.innerHTML = html || '<div style="padding:2rem;text-align:center;color:var(--text3);">Nenhum serviço de controle por KM encontrado.</div>';
 }
 
@@ -6586,6 +6778,13 @@ async function abrirDetalheRevisao(placa, servicoId, srvNome) {
         }
       }
 
+      const docIdEsc  = r.id.replace(/'/g,'&#39;');
+      const dataIso   = (r.dataRegistro||r.dataExecucao||'').substring(0,10);
+      const osEsc     = (r.os||'').replace(/'/g,'&#39;');
+      const tecEsc    = (r.tecnico||'').replace(/'/g,'&#39;');
+      const obsEsc    = (r.obs||'').replace(/'/g,'&#39;');
+      const subtEsc   = (srvNome+' · '+placa).replace(/'/g,'&#39;');
+
       rows += '<tr style="border-bottom:1px solid var(--border);'+(isMaisRecente?'background:rgba(59,130,246,.05);':'')+'">'
         + '<td style="padding:10px 12px;font-size:12px;font-weight:'+(isMaisRecente?'700':'400')+';color:var(--text);">'
         + km.toLocaleString('pt-BR') + ' km'
@@ -6599,6 +6798,20 @@ async function abrirDetalheRevisao(placa, servicoId, srvNome) {
         + '</td>'
         + '<td style="padding:10px 12px;font-size:11px;color:var(--text2);">' + (tec||'—') + '</td>'
         + '<td style="padding:10px 12px;font-size:11px;color:var(--text2);">' + (situacao||'—') + '</td>'
+        + '<td style="padding:6px 8px;text-align:center;white-space:nowrap;">'
+        + '<button onclick="window.abrirEditarRevisao(\''+docIdEsc+'\','+km+',\''+dataIso+'\',\''+osEsc+'\',\''+tecEsc+'\',\''+obsEsc+'\',\''+subtEsc+'\')" '
+        + 'title="Editar este registro" '
+        + 'style="background:none;border:1px solid rgba(59,130,246,.5);color:var(--blue);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;margin-right:4px;" '
+        + 'onmouseover="this.style.background=\'var(--blue)\';this.style.color=\'#fff\'" '
+        + 'onmouseout="this.style.background=\'none\';this.style.color=\'var(--blue)\'">'
+        + '✏ Editar</button>'
+        + '<button onclick="window.excluirRegistroRevisao(\''+docIdEsc+'\')" '
+        + 'title="Excluir este registro" '
+        + 'style="background:none;border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;" '
+        + 'onmouseover="this.style.background=\'#ef4444\';this.style.color=\'#fff\'" '
+        + 'onmouseout="this.style.background=\'none\';this.style.color=\'#ef4444\'">'
+        + '🗑</button>'
+        + '</td>'
         + '</tr>';
     });
 
@@ -6611,6 +6824,7 @@ async function abrirDetalheRevisao(placa, servicoId, srvNome) {
       + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">OS</th>'
       + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Técnico</th>'
       + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Situação</th>'
+      + '<th style="padding:9px 10px;width:140px;"></th>'
       + '</tr></thead>'
       + '<tbody>' + rows + '</tbody>'
       + '</table>';
@@ -6626,9 +6840,208 @@ function fecharDetalheRevisao() {
   if (ov) ov.style.display = 'none';
 }
 
-window.carregarQuadroRevisoes = carregarQuadroRevisoes;
-window.abrirDetalheRevisao    = abrirDetalheRevisao;
-window.fecharDetalheRevisao   = fecharDetalheRevisao;
+// Contexto do detalhe aberto (para reabrir após exclusão)
+let _detCtx = { placa:'', servicoId:'', srvNome:'' };
+
+// Sobrescrever abrirDetalheRevisao para guardar contexto
+const _abrirDetalheOriginal = abrirDetalheRevisao;
+async function abrirDetalheRevisaoCtx(placa, servicoId, srvNome) {
+  _detCtx = { placa, servicoId, srvNome };
+  await _abrirDetalheOriginal(placa, servicoId, srvNome);
+}
+
+async function excluirRegistroRevisao(docId) {
+  if (!confirm('Excluir este registro? Esta ação não pode ser desfeita.')) return;
+  try {
+    await deleteDoc(doc(db, 'servicos_historico', docId));
+
+    // Limpar caches para forçar recarregamento completo
+    _histExec     = {};
+    _revHistorico = {};
+
+    showToast('Registro excluído com sucesso.');
+
+    // Recarregar o quadro e reabrir o detalhe
+    await carregarQuadroRevisoes();
+    if (_detCtx.placa) {
+      await abrirDetalheRevisao(_detCtx.placa, _detCtx.servicoId, _detCtx.srvNome);
+    }
+  } catch(e) {
+    alert('Erro ao excluir: ' + e.message);
+  }
+}
+
+// ── Editar Registro de Revisão ──
+function abrirEditarRevisao(docId, km, dataIso, os, tecnico, obs, subtitulo) {
+  document.getElementById('rev-edit-docid').value   = docId;
+  document.getElementById('rev-edit-km').value      = km || '';
+  document.getElementById('rev-edit-data').value    = dataIso || '';
+  document.getElementById('rev-edit-os').value      = os || '';
+  document.getElementById('rev-edit-tecnico').value = tecnico || '';
+  document.getElementById('rev-edit-obs').value     = obs || '';
+  document.getElementById('rev-edit-subtitulo').textContent = subtitulo || '';
+  document.getElementById('rev-edit-ov').style.display = 'flex';
+}
+
+function fecharEditarRevisao() {
+  document.getElementById('rev-edit-ov').style.display = 'none';
+}
+
+async function salvarEdicaoRevisao() {
+  const btn   = document.getElementById('rev-edit-btn-salvar');
+  const docId = document.getElementById('rev-edit-docid').value;
+  const km    = parseInt(document.getElementById('rev-edit-km').value);
+  const data  = document.getElementById('rev-edit-data').value;
+  const os    = document.getElementById('rev-edit-os').value.trim();
+  const tec   = document.getElementById('rev-edit-tecnico').value.trim();
+  const obs   = document.getElementById('rev-edit-obs').value.trim();
+
+  if (!docId) { alert('ID do documento não encontrado.'); return; }
+  if (!km || km <= 0) { alert('Informe um KM válido.'); return; }
+  if (!data) { alert('Informe a data do registro.'); return; }
+
+  btn.textContent = 'Salvando…'; btn.disabled = true;
+  try {
+    const updates = { kmRegistrado: km, dataRegistro: data };
+    if (os)  updates.os      = os;
+    if (tec) updates.tecnico = tec;
+    if (obs) updates.obs     = obs;
+
+    await setDoc(doc(db, 'servicos_historico', docId), updates, { merge: true });
+
+    // Limpar caches e recarregar
+    _histExec     = {};
+    _revHistorico = {};
+    fecharEditarRevisao();
+    showToast('Registro atualizado com sucesso!');
+    await carregarQuadroRevisoes();
+    if (_detCtx.placa) {
+      await abrirDetalheRevisao(_detCtx.placa, _detCtx.servicoId, _detCtx.srvNome);
+    }
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+  }
+  btn.textContent = 'Salvar'; btn.disabled = false;
+}
+
+// ── Exportar PDF do Quadro de Revisões ──
+function exportarRevisoesPDF() {
+  if (!_revCarregado || !_revServicos || !_revServicos.length) {
+    alert('Carregue o Quadro de Revisões antes de exportar.');
+    return;
+  }
+
+  const dataAtual = new Date().toLocaleDateString('pt-BR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+
+  const tiposOrdem = ['BITRUCK','CAVALO','CARRETA'];
+  const veiculosPorTipo = { BITRUCK:[], CAVALO:[], CARRETA:[] };
+  const todos = (typeof FROTA !== 'undefined' ? FROTA : []).filter(function(v){ return v.ativo !== false; });
+  todos.forEach(function(v){ if (v.tipo && veiculosPorTipo[v.tipo]) veiculosPorTipo[v.tipo].push(v); });
+
+  // Cores de status para impressão (sem CSS variables)
+  const bgSt  = { venc:'#fee2e2', warn:'#fef3c7', ok:'#dcfce7', pend:'#f1f5f9' };
+  const clrSt = { venc:'#7f1d1d', warn:'#78350f', ok:'#14532d', pend:'#475569' };
+
+  let tabelasHtml = '';
+
+  tiposOrdem.forEach(function(tipo) {
+    const veics = veiculosPorTipo[tipo] || [];
+    if (!veics.length) return;
+    const srvs = _revSrvParaTipo(tipo);   // ← função global
+    if (!srvs.length) return;
+
+    const ths = srvs.map(function(s){
+      return '<th style="padding:4px 6px;border:1px solid #cbd5e1;font-size:8px;font-weight:700;text-transform:uppercase;text-align:center;white-space:nowrap;background:#f1f5f9;color:#334155;">'+(s.nome||s.id).split(' - ')[0].trim()+'</th>';
+    }).join('');
+
+    let trRows = '';
+    veics.forEach(function(v) {
+      const placa = v.placa;
+      const kmAtual = _revGetKmAtual(placa);  // ← função global
+      const kmStr = kmAtual ? kmAtual.toLocaleString('pt-BR')+' km' : '—';
+
+      const statusCells = srvs.map(function(srv){ return _revCalcStatus(placa, srv); }); // ← função global
+
+      // Respeitar filtro ativo
+      if (_revFiltroAtivo && statusCells.map(function(c){return c.status;}).indexOf(_revFiltroAtivo) < 0) return;
+
+      const tds = statusCells.map(function(c){
+        const bg  = bgSt[c.status]  || '#f9fafb';
+        const clr = clrSt[c.status] || '#334155';
+        let cont = '';
+        if (c.status === 'pend') {
+          cont = '<span style="color:#94a3b8;font-style:italic;font-size:8px;">Sem registro</span>';
+        } else {
+          if (c.faltam !== null) {
+            const sign = c.faltam < 0 ? '−' : '+';
+            cont += '<div style="font-size:13px;font-weight:800;color:'+clr+';">'+sign+Math.abs(c.faltam).toLocaleString('pt-BR')+' km</div>';
+          }
+          if (c.kmProximo) {
+            cont += '<div style="font-size:8px;color:'+clr+';opacity:.75;">Prox: '+c.kmProximo.toLocaleString('pt-BR')+' km</div>';
+          }
+          if (c.os) {
+            cont += '<div style="font-size:8px;font-weight:700;color:'+clr+';background:rgba(0,0,0,.1);border-radius:3px;padding:1px 4px;display:inline-block;margin-top:2px;">'+c.os+'</div>';
+          } else {
+            cont += '<div style="font-size:8px;font-weight:700;color:#b91c1c;margin-top:2px;">Sem OS</div>';
+          }
+        }
+        return '<td style="background:'+bg+';color:'+clr+';padding:4px 5px;border:1px solid #e2e8f0;text-align:center;vertical-align:middle;">'+cont+'</td>';
+      }).join('');
+
+      trRows += '<tr>'
+        + '<td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:left;min-width:100px;vertical-align:middle;">'
+        + (v.nfr ? '<div style="font-size:13px;font-weight:800;line-height:1.1;">'+v.nfr+'</div><div style="font-size:7px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Nº frota</div>' : '')
+        + '<div style="font-size:9px;font-weight:700;letter-spacing:.4px;">'+placa+'</div>'
+        + '<div style="font-size:8px;color:#64748b;">'+kmStr+'</div>'
+        + '</td>'
+        + tds
+        + '</tr>';
+    });
+
+    if (!trRows) return;
+
+    tabelasHtml +=
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:#f8fafc;padding:5px 7px;border:1px solid #e2e8f0;margin:10px 0 0;color:#1e293b;">'+tipo+'</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:4px;">'
+      + '<thead><tr>'
+      + '<th style="padding:4px 6px;border:1px solid #cbd5e1;font-size:8px;font-weight:700;text-transform:uppercase;text-align:left;white-space:nowrap;background:#f1f5f9;color:#334155;">Veículo</th>'
+      + ths
+      + '</tr></thead><tbody>'+trRows+'</tbody></table>';
+  });
+
+  if (!tabelasHtml) { alert('Nenhum veículo para exportar com o filtro atual.'); return; }
+
+  const filtroLabel = _revFiltroAtivo
+    ? ({ venc:'Vencidas', warn:'A Vencer', ok:'Em Dia', pend:'Sem Registro' }[_revFiltroAtivo] || _revFiltroAtivo)
+    : 'Todos os veículos';
+
+  // Criar/atualizar o div de impressão
+  let area = document.getElementById('rev-print-area');
+  if (!area) {
+    area = document.createElement('div');
+    area.id = 'rev-print-area';
+    area.style.display = 'none'; // escondido em tela, visível só no print
+    document.body.appendChild(area);
+  }
+  area.innerHTML =
+    '<div class="rpa-header">Quadro de Revisões — Novo Horizonte Logística</div>'
+    + '<div class="rpa-sub">Gerado em: '+dataAtual+' &nbsp;|&nbsp; Filtro: '+filtroLabel+'</div>'
+    + tabelasHtml;
+
+  window.print();
+}
+
+window.carregarQuadroRevisoes  = carregarQuadroRevisoes;
+window.abrirDetalheRevisao     = abrirDetalheRevisao;
+window.fecharDetalheRevisao    = fecharDetalheRevisao;
+window.excluirRegistroRevisao  = excluirRegistroRevisao;
+window.abrirEditarRevisao      = abrirEditarRevisao;
+window.fecharEditarRevisao     = fecharEditarRevisao;
+window.salvarEdicaoRevisao     = salvarEdicaoRevisao;
+window.exportarRevisoesPDF     = exportarRevisoesPDF;
 
 
 
@@ -7189,6 +7602,58 @@ window.fecharDetalheRevisao   = fecharDetalheRevisao;
       </div>
       <!-- Corpo: tabela de histórico -->
       <div id="rev-det-body" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR REGISTRO DE REVISÃO -->
+  <div id="rev-edit-ov" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;" onclick="if(event.target===this)window.fecharEditarRevisao()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;background:var(--bg3);border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">Editar Registro</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="rev-edit-subtitulo">—</div>
+        </div>
+        <button onclick="window.fecharEditarRevisao()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:1.25rem 1.4rem;display:flex;flex-direction:column;gap:14px;">
+        <input type="hidden" id="rev-edit-docid">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">KM Registrado *</label>
+          <input id="rev-edit-km" type="number" min="0" placeholder="Ex: 243904"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Data do Registro *</label>
+          <input id="rev-edit-data" type="date"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Número da OS</label>
+          <input id="rev-edit-os" type="text" placeholder="Ex: OS-1234"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Técnico</label>
+          <input id="rev-edit-tecnico" type="text" placeholder="Nome do técnico"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Observação</label>
+          <textarea id="rev-edit-obs" rows="2" placeholder="Peças, fornecedor, etc."
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;resize:vertical;font-family:inherit;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
+          <button onclick="window.fecharEditarRevisao()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">Cancelar</button>
+          <button id="rev-edit-btn-salvar" onclick="window.salvarEdicaoRevisao()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
+      </div>
     </div>
   </div>
 
