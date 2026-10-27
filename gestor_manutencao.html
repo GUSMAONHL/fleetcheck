@@ -1397,7 +1397,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="page" id="page-veiculos">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
         <div style="font-size:15px;font-weight:500;color:var(--text);">Gerenciamento de Veículos</div>
-        <div style="font-size:12px;color:var(--text3);" id="vg-count">—</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:12px;color:var(--text3);" id="vg-count">—</div>
+          <button class="btn-sm" onclick="window.exportVeiculosExcel()" title="Exportar lista de veículos em Excel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2m0 0v4m0-4h4m0 0v4m-4-4h4"/></svg>
+            Exportar Excel
+          </button>
+        </div>
       </div>
       <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
         <div style="overflow-x:auto;">
@@ -4871,6 +4877,87 @@ async function salvarVeiculoEdicao(placa) {
 
 window.carregarGerenciamentoVeiculos = carregarGerenciamentoVeiculos;
 window.salvarVeiculoEdicao = salvarVeiculoEdicao;
+
+async function exportVeiculosExcel() {
+  try {
+    showToast('Gerando planilha…');
+    const snap = await getDocs(collection(db, 'veiculos'));
+    const veics = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(v => v._deleted !== true && v.ativo !== false)
+      .sort((a, b) => (a.nfr || 0) - (b.nfr || 0));
+
+    if (!veics.length) { showToast('Nenhum veículo encontrado.'); return; }
+
+    // Monta linhas com todas as colunas relevantes
+    const colunas = [
+      { key: 'nfr',       label: 'Nº Frota' },
+      { key: 'placa',     label: 'Placa' },
+      { key: 'tipo',      label: 'Tipo' },
+      { key: 'bloco',     label: 'Bloco' },
+      { key: 'marca',     label: 'Marca' },
+      { key: 'modelo',    label: 'Modelo' },
+      { key: 'ano',       label: 'Ano' },
+      { key: 'chassi',    label: 'Chassi' },
+      { key: 'renavam',   label: 'RENAVAM' },
+      { key: 'cor',       label: 'Cor' },
+      { key: 'combustivel', label: 'Combustível' },
+      { key: 'capacidade', label: 'Capacidade' },
+      { key: 'tara',      label: 'Tara (kg)' },
+      { key: 'pbt',       label: 'PBT (kg)' },
+      { key: 'proprietario', label: 'Proprietário' },
+      { key: 'obs',       label: 'Observações' },
+    ];
+
+    const header = colunas.map(c => c.label);
+    const rows = veics.map(v =>
+      colunas.map(c => {
+        const val = v[c.key];
+        if (val === undefined || val === null || val === '') return '—';
+        return val;
+      })
+    );
+
+    // Monta worksheet via SheetJS
+    const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+    // Larguras mínimas por coluna
+    ws['!cols'] = colunas.map((c, i) => {
+      const maxLen = Math.max(
+        c.label.length,
+        ...rows.map(r => String(r[i]).length)
+      );
+      return { wch: Math.min(maxLen + 2, 40) };
+    });
+
+    // Estilo de cabeçalho (SheetJS Community — apenas negrito via referência)
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+      if (cell) {
+        cell.s = {
+          font: { bold: true, color: { rgb: 'FFFFFF' } },
+          fill: { fgColor: { rgb: '1D4ED8' } },
+          alignment: { horizontal: 'center' }
+        };
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Veículos');
+
+    const hoje = new Date();
+    const dd = String(hoje.getDate()).padStart(2,'0');
+    const mm = String(hoje.getMonth()+1).padStart(2,'0');
+    const yyyy = hoje.getFullYear();
+    XLSX.writeFile(wb, `veiculos_NHL_${dd}-${mm}-${yyyy}.xlsx`);
+    showToast('Planilha exportada com sucesso!');
+  } catch (e) {
+    console.error('exportVeiculosExcel:', e);
+    showToast('Erro ao exportar: ' + (e?.message || e));
+  }
+}
+window.exportVeiculosExcel = exportVeiculosExcel;
 
 // ══ TELEMETRIA ══
 async function carregarTelemetria() {
