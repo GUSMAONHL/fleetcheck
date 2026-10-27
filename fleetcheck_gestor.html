@@ -259,6 +259,11 @@ body.pdf-exporting .page.active select { visibility: hidden !important; }
 table { width: 100%; border-collapse: collapse; }
 thead th { padding: 10px 20px; text-align: left; font-size:14px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+#mot-tabela { table-layout:auto; width:100%; }
+#mot-tabela thead th { padding:8px 6px; font-size:11px; letter-spacing:0.2px; text-align:center; white-space:nowrap; }
+#mot-tabela thead th:first-child { text-align:left; padding-left:12px; }
+#mot-tabela tbody td { padding:8px 6px; font-size:13px; white-space:nowrap; }
+#mot-tabela tbody td:first-child { padding-left:12px; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--bg3); }
 tbody td { padding: 13px 20px; font-size:16px; color: var(--text2); }
@@ -701,6 +706,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div class="topbar-filtros-painel" id="topbar-filtros-motoristas">
         <input type="date" id="mot-data-ini" class="filter-input" onchange="renderGestaoMotoristas()" title="De">
         <input type="date" id="mot-data-fim" class="filter-input" onchange="renderGestaoMotoristas()" title="Até">
+        <select id="mot-tipo-filtro" class="filter-input" onchange="renderGestaoMotoristas()" title="Tipo de veículo considerado nos indicadores">
+          <option value="todos">Todos os veículos</option>
+          <option value="caminhao">Só caminhões</option>
+          <option value="cavalo">Só cavalos</option>
+        </select>
       </div>
       <div class="topbar-filtros-painel" id="topbar-filtros-gestao">
         <input type="date" id="gestao-data-input" class="filter-input" onchange="_onGestaoDataChange(this.value)">
@@ -1090,8 +1100,8 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div id="mot-kpis"></div>
       <div id="mot-ranks" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px;margin-bottom:16px;"></div>
       <div class="table-card" style="margin-bottom:16px;">
-        <div class="table-header"><div class="table-title">Consolidado por motorista</div><div id="mot-contagem" style="font-size:13px;color:var(--text3);"></div></div>
-        <div style="overflow-x:auto;"><table id="mot-tabela"><thead></thead><tbody></tbody></table></div>
+        <div class="table-header"><div class="table-title">Consolidado por motorista</div><div style="display:flex;align-items:center;gap:12px;"><div id="mot-contagem" style="font-size:13px;color:var(--text3);"></div><button onclick="exportarMotoristasConsolidado()" title="Exportar esta tabela em Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div>
+        <div><table id="mot-tabela"><thead></thead><tbody></tbody></table></div>
       </div>
     </div>
 
@@ -9942,13 +9952,15 @@ async function _motCarregarVolumeDia(iso) {
 const _MOT_INDICADORES = [
   { chave: 'vol',  titulo: 'Peso carregado',            un: '',   casas: 2, pareto: true,  desc: 'Volume transportado no período (caminhões)' },
   { chave: 'kml',  titulo: 'Consumo — média km/L',      un: 'km/L', casas: 2, desc: 'KM rodado ÷ litros abastecidos' },
+  { chave: 'lpt',  titulo: 'Diesel por tonelada — L/t', un: 'L/t', casas: 2, inverso: true, menorMelhor: true, desc: 'Litros de diesel ÷ toneladas carregadas (menor = melhor: menos diesel, mais peso)' },
   { chave: 'ad',   titulo: 'Aderência',                 un: '%',   sufixo: '%', casas: 1, desc: 'Viagens realizadas ÷ programadas (caminhões e cavalos)' },
   { chave: 'manut', titulo: 'Manutenção — aderência perdida', un: '%', sufixo: '%', casas: 1, pareto: true, inverso: true, soPositivos: true, desc: '% das viagens programadas de caminhão que se perderam por manutenção (menor = melhor)' },
   { chave: 'km',   titulo: 'KM rodado',                 un: 'km',  casas: 0, desc: 'KM final − inicial dos abastecimentos' }
 ];
 
 function _motRank(chave) {
-  return _motResumo.filter(m => m[chave] !== null && m[chave] !== undefined).sort((a,b) => b[chave] - a[chave]);
+  const menorMelhor = (_MOT_INDICADORES.find(x => x.chave === chave) || {}).menorMelhor;
+  return _motResumo.filter(m => m[chave] !== null && m[chave] !== undefined).sort((a,b) => menorMelhor ? a[chave] - b[chave] : b[chave] - a[chave]);
 }
 
 // Gráfico de barras horizontais ordenado (rank), com linha da média da equipe — padrão de gestão
@@ -9967,6 +9979,7 @@ function _motGraficoRank(ind) {
   let media = soma / lista.length;
   if (ind.chave === 'ad') { const p = _motResumo.reduce((s,m)=>s+m.prog,0), r = _motResumo.reduce((s,m)=>s+m.real,0); if (p > 0) media = r / p * 100; }
   if (ind.chave === 'kml') { const km = _motResumo.reduce((s,m)=>s+m.kmAbast,0), l = _motResumo.reduce((s,m)=>s+m.litros,0); if (l > 0) media = km / l; }
+  if (ind.chave === 'lpt') { const l = _motResumo.reduce((s,m)=>s+m.litrosPeso,0), v = _motResumo.reduce((s,m)=>s+m.volPeso,0); if (v > 0) media = l / v; }
   if (ind.chave === 'manut') { const p = _motResumo.reduce((s,m)=>s+m.progCam,0), v = _motResumo.reduce((s,m)=>s+m.manutVg,0); if (p > 0) media = v / p * 100; }
   const pctMedia = Math.min(100, (media / max) * 100);
   let acum = 0;
@@ -9977,7 +9990,7 @@ function _motGraficoRank(ind) {
     const acima = ind.inverso ? v <= media : v >= media;
     const larg = Math.max(1.5, (v / max) * 100);
     const extra = ind.pareto ? `<span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Participação acumulada">${_motFmt(acumPct, 0)}%</span>` : '';
-    const dica = `${m.nome}\n${ind.titulo}: ${_motFmt(v, ind.casas)} ${ind.un}${ind.chave === 'manut' ? '\n' + m.manutVg + ' viagem(ns) perdida(s) · volume ' + _motFmt(m.manutVol) : ''}\nMédia da equipe: ${_motFmt(media, ind.casas)} ${ind.un}${ind.pareto ? '\nAcumulado: ' + _motFmt(acumPct, 1) + '%' : ''}`;
+    const dica = `${m.nome}\n${ind.titulo}: ${_motFmt(v, ind.casas)} ${ind.un}${ind.chave === 'manut' ? '\n' + m.manutVg + ' viagem(ns) perdida(s) · volume ' + _motFmt(m.manutVol) : ''}${ind.chave === 'lpt' ? '\n' + _motFmt(m.litrosPeso, 1) + ' L para ' + _motFmt(m.volPeso) + ' t carregadas' : ''}\nMédia da equipe: ${_motFmt(media, ind.casas)} ${ind.un}${ind.pareto ? '\nAcumulado: ' + _motFmt(acumPct, 1) + '%' : ''}`;
     const corte80 = ind.pareto && acumPct >= 80 && (acumPct - v / soma * 100) < 80
       ? '<div style="font-size:10px;color:var(--text3);text-align:right;margin:2px 0;border-top:1px dashed var(--border2);">— 80% do volume até aqui —</div>' : '';
     return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;" title="${_motEsc(dica)}">
@@ -10106,6 +10119,12 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         });
       });
     });
+    // Filtro de tipo de veículo: com "Só caminhões" os indicadores não sofrem efeito de dias em cavalo (e vice-versa)
+    const tipoFiltro = (document.getElementById('mot-tipo-filtro') || {}).value || 'todos';
+    if (tipoFiltro !== 'todos') {
+      const manter = linhas.filter(l => tipoFiltro === 'cavalo' ? l.ehCavalo : !l.ehCavalo);
+      linhas.length = 0; manter.forEach(l => linhas.push(l));
+    }
     _motLinhas = linhas;
     // Dias de operação do período: dias com motorista escalado, viagem programada ou viagem realizada
     _motDiasOp = Object.keys(_motProgDiasCache).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= ini && d <= fim).filter(d => {
@@ -10115,11 +10134,14 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
 
     const por = {};
     linhas.forEach(l => {
-      const g = por[l.nome] || (por[l.nome] = { progCam: 0, realCam: 0, progCav: 0, realCav: 0, nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0 });
+      const g = por[l.nome] || (por[l.nome] = { progCam: 0, realCam: 0, progCav: 0, realCav: 0, nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0, litrosPeso: 0, volPeso: 0, porDia: {} });
       if (l.ehCavalo) { g.progCav += l.prog; g.realCav += l.real; } else { g.progCam += l.prog; g.realCam += l.real; }
       g.dias.add(l.dia); g.placas.add(l.placa); g.prog += l.prog; g.real += l.real; g.vol += l.vol;
       if (l.status === 'fora') g.fora++;
       g.manutVg += l.manutVg; g.manutVol += l.manutVol; g.kmAbast += l.km; g.litros += l.litros;
+      // Diesel por tonelada: só caminhão, só em dia com abastecimento completo e peso carregado
+      if (!l.ehCavalo && l.temAbast && l.vol > 0) { g.litrosPeso += l.litros; g.volPeso += l.vol; }
+      const pd = g.porDia[l.dia] || (g.porDia[l.dia] = { prog: 0, real: 0 }); pd.prog += l.prog; pd.real += l.real;
     });
     _motResumo = Object.values(por).map(g => ({
       nome: g.nome, dias: g.dias.size, veiculos: g.placas.size, prog: g.prog, real: g.real, vol: g.vol, fora: g.fora,
@@ -10129,6 +10151,9 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
       km: g.litros > 0 ? g.kmAbast : null,
       progCam: g.progCam, realCam: g.realCam, progCav: g.progCav, realCav: g.realCav,
       adCam: g.progCam > 0 ? g.realCam / g.progCam * 100 : null, adCav: g.progCav > 0 ? g.realCav / g.progCav * 100 : null,
+      litrosPeso: g.litrosPeso, volPeso: g.volPeso, lpt: g.volPeso > 0 ? g.litrosPeso / g.volPeso : null,
+      diasOp: _motDiasOp.length,
+      dias100: Object.values(g.porDia).filter(d => d.prog > 0 && d.real >= d.prog).length,
       manutVg: g.manutVg, manutVol: g.manutVol,
       manut: g.progCam > 0 ? g.manutVg / g.progCam * 100 : null
     })).sort((a,b) => a.nome.localeCompare(b.nome));
@@ -10157,15 +10182,15 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
     document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('') + _motGraficoVeiculos();
 
     const tbl = document.getElementById('mot-tabela');
-    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th style="text-align:center;">DIAS</th><th style="text-align:center;">VEÍCULOS</th><th style="text-align:center;">VG PROG.</th><th style="text-align:center;">VG REAL.</th><th style="text-align:center;">AD%</th><th style="text-align:right;">VOLUME</th><th style="text-align:center;">KM/L</th><th style="text-align:right;">KM</th><th style="text-align:center;">MANUT. %</th><th style="text-align:center;">FORA OP.</th></tr>';
+    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th title="Dias de operação no período filtrado">D. OP.</th><th title="Dias em que o motorista foi escalado em algum veículo">D. ESC.</th><th title="Dias em que atingiu 100% de aderência">D. 100%</th><th title="Veículos conduzidos">VEÍC.</th><th title="Viagens programadas">VG PR.</th><th title="Viagens realizadas">VG RE.</th><th title="Aderência">AD%</th><th title="Volume (t)">VOL.</th><th title="Consumo km/L">KM/L</th><th title="Litros por tonelada carregada (menor = melhor)">L/t</th><th title="KM rodado">KM</th><th title="Perda por manutenção">MANUT%</th><th title="Dias fora de operação">FORA</th></tr>';
     tbl.querySelector('tbody').innerHTML = _motResumo.length === 0
-      ? '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text3);">Nenhum motorista escalado na Gestão do Dia nesse período.</td></tr>'
+      ? '<tr><td colspan="14" style="text-align:center;padding:30px;color:var(--text3);">Nenhum motorista escalado na Gestão do Dia nesse período.</td></tr>'
       : _motResumo.map(m => `<tr style="cursor:pointer;" onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(m.nome)}">
-            <td style="font-weight:600;">${_motEsc(m.nome)}</td><td style="text-align:center;">${m.dias}</td><td style="text-align:center;">${m.veiculos}</td>
+            <td style="font-weight:600;" title="${_motEsc(m.nome)}">${_motEsc(m.nome.trim().split(/\s+/).slice(0,2).join(' '))}</td><td style="text-align:center;">${m.diasOp}</td><td style="text-align:center;">${m.dias}</td><td style="text-align:center;font-weight:700;color:${m.dias100 > 0 ? '#2ea043' : 'var(--text3)'};">${m.dias100}</td><td style="text-align:center;">${m.veiculos}</td>
             <td style="text-align:center;">${m.prog}</td><td style="text-align:center;">${m.real}</td>
             <td style="text-align:center;font-weight:700;color:${_motCorAd(m.ad)};">${m.ad === null ? '—' : _motFmt(m.ad, 1) + '%'}</td>
-            <td style="text-align:right;font-family:'DM Mono',monospace;">${_motFmt(m.vol)}</td>
-            <td style="text-align:center;">${m.kml === null ? '—' : _motFmt(m.kml)}</td><td style="text-align:right;">${m.km === null ? '—' : _motFmt(m.km, 0)}</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace;">${_motFmt(m.vol)}</td>
+            <td style="text-align:center;">${m.kml === null ? '—' : _motFmt(m.kml)}</td><td style="text-align:center;">${m.lpt === null ? '—' : _motFmt(m.lpt)}</td><td style="text-align:center;">${m.km === null ? '—' : _motFmt(m.km, 0)}</td>
             <td style="text-align:center;">${m.manut === null ? '—' : _motFmt(m.manut, 1) + '%'}</td><td style="text-align:center;">${m.fora}</td></tr>`).join('');
     _tornarTabelaOrdenavel(tbl);
   } catch (err) {
@@ -10309,7 +10334,7 @@ function _motModalRender() {
     card('pres', 'Dias escalado / operação', pres === null ? '—' : `${nEsc}/${diasOp.length}`, _motCorAd(pres),
       pres === null ? 'sem dias de operação' : `${_motFmt(pres, 1)}% dos dias de operação`, _motFaixaPresenca(diasOp, escalados), '', true),
     card('vol', 'Peso carregado', _motFmt(m.vol), AZUL, 'caminhões', _motBarrasDia(volPts, '', 2, corRel), posRank('vol')),
-    card('kml', 'Consumo (km/L)', m.kml === null ? '—' : _motFmt(m.kml), AZUL, m.kml === null ? 'sem abastecimento' : `${_motFmt(m.kmAbast, 0)} km · ${_motFmt(m.litros, 0)} L`, _motBarrasDia(kmlPts, 'km/L', 2, corRel), posRank('kml')),
+    card('kml', 'Consumo (km/L)', m.kml === null ? '—' : _motFmt(m.kml), AZUL, m.kml === null ? 'sem abastecimento' : `${_motFmt(m.kmAbast, 0)} km · ${_motFmt(m.litros, 0)} L${m.lpt === null ? '' : ' · ' + _motFmt(m.lpt) + ' L/t'}`, _motBarrasDia(kmlPts, 'km/L', 2, corRel), posRank('kml')),
     card('km', 'KM rodado', m.km === null ? '—' : _motFmt(m.km, 0), AZUL, 'km', _motBarrasDia(kmPts, 'km', 0, corRel), posRank('km')),
     card('manut', 'Perda por manutenção', m.manut === null ? '—' : _motFmt(m.manut, 1) + '%', AZUL, `${m.manutVg} vg perdida(s) · vol ${_motFmt(m.manutVol)}`,
       semPerda ? '<div style="height:70px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;">Nenhuma perda por manutenção no período. 👍</div>' : _motBarrasDia(manutPts, 'vg', 0, () => '#f0883e', true), posRank('manut'))
@@ -10404,6 +10429,36 @@ window.abrirMotoristaModal = function abrirMotoristaModal(nome) {
 };
 
 window.fecharMotoristaModal = function fecharMotoristaModal() { document.getElementById('mot-modal').style.display = 'none'; };
+
+// Exporta a tabela "Consolidado por motorista" exatamente como está na tela (mesmas colunas e filtros)
+window.exportarMotoristasConsolidado = function exportarMotoristasConsolidado() {
+  if (_motResumo.length === 0) { showToast('✖ Nada pra exportar nesse período.'); return; }
+  const n = (v) => v === null || v === undefined ? '' : v;
+  const dados = _motResumo.map(m => ({
+    'Motorista': m.nome,
+    'Dias de Operação': m.diasOp,
+    'Dias Escalado': m.dias,
+    'Dias com 100% de Aderência': m.dias100,
+    'Veículos': m.veiculos,
+    'Viagens Programadas': m.prog,
+    'Viagens Realizadas': m.real,
+    'Aderência %': n(m.ad),
+    'Volume': m.vol,
+    'KM/L': n(m.kml),
+    'L/t': n(m.lpt),
+    'KM Rodado': n(m.km),
+    'Manutenção %': n(m.manut),
+    'Dias Fora de Operação': m.fora
+  }));
+  const ws = XLSX.utils.json_to_sheet(dados);
+  ws['!cols'] = [{wch:34},{wch:16},{wch:14},{wch:24},{wch:10},{wch:18},{wch:18},{wch:12},{wch:12},{wch:8},{wch:8},{wch:12},{wch:14},{wch:20}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Consolidado');
+  const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
+  const tp = (document.getElementById('mot-tipo-filtro') || {}).value || 'todos';
+  XLSX.writeFile(wb, `consolidado_motoristas_${ini}_a_${fim}${tp !== 'todos' ? '_' + tp : ''}.xlsx`);
+  showToast('✔ Tabela exportada.');
+};
 
 window.exportarMotoristas = function exportarMotoristas() {
   if (_motLinhas.length === 0) { showToast('✖ Nada pra exportar nesse período.'); return; }
