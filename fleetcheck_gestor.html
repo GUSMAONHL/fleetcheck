@@ -1712,6 +1712,14 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Dias de operação no mês</label>
         <input type="number" id="meta-input-dias-operacao" placeholder="ex: 26" class="filter-input" style="width:110px;" onchange="_onDiasOperacaoChange()">
       </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Início da operação</label>
+        <input type="date" id="meta-input-inicio" class="filter-input" style="width:150px;" onchange="_onPeriodoOperacaoChange()">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Fim da operação</label>
+        <input type="date" id="meta-input-fim" class="filter-input" style="width:150px;" onchange="_onPeriodoOperacaoChange()">
+      </div>
       <div style="border-left:1px solid var(--border2);height:36px;margin:0 4px;"></div>
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Origem</label>
@@ -5323,20 +5331,30 @@ function _renderCardsMinaRota() {
 // já que as metas são cadastradas por mês). Usa cache por mês pra não buscar toda hora.
 let _volMetasCardsCache = {}; // mesKey -> itens[]
 
+// Período de operação cadastrado pro mês (início/fim em 'YYYY-MM-DD'). Sem cadastro → mês de calendário.
+function _volDiasDoPeriodo(diasBR, mesKey, periodo) {
+  if (periodo && periodo.inicio && periodo.fim) {
+    return diasBR.filter(d => { const iso = _volDiaParaChave(d); return iso >= periodo.inicio && iso <= periodo.fim; });
+  }
+  const [ano, mes] = mesKey.split('-');
+  return diasBR.filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+}
+
 async function _volObterMetasParaCards(mesKey) {
   if (_volMetasCardsCache[mesKey] !== undefined) return _volMetasCardsCache[mesKey];
   try {
     const snap = await getDoc(doc(db, 'volume_metas', mesKey));
     let itens = (snap.exists() && Array.isArray(snap.data().itens)) ? snap.data().itens : [];
     let diasOperacao = (snap.exists() && snap.data().diasOperacao) || null;
+    const inicio = (snap.exists() && snap.data().inicioOperacao) || null, fim = (snap.exists() && snap.data().fimOperacao) || null;
     // ainda não foi salvo nada nesse mês — usa o padrão conhecido pra Agosto/2026 (mesmo padrão do modal)
     if (itens.length === 0 && mesKey === '2026-08') { itens = METAS_PADRAO_2026_08.slice(); diasOperacao = diasOperacao || 26; }
-    const resultado = { itens, diasOperacao };
+    const resultado = { itens, diasOperacao, inicio, fim };
     _volMetasCardsCache[mesKey] = resultado;
     return resultado;
   } catch (err) {
     console.error('Erro ao buscar metas para os cards:', err);
-    return { itens: [], diasOperacao: null };
+    return { itens: [], diasOperacao: null, inicio: null, fim: null };
   }
 }
 
@@ -5834,6 +5852,7 @@ let _volMetas = [];              // itens do mês atualmente selecionado no moda
 let _volMetasMesAtual = null;    // 'YYYY-MM'
 let _volMetasRealizado = {};     // 'ORIGEM|||DESTINO' -> toneladas realizadas no mês
 let _volMetasCarregando = false;
+let _volMetasInicio = null, _volMetasFim = null; // período de operação do mês (YYYY-MM-DD)
 let _volMetasDiasOperacao = null;  // dias de operação cadastrados pro mês (ex: 26)
 let _volMetasDiasComDados = 0;     // dias do mês que já têm viagens importadas (ritmo até agora)
 
@@ -5884,10 +5903,9 @@ async function _popularSeletorMesMetas() {
 
 // Busca as viagens reais do mês (independente do filtro Dia/Mês/Ano da página principal)
 // e agrega o volume por par Origem+Destino.
-async function _volCalcularRealizadoDoMes(mesKey) {
+async function _volCalcularRealizadoDoMes(mesKey, periodo) {
   if (!mesKey) return {};
-  const [ano, mes] = mesKey.split('-');
-  const diasDoMes = ((_volMeta && _volMeta.dias) || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+  const diasDoMes = _volDiasDoPeriodo((_volMeta && _volMeta.dias) || [], mesKey, periodo);
   if (diasDoMes.length === 0) return { mapa: {}, diasComDados: 0 };
 
   const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
@@ -6024,10 +6042,10 @@ async function _volCarregarMetasDoMes(mesKey) {
   cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Carregando metas e volume realizado...</div>';
 
   try {
-    const [metaSnap, realizado] = await Promise.all([
-      getDoc(doc(db, 'volume_metas', mesKey)),
-      _volCalcularRealizadoDoMes(mesKey)
-    ]);
+    const metaSnap = await getDoc(doc(db, 'volume_metas', mesKey));
+    const _md = metaSnap.exists() ? metaSnap.data() : {};
+    _volMetasInicio = _md.inicioOperacao || null; _volMetasFim = _md.fimOperacao || null;
+    const realizado = await _volCalcularRealizadoDoMes(mesKey, { inicio: _volMetasInicio, fim: _volMetasFim });
 
     if (metaSnap.exists() && Array.isArray(metaSnap.data().itens)) {
       _volMetas = metaSnap.data().itens;
@@ -6044,6 +6062,8 @@ async function _volCarregarMetasDoMes(mesKey) {
 
     const inputDias = document.getElementById('meta-input-dias-operacao');
     if (inputDias) inputDias.value = _volMetasDiasOperacao || '';
+    const _ei = document.getElementById('meta-input-inicio'), _ef = document.getElementById('meta-input-fim');
+    if (_ei) _ei.value = _volMetasInicio || ''; if (_ef) _ef.value = _volMetasFim || '';
 
     _renderMetasCorpo();
   } catch (err) {
@@ -6117,6 +6137,15 @@ window.editarMeta = function editarMeta(idx) {
   showToast(`✏️ Editando ${m.origem} → ${m.destino} — ajuste o valor e clique em Adicionar (ou vá direto em Salvar Metas).`);
 };
 
+window._onPeriodoOperacaoChange = async function _onPeriodoOperacaoChange() {
+  const ini = document.getElementById('meta-input-inicio').value, fim = document.getElementById('meta-input-fim').value;
+  if (ini && fim && fim < ini) { showToast('✖ O fim da operação não pode ser antes do início.'); return; }
+  _volMetasInicio = ini || null; _volMetasFim = fim || null;
+  const r = await _volCalcularRealizadoDoMes(_volMetasMesAtual, { inicio: _volMetasInicio, fim: _volMetasFim });
+  _volMetasRealizado = r.mapa || {}; _volMetasDiasComDados = r.diasComDados || 0;
+  _renderMetasCorpo();
+};
+
 window._onDiasOperacaoChange = function _onDiasOperacaoChange() {
   const valor = parseInt(document.getElementById('meta-input-dias-operacao').value, 10);
   _volMetasDiasOperacao = (!isNaN(valor) && valor > 0) ? valor : null;
@@ -6126,12 +6155,13 @@ window._onDiasOperacaoChange = function _onDiasOperacaoChange() {
 window.salvarMetas = async function salvarMetas() {
   if (!_volMetasMesAtual) { showToast('✖ Selecione o mês antes de salvar.'); return; }
   _volAplicarFormularioMetaPendente();
+  if ((_volMetasInicio && !_volMetasFim) || (!_volMetasInicio && _volMetasFim)) { showToast('✖ Informe o início e o fim da operação (ou deixe os dois vazios).'); return; }
   _renderMetasCorpo();
   try {
-    await setDoc(doc(db, 'volume_metas', _volMetasMesAtual), { itens: _volMetas, diasOperacao: _volMetasDiasOperacao || null, atualizadoEm: new Date().toISOString() });
+    await setDoc(doc(db, 'volume_metas', _volMetasMesAtual), { itens: _volMetas, diasOperacao: _volMetasDiasOperacao || null, inicioOperacao: _volMetasInicio || null, fimOperacao: _volMetasFim || null, atualizadoEm: new Date().toISOString() });
     delete _volMetasCardsCache[_volMetasMesAtual];
     if (_volAba === 'local' && _volModoView === 'mes' && _volMesAtual === _volMetasMesAtual) {
-      _volAtualizarMetasNosCards();
+      _volCarregarMes(_volMesAtual);
     }
     showToast(`✔ Metas de ${_volMesParaLabel(_volMetasMesAtual)} salvas com sucesso!`);
   } catch (err) {
@@ -9168,8 +9198,9 @@ async function _volCarregarMes(mesKey) {
   if (!mesKey) { _volDiasRegistros = []; _volRenderPagina(); return; }
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando consolidado do mês...</td></tr>';
   try {
-    const [ano, mes] = mesKey.split('-');
-    const diasDoMes = (_volMeta.dias || []).filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; });
+    const per = await _volObterMetasParaCards(mesKey);
+    if (_volMesAtual !== mesKey) return;
+    const diasDoMes = _volDiasDoPeriodo(_volMeta.dias || [], mesKey, per);
     if (diasDoMes.length === 0) { _volDiasRegistros = []; _volRenderPagina(); return; }
     const snaps = await Promise.all(diasDoMes.map(d => getDoc(doc(db, 'volume_dias', _volDiaParaChave(d)))));
     _volDiasRegistros = diasDoMes.map((d,i) => ({ dia: d, viagens: snaps[i].exists() ? (snaps[i].data().viagens || []) : [] }));
@@ -9315,8 +9346,7 @@ async function _volRenderCardsDiasOperacao() {
     } else {
       mesAlvo = _volMesAtual || mesAtualKey;
     }
-    const [anoAlvo, mesNum] = mesAlvo.split('-');
-    diasOperados = diasTodos.filter(d => { const p = d.split('/'); return p[1] === mesNum && p[2] === anoAlvo; }).length;
+    diasOperados = _volDiasDoPeriodo(diasTodos, mesAlvo, await _volObterMetasParaCards(mesAlvo)).length;
   }
 
   // Dias restantes: só faz sentido pro mês corrente ou futuro (mês encerrado não tem "restante")
