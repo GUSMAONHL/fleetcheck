@@ -6688,14 +6688,18 @@ function _doRenderRevisoes() {
         let sitBadge = '';
         if (c.faltam !== null) {
           const sign = c.faltam < 0 ? '−' : '+';
-          sitBadge = '<div style="font-size:17px;font-weight:900;color:#000;line-height:1.1;letter-spacing:-.3px;">'
+          sitBadge = '<div style="font-size:22px;font-weight:900;color:#000;line-height:1.05;letter-spacing:-.5px;">'
             + sign + Math.abs(c.faltam).toLocaleString('pt-BR') + ' km</div>';
         }
 
-        // ── Próx. km abaixo do destaque ──
+        // ── Próx. km e Últ. km abaixo do destaque ──
         const proxLine = c.kmProximo
-          ? '<div style="font-size:10px;font-weight:600;color:#000;opacity:.65;margin-top:3px;">Prox: '
-            + c.kmProximo.toLocaleString('pt-BR') + ' km</div>'
+          ? '<div style="font-size:16px;font-weight:700;color:#000;opacity:.75;margin-top:5px;line-height:1.2;">'
+            + '<span style="font-size:9px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Próx.</span>' + c.kmProximo.toLocaleString('pt-BR') + ' km</div>'
+          : '';
+        const ultLine = c.kmUltimo
+          ? '<div style="font-size:16px;font-weight:600;color:#000;opacity:.5;margin-top:3px;line-height:1.2;">'
+            + '<span style="font-size:9px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Últ.</span>' + c.kmUltimo.toLocaleString('pt-BR') + ' km</div>'
           : '';
 
         // ── OS badge / botão informar ──
@@ -6714,7 +6718,7 @@ function _doRenderRevisoes() {
         return '<div onclick="window.abrirDetalheRevisao(\''+placa+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
           + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
           + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
-          + sitBadge + proxLine + osBadge
+          + sitBadge + proxLine + ultLine + osBadge
           + '</div>';
       }).join('');
 
@@ -7067,7 +7071,10 @@ function exportarRevisoesPDF() {
             cont += '<div style="font-size:13px;font-weight:800;color:'+clr+';">'+sign+Math.abs(c.faltam).toLocaleString('pt-BR')+' km</div>';
           }
           if (c.kmProximo) {
-            cont += '<div style="font-size:8px;color:'+clr+';opacity:.75;">Prox: '+c.kmProximo.toLocaleString('pt-BR')+' km</div>';
+            cont += '<div style="font-size:8px;color:'+clr+';opacity:.75;">Próx: '+c.kmProximo.toLocaleString('pt-BR')+' km</div>';
+          }
+          if (c.kmUltimo) {
+            cont += '<div style="font-size:8px;color:'+clr+';opacity:.6;">Últ: '+c.kmUltimo.toLocaleString('pt-BR')+' km</div>';
           }
           if (c.os) {
             cont += '<div style="font-size:8px;font-weight:700;color:'+clr+';background:rgba(0,0,0,.1);border-radius:3px;padding:1px 4px;display:inline-block;margin-top:2px;">'+c.os+'</div>';
