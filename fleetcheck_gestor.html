@@ -5331,6 +5331,32 @@ function _renderCardsMinaRota() {
 // já que as metas são cadastradas por mês). Usa cache por mês pra não buscar toda hora.
 let _volMetasCardsCache = {}; // mesKey -> itens[]
 
+// Períodos de operação de todos os meses (coleção volume_metas): mesKey -> {inicio, fim}
+let _volPeriodosCache = null;
+async function _volCarregarPeriodos() {
+  if (_volPeriodosCache) return _volPeriodosCache;
+  const mapa = {};
+  try {
+    const snap = await getDocs(collection(db, 'volume_metas'));
+    snap.forEach(d => { const x = d.data(); if (x.inicioOperacao && x.fimOperacao) mapa[d.id] = { inicio: x.inicioOperacao, fim: x.fimOperacao }; });
+  } catch (err) { console.error('Erro ao carregar períodos de operação:', err); }
+  return (_volPeriodosCache = mapa);
+}
+// Mês ao qual um dia pertence: o do período cadastrado que o contém; sem período, o mês de calendário
+function _volMesDoDia(diaBR) {
+  const iso = _volDiaParaChave(diaBR);
+  const per = _volPeriodosCache || {};
+  const achados = Object.keys(per).filter(m => iso >= per[m].inicio && iso <= per[m].fim).sort();
+  if (achados.length) return achados[achados.length - 1];
+  const p = diaBR.split('/');
+  return `${p[2]}-${p[1]}`;
+}
+// Se o mês já selecionado contém o dia, mantém ele; senão usa o mês associado ao dia
+function _volMesAssociado(diaBR, mesPreferido) {
+  if (mesPreferido && _volDiasDoPeriodo([diaBR], mesPreferido, (_volPeriodosCache || {})[mesPreferido]).length) return mesPreferido;
+  return _volMesDoDia(diaBR);
+}
+
 // Período de operação cadastrado pro mês (início/fim em 'YYYY-MM-DD'). Sem cadastro → mês de calendário.
 function _volDiasDoPeriodo(diasBR, mesKey, periodo) {
   if (periodo && periodo.inicio && periodo.fim) {
@@ -6159,9 +6185,9 @@ window.salvarMetas = async function salvarMetas() {
   _renderMetasCorpo();
   try {
     await setDoc(doc(db, 'volume_metas', _volMetasMesAtual), { itens: _volMetas, diasOperacao: _volMetasDiasOperacao || null, inicioOperacao: _volMetasInicio || null, fimOperacao: _volMetasFim || null, atualizadoEm: new Date().toISOString() });
-    delete _volMetasCardsCache[_volMetasMesAtual];
+    delete _volMetasCardsCache[_volMetasMesAtual]; _volPeriodosCache = null;
     if (_volAba === 'local' && _volModoView === 'mes' && _volMesAtual === _volMetasMesAtual) {
-      _volCarregarMes(_volMesAtual);
+      renderVolume();
     }
     showToast(`✔ Metas de ${_volMesParaLabel(_volMetasMesAtual)} salvas com sucesso!`);
   } catch (err) {
@@ -9229,8 +9255,32 @@ async function _volCarregarAno(anoKey) {
   }
 }
 
-window._volOnDiaChange = function _volOnDiaChange(diaStr) { _volCarregarDia(diaStr); };
-window._volOnMesChange = function _volOnMesChange(mesKey) { _volCarregarMes(mesKey); };
+// Lista de dias liberada só depois de escolher o mês: mostra os dias do período daquele mês
+function _volPopularDiasDoMes(mesKey) {
+  const selDia = document.getElementById('vol-dia-select');
+  if (!mesKey) { selDia.innerHTML = '<option value="">Escolha o mês</option>'; selDia.disabled = true; return []; }
+  const dias = _volDiasDoPeriodo((_volMeta && _volMeta.dias) || [], mesKey, (_volPeriodosCache || {})[mesKey])
+    .sort((a,b) => _volDiaParaChave(b).localeCompare(_volDiaParaChave(a)));
+  selDia.disabled = false;
+  selDia.innerHTML = dias.length ? dias.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">Sem dias</option>';
+  return dias;
+}
+window._volOnDiaChange = function _volOnDiaChange(diaStr) {
+  if (diaStr) {
+    const mes = _volMesAssociado(diaStr, _volMesAtual);
+    if (mes !== _volMesAtual) { _volMesAtual = mes; const sm = document.getElementById('vol-mes-select'); if (sm) sm.value = mes; }
+  }
+  _volCarregarDia(diaStr);
+};
+window._volOnMesChange = function _volOnMesChange(mesKey) {
+  if (_volModoView === 'dia') {
+    _volMesAtual = mesKey;
+    const dias = _volPopularDiasDoMes(mesKey);
+    const selDia = document.getElementById('vol-dia-select');
+    selDia.value = dias[0] || '';
+    _volCarregarDia(dias[0] || '');
+  } else _volCarregarMes(mesKey);
+};
 window._volOnAnoChange = function _volOnAnoChange(anoKey) { _volCarregarAno(anoKey); };
 
 window._volSetModoView = function _volSetModoView(modo) {
@@ -9247,8 +9297,14 @@ window._volSetModoView = function _volSetModoView(modo) {
 
   if (modo === 'dia') {
     btnDia.style.background = '#388bfd'; btnDia.style.color = '#fff';
-    selDia.style.display = '';
-    _volCarregarDia(selDia.value || _volDiaAtual);
+    selMes.style.display = ''; selDia.style.display = '';
+    // mês primeiro; a lista de dias é do mês escolhido (e o mês acompanha o dia aberto)
+    if (_volDiaAtual) _volMesAtual = _volMesAssociado(_volDiaAtual, _volMesAtual);
+    selMes.value = _volMesAtual || selMes.value;
+    const dias = _volPopularDiasDoMes(selMes.value);
+    const alvo = dias.includes(_volDiaAtual) ? _volDiaAtual : (dias[0] || '');
+    selDia.value = alvo;
+    _volCarregarDia(alvo);
   } else if (modo === 'ano') {
     btnAno.style.background = '#388bfd'; btnAno.style.color = '#fff';
     selAno.style.display = '';
@@ -9270,6 +9326,7 @@ window.renderVolume = async function renderVolume() {
       return;
     }
     _volMeta = snap.data();
+    await _volCarregarPeriodos();
     document.getElementById('vol-ultima-import').textContent = _volMeta.importadoEm ? 'Importado em: ' + new Date(_volMeta.importadoEm).toLocaleString('pt-BR') : '';
 
     const diasTodos = _volMeta.dias || [];
@@ -9277,13 +9334,11 @@ window.renderVolume = async function renderVolume() {
       const da = a.split('/').reverse().join(''); const db = b.split('/').reverse().join('');
       return db.localeCompare(da);
     });
-    const selectDia = document.getElementById('vol-dia-select');
-    const manterDia = dias.includes(_volDiaAtual) ? _volDiaAtual : (dias[0] || '');
-    selectDia.innerHTML = dias.length ? dias.map(d => `<option value="${d}">${d}</option>`).join('') : '<option value="">—</option>';
-    selectDia.value = manterDia;
-
-    const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+    // meses: os dos dias importados (associados pelo período de operação) + mês vigente + períodos cadastrados
+    const mesesSet = new Set(diasTodos.map(d => _volMesDoDia(d)));
+    Object.keys(_volPeriodosCache || {}).forEach(m => mesesSet.add(m));
     const hoje = new Date();
+    mesesSet.add(hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0'));
     // inclui os próximos 12 meses mesmo sem viagem importada ainda — pra dar pra ver a Meta
     // cadastrada de um mês futuro (ex.: Setembro) antes de ele começar a ter dados reais
     for (let i = 1; i <= 12; i++) {
@@ -9296,6 +9351,10 @@ window.renderVolume = async function renderVolume() {
     const selectMes = document.getElementById('vol-mes-select');
     selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${_volMesParaLabel(m)}</option>`).join('') : '<option value="">—</option>';
     selectMes.value = mesPadrao;
+    if (_volModoView === 'dia') _volMesAtual = mesPadrao;
+    const diasMes = _volPopularDiasDoMes(mesPadrao);
+    const manterDia = diasMes.includes(_volDiaAtual) ? _volDiaAtual : (diasMes[0] || '');
+    document.getElementById('vol-dia-select').value = manterDia;
 
     const anosSet = new Set(diasTodos.map(d => d.split('/')[2]));
     const anos = Array.from(anosSet).sort().reverse();
@@ -9341,8 +9400,7 @@ async function _volRenderCardsDiasOperacao() {
     diasOperados = diasTodos.filter(d => d.split('/')[2] === anoAlvo).length;
   } else {
     if (_volModoView === 'dia' && _volDiaAtual) {
-      const p = _volDiaAtual.split('/'); // [DD, MM, YYYY]
-      mesAlvo = `${p[2]}-${p[1]}`;
+      mesAlvo = _volMesAssociado(_volDiaAtual, _volMesAtual);
     } else {
       mesAlvo = _volMesAtual || mesAtualKey;
     }
