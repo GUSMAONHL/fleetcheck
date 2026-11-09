@@ -1166,11 +1166,12 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
                   <th style="text-align:right;">PESO MÉDIO CAMINHÃO</th>
                   <th style="text-align:right;">PESO MÉDIO CAVALO</th>
                   <th style="text-align:right;">VFT$</th>
+                  <th style="text-align:right;">DMT (km)</th>
                   <th style="text-align:right;">AÇÕES</th>
                 </tr>
               </thead>
               <tbody id="minas-tabela-body">
-                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1352,6 +1353,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div>
         <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Valor de Frete Terceiro — VFT$ (por tonelada)</label>
         <input type="number" step="0.01" min="0" id="mina-form-vft" placeholder="ex: 45.90" class="filter-input" style="width:100%;">
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">DMT — distância da rota (km)</label>
+        <input type="number" step="0.1" min="0" id="mina-form-dmt" placeholder="ex: 12.5" class="filter-input" style="width:100%;">
       </div>
       <button onclick="salvarMina()" style="margin-top:6px;padding:10px 16px;font-size:16px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#2ea043;color:#fff;">💾 Salvar Mina</button>
     </div>
@@ -6449,7 +6454,7 @@ function _renderMinasTabela() {
   count.textContent = _minasCadastro.length + (_minasCadastro.length === 1 ? ' registro' : ' registros');
 
   if (_minasCadastro.length === 0) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Nenhuma mina cadastrada ainda. Clique em "Cadastrar Mina" pra começar.</td></tr>';
     return;
   }
 
@@ -6464,6 +6469,7 @@ function _renderMinasTabela() {
       <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.caminhao)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${fmt(peso.cavalo)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;color:#2ea043;">${m.vft!=null ? 'R$ '+m.vft.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--text2);">${m.dmt!=null ? m.dmt.toLocaleString('pt-BR',{maximumFractionDigits:2}) + ' km' : '—'}</td>
       <td style="text-align:right;">
         <button onclick="abrirFormMina('${m.id}')" title="Editar" style="background:none;border:none;color:#388bfd;cursor:pointer;font-size:17px;margin-right:8px;">✏️</button>
         <button onclick="excluirMina('${m.id}')" title="Excluir" style="background:none;border:none;color:#f85149;cursor:pointer;font-size:17px;">🗑</button>
@@ -6474,7 +6480,7 @@ function _renderMinasTabela() {
 
 window.renderMinas = async function renderMinas() {
   const body = document.getElementById('minas-tabela-body');
-  if (body) body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
+  if (body) body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Carregando...</td></tr>';
   await Promise.all([_carregarMinas(), _calcularPesoMedioPorRota()]);
   _renderMinasTabela();
 };
@@ -6486,6 +6492,7 @@ window.abrirFormMina = function abrirFormMina(id) {
   const destinoEl = document.getElementById('mina-form-destino');
   const viagensEl = document.getElementById('mina-form-viagens');
   const vftEl = document.getElementById('mina-form-vft');
+  const dmtEl = document.getElementById('mina-form-dmt');
 
   if (id) {
     const mina = _minasCadastro.find(m => m.id === id);
@@ -6495,12 +6502,14 @@ window.abrirFormMina = function abrirFormMina(id) {
     destinoEl.value = mina.destino || 'FABRICA';
     viagensEl.value = mina.viagensDia ?? '';
     vftEl.value = mina.vft ?? '';
+    dmtEl.value = mina.dmt ?? '';
   } else {
     titulo.textContent = '⛰️ Cadastrar Mina';
     origemEl.value = '';
     destinoEl.value = 'FABRICA';
     viagensEl.value = '';
     vftEl.value = '';
+    dmtEl.value = '';
   }
 
   document.getElementById('mina-form-overlay').style.display = 'flex';
@@ -6518,18 +6527,21 @@ window.salvarMina = async function salvarMina() {
   const viagensDia = parseInt(document.getElementById('mina-form-viagens').value, 10);
   const vftRaw = document.getElementById('mina-form-vft').value;
   const vft = vftRaw === '' ? null : parseFloat(vftRaw);
+  const dmtRaw = document.getElementById('mina-form-dmt').value;
+  const dmt = dmtRaw === '' ? null : parseFloat(dmtRaw);
 
   if (!origem) { showToast('✖ Informe a origem.'); return; }
   if (isNaN(viagensDia) || viagensDia <= 0) { showToast('✖ Informe a quantidade de viagens/dia.'); return; }
   if (vftRaw !== '' && (isNaN(vft) || vft < 0)) { showToast('✖ Valor de Frete Terceiro inválido.'); return; }
+  if (dmtRaw !== '' && (isNaN(dmt) || dmt < 0)) { showToast('✖ DMT inválido.'); return; }
 
   try {
     if (_minaEditandoId) {
-      await setDoc(doc(db, 'minas_cadastro', _minaEditandoId), { origem, destino, viagensDia, vft }, { merge: true });
+      await setDoc(doc(db, 'minas_cadastro', _minaEditandoId), { origem, destino, viagensDia, vft, dmt }, { merge: true });
       showToast(`✔ Mina ${origem} → ${destino} atualizada.`);
     } else {
       const novoDoc = doc(collection(db, 'minas_cadastro'));
-      await setDoc(novoDoc, { origem, destino, viagensDia, vft });
+      await setDoc(novoDoc, { origem, destino, viagensDia, vft, dmt });
       showToast(`✔ Mina ${origem} → ${destino} cadastrada.`);
     }
     _vftCadastroCache = null; // invalida o cache de VFT usado no Volume Analítico
