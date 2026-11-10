@@ -1692,6 +1692,12 @@ function rangeSemanaBR() {
 window.carregarDados = async function() {
   document.getElementById('loading-bar').classList.add('show');
   try {
+    // Se TODOS ainda está vazio (race condition), recarregar veículos antes
+    if (TODOS.length === 0) {
+      console.warn('[FleetCheck] TODOS vazio em carregarDados — recarregando veículos...');
+      await carregarVeiculosFirebase();
+      injetarVeiculosNovosNaGrade();
+    }
     TODOS.forEach(v => checkState[v.placa]={f1:null,pn:null,f2:null,su:null});
 
     // Busca toda a semana vigente
@@ -1764,8 +1770,11 @@ window.carregarDados = async function() {
     ordenarGridPorVencimento('grid-frota');
     ordenarGridPorVencimento('grid-terceiro');
   } catch(e) {
-    console.error('Erro:', e);
-    showToast('⚠ Erro ao carregar dados.');
+    console.error('[FleetCheck] Erro em carregarDados:', e);
+    showToast('⚠ Erro ao carregar dados: ' + (e?.message||e));
+    // Mesmo com erro parcial, atualizar KPIs com o que já foi carregado
+    try { TODOS.forEach(v => atualizarLinha(v.placa)); } catch(_){}
+    try { atualizarKPIs(); } catch(_){}
   } finally {
     document.getElementById('loading-bar').classList.remove('show');
   }
@@ -1777,9 +1786,9 @@ async function carregarTodasOS() {
   const promises = [];
   TODOS.forEach(v => {
     mods.forEach(mod => {
-      const doc = checkState[v.placa]?.[mod];
-      if (!doc) return;
-      const criticos = (doc.itens||[]).filter(i => i.status==='sub');
+      const insp = checkState[v.placa]?.[mod];  // renomeado: 'doc' conflitava com função doc() do Firestore
+      if (!insp) return;
+      const criticos = (insp.itens||[]).filter(i => i.status==='sub');
       criticos.forEach((_, idx) => {
         const key = v.placa+'_'+mod+'_'+idx;
         promises.push(
@@ -1799,7 +1808,7 @@ async function carregarUltimaInspecao() {
   const hoje = new Date();
   const datasRange = [];
   const cur = new Date(hoje);
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 90; i++) {
     const dow = cur.getDay();
     if (dow !== 0 && dow !== 6) {
       datasRange.push(cur.toLocaleDateString('pt-BR'));
