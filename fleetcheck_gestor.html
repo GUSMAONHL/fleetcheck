@@ -887,6 +887,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
         <span id="import-progress-prod-text">Lendo arquivo...</span>
         <div class="import-progress-bar"><div class="import-progress-fill" id="import-progress-prod-fill" style="width:0%"></div></div>
       </div>
+      <div style="display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+        <button id="prod-aba-btn-painel" onclick="_prodSetAba('painel')" style="padding:9px 18px;border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;background:var(--bg2);color:var(--text);box-shadow:inset 0 2px 0 #388bfd;cursor:pointer;font-weight:600;font-size:14px;">📅 Painel</button>
+        <button id="prod-aba-btn-historico" onclick="_prodSetAba('historico')" style="padding:9px 18px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;background:none;color:var(--text3);cursor:pointer;font-weight:600;font-size:14px;">📈 Histórico</button>
+      </div>
+      <div id="prod-aba-historico" style="display:none;"></div>
       <div class="km-resumo" id="prod-resumo"></div>
       <div id="prod-viagens-totalizador"></div>
       <div id="prod-distribuicao-aderencia"></div>
@@ -3507,6 +3512,178 @@ async function _prodRenderDistribuicaoAderencia(linhasCat) {
   }
 }
 
+
+// ══════════════════════════════════════
+// ABA "HISTÓRICO" da tela de Aderência: consolida, dia a dia, os mesmos números dos cards
+// "Programação x Realizado" e "Distribuição de Aderência" para o período carregado (Mês/Ano/Período),
+// com a média geral do período. Respeita o filtro de Categoria (Todos/Caminhão/Cavalo).
+// ══════════════════════════════════════
+let _prodAbaAtual = 'painel'; // 'painel' | 'historico'
+let _prodHistToken = 0;
+let _prodHistLinhas = [];     // linhas já calculadas (usadas na exportação)
+
+window._prodSetAba = function _prodSetAba(aba) {
+  _prodAbaAtual = aba;
+  const ids = ['prod-resumo','prod-viagens-totalizador','prod-distribuicao-aderencia','prod-cards-trabalho','prod-grafico-df'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = aba === 'painel' ? '' : 'none'; });
+  const h = document.getElementById('prod-aba-historico');
+  if (h) h.style.display = aba === 'historico' ? '' : 'none';
+  ['painel','historico'].forEach(a => {
+    const b = document.getElementById('prod-aba-btn-' + a);
+    if (!b) return;
+    const on = a === aba;
+    b.style.background = on ? 'var(--bg2)' : 'none'; b.style.color = on ? 'var(--text)' : 'var(--text3)';
+    b.style.borderColor = on ? 'var(--border)' : 'transparent'; b.style.boxShadow = on ? 'inset 0 2px 0 #388bfd' : 'none';
+  });
+  if (aba === 'historico') _prodRenderHistorico();
+};
+
+window._prodHistAbrirDia = function _prodHistAbrirDia(dia) {
+  _prodDiaAtual = dia;
+  const sel = document.getElementById('prod-dia-select');
+  if (sel) sel.value = dia;
+  _prodSetAba('painel');
+  _setModoView('dia');
+};
+
+async function _prodRenderHistorico() {
+  const cont = document.getElementById('prod-aba-historico');
+  if (!cont || _prodAbaAtual !== 'historico') return;
+  const msg = (t) => { cont.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3);">${t}</div>`; _prodHistLinhas = []; };
+  if (_prodModoView === 'dia') { msg('O histórico consolida vários dias. Selecione <strong>Mês</strong>, <strong>Ano</strong> ou um <strong>Período</strong> no filtro acima.'); return; }
+  const regs = _prodDiasRegistrosPeriodo || [];
+  if (regs.length === 0) { msg('Sem dados no período selecionado.'); return; }
+  const meuToken = ++_prodHistToken;
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">Calculando histórico...</div>';
+
+  const filtroTipo2 = (a) => {
+    const t = (a.tipo2 || '').toString().toUpperCase();
+    if (_prodCategoria === 'caminhao') return ['BT','TR'].includes(t);
+    if (_prodCategoria === 'cavalo') return t === 'CV';
+    return true;
+  };
+  try {
+    const snaps = await Promise.all(regs.map(r => getDoc(doc(db, 'programacao_dias', _diaParaChave(r.dia)))));
+    if (meuToken !== _prodHistToken) return;
+    const rows = [];
+    regs.forEach((r, i) => {
+      const lc = _filtrarCategoria(r.linhas || []);
+      const atr = ((snaps[i].exists() && Array.isArray(snaps[i].data().atribuicoes)) ? snaps[i].data().atribuicoes : []).filter(filtroTipo2);
+      const placasProg = new Set(atr.filter(a => (Number(a.viagens)||0) > 0).map(a => a.placa));
+      const tonNP = lc.filter(l => !placasProg.has(l.placa)).reduce((s,l) => s + (Number(l.percTon)||0), 0);   // veículos não programados
+      const tonAbx = lc.filter(l => placasProg.has(l.placa)).reduce((s,l) => s + (Number(l.percTon)||0), 0);   // programados abaixo de 100%
+      const total = lc.length;
+      const trab = lc.filter(l => (Number(l.viagens)||0) >= 1).length;
+      const cem = lc.filter(l => (Number(l.viagens)||0) >= 1 && Math.round(l.aderencia) >= 100).length;
+      const prog = atr.filter(a => (Number(a.viagens)||0) > 0).length;
+      const gp = atr.reduce((s,a) => s + (Number(a.viagens)||0), 0);
+      const volp = atr.reduce((s,a) => s + (Number(a.peso)||0), 0);
+      const gr = lc.reduce((s,l) => s + (Number(l.viagens)||0), 0);
+      const volr = lc.reduce((s,l) => s + (Number(l.volume)||0), 0);
+      if (total === 0 && gp === 0) return; // dia sem operação
+      const p = (n, d) => d > 0 ? n / d * 100 : null;
+      rows.push({ dia: r.dia, total, prog, trab, cem, gp, gr, volp, volr, tonNP, tonAbx, naoTrab: Math.max(0, total - trab), pNaoTrab: p(Math.max(0, total - trab), total),
+        aderV: p(trab, prog), aderG: p(gr, gp), aderVol: p(volr, volp), pTrab: p(trab, prog), p100: p(cem, trab), pAbx: trab > 0 ? 100 - p(cem, trab) : null });
+    });
+    _prodHistLinhas = rows;
+    if (rows.length === 0) { msg('Sem dias com operação no período.'); return; }
+
+    const cor = (v) => v === null ? 'var(--text3)' : v >= 96 ? '#2ea043' : v >= 51 ? '#d29922' : '#f85149';
+    const f1 = (n) => n === null || n === undefined ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+    const f0 = (n) => n === null || n === undefined ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    const pf = (n) => n === null ? '—' : f1(n) + '%';
+    const sum = (k) => rows.reduce((s,x) => s + (x[k]||0), 0);
+    const avgPct = (k) => { const v = rows.filter(x => x[k] !== null); return v.length ? v.reduce((s,x) => s + x[k], 0) / v.length : null; };
+    const avgN = (k) => sum(k) / rows.length;
+    const mAderG = avgPct('aderG'), mAderV = avgPct('aderV'), mAderVol = avgPct('aderVol');
+    const ponderadaG = sum('gp') > 0 ? sum('gr') / sum('gp') * 100 : null;
+    const ponderadaVol = sum('volp') > 0 ? sum('volr') / sum('volp') * 100 : null;
+    const catTxt = _prodCategoria === 'caminhao' ? ' · só caminhões' : _prodCategoria === 'cavalo' ? ' · só cavalos' : '';
+    const rotulo = _prodModoView === 'mes' ? _mesParaLabel(_prodMesAtual) : _prodModoView === 'ano' ? ('Ano ' + _prodAnoAtual) : 'Período selecionado';
+
+    const mini = (v, l, c, s, bd) => `<div style="flex:1 1 170px;min-width:160px;background:var(--bg3);border:1px solid var(--border);${bd ? 'border-left:3px solid ' + bd + ';' : ''}border-radius:10px;padding:12px 14px;"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;">${l}</div><div style="font-size:26px;font-weight:700;color:${c};font-family:'DM Mono',monospace;line-height:1.1;">${v}</div>${s ? `<div style="font-size:12px;color:var(--text3);margin-top:5px;">${s}</div>` : ''}</div>`;
+    const card = (t, corpo) => `<div class="table-card" style="padding:16px 18px;margin-bottom:16px;border-top:3px solid #388bfd;"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">${t}</div>${corpo}</div>`;
+    const linhaMinis = (itens) => `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">${itens.join('')}</div>`;
+    const rp = (num, den) => den > 0 ? num / den * 100 : null; // % da média em relação à etapa anterior
+    const mTot = avgN('total'), mProg = avgN('prog'), mTrab = avgN('trab'), mCem = avgN('cem'), mAbxN = mTrab - mCem;
+    const tNP = sum('tonNP'), tAbx = sum('tonAbx');
+    const ton = (n) => f0(n) + ' t';
+
+    // gráficos (SVG)
+    const n = rows.length, W = 520, H = 190, pb = 26, pt = 12;
+    const g1 = (() => {
+      const pl = 30, bw = (W - pl) / n; let s = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+      [0,50,100].forEach(v => { const y = H-pb-(H-pb-pt)*v/100; s += `<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--border)"/><text x="2" y="${y+3}" style="fill:var(--text3);font-size:10px;">${v}%</text>`; });
+      rows.forEach((x, i) => { const v = Math.min(x.aderG ?? 0, 100), h = (H-pb-pt)*v/100, xx = pl+i*bw+Math.min(4, bw*0.15), w = bw-2*Math.min(4, bw*0.15);
+        s += `<rect x="${xx}" y="${H-pb-h}" width="${w}" height="${h}" rx="2" fill="${cor(x.aderG)}"/>`;
+        if (n <= 20) s += `<text x="${xx+w/2}" y="${H-pb-h-3}" text-anchor="middle" style="fill:var(--text);font-size:10px;">${f0(x.aderG)}</text>`;
+        if (n <= 31 || i % Math.ceil(n/31) === 0) s += `<text x="${xx+w/2}" y="${H-10}" text-anchor="middle" style="fill:var(--text3);font-size:${n>20?8:10}px;">${x.dia.slice(0, n>31?10:5)}</text>`; });
+      if (mAderG !== null) { const ym = H-pb-(H-pb-pt)*Math.min(mAderG,100)/100; s += `<line x1="${pl}" x2="${W}" y1="${ym}" y2="${ym}" stroke="var(--text)" stroke-dasharray="4 4"/>`; }
+      return s + '</svg>'; })();
+    const g2 = (() => {
+      const pl = 38, bw = (W - pl) / n, mx = Math.max(1, ...rows.map(x => Math.max(x.volp, x.volr))) * 1.08; let s = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+      [0,.5,1].forEach(v => { const y = H-pb-(H-pb-pt)*v; s += `<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--border)"/><text x="2" y="${y+3}" style="fill:var(--text3);font-size:10px;">${f0(mx*v)}</text>`; });
+      rows.forEach((x, i) => { const hp = (H-pb-pt)*x.volp/mx, hr = (H-pb-pt)*x.volr/mx, m = Math.min(3, bw*0.12), xx = pl+i*bw+m, w = (bw-2*m)/2;
+        s += `<rect x="${xx}" y="${H-pb-hp}" width="${w}" height="${hp}" rx="1.5" fill="#4b5563"/><rect x="${xx+w}" y="${H-pb-hr}" width="${w}" height="${hr}" rx="1.5" fill="#388bfd"/>`;
+        if (n <= 31 || i % Math.ceil(n/31) === 0) s += `<text x="${xx+w}" y="${H-10}" text-anchor="middle" style="fill:var(--text3);font-size:${n>20?8:10}px;">${x.dia.slice(0, n>31?10:5)}</text>`; });
+      return s + '</svg>'; })();
+    const leg = (it) => `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3);margin-top:8px;">${it}</div>`;
+    const dot = (c, t) => `<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:${c};"></i>${t}</span>`;
+
+    const th = ['DIA','TOTAL VEÍC.','VEÍC. PROG.','TRABALHARAM','NÃO TRABALHARAM','AD. VEÍC.','VIAG. PROG.','VIAG. REAL.','AD. VIAG.','VOL. PROG. (t)','VOL. REAL. (t)','AD. VOL.','100% AD.','ABAIXO 100%'];
+    const cel = (v) => `<td style="text-align:center;font-weight:700;color:${cor(v)};">${pf(v)}</td>`;
+    const td = (v, st) => `<td style="text-align:center;${st||''}">${v}</td>`;
+    let tb = '<thead><tr>' + th.map((t,i) => `<th style="text-align:${i===0?'left':'center'};padding:8px;font-size:11px;white-space:nowrap;">${t}</th>`).join('') + '</tr></thead><tbody>';
+    rows.slice().reverse().forEach(x => {
+      tb += `<tr style="cursor:pointer;" onclick="_prodHistAbrirDia('${x.dia}')" title="Abrir este dia"><td style="font-weight:600;">${x.dia}</td>${td(x.total)}${td(x.prog)}${td(x.trab)}${td(`${x.naoTrab} <span style="color:var(--text3);">(${pf(x.pNaoTrab)})</span>`, x.naoTrab > 0 ? 'color:#f85149;font-weight:700;' : '')}${cel(x.aderV)}${td(x.gp)}${td(x.gr)}${cel(x.aderG)}${td(f0(x.volp))}${td(f0(x.volr))}${cel(x.aderVol)}${td(x.cem, 'color:#2ea043;font-weight:700;')}${td(x.trab - x.cem, 'color:#d29922;font-weight:700;')}</tr>`;
+    });
+    const ft = 'font-weight:700;background:var(--bg3);border-top:2px solid var(--border);';
+    tb += `</tbody><tfoot><tr><td style="${ft}">Média / total</td><td style="text-align:center;${ft}">${f0(avgN('total'))}</td><td style="text-align:center;${ft}">${f1(avgN('prog'))}</td><td style="text-align:center;${ft}">${f1(avgN('trab'))}</td><td style="text-align:center;${ft}">${f1(avgN('naoTrab'))} <span style="font-weight:400;color:var(--text3);">(${pf(rp(avgN('naoTrab'), mTot))})</span></td><td style="text-align:center;${ft}color:${cor(mAderV)};">${pf(mAderV)}</td><td style="text-align:center;${ft}">${f0(sum('gp'))}</td><td style="text-align:center;${ft}">${f0(sum('gr'))}</td><td style="text-align:center;${ft}color:${cor(mAderG)};">${pf(mAderG)}</td><td style="text-align:center;${ft}">${f0(sum('volp'))}</td><td style="text-align:center;${ft}">${f0(sum('volr'))}</td><td style="text-align:center;${ft}color:${cor(mAderVol)};">${pf(mAderVol)}</td><td style="text-align:center;${ft}">${f1(avgN('cem'))}</td><td style="text-align:center;${ft}">${f1(avgN('trab') - avgN('cem'))}</td></tr></tfoot>`;
+
+    cont.innerHTML =
+      card(`🗓 Média geral por dia — ${rotulo} · ${n} dia(s) com operação${catTxt}`,
+        linhaMinis([
+          mini(f1(mTot), 'Média geral de veículos', 'var(--text)', 'veículos na frota por dia', '#8b949e'),
+          mini(f1(mProg), 'Veículos programados', '#388bfd', `${pf(rp(mProg, mTot))} do geral`, '#388bfd'),
+          mini(f1(mTrab), 'Veículos que trabalharam', cor(rp(mTrab, mProg)), `${pf(rp(mTrab, mProg))} dos programados`, '#2ea043'),
+          mini(f1(mCem), 'Atingiram 100% de aderência', '#2ea043', `${pf(rp(mCem, mTrab))} dos que trabalharam`, '#2ea043'),
+          mini(f1(mAbxN), 'Não atingiram 100%', '#d29922', `${pf(rp(mAbxN, mTrab))} dos que trabalharam`, '#d29922')
+        ])
+        + linhaMinis([
+          mini(ton(tNP), 'Toneladas não realizadas — veículos não programados', '#f85149', `média ${ton(tNP / n)} por dia · vale o que foi informado em “viagens que faria”`, '#f85149'),
+          mini(ton(tAbx), 'Toneladas não realizadas — abaixo de 100%', '#f85149', `média ${ton(tAbx / n)} por dia · programados que não bateram a meta`, '#f85149'),
+          mini(pf(mAderG), 'Aderência média — viagens', cor(mAderG), `${f0(sum('gr'))} de ${f0(sum('gp'))} viagens · ponderada ${pf(ponderadaG)}`, '#388bfd'),
+          mini(pf(mAderVol), 'Volume realizado / programado', cor(mAderVol), `${f0(sum('volr'))} de ${f0(sum('volp'))} t · ponderada ${pf(ponderadaVol)}`, '#388bfd')
+        ]))
+      + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">`
+      + card('Aderência por dia — viagens (%)', g1 + leg(dot('#2ea043','≥ 96%') + dot('#d29922','51–95%') + dot('#f85149','≤ 50%') + '<span>— tracejado: média</span>'))
+      + card('Volume por dia — programado x realizado (t)', g2 + leg(dot('#4b5563','Programado') + dot('#388bfd','Realizado')))
+      + `</div>`
+      + `<div class="table-card" style="margin-bottom:16px;"><div class="table-header"><div class="table-title">Histórico dia a dia</div><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:12px;color:var(--text3);">clique em um dia para abri-lo</div><button onclick="exportarHistoricoAderencia()" title="Exportar Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">${tb}</table></div></div>`;
+  } catch (err) {
+    console.error('Erro ao montar histórico de aderência:', err);
+    msg('Erro ao calcular o histórico.');
+  }
+}
+
+window.exportarHistoricoAderencia = function exportarHistoricoAderencia() {
+  if (!_prodHistLinhas.length) { showToast('✖ Nada pra exportar.'); return; }
+  const r1 = (v) => v === null || v === undefined ? '' : Math.round(v * 10) / 10;
+  const dados = _prodHistLinhas.map(x => ({
+    'Dia': x.dia, 'Total de Veículos': x.total, 'Veículos Programados': x.prog, 'Trabalharam': x.trab, 'Não Trabalharam': x.naoTrab, 'Não Trabalharam (% do total)': r1(x.pNaoTrab), 'Aderência Veículos %': r1(x.aderV),
+    'Viagens Programadas': x.gp, 'Viagens Realizadas': x.gr, 'Aderência Viagens %': r1(x.aderG),
+    'Volume Programado (t)': Math.round(x.volp * 100) / 100, 'Volume Realizado (t)': Math.round(x.volr * 100) / 100, 'Aderência Volume %': r1(x.aderVol),
+    '100% Aderência': x.cem, 'Abaixo de 100%': x.trab - x.cem,
+    'Ton. não realizadas — não programados': Math.round(x.tonNP * 100) / 100, 'Ton. não realizadas — abaixo de 100%': Math.round(x.tonAbx * 100) / 100
+  }));
+  const ws = XLSX.utils.json_to_sheet(dados);
+  ws['!cols'] = Object.keys(dados[0]).map(k => ({ wch: Math.max(12, k.length + 2) }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Historico');
+  const rot = _prodModoView === 'mes' ? _prodMesAtual : _prodModoView === 'ano' ? _prodAnoAtual : 'periodo';
+  XLSX.writeFile(wb, `historico_aderencia_${rot}${_prodCategoria !== 'todos' ? '_' + _prodCategoria : ''}.xlsx`);
+  showToast('✔ Histórico exportado.');
+};
+
 function _renderProdResumoEBlocos(linhas) {
   _prodLinhasAtual = linhas;
 
@@ -3516,6 +3693,7 @@ function _renderProdResumoEBlocos(linhas) {
     document.getElementById('prod-grafico-df').innerHTML = '';
     document.getElementById('prod-viagens-totalizador').innerHTML = '';
     document.getElementById('prod-distribuicao-aderencia').innerHTML = '';
+    _prodRenderHistorico();
     return;
   }
 
@@ -3528,6 +3706,7 @@ function _renderProdResumoEBlocos(linhas) {
   const aderenciaMedia = linhasComAderencia.length ? linhasComAderencia.reduce((s,l) => s + l.aderencia, 0) / linhasComAderencia.length : 0;
   _prodRenderResumoProgramacao(linhasCat);
   _prodRenderDistribuicaoAderencia(linhasCat);
+  _prodRenderHistorico();
 
   document.getElementById('prod-resumo').innerHTML = `
     <div class="km-resumo-card"><div class="km-resumo-num" style="color:#f85149;">${toneladasPerdidas.toLocaleString('pt-BR',{maximumFractionDigits:2})}</div><div class="km-resumo-lbl">Toneladas Perdidas</div></div>
@@ -3852,10 +4031,10 @@ function _inverterMapa(mapa) {
 // dado provisório na Gestão do Dia (ex.: hoje, ainda sem o volume real lançado) não deve contar
 // pra média de Aderência/Disponibilidade até o volume dele ser efetivamente importado.
 async function _diasDoMesParaExibicao(mesKey) {
-  const [ano, mes] = mesKey.split('-');
+  // respeita o período de operação cadastrado nas Metas (ex.: Novembro = 29/10 a 27/11)
+  const periodos = await _volCarregarPeriodos();
   const diasReais = await _obterDiasVolumeReal();
-  return diasReais
-    .filter(d => { const p = d.split('/'); return p[1] === mes && p[2] === ano; })
+  return _volDiasDoPeriodo(diasReais, mesKey, periodos[mesKey])
     .sort((a,b) => {
       const da = a.split('/').reverse().join(''); const db_ = b.split('/').reverse().join('');
       return da.localeCompare(db_);
@@ -4100,7 +4279,9 @@ window.renderProdutividade = async function renderProdutividade() {
 
     // meses distintos disponíveis na base ('YYYY-MM'), mais recente primeiro — sempre inclui o
     // mês corrente, mesmo sem nenhum dia registrado nele ainda
-    const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+    const _periodosMes = await _volCarregarPeriodos();
+    const mesesSet = new Set(diasTodos.map(d => _volMesDoDia(d)));
+    Object.keys(_periodosMes).forEach(m => mesesSet.add(m));
     mesesSet.add(mesAtualKey);
     const meses = Array.from(mesesSet).sort().reverse();
     const mesPadrao = meses.includes(_prodMesAtual) ? _prodMesAtual : (meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || ''));
@@ -11143,7 +11324,9 @@ window.renderOfensores = async function renderOfensores() {
   if (mesAtualKey >= GESTAO_ADERENCIA_CUTOFF.slice(0,7)) {
     (await _diasDoMesParaExibicao(mesAtualKey)).forEach(d => { if (!diasTodos.includes(d)) diasTodos.push(d); });
   }
-  const mesesSet = new Set(diasTodos.map(d => { const p = d.split('/'); return `${p[2]}-${p[1]}`; }));
+  const _periodosMesOfn = await _volCarregarPeriodos();
+  const mesesSet = new Set(diasTodos.map(d => _volMesDoDia(d)));
+  Object.keys(_periodosMesOfn).forEach(m => mesesSet.add(m));
   mesesSet.add(mesAtualKey);
   const meses = Array.from(mesesSet).sort().reverse();
   if (!_ofnMesAtual) _ofnMesAtual = meses.includes(mesAtualKey) ? mesAtualKey : (meses[0] || '');
