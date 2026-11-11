@@ -3630,10 +3630,11 @@ async function _prodRenderHistorico() {
     const leg = (it) => `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3);margin-top:8px;">${it}</div>`;
     const dot = (c, t) => `<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:${c};"></i>${t}</span>`;
 
-    const th = ['DIA','TOTAL VEÍC.','VEÍC. PROG.','TRABALHARAM','NÃO TRABALHARAM','AD. VEÍC.','VIAG. PROG.','VIAG. REAL.','AD. VIAG.','VOL. PROG. (t)','VOL. REAL. (t)','AD. VOL.','100% AD.','ABAIXO 100%'];
+    const th = [['DIA','Dia'],['TV','Total de veículos'],['PG','Veículos programados'],['TR','Veículos que trabalharam'],['NTR','Veículos que não trabalharam (% do total)'],['ADV','Aderência de veículos (trabalharam / programados)'],['VGP','Viagens programadas'],['VGR','Viagens realizadas'],['ADVG','Aderência de viagens'],['VLP','Volume programado (t)'],['VLR','Volume realizado (t)'],['ADVL','Aderência de volume'],['100%','Veículos com 100% de aderência'],['<100%','Veículos abaixo de 100%']];
     const cel = (v) => `<td style="text-align:center;font-weight:700;color:${cor(v)};">${pf(v)}</td>`;
     const td = (v, st) => `<td style="text-align:center;${st||''}">${v}</td>`;
-    let tb = '<thead><tr>' + th.map((t,i) => `<th style="text-align:${i===0?'left':'center'};padding:8px;font-size:11px;white-space:nowrap;">${t}</th>`).join('') + '</tr></thead><tbody>';
+    const cp = 'padding:7px 4px;font-size:12px;white-space:nowrap;';
+    let tb = '<thead><tr>' + th.map((t,i) => `<th title="${t[1]}" style="text-align:${i===0?'left':'center'};padding:10px 5px;font-size:13px;white-space:nowrap;">${t[0]}</th>`).join('') + '</tr></thead><tbody>';
     rows.slice().reverse().forEach(x => {
       tb += `<tr style="cursor:pointer;" onclick="_prodHistAbrirDia('${x.dia}')" title="Abrir este dia"><td style="font-weight:600;">${x.dia}</td>${td(x.total)}${td(x.prog)}${td(x.trab)}${td(`${x.naoTrab} <span style="color:var(--text3);">(${pf(x.pNaoTrab)})</span>`, x.naoTrab > 0 ? 'color:#f85149;font-weight:700;' : '')}${cel(x.aderV)}${td(x.gp)}${td(x.gr)}${cel(x.aderG)}${td(f0(x.volp))}${td(f0(x.volr))}${cel(x.aderVol)}${td(x.cem, 'color:#2ea043;font-weight:700;')}${td(x.trab - x.cem, 'color:#d29922;font-weight:700;')}</tr>`;
     });
@@ -3659,7 +3660,7 @@ async function _prodRenderHistorico() {
       + card('Aderência por dia — viagens (%)', g1 + leg(dot('#2ea043','≥ 96%') + dot('#d29922','51–95%') + dot('#f85149','≤ 50%') + '<span>— tracejado: média</span>'))
       + card('Volume por dia — programado x realizado (t)', g2 + leg(dot('#4b5563','Programado') + dot('#388bfd','Realizado')))
       + `</div>`
-      + `<div class="table-card" style="margin-bottom:16px;"><div class="table-header"><div class="table-title">Histórico dia a dia</div><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:12px;color:var(--text3);">clique em um dia para abri-lo</div><button onclick="exportarHistoricoAderencia()" title="Exportar Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">${tb}</table></div></div>`;
+      + `<div class="table-card" style="margin-bottom:16px;"><div class="table-header"><div class="table-title">Histórico dia a dia</div><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:12px;color:var(--text3);">clique em um dia para abri-lo</div><button onclick="exportarHistoricoAderencia()" title="Exportar Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div><div><style>#prod-hist-tab td{padding:9px 5px;font-size:15px;white-space:nowrap;} #prod-hist-tab td:first-child{padding-left:10px;}</style><table id="prod-hist-tab" style="width:100%;border-collapse:collapse;">${tb}</table></div></div>`;
   } catch (err) {
     console.error('Erro ao montar histórico de aderência:', err);
     msg('Erro ao calcular o histórico.');
