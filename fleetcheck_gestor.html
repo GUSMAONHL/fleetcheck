@@ -903,7 +903,9 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     <!-- PAGE: OFENSORES — IMPACTO DE VOLUME -->
     <div class="page" id="page-ofensores">
       <div id="ofn-filtros-ativos" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+      <div id="ofn-grupos" style="display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;margin-bottom:16px;"></div>
       <div id="ofn-kpis" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:16px;"></div>
+      <div id="ofn-composicao-perda"></div>
 
       <div id="ofn-pizzas-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;margin-bottom:16px;"></div>
 
@@ -10919,14 +10921,18 @@ async function _ofnCarregar() {
 }
 
 // Filtro pela legenda dos gráficos (clicar no item filtra a página; clicar de novo, limpa)
-let _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null };
-const _OFN_ROT_FILTRO = { ofensor: 'Ofensor', tipo: 'Tipo de ofensor', veiculo: 'Veículo' };
+let _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null, grupo: null };
+const _OFN_ROT_FILTRO = { ofensor: 'Ofensor', tipo: 'Tipo de ofensor', veiculo: 'Veículo', grupo: 'Grupo' };
+// Separação dos ofensores: veículos que FORAM à mina e produziram (mas perderam viagem) x veículos que NÃO foram
+const _OFN_GRUPO_PROD = 'Produziram e perderam viagem', _OFN_GRUPO_NAOFOI = 'Não foram à mina';
+const _ofnGrupoDaLinha = (l) => (Number(l.viagens)||0) >= 1 ? _OFN_GRUPO_PROD : _OFN_GRUPO_NAOFOI;
+window.ofnFiltrarGrupo = function ofnFiltrarGrupo(g) { _ofnFiltroLegenda.grupo = (_ofnFiltroLegenda.grupo === g) ? null : g; _ofnRenderTudo(); };
 window.ofnFiltrarLegenda = function ofnFiltrarLegenda(dim, chave) {
   _ofnFiltroLegenda[dim] = (_ofnFiltroLegenda[dim] === chave) ? null : chave;
   _ofnRenderTudo();
 };
 window.ofnLimparFiltros = function ofnLimparFiltros(dim) {
-  if (dim) _ofnFiltroLegenda[dim] = null; else _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null };
+  if (dim) _ofnFiltroLegenda[dim] = null; else _ofnFiltroLegenda = { ofensor: null, tipo: null, veiculo: null, grupo: null };
   _ofnRenderTudo();
 };
 function _ofnRenderChips() {
@@ -10964,11 +10970,89 @@ function _ofnLinhasFiltradas() {
   if (_ofnFiltroLegenda.ofensor) linhas = linhas.filter(l => l.ofensor === _ofnFiltroLegenda.ofensor);
   if (_ofnFiltroLegenda.tipo) linhas = linhas.filter(l => l.tipoOfensor === _ofnFiltroLegenda.tipo);
   if (_ofnFiltroLegenda.veiculo) linhas = linhas.filter(l => l.placa === _ofnFiltroLegenda.veiculo);
+  if (_ofnFiltroLegenda.grupo) linhas = linhas.filter(l => _ofnGrupoDaLinha(l) === _ofnFiltroLegenda.grupo);
   return linhas;
+}
+
+function _ofnRenderGrupos() {
+  const cont = document.getElementById('ofn-grupos');
+  if (!cont) return;
+  const base = _ofnLinhasBase().filter(l => l.ofensor || (Number(l.percTon)||0) > 0);
+  const total = base.reduce((s,l) => s + (Number(l.percTon)||0), 0);
+  const card = (grupo, icone, desc, cor) => {
+    const ls = base.filter(l => _ofnGrupoDaLinha(l) === grupo);
+    const t = ls.reduce((s,l) => s + (Number(l.percTon)||0), 0);
+    const placas = new Set(ls.map(l => l.placa)).size;
+    const ativo = _ofnFiltroLegenda.grupo === grupo;
+    return `<div class="table-card" onclick="ofnFiltrarGrupo(this.dataset.g)" data-g="${grupo}" title="Clique para filtrar a página por este grupo" style="padding:16px 18px;cursor:pointer;border-left:4px solid ${cor};${ativo ? 'box-shadow:0 0 0 2px ' + cor + ';' : ''}">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">${icone} ${grupo}</div>
+      <div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${_fmtPesoCard(t)} <span style="font-size:14px;color:var(--text3);">(${total > 0 ? (t/total*100).toLocaleString('pt-BR',{maximumFractionDigits:1}) : '0'}%)</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">${ls.length} ocorrência(s) · ${placas} veículo(s) · ${desc}</div>
+    </div>`;
+  };
+  cont.innerHTML = card(_OFN_GRUPO_PROD, '⛏️', 'foram à mina, carregaram e perderam viagem por algum ofensor', '#d29922')
+    + card(_OFN_GRUPO_NAOFOI, '⛔', 'não carregaram nenhuma viagem no dia', '#f85149');
+}
+
+// Composição da perda de aderência: quanto de cada ofensor está dentro da perda (100% − aderência de viagens).
+// Perda por ofensor = viagens programadas que não foram realizadas / viagens programadas do período (em p.p.).
+const _ofnProgCache = {};
+let _ofnCompToken = 0;
+async function _ofnRenderComposicaoPerda() {
+  const cont = document.getElementById('ofn-composicao-perda');
+  if (!cont) return;
+  const token = ++_ofnCompToken;
+  const base = _ofnLinhasBase();
+  const dias = Array.from(new Set(base.map(l => l._dia)));
+  if (dias.length === 0) { cont.innerHTML = ''; return; }
+  try {
+    const snaps = await Promise.all(dias.map(async d => {
+      const k = _diaParaChave(d);
+      if (!_ofnProgCache[k]) { const sn = await getDoc(doc(db, 'programacao_dias', k)); _ofnProgCache[k] = (sn.exists() && Array.isArray(sn.data().atribuicoes)) ? sn.data().atribuicoes : []; }
+      return _ofnProgCache[k];
+    }));
+    if (token !== _ofnCompToken) return;
+    const progPorDia = {}; dias.forEach((d, i) => { const m = {}; snaps[i].forEach(a => { if ((Number(a.viagens)||0) > 0) m[a.placa] = Number(a.viagens)||0; }); progPorDia[d] = m; });
+    // denominador/numerador gerais (base: período + filtros de veículo/tipo do topo)
+    let progTot = 0, realTot = 0;
+    base.forEach(l => { realTot += Number(l.viagens)||0; });
+    const placasBaseDia = {}; base.forEach(l => { (placasBaseDia[l._dia] = placasBaseDia[l._dia] || new Set()).add(l.placa); });
+    dias.forEach(d => { Object.entries(progPorDia[d]).forEach(([pl, v]) => { if (placasBaseDia[d] && placasBaseDia[d].has(pl)) progTot += v; }); });
+    if (progTot <= 0) { cont.innerHTML = ''; return; }
+    const aderGeral = realTot / progTot * 100, perdaGeral = 100 - aderGeral;
+    // perda por ofensor (linhas após filtros da legenda/grupo)
+    const por = {}; let somaPerdidas = 0;
+    _ofnLinhasFiltradas().forEach(l => {
+      const prog = (progPorDia[l._dia] || {})[l.placa] || 0;
+      if (prog <= 0) return;
+      const perdidas = Math.max(0, prog - (Number(l.viagens)||0));
+      if (perdidas <= 0) return;
+      const nome = l.ofensor || 'Sem ofensor informado';
+      const o = por[nome] || (por[nome] = { nome, perdidas: 0, veic: new Set(), tipo: l.tipoOfensor || '' });
+      o.perdidas += perdidas; o.veic.add(l.placa); somaPerdidas += perdidas;
+    });
+    const rank = Object.values(por).sort((a,b) => b.perdidas - a.perdidas);
+    const pp = (v) => (v / progTot * 100);
+    const f1 = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+    const maxV = rank.length ? rank[0].perdidas : 1;
+    const linhasHtml = rank.map(o => `<tr style="cursor:pointer;" onclick="ofnFiltrarLegenda('ofensor', this.dataset.chave)" data-chave="${_motEsc(o.nome === 'Sem ofensor informado' ? '' : o.nome)}" title="Filtrar a página por este ofensor">
+      <td style="font-weight:600;">${_motEsc(o.nome)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${o.perdidas.toLocaleString('pt-BR')}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#f85149;">${f1(pp(o.perdidas))} p.p.</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;">${somaPerdidas > 0 ? f1(o.perdidas / somaPerdidas * 100) : '0'}%</td>
+      <td style="width:28%;"><div style="height:8px;border-radius:4px;background:var(--bg3);"><div style="height:8px;border-radius:4px;background:#f85149;width:${(o.perdidas / maxV * 100).toFixed(1)}%;"></div></div></td></tr>`).join('');
+    cont.innerHTML = `<div class="table-card" style="margin-bottom:16px;">
+      <div class="table-header"><div class="table-title">📉 Composição da perda de aderência — viagens</div></div>
+      <div style="overflow-x:auto;"><table><thead><tr><th>OFENSOR</th><th style="text-align:right;">VIAGENS PERDIDAS</th><th style="text-align:right;">PERDA DE ADERÊNCIA</th><th style="text-align:right;">% DA PERDA</th><th></th></tr></thead>
+      <tbody>${linhasHtml || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3);">Nenhuma viagem programada foi perdida nesse recorte.</td></tr>'}</tbody></table></div>
+    </div>`;
+  } catch (err) { console.error('Erro na composição da perda:', err); cont.innerHTML = ''; }
 }
 
 function _ofnRenderTudo() {
   _ofnRenderChips();
+  _ofnRenderGrupos();
+  _ofnRenderComposicaoPerda();
   const linhas = _ofnLinhasFiltradas();
   const comOfensor = linhas.filter(l => l.ofensor);
   const totalPerdido = linhas.reduce((s,l) => s + (Number(l.percTon)||0), 0);
@@ -11309,6 +11393,7 @@ window.abrirDetalheOfensor = function abrirDetalheOfensor(chave) {
 };
 
 window.renderOfensores = async function renderOfensores() {
+  Object.keys(_ofnProgCache).forEach(k => delete _ofnProgCache[k]); // programação pode ter mudado desde a última visita
   const hoje = new Date();
   const hojeISOInput = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
   const mesAtualKey = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
