@@ -535,6 +535,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       Revisões
     </button>
+    <button class="nav-item" id="nav-preventivas" onclick="showPage('preventivas',this)" title="Quadro de Preventivas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h4m-2-2v4"/></svg>
+      Preventivas
+    </button>
     <button class="nav-item" id="nav-pcm" onclick="showPage('pcm',this)" title="PCM">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
       PCM
@@ -1393,6 +1397,91 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div id="rev-corpo" style="padding-top:12px;"></div>
     </div><!-- /page-revisoes -->
 
+    <!-- ══ PREVENTIVAS ══ -->
+    <div class="page" id="page-preventivas" style="padding-top:0;">
+      <!-- Sticky: KPIs + barra de ações -->
+      <div id="prev-sticky-top" style="position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 24px 10px;margin:0 -24px 4px;border-bottom:1px solid var(--border);">
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;">
+          <div class="kpi-card" id="prev-kpi-venc" onclick="window.toggleFiltroPrev('venc')" style="border-color:#ef4444;background:rgba(239,68,68,.08);cursor:pointer;">
+            <div class="kpi-val" id="prev-kpi-venc-val" style="color:#ef4444;">—</div>
+            <div class="kpi-lbl">Vencidas</div>
+          </div>
+          <div class="kpi-card" id="prev-kpi-warn" onclick="window.toggleFiltroPrev('warn')" style="border-color:var(--warn,#f59e0b);background:rgba(245,158,11,.08);cursor:pointer;">
+            <div class="kpi-val" id="prev-kpi-warn-val" style="color:var(--warn,#f59e0b);">—</div>
+            <div class="kpi-lbl">A Vencer (&lt;10 dias)</div>
+          </div>
+          <div class="kpi-card" id="prev-kpi-ok" onclick="window.toggleFiltroPrev('ok')" style="border-color:var(--ok,#22c55e);background:rgba(34,197,94,.08);cursor:pointer;">
+            <div class="kpi-val" id="prev-kpi-ok-val" style="color:var(--ok,#22c55e);">—</div>
+            <div class="kpi-lbl">Em Dia</div>
+          </div>
+          <div class="kpi-card" id="prev-kpi-pend" onclick="window.toggleFiltroPrev('pend')" style="border-color:var(--text3,#8a9ab0);background:rgba(148,163,184,.08);cursor:pointer;">
+            <div class="kpi-val" id="prev-kpi-pend-val" style="color:var(--text3,#8a9ab0);">—</div>
+            <div class="kpi-lbl">Sem Registro</div>
+          </div>
+        </div>
+        <!-- Barra: filtros + atualizar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span id="prev-filtro-label" style="font-size:11px;color:var(--blue);font-weight:600;display:none;align-items:center;gap:4px;">
+              Filtro: <span id="prev-filtro-nome" style="text-decoration:underline;"></span>
+              <button onclick="window.toggleFiltroPrev(window._prevFiltroAtivo)" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:1;" title="Remover filtro">✕</button>
+            </span>
+            <div id="prev-pills-tipo" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:12px;color:var(--text3);" id="prev-ultima-atualiz">—</div>
+            <button onclick="window.carregarQuadroPreventivas()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
+              onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
+              onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Atualizar
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Corpo dinâmico -->
+      <div id="prev-corpo" style="padding-top:12px;"></div>
+    </div><!-- /page-preventivas -->
+
+    <!-- Modal: Registrar execução de preventiva -->
+    <div id="modal-reg-prev" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:var(--bg2);border-radius:14px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+        <div style="padding:16px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Registrar Execução</div>
+          <button onclick="window.fecharModalPrev()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;">✕</button>
+        </div>
+        <div style="padding:20px;">
+          <div style="margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;" id="prev-modal-titulo">—</div>
+            <div style="font-size:11px;color:var(--text3);" id="prev-modal-sub">—</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Data de Execução</label>
+              <input type="date" id="prev-exec-data" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Número OS</label>
+              <input type="text" id="prev-exec-os" placeholder="Ex: OS-2024-001" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Técnico Responsável</label>
+            <input type="text" id="prev-exec-tecnico" placeholder="Nome do técnico" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Observações</label>
+            <textarea id="prev-exec-obs" rows="2" placeholder="Observações sobre o serviço" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="window.fecharModalPrev()" style="padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancelar</button>
+            <button onclick="window.confirmarExecPrev()" style="padding:9px 20px;border-radius:8px;border:none;background:var(--blue);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">✓ Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ TELEMETRIA ══ -->
     <div class="page" id="page-veiculos">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
@@ -1586,7 +1675,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, doc, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, getDoc, setDoc, updateDoc, doc, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -2553,7 +2642,8 @@ window.showPage = function(page,btn) {
     veiculos: 'Gerenciamento de Veículos',
     telemetria: 'Telemetria — Consumo, Manutenção e Segurança',
     servicos: 'Serviços — Cadastro',
-    revisoes: 'Quadro de Revisões — Controle por KM'
+    revisoes: 'Quadro de Revisões — Controle por KM',
+    preventivas: 'Quadro de Preventivas — Controle por Dias'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   if (page === 'pcm') renderPCM();
@@ -2563,6 +2653,7 @@ window.showPage = function(page,btn) {
   if (page === 'telemetria') carregarTelemetriaPagina();
   if (page === 'servicos') { carregarTiposServico(); carregarTabelaServicos(); }
   if (page === 'revisoes') carregarQuadroRevisoes();
+  if (page === 'preventivas') carregarQuadroPreventivas();
 };
 
 window.abrirModalKpi = function(tipo) {
@@ -7147,6 +7238,649 @@ window.salvarEdicaoRevisao     = salvarEdicaoRevisao;
 window.exportarRevisoesPDF     = exportarRevisoesPDF;
 
 
+// ══════════════════════════════════════════════════════════════════
+// QUADRO DE PREVENTIVAS — Controle por Dias
+// ══════════════════════════════════════════════════════════════════
+
+let _prevServicos     = null;
+let _prevHistorico    = null;
+let _prevCarregado    = false;
+let _prevFiltroAtivo  = null;
+let _prevFiltroTipo   = 'todos';
+let _prevModalCtx     = null;
+
+async function carregarQuadroPreventivas(forcar) {
+  if (_prevCarregado && !forcar) { _prevRenderCorpo(); return; }
+
+  document.getElementById('prev-corpo').innerHTML =
+    '<div style="padding:40px;text-align:center;color:var(--text3);">Carregando preventivas...</div>';
+  document.getElementById('prev-ultima-atualiz').textContent = '⏳ Buscando...';
+
+  try {
+    const [snapSrv, snapHist] = await Promise.all([
+      getDocs(collection(db, 'servicos_cadastro')),
+      getDocs(collection(db, 'servicos_historico'))
+    ]);
+
+    _prevServicos = [];
+    snapSrv.forEach(function(d) {
+      const dd = d.data();
+      if (dd.unidadeControle === 'DIAS' && dd.ativo !== false) {
+        _prevServicos.push(Object.assign({ id: d.id }, dd));
+      }
+    });
+
+    _prevHistorico = {};
+    snapHist.forEach(function(d) {
+      const dd = d.data();
+      const key = dd.placa + '::' + dd.servicoId;
+      if (!_prevHistorico[key] || dd.dataRegistro > _prevHistorico[key].dataRegistro) {
+        _prevHistorico[key] = {
+          dataRegistro: dd.dataRegistro || '',
+          dataExecucao: dd.dataExecucao || '',
+          os:           dd.os || '',
+          tecnico:      dd.tecnico || '',
+          obs:          dd.obs || ''
+        };
+      }
+    });
+
+    _prevCarregado = true;
+    const agora = new Date();
+    document.getElementById('prev-ultima-atualiz').textContent =
+      'Atualizado: ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+    _prevPopularPillsTipo();
+    _prevRenderCorpo(); // KPIs são calculados dentro do render
+
+  } catch(e) {
+    console.error('[Preventivas]', e);
+    document.getElementById('prev-corpo').innerHTML =
+      '<div style="padding:40px;text-align:center;color:#ef4444;">Erro ao carregar: ' + e.message + '</div>';
+    document.getElementById('prev-ultima-atualiz').textContent = '⚠ Erro';
+  }
+}
+
+function _prevCalcStatus(placa, srv) {
+  const key  = placa + '::' + srv.id;
+  const exec = _prevHistorico ? _prevHistorico[key] : null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  if (!exec || !exec.dataExecucao) {
+    return { status:'pend', proxData:null, faltam:null, exec:exec };
+  }
+
+  const p = exec.dataExecucao.split('-');
+  const dataUlt = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  dataUlt.setHours(0,0,0,0);
+
+  const proxData = new Date(dataUlt);
+  proxData.setDate(proxData.getDate() + srv.ciclo);
+
+  const faltam = Math.round((proxData - hoje) / 86400000);
+  const status = faltam < 0 ? 'venc' : faltam <= 10 ? 'warn' : 'ok';
+
+  return { status, proxData, faltam, exec, dataUlt };
+}
+
+function _prevAtualizarKPIs() {
+  if (!_prevServicos || !TODOS.length) return;
+  var venc=0, warn=0, ok=0, pend=0;
+  TODOS.forEach(function(v) {
+    if (v.ativo === false) return;
+    _prevServicos.forEach(function(srv) {
+      var forcas = srv.forcaTrabalho || [];
+      var tipos  = srv.tiposVeiculo  || [];
+      var forca  = v.terceiro ? 'TERCEIRO' : 'FROTA';
+      if (forcas.length > 0 && forcas.indexOf(forca) < 0) return;
+      if (tipos.length  > 0 && tipos.indexOf(v.tipo) < 0) return;
+      var c = _prevCalcStatus(v.placa, srv);
+      if      (c.status==='venc') venc++;
+      else if (c.status==='warn') warn++;
+      else if (c.status==='ok')   ok++;
+      else                        pend++;
+    });
+  });
+  document.getElementById('prev-kpi-venc-val').textContent = venc;
+  document.getElementById('prev-kpi-warn-val').textContent = warn;
+  document.getElementById('prev-kpi-ok-val').textContent   = ok;
+  document.getElementById('prev-kpi-pend-val').textContent = pend;
+}
+
+function _prevPopularPillsTipo() {
+  const div = document.getElementById('prev-pills-tipo');
+  if (!div) return;
+  const tipos = [];
+  TODOS.forEach(function(v){ if(v.ativo!==false && tipos.indexOf(v.tipo)<0) tipos.push(v.tipo); });
+  tipos.sort();
+  div.innerHTML = '';
+
+  function mkPill(label, val) {
+    const btn = document.createElement('button');
+    btn.textContent   = label;
+    btn.dataset.tipo  = val;
+    btn.onclick = function() { _prevFiltroTipo = val; _prevAtualizarPills(); _prevRenderCorpo(); };
+    btn.style.cssText = 'padding:4px 12px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;';
+    div.appendChild(btn);
+  }
+  mkPill('Todos','todos');
+  tipos.forEach(function(t){ mkPill(t, t); });
+  _prevAtualizarPills();
+}
+
+function _prevAtualizarPills() {
+  document.querySelectorAll('#prev-pills-tipo button').forEach(function(b) {
+    var ativo = b.dataset.tipo === _prevFiltroTipo;
+    b.style.borderColor = ativo ? 'var(--blue)' : 'var(--border)';
+    b.style.background  = ativo ? 'rgba(26,95,212,.12)' : 'var(--bg3)';
+    b.style.color       = ativo ? 'var(--blue)' : 'var(--text2)';
+    b.style.fontWeight  = ativo ? '700' : '400';
+  });
+}
+
+function toggleFiltroPrev(tipo) {
+  _prevFiltroAtivo = (_prevFiltroAtivo === tipo) ? null : tipo;
+  var nomes = { venc:'Vencidas', warn:'A Vencer', ok:'Em Dia', pend:'Sem Registro' };
+  var lbl  = document.getElementById('prev-filtro-label');
+  var nome = document.getElementById('prev-filtro-nome');
+  if (_prevFiltroAtivo) {
+    lbl.style.display = 'flex';
+    nome.textContent  = nomes[_prevFiltroAtivo] || _prevFiltroAtivo;
+  } else {
+    lbl.style.display = 'none';
+  }
+  _prevRenderCorpo();
+}
+
+// ── Funções auxiliares de preventivas ──
+function _prevSrvsParaTipo(tipo) {
+  // Retorna serviços DIAS que se aplicam a este tipo de veículo
+  return (_prevServicos || []).filter(function(s) {
+    var forcas = s.forcaTrabalho || [];
+    var tipos  = s.tiposVeiculo  || [];
+    if (forcas.length > 0 && forcas.indexOf('FROTA') < 0) return false;
+    if (!tipos.length) return true;
+    return tipos.indexOf(tipo) >= 0;
+  }).sort(function(a,b){ return (a.nome||'').localeCompare(b.nome||'','pt-BR'); });
+}
+
+function _prevRenderCorpo() {
+  const corpo = document.getElementById('prev-corpo');
+  if (!corpo) return;
+  if (!_prevServicos || !_prevServicos.length) {
+    corpo.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Nenhum serviço com controle por Dias cadastrado.</div>';
+    return;
+  }
+
+  // Agrupar FROTA por tipo (mesmo que Revisões — só FROTA tem controle de dias)
+  const tiposOrdem = ['BITRUCK','CAVALO','CARRETA'];
+  const veicPorTipo = { BITRUCK:[], CAVALO:[], CARRETA:[] };
+  const frota = (typeof FROTA !== 'undefined') ? FROTA : [];
+  frota.forEach(function(v) {
+    if (v.ativo === false) return;
+    var t = (v.tipo||'').toUpperCase();
+    if (veicPorTipo[t]) veicPorTipo[t].push(v);
+    // Tipos não mapeados: criar dinamicamente
+    else { veicPorTipo[t] = veicPorTipo[t] || []; veicPorTipo[t].push(v); }
+  });
+  // Adicionar tipos dinâmicos à ordem
+  Object.keys(veicPorTipo).forEach(function(t){ if (tiposOrdem.indexOf(t)<0) tiposOrdem.push(t); });
+
+  var kv=0, kw=0, ko=0, kp=0;
+  var html = '';
+
+  tiposOrdem.forEach(function(tipo) {
+    var veics = veicPorTipo[tipo] || [];
+    if (!veics.length) return;
+    var srvs = _prevSrvsParaTipo(tipo);
+    if (!srvs.length) return;
+
+    // Aplicar filtro de tipo da pill
+    if (_prevFiltroTipo !== 'todos' && _prevFiltroTipo !== tipo) return;
+
+    // Grid: 190px (veículo) + 1fr por serviço + 80px (status)
+    var gc = '190px repeat(' + srvs.length + ',1fr) 80px';
+
+    // Cabeçalho de serviços
+    var thSrv = srvs.map(function(s) {
+      var nomeAbrev = (s.nome||s.id).split(' - ')[0].trim();
+      var cicloLabel = s.ciclo ? ' (' + s.ciclo + 'd)' : '';
+      return '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;'
+        + 'color:var(--text2);text-align:center;border-left:1px solid var(--border);line-height:1.3;">'
+        + nomeAbrev + '<div style="font-size:9px;font-weight:500;color:var(--text3);text-transform:none;letter-spacing:0;">Ciclo:' + s.ciclo + ' dias</div>'
+        + '</div>';
+    }).join('');
+
+    var rowsHtml = '';
+    veics.forEach(function(v) {
+      var placa = v.placa;
+      var nvenc=0, nwarn=0;
+
+      // Pré-calcular status de cada serviço para KPIs e filtro
+      var statusCells = srvs.map(function(srv){ return _prevCalcStatus(placa, srv).status; });
+
+      // Contagem KPI global (independe do filtro)
+      statusCells.forEach(function(st) {
+        if      (st==='venc') { kv++; nvenc++; }
+        else if (st==='warn') { kw++; nwarn++; }
+        else if (st==='pend') { kp++; }
+        else                  { ko++; }
+      });
+
+      // Filtro KPI: só mostrar linhas que tenham ao menos 1 célula com o status filtrado
+      if (_prevFiltroAtivo && statusCells.indexOf(_prevFiltroAtivo) < 0) return;
+
+      // Células coloridas dos serviços
+      var cells = srvs.map(function(srv) {
+        var c   = _prevCalcStatus(placa, srv);
+        var bgM = { venc:'#ef4444', warn:'#f59e0b', ok:'#22c55e', pend:'#94a3b8' };
+        var bg  = bgM[c.status] || '#94a3b8';
+
+        var srvIdEsc  = srv.id.replace(/'/g,"&#39;");
+        var srvNomEsc = (srv.nome||'').replace(/'/g,"&#39;");
+        var placaEsc  = placa.replace(/'/g,"&#39;");
+
+        if (c.status === 'pend') {
+          return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+            + ' style="padding:10px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+            + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+            + '<span style="color:rgba(255,255,255,.8);font-size:11px;font-style:italic;">Sem registro</span>'
+            + '</div>';
+        }
+
+        // ── Dias restantes em destaque (igual km nas Revisões) ──
+        var sign = c.faltam < 0 ? '−' : '+';
+        var diasDestaque = '<div style="font-size:22px;font-weight:900;color:#000;line-height:1.05;letter-spacing:-.5px;">'
+          + sign + Math.abs(c.faltam) + ' dias</div>';
+
+        // ── Próx. data e Últ. data ──
+        var proxLine = c.proxData
+          ? '<div style="font-size:13px;font-weight:700;color:#000;opacity:.75;margin-top:5px;line-height:1.2;">'
+            + '<span style="font-size:9px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Próx.</span>'
+            + c.proxData.toLocaleDateString('pt-BR') + '</div>'
+          : '';
+        var ultLine = c.exec && c.exec.dataExecucao
+          ? '<div style="font-size:13px;font-weight:600;color:#000;opacity:.5;margin-top:3px;line-height:1.2;">'
+            + '<span style="font-size:9px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Últ.</span>'
+            + c.exec.dataExecucao.split('-').reverse().join('/') + '</div>'
+          : '';
+
+        // ── OS badge ──
+        var osBadge = '';
+        if (c.exec && c.exec.os) {
+          osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.15);color:#000;border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;">' + c.exec.os + '</span></div>';
+        } else {
+          osBadge = '<div style="margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">'
+            + '<span style="background:#ef4444;color:#fff;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;animation:pulse-os 1.4s ease-in-out infinite;">⚠ Sem OS</span>'
+            + '<button onclick="event.stopPropagation();window.abrirModalPrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')" '
+            + 'style="font-size:9px;font-weight:700;background:rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.25);color:#000;border-radius:4px;padding:2px 6px;cursor:pointer;" '
+            + 'onmouseover="this.style.background=\'rgba(0,0,0,.28)\'" onmouseout="this.style.background=\'rgba(0,0,0,.15)\'">+ Reg.</button>'
+            + '</div>';
+        }
+
+        return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+          + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+          + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+          + diasDestaque + proxLine + ultLine + osBadge
+          + '</div>';
+      }).join('');
+
+      // Célula de status resumo do veículo
+      var rBg  = nvenc>0 ? 'rgba(239,68,68,.09)' : nwarn>0 ? 'rgba(245,158,11,.09)' : 'var(--bg3)';
+      var rTxt = nvenc>0
+        ? '<span style="color:#ef4444;font-size:17px;font-weight:700;">'+nvenc+'</span><div style="font-size:9px;color:#ef4444;font-weight:600;">VENC.</div>'
+        : nwarn>0
+        ? '<span style="color:#f59e0b;font-size:17px;font-weight:700;">'+nwarn+'</span><div style="font-size:9px;color:#f59e0b;font-weight:600;">A VCR.</div>'
+        : '<span style="color:var(--ok,#22c55e);font-size:20px;">✓</span>';
+
+      // Célula do veículo
+      rowsHtml += '<div style="display:grid;grid-template-columns:'+gc+';border-bottom:1px solid var(--border);">'
+        + '<div style="padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;">'
+        + (v.nfr
+          ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;">'+v.nfr+'</div>'
+          + '<div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:-2px;">Nº frota</div>'
+          : '')
+        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-top:4px;">'+placa+'</div>'
+        + '<div style="font-size:10px;color:var(--text3);font-weight:500;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
+        + '</div>'
+        + cells
+        + '<div style="padding:9px 10px;background:'+rBg+';border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">'+rTxt+'</div>'
+        + '</div>';
+    });
+
+    if (!rowsHtml) return; // nenhuma linha visível
+
+    html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
+      + '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">'+tipo+'</span>'
+      + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<div style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);">Veículo</div>'
+      + thSrv
+      + '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);">Status</div>'
+      + '</div>'
+      + rowsHtml
+      + '</div>';
+  });
+
+  // Atualizar KPIs com os valores calculados no render
+  document.getElementById('prev-kpi-venc-val').textContent = kv;
+  document.getElementById('prev-kpi-warn-val').textContent = kw;
+  document.getElementById('prev-kpi-ok-val').textContent   = ko;
+  document.getElementById('prev-kpi-pend-val').textContent = kp;
+
+  corpo.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--text3);">Nenhum resultado para o filtro selecionado.</div>';
+}
+
+function abrirModalPrev(placa, servicoId, servicoNome) {
+  // Buscar informações do veículo
+  var vInfo = (typeof TODOS !== 'undefined') ? TODOS.find(function(v){ return v.placa===placa; }) : null;
+  var nfr   = vInfo ? (vInfo.nfr || '') : '';
+  var tipo  = vInfo ? (vInfo.tipo || '') : '';
+  _prevModalCtx = { placa:placa, nfr:nfr, tipo:tipo, servicoId:servicoId, servicoNome:servicoNome };
+  document.getElementById('prev-modal-titulo').textContent = servicoNome;
+  document.getElementById('prev-modal-sub').textContent    = placa + (nfr ? ' — Nº'+nfr : '') + (tipo ? ' · '+tipo : '');
+  document.getElementById('prev-exec-os').value      = '';
+  document.getElementById('prev-exec-tecnico').value = '';
+  document.getElementById('prev-exec-obs').value     = '';
+  var hoje = new Date();
+  document.getElementById('prev-exec-data').value =
+    hoje.getFullYear() + '-'
+    + String(hoje.getMonth()+1).padStart(2,'0') + '-'
+    + String(hoje.getDate()).padStart(2,'0');
+  document.getElementById('modal-reg-prev').style.display = 'flex';
+}
+
+function fecharModalPrev() {
+  document.getElementById('modal-reg-prev').style.display = 'none';
+  _prevModalCtx = null;
+}
+
+async function confirmarExecPrev() {
+  if (!_prevModalCtx) return;
+  var dataExec = document.getElementById('prev-exec-data').value;
+  var osNum    = document.getElementById('prev-exec-os').value.trim();
+  var tecnico  = document.getElementById('prev-exec-tecnico').value.trim();
+  var obs      = document.getElementById('prev-exec-obs').value.trim();
+
+  if (!dataExec) {
+    document.getElementById('prev-exec-data').style.borderColor = '#ef4444';
+    document.getElementById('prev-exec-data').focus();
+    return;
+  }
+  document.getElementById('prev-exec-data').style.borderColor = '';
+
+  var dataISO = new Date(dataExec + 'T12:00:00').toISOString();
+  var id = _prevModalCtx.placa + '_' + _prevModalCtx.servicoId + '_' + Date.now();
+
+  try {
+    await setDoc(doc(db, 'servicos_historico', id), {
+      placa:        _prevModalCtx.placa,
+      nfr:          _prevModalCtx.nfr,
+      tipo:         _prevModalCtx.tipo,
+      servicoId:    _prevModalCtx.servicoId,
+      servicoNome:  _prevModalCtx.servicoNome,
+      kmRegistrado: 0,
+      dataRegistro: dataISO,
+      dataExecucao: dataExec,
+      os:           osNum,
+      tecnico:      tecnico,
+      obs:          obs
+    });
+
+    var key = _prevModalCtx.placa + '::' + _prevModalCtx.servicoId;
+    if (!_prevHistorico) _prevHistorico = {};
+    _prevHistorico[key] = { dataRegistro:dataISO, dataExecucao:dataExec, os:osNum, tecnico:tecnico, obs:obs };
+
+    fecharModalPrev();
+    _prevRenderCorpo(); // KPIs recalculados dentro do render
+    showToast(osNum ? 'Preventiva registrada! OS: ' + osNum : 'Preventiva registrada com sucesso!');
+  } catch(e) {
+    showToast('Erro ao registrar: ' + (e && e.message ? e.message : String(e)));
+  }
+}
+
+// ══ Detalhe / Histórico de um serviço de preventiva ══
+var _prevDetalheCtx = null;
+
+async function abrirDetalhePrev(placa, servicoId, srvNome) {
+  const ov = document.getElementById('prev-detalhe-ov');
+  if (!ov) return;
+
+  _prevDetalheCtx = { placa, servicoId, srvNome };
+
+  document.getElementById('prev-det-titulo').textContent  = srvNome;
+  document.getElementById('prev-det-placa').textContent   = placa;
+  document.getElementById('prev-det-body').innerHTML =
+    '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:12px;">Carregando histórico…</div>';
+  ov.style.display = 'flex';
+
+  // Info do veículo
+  var vInfo = (typeof TODOS !== 'undefined') ? TODOS.find(function(v){ return v.placa === placa; }) : null;
+  document.getElementById('prev-det-veiculo').textContent =
+    vInfo ? (vInfo.marca||'') + ' ' + (vInfo.modelo||'') + ' · ' + (vInfo.tipo||'') : placa;
+
+  // Buscar serviço para saber o ciclo
+  var srv = (_prevServicos||[]).find(function(s){ return s.id === servicoId; });
+  var ciclo = srv ? parseInt(srv.ciclo)||0 : 0;
+
+  try {
+    const histSnap = await getDocs(collection(db, 'servicos_historico'));
+    const registros = [];
+    histSnap.forEach(function(d) {
+      const dd = d.data();
+      if (dd.placa === placa && dd.servicoId === servicoId) {
+        registros.push({ id: d.id, ...dd });
+      }
+    });
+    // Ordenar por dataExecucao decrescente
+    registros.sort(function(a,b){
+      return (b.dataExecucao||'').localeCompare(a.dataExecucao||'');
+    });
+
+    if (!registros.length) {
+      document.getElementById('prev-det-body').innerHTML =
+        '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:12px;">Nenhum registro encontrado.'
+        + '<br><br><button onclick="window.abrirModalPrevDoDet()" style="padding:9px 20px;border-radius:8px;border:none;background:var(--blue);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">+ Novo Registro</button></div>';
+      return;
+    }
+
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+    let rows = '';
+    registros.forEach(function(r, idx) {
+      const isMaisRecente = idx === 0;
+      const dataExec  = r.dataExecucao || '';
+      const dataFmt   = dataExec ? dataExec.split('-').reverse().join('/') : '—';
+
+      // Próxima data
+      let proxFmt = '—';
+      let faltamTxt = '—';
+      if (dataExec && ciclo) {
+        const p = dataExec.split('-');
+        const dtUlt = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+        dtUlt.setHours(0,0,0,0);
+        const proxData = new Date(dtUlt);
+        proxData.setDate(proxData.getDate() + ciclo);
+        proxFmt = proxData.toLocaleDateString('pt-BR');
+
+        if (isMaisRecente) {
+          const faltam = Math.round((proxData - hoje) / 86400000);
+          if (faltam < 0) {
+            faltamTxt = '<span style="color:#ef4444;font-weight:700;">−'+Math.abs(faltam)+' dias</span><br><span style="font-size:10px;color:#ef4444;">VENCIDA</span>';
+          } else if (faltam <= 10) {
+            faltamTxt = '<span style="color:#f59e0b;font-weight:700;">+'+faltam+' dias</span><br><span style="font-size:10px;color:#f59e0b;">A VENCER</span>';
+          } else {
+            faltamTxt = '<span style="color:#22c55e;font-weight:700;">+'+faltam+' dias</span><br><span style="font-size:10px;color:#22c55e;">EM DIA</span>';
+          }
+        }
+      }
+
+      const os     = r.os || '';
+      const tec    = r.tecnico || '';
+      const obs    = r.obs || '';
+
+      const docIdEsc  = r.id.replace(/'/g,'&#39;');
+      const dataEsc   = dataExec.replace(/'/g,'&#39;');
+      const osEsc     = os.replace(/'/g,'&#39;');
+      const tecEsc    = tec.replace(/'/g,'&#39;');
+      const obsEsc    = obs.replace(/'/g,'&#39;');
+      const subtEsc   = (srvNome+' · '+placa).replace(/'/g,'&#39;');
+
+      rows += '<tr style="border-bottom:1px solid var(--border);'+(isMaisRecente?'background:rgba(59,130,246,.05);':'')+'">'
+        + '<td style="padding:10px 12px;font-size:12px;font-weight:'+(isMaisRecente?'700':'400')+';color:var(--text);">'
+        + dataFmt
+        + (isMaisRecente ? ' <span style="font-size:9px;background:rgba(59,130,246,.15);color:var(--blue);border-radius:4px;padding:1px 6px;font-weight:700;">+ RECENTE</span>' : '')
+        + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);">' + proxFmt + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);text-align:center;">' + (isMaisRecente ? faltamTxt : '—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12px;color:var(--text2);">'
+        + (os ? '<span style="background:rgba(59,130,246,.12);color:var(--blue);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;">'+os+'</span>'
+              : '<span style="color:var(--text3);font-size:11px;">—</span>')
+        + '</td>'
+        + '<td style="padding:10px 12px;font-size:11px;color:var(--text2);">' + (tec||'—') + '</td>'
+        + '<td style="padding:6px 8px;text-align:center;white-space:nowrap;">'
+        + '<button onclick="window.abrirEditarPrev(\''+docIdEsc+'\',\''+dataEsc+'\',\''+osEsc+'\',\''+tecEsc+'\',\''+obsEsc+'\',\''+subtEsc+'\')" '
+        + 'title="Editar este registro" '
+        + 'style="background:none;border:1px solid rgba(59,130,246,.5);color:var(--blue);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;margin-right:4px;" '
+        + 'onmouseover="this.style.background=\'var(--blue)\';this.style.color=\'#fff\'" '
+        + 'onmouseout="this.style.background=\'none\';this.style.color=\'var(--blue)\'">'
+        + '✏ Editar</button>'
+        + '<button onclick="window.excluirRegistroPrev(\''+docIdEsc+'\')" '
+        + 'title="Excluir este registro" '
+        + 'style="background:none;border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;" '
+        + 'onmouseover="this.style.background=\'#ef4444\';this.style.color=\'#fff\'" '
+        + 'onmouseout="this.style.background=\'none\';this.style.color=\'#ef4444\'">'
+        + '🗑</button>'
+        + '</td>'
+        + '</tr>';
+    });
+
+    document.getElementById('prev-det-body').innerHTML =
+      '<div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);text-align:right;">'
+      + '<button onclick="window.abrirModalPrevDoDet()" style="padding:7px 16px;border-radius:8px;border:none;background:var(--blue);font-size:12px;font-weight:700;color:#fff;cursor:pointer;">+ Novo Registro</button>'
+      + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;">'
+      + '<thead><tr style="background:var(--bg3);border-bottom:1px solid var(--border);">'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Data Execução</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Próxima Data</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:center;">Situação</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">OS</th>'
+      + '<th style="padding:9px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);text-align:left;">Técnico</th>'
+      + '<th style="padding:9px 10px;width:140px;"></th>'
+      + '</tr></thead>'
+      + '<tbody>' + rows + '</tbody>'
+      + '</table>';
+
+  } catch(e) {
+    document.getElementById('prev-det-body').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:#ef4444;font-size:12px;">Erro: '+e.message+'</div>';
+  }
+}
+
+function fecharDetalhePrev() {
+  const ov = document.getElementById('prev-detalhe-ov');
+  if (ov) ov.style.display = 'none';
+  _prevDetalheCtx = null;
+}
+
+// Abre modal de novo registro a partir do detalhe (mantém contexto)
+function abrirModalPrevDoDet() {
+  if (!_prevDetalheCtx) return;
+  fecharDetalhePrev();
+  abrirModalPrev(_prevDetalheCtx.placa, _prevDetalheCtx.servicoId, _prevDetalheCtx.srvNome);
+}
+
+// ── Editar Registro de Preventiva ──
+function abrirEditarPrev(docId, dataExec, os, tecnico, obs, subtitulo) {
+  document.getElementById('prev-edit-docid').value      = docId;
+  document.getElementById('prev-edit-data').value       = dataExec;
+  document.getElementById('prev-edit-os').value         = os;
+  document.getElementById('prev-edit-tecnico').value    = tecnico;
+  document.getElementById('prev-edit-obs').value        = obs;
+  document.getElementById('prev-edit-subtitulo').textContent = subtitulo;
+  document.getElementById('prev-edit-ov').style.display = 'flex';
+}
+
+function fecharEditarPrev() {
+  document.getElementById('prev-edit-ov').style.display = 'none';
+}
+
+async function salvarEdicaoPrev() {
+  const btn    = document.getElementById('prev-edit-btn-salvar');
+  const docId  = document.getElementById('prev-edit-docid').value.trim();
+  const dataExec = document.getElementById('prev-edit-data').value.trim();
+  const os     = document.getElementById('prev-edit-os').value.trim();
+  const tecnico= document.getElementById('prev-edit-tecnico').value.trim();
+  const obs    = document.getElementById('prev-edit-obs').value.trim();
+
+  if (!docId || !dataExec) { showToast('Data de execução é obrigatória.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  try {
+    await updateDoc(doc(db, 'servicos_historico', docId), {
+      dataExecucao: dataExec,
+      os, tecnico, obs
+    });
+    // Atualiza cache local
+    if (_prevDetalheCtx) {
+      const key = _prevDetalheCtx.placa + '::' + _prevDetalheCtx.servicoId;
+      if (_prevHistorico && _prevHistorico[key] && _prevHistorico[key].id === docId) {
+        _prevHistorico[key].dataExecucao = dataExec;
+        _prevHistorico[key].os = os;
+        _prevHistorico[key].tecnico = tecnico;
+        _prevHistorico[key].obs = obs;
+      }
+    }
+    fecharEditarPrev();
+    showToast('Registro atualizado!');
+    // Reabrir detalhe para mostrar dados atualizados
+    if (_prevDetalheCtx) {
+      await abrirDetalhePrev(_prevDetalheCtx.placa, _prevDetalheCtx.servicoId, _prevDetalheCtx.srvNome);
+    }
+    _prevRenderCorpo();
+  } catch(e) {
+    showToast('Erro ao salvar: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salvar';
+  }
+}
+
+async function excluirRegistroPrev(docId) {
+  if (!confirm('Excluir este registro? Esta ação não pode ser desfeita.')) return;
+  try {
+    await deleteDoc(doc(db, 'servicos_historico', docId));
+    // Limpa cache se for o registro mais recente
+    if (_prevDetalheCtx) {
+      const key = _prevDetalheCtx.placa + '::' + _prevDetalheCtx.servicoId;
+      if (_prevHistorico && _prevHistorico[key] && _prevHistorico[key].id === docId) {
+        delete _prevHistorico[key];
+      }
+    }
+    showToast('Registro excluído.');
+    if (_prevDetalheCtx) {
+      await abrirDetalhePrev(_prevDetalheCtx.placa, _prevDetalheCtx.servicoId, _prevDetalheCtx.srvNome);
+    }
+    _prevRenderCorpo();
+  } catch(e) {
+    showToast('Erro ao excluir: ' + e.message);
+  }
+}
+
+window.carregarQuadroPreventivas = carregarQuadroPreventivas;
+window.toggleFiltroPrev          = toggleFiltroPrev;
+window.abrirModalPrev            = abrirModalPrev;
+window.fecharModalPrev           = fecharModalPrev;
+window.confirmarExecPrev         = confirmarExecPrev;
+window.abrirDetalhePrev          = abrirDetalhePrev;
+window.fecharDetalhePrev         = fecharDetalhePrev;
+window.abrirModalPrevDoDet       = abrirModalPrevDoDet;
+window.abrirEditarPrev           = abrirEditarPrev;
+window.fecharEditarPrev          = fecharEditarPrev;
+window.salvarEdicaoPrev          = salvarEdicaoPrev;
+window.excluirRegistroPrev       = excluirRegistroPrev;
+
 
 </script>
 
@@ -7681,6 +8415,74 @@ window.exportarRevisoesPDF     = exportarRevisoesPDF;
           style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
           Salvar OS
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal Detalhe / Histórico de Preventiva ══ -->
+  <div id="prev-detalhe-ov" style="display:none;position:fixed;inset:0;z-index:3400;background:rgba(0,0,0,0.72);backdrop-filter:blur(5px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem;" onclick="if(event.target===this)window.fecharDetalhePrev()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:860px;margin:auto;overflow:hidden;">
+      <!-- Cabeçalho -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:1.25rem 1.5rem;background:var(--bg3);border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);" id="prev-det-titulo">—</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;">
+            <span id="prev-det-placa" style="font-weight:600;color:var(--text2);"></span>
+            <span style="margin:0 6px;opacity:.4;">·</span>
+            <span id="prev-det-veiculo"></span>
+          </div>
+        </div>
+        <button onclick="window.fecharDetalhePrev()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;flex-shrink:0;margin-left:12px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <!-- Corpo: tabela de histórico -->
+      <div id="prev-det-body" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR REGISTRO DE PREVENTIVA -->
+  <div id="prev-edit-ov" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);align-items:center;justify-content:center;" onclick="if(event.target===this)window.fecharEditarPrev()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;background:var(--bg3);border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">Editar Registro</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="prev-edit-subtitulo">—</div>
+        </div>
+        <button onclick="window.fecharEditarPrev()" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:1.25rem 1.4rem;display:flex;flex-direction:column;gap:14px;">
+        <input type="hidden" id="prev-edit-docid">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Data de Execução *</label>
+          <input id="prev-edit-data" type="date"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Número da OS</label>
+          <input id="prev-edit-os" type="text" placeholder="Ex: OS-1234"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Técnico</label>
+          <input id="prev-edit-tecnico" type="text" placeholder="Nome do técnico"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Observação</label>
+          <textarea id="prev-edit-obs" rows="2" placeholder="Peças, fornecedor, etc."
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);outline:none;resize:vertical;font-family:inherit;transition:border .15s;"
+            onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
+          <button onclick="window.fecharEditarPrev()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">Cancelar</button>
+          <button id="prev-edit-btn-salvar" onclick="window.salvarEdicaoPrev()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
       </div>
     </div>
   </div>
