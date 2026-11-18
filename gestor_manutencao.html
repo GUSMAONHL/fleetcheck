@@ -1444,44 +1444,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
       <div id="prev-corpo" style="padding-top:12px;"></div>
     </div><!-- /page-preventivas -->
 
-    <!-- Modal: Registrar execução de preventiva -->
-    <div id="modal-reg-prev" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
-      <div style="background:var(--bg2);border-radius:14px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
-        <div style="padding:16px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Registrar Execução</div>
-          <button onclick="window.fecharModalPrev()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;">✕</button>
-        </div>
-        <div style="padding:20px;">
-          <div style="margin-bottom:14px;">
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;" id="prev-modal-titulo">—</div>
-            <div style="font-size:11px;color:var(--text3);" id="prev-modal-sub">—</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-            <div>
-              <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Data de Execução</label>
-              <input type="date" id="prev-exec-data" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Número OS</label>
-              <input type="text" id="prev-exec-os" placeholder="Ex: OS-2024-001" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
-            </div>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Técnico Responsável</label>
-            <input type="text" id="prev-exec-tecnico" placeholder="Nome do técnico" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);">
-          </div>
-          <div style="margin-bottom:16px;">
-            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Observações</label>
-            <textarea id="prev-exec-obs" rows="2" placeholder="Observações sobre o serviço" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);resize:vertical;"></textarea>
-          </div>
-          <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button onclick="window.fecharModalPrev()" style="padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancelar</button>
-            <button onclick="window.confirmarExecPrev()" style="padding:9px 20px;border-radius:8px;border:none;background:var(--blue);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">✓ Confirmar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ══ TELEMETRIA ══ -->
     <div class="page" id="page-veiculos">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
@@ -7393,12 +7355,15 @@ function toggleFiltroPrev(tipo) {
 }
 
 // ── Funções auxiliares de preventivas ──
-function _prevSrvsParaTipo(tipo) {
-  // Retorna serviços DIAS que se aplicam a este tipo de veículo
+// forca: 'FROTA' | 'TERCEIRO' — filtra os serviços que se aplicam a este tipo de veículo E força de trabalho
+function _prevSrvsParaTipo(tipo, forca) {
+  var f = forca || 'FROTA';
   return (_prevServicos || []).filter(function(s) {
     var forcas = s.forcaTrabalho || [];
     var tipos  = s.tiposVeiculo  || [];
-    if (forcas.length > 0 && forcas.indexOf('FROTA') < 0) return false;
+    // Se o serviço especifica forças e não inclui a força deste veículo → excluir
+    if (forcas.length > 0 && forcas.indexOf(f) < 0) return false;
+    // Se não especifica tipos → aplica a todos
     if (!tipos.length) return true;
     return tipos.indexOf(tipo) >= 0;
   }).sort(function(a,b){ return (a.nome||'').localeCompare(b.nome||'','pt-BR'); });
@@ -7412,27 +7377,31 @@ function _prevRenderCorpo() {
     return;
   }
 
-  // Agrupar FROTA por tipo (mesmo que Revisões — só FROTA tem controle de dias)
+  // Agrupar TODOS os veículos ativos por tipo
   const tiposOrdem = ['BITRUCK','CAVALO','CARRETA'];
-  const veicPorTipo = { BITRUCK:[], CAVALO:[], CARRETA:[] };
-  const frota = (typeof FROTA !== 'undefined') ? FROTA : [];
-  frota.forEach(function(v) {
+  // Mapeia tipo → { FROTA: [], TERCEIRO: [] }
+  const veicPorTipoForca = {};
+  const todos = (typeof TODOS !== 'undefined') ? TODOS : [];
+  todos.forEach(function(v) {
     if (v.ativo === false) return;
     var t = (v.tipo||'').toUpperCase();
-    if (veicPorTipo[t]) veicPorTipo[t].push(v);
-    // Tipos não mapeados: criar dinamicamente
-    else { veicPorTipo[t] = veicPorTipo[t] || []; veicPorTipo[t].push(v); }
+    if (!veicPorTipoForca[t]) veicPorTipoForca[t] = { FROTA:[], TERCEIRO:[] };
+    // Determinar se é FROTA ou TERCEIRO
+    var isFrota = (typeof FROTA !== 'undefined') && FROTA.some(function(f){ return f.placa === v.placa; });
+    if (isFrota) veicPorTipoForca[t].FROTA.push(v);
+    else         veicPorTipoForca[t].TERCEIRO.push(v);
+    if (tiposOrdem.indexOf(t) < 0) tiposOrdem.push(t);
   });
-  // Adicionar tipos dinâmicos à ordem
-  Object.keys(veicPorTipo).forEach(function(t){ if (tiposOrdem.indexOf(t)<0) tiposOrdem.push(t); });
 
   var kv=0, kw=0, ko=0, kp=0;
   var html = '';
 
+  // Iterar por tipo e por força de trabalho separadamente
   tiposOrdem.forEach(function(tipo) {
-    var veics = veicPorTipo[tipo] || [];
+    ['FROTA','TERCEIRO'].forEach(function(forca) {
+    var veics = (veicPorTipoForca[tipo] || {})[forca] || [];
     if (!veics.length) return;
-    var srvs = _prevSrvsParaTipo(tipo);
+    var srvs = _prevSrvsParaTipo(tipo, forca);
     if (!srvs.length) return;
 
     // Aplicar filtro de tipo da pill
@@ -7550,9 +7519,14 @@ function _prevRenderCorpo() {
 
     if (!rowsHtml) return; // nenhuma linha visível
 
+    var forcaLabel = forca === 'TERCEIRO'
+      ? ' <span style="font-size:10px;background:rgba(245,158,11,.18);color:#b45309;border-radius:5px;padding:1px 7px;font-weight:700;letter-spacing:.5px;">TERCEIRO</span>'
+      : '';
+
     html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
       + '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);">'
       + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">'+tipo+'</span>'
+      + forcaLabel
       + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
@@ -7562,7 +7536,8 @@ function _prevRenderCorpo() {
       + '</div>'
       + rowsHtml
       + '</div>';
-  });
+    }); // fim forEach(['FROTA','TERCEIRO'])
+  }); // fim tiposOrdem.forEach
 
   // Atualizar KPIs com os valores calculados no render
   document.getElementById('prev-kpi-venc-val').textContent = kv;
@@ -8482,6 +8457,44 @@ window.excluirRegistroPrev       = excluirRegistroPrev;
         <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px;">
           <button onclick="window.fecharEditarPrev()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:13px;color:var(--text2);cursor:pointer;">Cancelar</button>
           <button id="prev-edit-btn-salvar" onclick="window.salvarEdicaoPrev()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Registrar execução de preventiva ══ -->
+  <div id="modal-reg-prev" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3600;align-items:center;justify-content:center;" onclick="if(event.target===this)window.fecharModalPrev()">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;">
+      <div style="padding:16px 20px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Registrar Execução</div>
+        <button onclick="window.fecharModalPrev()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;">✕</button>
+      </div>
+      <div style="padding:20px;">
+        <div style="margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;" id="prev-modal-titulo">—</div>
+          <div style="font-size:11px;color:var(--text3);" id="prev-modal-sub">—</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Data de Execução</label>
+            <input type="date" id="prev-exec-data" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);color:var(--text);">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Número OS</label>
+            <input type="text" id="prev-exec-os" placeholder="Ex: OS-2024-001" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);color:var(--text);">
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Técnico Responsável</label>
+          <input type="text" id="prev-exec-tecnico" placeholder="Nome do técnico" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);color:var(--text);">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;">Observações</label>
+          <textarea id="prev-exec-obs" rows="2" placeholder="Observações sobre o serviço" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:7px;font-size:13px;background:var(--bg3);color:var(--text);resize:vertical;font-family:inherit;"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button onclick="window.fecharModalPrev()" style="padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;">Cancelar</button>
+          <button onclick="window.confirmarExecPrev()" style="padding:9px 20px;border-radius:8px;border:none;background:var(--blue);font-size:13px;font-weight:600;color:#fff;cursor:pointer;">✓ Confirmar</button>
         </div>
       </div>
     </div>
