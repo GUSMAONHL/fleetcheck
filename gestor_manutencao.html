@@ -1420,17 +1420,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
             <div class="kpi-lbl">Sem Registro</div>
           </div>
         </div>
-        <!-- Barra: filtros + atualizar -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <!-- Barra: filtros cascata 3 níveis + atualizar -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+            <!-- Nível 1: Frota / Terceiro -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;min-width:60px;">Frota</span>
+              <div id="prev-pills-forca" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <!-- Nível 2: Categoria (Caminhão / Cavalo / Carreta) -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;min-width:60px;">Categ.</span>
+              <div id="prev-pills-categ" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <!-- Nível 3: Tipo específico (6X2, 6X4, 8X2, 8X4...) -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" id="prev-row-tipo">
+              <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;min-width:60px;">Tipo</span>
+              <div id="prev-pills-tipo" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <!-- Filtro de status ativo (venc/warn/ok/pend) -->
             <span id="prev-filtro-label" style="font-size:11px;color:var(--blue);font-weight:600;display:none;align-items:center;gap:4px;">
-              Filtro: <span id="prev-filtro-nome" style="text-decoration:underline;"></span>
-              <button onclick="window.toggleFiltroPrev(window._prevFiltroAtivo)" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:1;" title="Remover filtro">✕</button>
+              Status: <span id="prev-filtro-nome" style="text-decoration:underline;"></span>
+              <button onclick="window.toggleFiltroPrev(window._prevFiltroAtivo)" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:1;" title="Remover filtro">x</button>
             </span>
-            <div id="prev-pills-tipo" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
-            <div style="font-size:12px;color:var(--text3);" id="prev-ultima-atualiz">—</div>
+            <div style="font-size:12px;color:var(--text3);" id="prev-ultima-atualiz">--</div>
             <button onclick="window.carregarQuadroPreventivas()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;"
               onmouseover="this.style.background='var(--blue)';this.style.color='#fff';this.style.borderColor='var(--blue)'"
               onmouseout="this.style.background='var(--bg2)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'">
@@ -7204,12 +7219,24 @@ window.exportarRevisoesPDF     = exportarRevisoesPDF;
 // QUADRO DE PREVENTIVAS — Controle por Dias
 // ══════════════════════════════════════════════════════════════════
 
-let _prevServicos     = null;
-let _prevHistorico    = null;
-let _prevCarregado    = false;
-let _prevFiltroAtivo  = null;
-let _prevFiltroTipo   = 'todos';
-let _prevModalCtx     = null;
+let _prevServicos        = null;
+let _prevHistorico       = null;
+let _prevCarregado       = false;
+let _prevFiltroAtivo     = null;   // status: venc|warn|ok|pend
+let _prevFiltroForca     = 'todos'; // nível 1: todos|FROTA|TERCEIRO
+let _prevFiltroCateg     = 'todos'; // nível 2: todos|BITRUCK|CAVALO|CARRETA
+let _prevFiltroTipo      = 'todos'; // nível 3: todos|6X2|6X4|8X2|8X4|...
+let _prevModalCtx        = null;
+
+// Mapeamento: tipo-específico do veículo → categoria do serviço
+function _prevTipoToCateg(tipo) {
+  var t = (tipo||'').toUpperCase();
+  if (t === 'CAVALO') return 'CAVALO';
+  if (t === 'CARRETA') return 'CARRETA';
+  if (t === 'BITRUCK') return 'BITRUCK';
+  // Caminhões TERCEIRO: 6X2, 6X4, 8X2, 8X4, etc. → BITRUCK
+  return 'BITRUCK';
+}
 
 async function carregarQuadroPreventivas(forcar) {
   if (_prevCarregado && !forcar) { _prevRenderCorpo(); return; }
@@ -7252,7 +7279,7 @@ async function carregarQuadroPreventivas(forcar) {
     document.getElementById('prev-ultima-atualiz').textContent =
       'Atualizado: ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
-    _prevPopularPillsTipo();
+    _prevPopularFiltros();
     _prevRenderCorpo(); // KPIs são calculados dentro do render
 
   } catch(e) {
@@ -7290,12 +7317,14 @@ function _prevAtualizarKPIs() {
   var venc=0, warn=0, ok=0, pend=0;
   TODOS.forEach(function(v) {
     if (v.ativo === false) return;
+    var isFrota = (typeof FROTA !== 'undefined') && FROTA.some(function(f){ return f.placa === v.placa; });
+    var forca  = isFrota ? 'FROTA' : 'TERCEIRO';
+    var categ  = _prevTipoToCateg(v.tipo);
     _prevServicos.forEach(function(srv) {
       var forcas = srv.forcaTrabalho || [];
       var tipos  = srv.tiposVeiculo  || [];
-      var forca  = v.terceiro ? 'TERCEIRO' : 'FROTA';
       if (forcas.length > 0 && forcas.indexOf(forca) < 0) return;
-      if (tipos.length  > 0 && tipos.indexOf(v.tipo) < 0) return;
+      if (tipos.length  > 0 && tipos.indexOf(categ) < 0) return;
       var c = _prevCalcStatus(v.placa, srv);
       if      (c.status==='venc') venc++;
       else if (c.status==='warn') warn++;
@@ -7309,34 +7338,118 @@ function _prevAtualizarKPIs() {
   document.getElementById('prev-kpi-pend-val').textContent = pend;
 }
 
-function _prevPopularPillsTipo() {
-  const div = document.getElementById('prev-pills-tipo');
-  if (!div) return;
-  const tipos = [];
-  TODOS.forEach(function(v){ if(v.ativo!==false && tipos.indexOf(v.tipo)<0) tipos.push(v.tipo); });
-  tipos.sort();
-  div.innerHTML = '';
+// ── Sistema de filtros em 3 níveis ──
+var _PREV_PILL_CSS = 'padding:4px 12px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;';
 
-  function mkPill(label, val) {
-    const btn = document.createElement('button');
-    btn.textContent   = label;
-    btn.dataset.tipo  = val;
-    btn.onclick = function() { _prevFiltroTipo = val; _prevAtualizarPills(); _prevRenderCorpo(); };
-    btn.style.cssText = 'padding:4px 12px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s;';
-    div.appendChild(btn);
+function _prevMkPill(label, val, container, getFiltroFn, setFiltroFn) {
+  var btn = document.createElement('button');
+  btn.textContent = label;
+  btn.dataset.val = val;
+  btn.style.cssText = _PREV_PILL_CSS;
+  btn.onclick = function() {
+    setFiltroFn(val);
+    _prevPopularFiltros();
+    _prevRenderCorpo();
+  };
+  container.appendChild(btn);
+}
+
+function _prevPopularFiltros() {
+  // Nível 1 — Frota vs Terceiro
+  var df = document.getElementById('prev-pills-forca');
+  if (df) {
+    df.innerHTML = '';
+    var n1 = [['Todos','todos'],['Frota','FROTA'],['Terceiro','TERCEIRO']];
+    n1.forEach(function(p) {
+      _prevMkPill(p[0], p[1], df,
+        function(){ return _prevFiltroForca; },
+        function(v){ _prevFiltroForca=v; _prevFiltroCateg='todos'; _prevFiltroTipo='todos'; });
+    });
   }
-  mkPill('Todos','todos');
-  tipos.forEach(function(t){ mkPill(t, t); });
+  // Nível 2 — Categorias disponíveis
+  var dc = document.getElementById('prev-pills-categ');
+  if (dc) {
+    dc.innerHTML = '';
+    var categs = _prevCategsDisponiveis();
+    var categNomes = { BITRUCK:'Caminhão', CAVALO:'Cavalo', CARRETA:'Carreta' };
+    var n2 = [['Todos','todos']].concat(categs.map(function(c){
+      return [categNomes[c] || c, c];
+    }));
+    n2.forEach(function(p) {
+      _prevMkPill(p[0], p[1], dc,
+        function(){ return _prevFiltroCateg; },
+        function(v){ _prevFiltroCateg=v; _prevFiltroTipo='todos'; });
+    });
+  }
+  // Nível 3 — Tipos específicos
+  _prevPopularPillsTipo();
   _prevAtualizarPills();
 }
 
+function _prevCategsDisponiveis() {
+  var todos = (typeof TODOS !== 'undefined') ? TODOS : [];
+  var categs = [];
+  todos.forEach(function(v) {
+    if (v.ativo === false) return;
+    if (_prevFiltroForca !== 'todos') {
+      var isFrota = (typeof FROTA !== 'undefined') && FROTA.some(function(f){ return f.placa === v.placa; });
+      var forca   = isFrota ? 'FROTA' : 'TERCEIRO';
+      if (forca !== _prevFiltroForca) return;
+    }
+    var c = _prevTipoToCateg(v.tipo);
+    if (categs.indexOf(c) < 0) categs.push(c);
+  });
+  var ordem = ['BITRUCK','CAVALO','CARRETA'];
+  return categs.sort(function(a,b){ return ordem.indexOf(a) - ordem.indexOf(b); });
+}
+
+function _prevPopularPillsTipo() {
+  var div = document.getElementById('prev-pills-tipo');
+  if (!div) return;
+  div.innerHTML = '';
+  var todos = (typeof TODOS !== 'undefined') ? TODOS : [];
+  var tipos = [];
+  todos.forEach(function(v) {
+    if (v.ativo === false) return;
+    if (_prevFiltroForca !== 'todos') {
+      var isFrota = (typeof FROTA !== 'undefined') && FROTA.some(function(f){ return f.placa === v.placa; });
+      var forca   = isFrota ? 'FROTA' : 'TERCEIRO';
+      if (forca !== _prevFiltroForca) return;
+    }
+    if (_prevFiltroCateg !== 'todos') {
+      if (_prevTipoToCateg(v.tipo) !== _prevFiltroCateg) return;
+    }
+    var t = (v.tipo||'').toUpperCase();
+    if (t && tipos.indexOf(t) < 0) tipos.push(t);
+  });
+  tipos.sort();
+  var row = document.getElementById('prev-row-tipo');
+  if (row) row.style.display = tipos.length <= 1 ? 'none' : 'flex';
+  if (tipos.length <= 1) return;
+  _prevMkPill('Todos','todos',div,
+    function(){ return _prevFiltroTipo; },
+    function(v){ _prevFiltroTipo=v; });
+  tipos.forEach(function(t) {
+    _prevMkPill(t, t, div,
+      function(){ return _prevFiltroTipo; },
+      function(v){ _prevFiltroTipo=v; });
+  });
+}
+
 function _prevAtualizarPills() {
-  document.querySelectorAll('#prev-pills-tipo button').forEach(function(b) {
-    var ativo = b.dataset.tipo === _prevFiltroTipo;
-    b.style.borderColor = ativo ? 'var(--blue)' : 'var(--border)';
-    b.style.background  = ativo ? 'rgba(26,95,212,.12)' : 'var(--bg3)';
-    b.style.color       = ativo ? 'var(--blue)' : 'var(--text2)';
-    b.style.fontWeight  = ativo ? '700' : '400';
+  var sels = [
+    { sel:'#prev-pills-forca button', getFn:function(){ return _prevFiltroForca; } },
+    { sel:'#prev-pills-categ button', getFn:function(){ return _prevFiltroCateg; } },
+    { sel:'#prev-pills-tipo button',  getFn:function(){ return _prevFiltroTipo; } }
+  ];
+  sels.forEach(function(s) {
+    document.querySelectorAll(s.sel).forEach(function(b) {
+      var ativo = b.dataset.val === s.getFn();
+      b.style.borderColor = ativo ? 'var(--blue)' : 'var(--border)';
+      b.style.background  = ativo ? 'rgba(26,95,212,.12)' : 'var(--bg3)';
+      b.style.color       = ativo ? 'var(--blue)' : 'var(--text2)';
+      b.style.fontWeight  = ativo ? '700' : '400';
+    });
   });
 }
 
@@ -7355,17 +7468,16 @@ function toggleFiltroPrev(tipo) {
 }
 
 // ── Funções auxiliares de preventivas ──
-// forca: 'FROTA' | 'TERCEIRO' — filtra os serviços que se aplicam a este tipo de veículo E força de trabalho
-function _prevSrvsParaTipo(tipo, forca) {
+// categ: categoria mapeada do tipo do veículo ('BITRUCK'|'CAVALO'|'CARRETA')
+// forca: 'FROTA' | 'TERCEIRO'
+function _prevSrvsParaTipo(categ, forca) {
   var f = forca || 'FROTA';
   return (_prevServicos || []).filter(function(s) {
     var forcas = s.forcaTrabalho || [];
     var tipos  = s.tiposVeiculo  || [];
-    // Se o serviço especifica forças e não inclui a força deste veículo → excluir
     if (forcas.length > 0 && forcas.indexOf(f) < 0) return false;
-    // Se não especifica tipos → aplica a todos
     if (!tipos.length) return true;
-    return tipos.indexOf(tipo) >= 0;
+    return tipos.indexOf(categ) >= 0;
   }).sort(function(a,b){ return (a.nome||'').localeCompare(b.nome||'','pt-BR'); });
 }
 
@@ -7377,169 +7489,172 @@ function _prevRenderCorpo() {
     return;
   }
 
-  // Agrupar TODOS os veículos ativos por tipo
-  const tiposOrdem = ['BITRUCK','CAVALO','CARRETA'];
-  // Mapeia tipo → { FROTA: [], TERCEIRO: [] }
-  const veicPorTipoForca = {};
   const todos = (typeof TODOS !== 'undefined') ? TODOS : [];
+
+  // Agrupar veículos por (categ, tipoEspecífico, forca)
+  var categOrdem = ['BITRUCK','CAVALO','CARRETA'];
+  var veicPorCateg = {}; // categ → { tipoEsp → { FROTA:[], TERCEIRO:[] } }
+
   todos.forEach(function(v) {
     if (v.ativo === false) return;
-    var t = (v.tipo||'').toUpperCase();
-    if (!veicPorTipoForca[t]) veicPorTipoForca[t] = { FROTA:[], TERCEIRO:[] };
-    // Determinar se é FROTA ou TERCEIRO
+    var tipoEsp = (v.tipo||'').toUpperCase();
+    var categ   = _prevTipoToCateg(tipoEsp);
     var isFrota = (typeof FROTA !== 'undefined') && FROTA.some(function(f){ return f.placa === v.placa; });
-    if (isFrota) veicPorTipoForca[t].FROTA.push(v);
-    else         veicPorTipoForca[t].TERCEIRO.push(v);
-    if (tiposOrdem.indexOf(t) < 0) tiposOrdem.push(t);
+    var forca   = isFrota ? 'FROTA' : 'TERCEIRO';
+
+    if (!veicPorCateg[categ]) veicPorCateg[categ] = {};
+    if (!veicPorCateg[categ][tipoEsp]) veicPorCateg[categ][tipoEsp] = { FROTA:[], TERCEIRO:[] };
+    veicPorCateg[categ][tipoEsp][forca].push(v);
+    if (categOrdem.indexOf(categ) < 0) categOrdem.push(categ);
   });
 
   var kv=0, kw=0, ko=0, kp=0;
   var html = '';
 
-  // Iterar por tipo e por força de trabalho separadamente
-  tiposOrdem.forEach(function(tipo) {
-    ['FROTA','TERCEIRO'].forEach(function(forca) {
-    var veics = (veicPorTipoForca[tipo] || {})[forca] || [];
-    if (!veics.length) return;
-    var srvs = _prevSrvsParaTipo(tipo, forca);
-    if (!srvs.length) return;
+  categOrdem.forEach(function(categ) {
+    if (!veicPorCateg[categ]) return;
+    // Filtro nível 2 — categoria
+    if (_prevFiltroCateg !== 'todos' && _prevFiltroCateg !== categ) return;
 
-    // Aplicar filtro de tipo da pill
-    if (_prevFiltroTipo !== 'todos' && _prevFiltroTipo !== tipo) return;
+    var tiposEsp = Object.keys(veicPorCateg[categ]).sort();
 
-    // Grid: 190px (veículo) + 1fr por serviço + 80px (status)
-    var gc = '190px repeat(' + srvs.length + ',1fr) 80px';
+    tiposEsp.forEach(function(tipoEsp) {
+      // Filtro nível 3 — tipo específico
+      if (_prevFiltroTipo !== 'todos' && _prevFiltroTipo !== tipoEsp) return;
 
-    // Cabeçalho de serviços
-    var thSrv = srvs.map(function(s) {
-      var nomeAbrev = (s.nome||s.id).split(' - ')[0].trim();
-      var cicloLabel = s.ciclo ? ' (' + s.ciclo + 'd)' : '';
-      return '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;'
-        + 'color:var(--text2);text-align:center;border-left:1px solid var(--border);line-height:1.3;">'
-        + nomeAbrev + '<div style="font-size:9px;font-weight:500;color:var(--text3);text-transform:none;letter-spacing:0;">Ciclo:' + s.ciclo + ' dias</div>'
-        + '</div>';
-    }).join('');
+      ['FROTA','TERCEIRO'].forEach(function(forca) {
+        // Filtro nível 1 — força de trabalho
+        if (_prevFiltroForca !== 'todos' && _prevFiltroForca !== forca) return;
 
-    var rowsHtml = '';
-    veics.forEach(function(v) {
-      var placa = v.placa;
-      var nvenc=0, nwarn=0;
+        var veics = veicPorCateg[categ][tipoEsp][forca] || [];
+        if (!veics.length) return;
 
-      // Pré-calcular status de cada serviço para KPIs e filtro
-      var statusCells = srvs.map(function(srv){ return _prevCalcStatus(placa, srv).status; });
+        // Serviços que se aplicam a esta categoria e força
+        var srvs = _prevSrvsParaTipo(categ, forca);
+        if (!srvs.length) return;
 
-      // Contagem KPI global (independe do filtro)
-      statusCells.forEach(function(st) {
-        if      (st==='venc') { kv++; nvenc++; }
-        else if (st==='warn') { kw++; nwarn++; }
-        else if (st==='pend') { kp++; }
-        else                  { ko++; }
-      });
+        var gc = '190px repeat(' + srvs.length + ',1fr) 80px';
 
-      // Filtro KPI: só mostrar linhas que tenham ao menos 1 célula com o status filtrado
-      if (_prevFiltroAtivo && statusCells.indexOf(_prevFiltroAtivo) < 0) return;
-
-      // Células coloridas dos serviços
-      var cells = srvs.map(function(srv) {
-        var c   = _prevCalcStatus(placa, srv);
-        var bgM = { venc:'#ef4444', warn:'#f59e0b', ok:'#22c55e', pend:'#94a3b8' };
-        var bg  = bgM[c.status] || '#94a3b8';
-
-        var srvIdEsc  = srv.id.replace(/'/g,"&#39;");
-        var srvNomEsc = (srv.nome||'').replace(/'/g,"&#39;");
-        var placaEsc  = placa.replace(/'/g,"&#39;");
-
-        if (c.status === 'pend') {
-          return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
-            + ' style="padding:10px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
-            + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
-            + '<span style="color:rgba(255,255,255,.8);font-size:11px;font-style:italic;">Sem registro</span>'
+        var thSrv = srvs.map(function(s) {
+          var nomeAbrev = (s.nome||s.id).split(' - ')[0].trim();
+          return '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;'
+            + 'color:var(--text2);text-align:center;border-left:1px solid var(--border);line-height:1.3;">'
+            + nomeAbrev + '<div style="font-size:9px;font-weight:500;color:var(--text3);text-transform:none;letter-spacing:0;">Ciclo:' + s.ciclo + ' dias</div>'
             + '</div>';
-        }
+        }).join('');
 
-        // ── Dias restantes em destaque (igual km nas Revisões) ──
-        var sign = c.faltam < 0 ? '−' : '+';
-        var diasDestaque = '<div style="font-size:22px;font-weight:900;color:#000;line-height:1.05;letter-spacing:-.5px;">'
-          + sign + Math.abs(c.faltam) + ' dias</div>';
+        var rowsHtml = '';
+        veics.forEach(function(v) {
+          var placa = v.placa;
+          var nvenc=0, nwarn=0;
 
-        // ── Próx. data e Últ. data ──
-        var proxLine = c.proxData
-          ? '<div style="font-size:13px;font-weight:700;color:#000;opacity:.75;margin-top:5px;line-height:1.2;">'
-            + '<span style="font-size:9px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Próx.</span>'
-            + c.proxData.toLocaleDateString('pt-BR') + '</div>'
-          : '';
-        var ultLine = c.exec && c.exec.dataExecucao
-          ? '<div style="font-size:13px;font-weight:600;color:#000;opacity:.5;margin-top:3px;line-height:1.2;">'
-            + '<span style="font-size:9px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Últ.</span>'
-            + c.exec.dataExecucao.split('-').reverse().join('/') + '</div>'
-          : '';
+          var statusCells = srvs.map(function(srv){ return _prevCalcStatus(placa, srv).status; });
 
-        // ── OS badge ──
-        var osBadge = '';
-        if (c.exec && c.exec.os) {
-          osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.15);color:#000;border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;">' + c.exec.os + '</span></div>';
-        } else {
-          osBadge = '<div style="margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">'
-            + '<span style="background:#ef4444;color:#fff;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;animation:pulse-os 1.4s ease-in-out infinite;">⚠ Sem OS</span>'
-            + '<button onclick="event.stopPropagation();window.abrirModalPrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')" '
-            + 'style="font-size:9px;font-weight:700;background:rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.25);color:#000;border-radius:4px;padding:2px 6px;cursor:pointer;" '
-            + 'onmouseover="this.style.background=\'rgba(0,0,0,.28)\'" onmouseout="this.style.background=\'rgba(0,0,0,.15)\'">+ Reg.</button>'
+          statusCells.forEach(function(st) {
+            if      (st==='venc') { kv++; nvenc++; }
+            else if (st==='warn') { kw++; nwarn++; }
+            else if (st==='pend') { kp++; }
+            else                  { ko++; }
+          });
+
+          if (_prevFiltroAtivo && statusCells.indexOf(_prevFiltroAtivo) < 0) return;
+
+          var cells = srvs.map(function(srv) {
+            var c   = _prevCalcStatus(placa, srv);
+            var bgM = { venc:'#ef4444', warn:'#f59e0b', ok:'#22c55e', pend:'#94a3b8' };
+            var bg  = bgM[c.status] || '#94a3b8';
+            var srvIdEsc  = srv.id.replace(/'/g,"&#39;");
+            var srvNomEsc = (srv.nome||'').replace(/'/g,"&#39;");
+            var placaEsc  = placa.replace(/'/g,"&#39;");
+
+            if (c.status === 'pend') {
+              return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+                + ' style="padding:10px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+                + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+                + '<span style="color:rgba(255,255,255,.8);font-size:11px;font-style:italic;">Sem registro</span>'
+                + '</div>';
+            }
+
+            var sign = c.faltam < 0 ? '−' : '+';
+            var diasDestaque = '<div style="font-size:22px;font-weight:900;color:#000;line-height:1.05;letter-spacing:-.5px;">'
+              + sign + Math.abs(c.faltam) + ' dias</div>';
+
+            var proxLine = c.proxData
+              ? '<div style="font-size:13px;font-weight:700;color:#000;opacity:.75;margin-top:5px;line-height:1.2;">'
+                + '<span style="font-size:9px;opacity:.6;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Próx.</span>'
+                + c.proxData.toLocaleDateString('pt-BR') + '</div>'
+              : '';
+            var ultLine = c.exec && c.exec.dataExecucao
+              ? '<div style="font-size:13px;font-weight:600;color:#000;opacity:.5;margin-top:3px;line-height:1.2;">'
+                + '<span style="font-size:9px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:3px;">Últ.</span>'
+                + c.exec.dataExecucao.split('-').reverse().join('/') + '</div>'
+              : '';
+
+            var osBadge = '';
+            if (c.exec && c.exec.os) {
+              osBadge = '<div style="margin-top:5px;"><span style="background:rgba(0,0,0,.15);color:#000;border-radius:4px;padding:2px 8px;font-size:9px;font-weight:700;">' + c.exec.os + '</span></div>';
+            } else {
+              osBadge = '<div style="margin-top:5px;display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">'
+                + '<span style="background:#ef4444;color:#fff;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;animation:pulse-os 1.4s ease-in-out infinite;">⚠ Sem OS</span>'
+                + '<button onclick="event.stopPropagation();window.abrirModalPrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')" '
+                + 'style="font-size:9px;font-weight:700;background:rgba(0,0,0,.15);border:1px solid rgba(0,0,0,.25);color:#000;border-radius:4px;padding:2px 6px;cursor:pointer;" '
+                + 'onmouseover="this.style.background=\'rgba(0,0,0,.28)\'" onmouseout="this.style.background=\'rgba(0,0,0,.15)\'">+ Reg.</button>'
+                + '</div>';
+            }
+
+            return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
+              + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
+              + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
+              + diasDestaque + proxLine + ultLine + osBadge
+              + '</div>';
+          }).join('');
+
+          var rBg  = nvenc>0 ? 'rgba(239,68,68,.09)' : nwarn>0 ? 'rgba(245,158,11,.09)' : 'var(--bg3)';
+          var rTxt = nvenc>0
+            ? '<span style="color:#ef4444;font-size:17px;font-weight:700;">'+nvenc+'</span><div style="font-size:9px;color:#ef4444;font-weight:600;">VENC.</div>'
+            : nwarn>0
+            ? '<span style="color:#f59e0b;font-size:17px;font-weight:700;">'+nwarn+'</span><div style="font-size:9px;color:#f59e0b;font-weight:600;">A VCR.</div>'
+            : '<span style="color:var(--ok,#22c55e);font-size:20px;">✓</span>';
+
+          rowsHtml += '<div style="display:grid;grid-template-columns:'+gc+';border-bottom:1px solid var(--border);">'
+            + '<div style="padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;">'
+            + (v.nfr
+              ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;">'+v.nfr+'</div>'
+              + '<div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:-2px;">Nº frota</div>'
+              : '')
+            + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-top:4px;">'+placa+'</div>'
+            + '<div style="font-size:10px;color:var(--text3);font-weight:500;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
+            + '</div>'
+            + cells
+            + '<div style="padding:9px 10px;background:'+rBg+';border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">'+rTxt+'</div>'
             + '</div>';
-        }
+        }); // fim veics.forEach
 
-        return '<div onclick="window.abrirDetalhePrev(\''+placaEsc+'\',\''+srvIdEsc+'\',\''+srvNomEsc+'\')"'
-          + ' style="padding:10px 8px;background:'+bg+';border-left:1px solid rgba(0,0,0,.08);text-align:center;cursor:pointer;transition:filter .15s;"'
-          + ' onmouseover="this.style.filter=\'brightness(.85)\'" onmouseout="this.style.filter=\'none\'">'
-          + diasDestaque + proxLine + ultLine + osBadge
+        if (!rowsHtml) return;
+
+        var forcaLabel = forca === 'TERCEIRO'
+          ? ' <span style="font-size:10px;background:rgba(245,158,11,.18);color:#b45309;border-radius:5px;padding:1px 7px;font-weight:700;letter-spacing:.5px;">TERCEIRO</span>'
+          : '';
+        var categNomesM = { BITRUCK:'Caminhão', CAVALO:'Cavalo', CARRETA:'Carreta' };
+        var grupoLabel = (categNomesM[categ] || categ) + (tipoEsp !== categ ? ' ' + tipoEsp : '');
+
+        html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
+          + '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);">'
+          + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">'+grupoLabel+'</span>'
+          + forcaLabel
+          + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
+          + '</div>'
+          + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
+          + '<div style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);">Veículo</div>'
+          + thSrv
+          + '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);">Status</div>'
+          + '</div>'
+          + rowsHtml
           + '</div>';
-      }).join('');
+      }); // fim forEach forca
+    }); // fim forEach tipoEsp
+  }); // fim forEach categ
 
-      // Célula de status resumo do veículo
-      var rBg  = nvenc>0 ? 'rgba(239,68,68,.09)' : nwarn>0 ? 'rgba(245,158,11,.09)' : 'var(--bg3)';
-      var rTxt = nvenc>0
-        ? '<span style="color:#ef4444;font-size:17px;font-weight:700;">'+nvenc+'</span><div style="font-size:9px;color:#ef4444;font-weight:600;">VENC.</div>'
-        : nwarn>0
-        ? '<span style="color:#f59e0b;font-size:17px;font-weight:700;">'+nwarn+'</span><div style="font-size:9px;color:#f59e0b;font-weight:600;">A VCR.</div>'
-        : '<span style="color:var(--ok,#22c55e);font-size:20px;">✓</span>';
-
-      // Célula do veículo
-      rowsHtml += '<div style="display:grid;grid-template-columns:'+gc+';border-bottom:1px solid var(--border);">'
-        + '<div style="padding:10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;">'
-        + (v.nfr
-          ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1;">'+v.nfr+'</div>'
-          + '<div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:-2px;">Nº frota</div>'
-          : '')
-        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--text2);margin-top:4px;">'+placa+'</div>'
-        + '<div style="font-size:10px;color:var(--text3);font-weight:500;">'+(v.marca||'')+' '+(v.modelo||'')+'</div>'
-        + '</div>'
-        + cells
-        + '<div style="padding:9px 10px;background:'+rBg+';border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">'+rTxt+'</div>'
-        + '</div>';
-    });
-
-    if (!rowsHtml) return; // nenhuma linha visível
-
-    var forcaLabel = forca === 'TERCEIRO'
-      ? ' <span style="font-size:10px;background:rgba(245,158,11,.18);color:#b45309;border-radius:5px;padding:1px 7px;font-weight:700;letter-spacing:.5px;">TERCEIRO</span>'
-      : '';
-
-    html += '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">'
-      + '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);">'
-      + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">'+tipo+'</span>'
-      + forcaLabel
-      + '<span style="font-size:11px;color:var(--text3);">'+veics.length+' veículo'+(veics.length!==1?'s':'')+' · '+srvs.length+' serviço'+(srvs.length!==1?'s':'')+'</span>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:'+gc+';background:var(--bg3);border-bottom:1px solid var(--border);">'
-      + '<div style="padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);">Veículo</div>'
-      + thSrv
-      + '<div style="padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:center;border-left:1px solid var(--border);">Status</div>'
-      + '</div>'
-      + rowsHtml
-      + '</div>';
-    }); // fim forEach(['FROTA','TERCEIRO'])
-  }); // fim tiposOrdem.forEach
-
-  // Atualizar KPIs com os valores calculados no render
   document.getElementById('prev-kpi-venc-val').textContent = kv;
   document.getElementById('prev-kpi-warn-val').textContent = kw;
   document.getElementById('prev-kpi-ok-val').textContent   = ko;
@@ -7763,8 +7878,12 @@ function fecharDetalhePrev() {
 // Abre modal de novo registro a partir do detalhe (mantém contexto)
 function abrirModalPrevDoDet() {
   if (!_prevDetalheCtx) return;
+  // Salvar dados ANTES de fechar (fecharDetalhePrev zera _prevDetalheCtx)
+  var placa    = _prevDetalheCtx.placa;
+  var servId   = _prevDetalheCtx.servicoId;
+  var srvNome  = _prevDetalheCtx.srvNome;
   fecharDetalhePrev();
-  abrirModalPrev(_prevDetalheCtx.placa, _prevDetalheCtx.servicoId, _prevDetalheCtx.srvNome);
+  abrirModalPrev(placa, servId, srvNome);
 }
 
 // ── Editar Registro de Preventiva ──
@@ -7845,6 +7964,12 @@ async function excluirRegistroPrev(docId) {
 
 window.carregarQuadroPreventivas = carregarQuadroPreventivas;
 window.toggleFiltroPrev          = toggleFiltroPrev;
+// Expor estado de filtro para o botão ✕ no HTML
+Object.defineProperty(window, '_prevFiltroAtivo', {
+  get: function(){ return _prevFiltroAtivo; },
+  set: function(v){ _prevFiltroAtivo = v; },
+  configurable: true
+});
 window.abrirModalPrev            = abrirModalPrev;
 window.fecharModalPrev           = fecharModalPrev;
 window.confirmarExecPrev         = confirmarExecPrev;
