@@ -73,6 +73,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vh-id{width:260px;flex-shrink:0;}
 .vh-tipo{width:110px;flex-shrink:0;}
 .vh-check{flex:1;text-align:center;}
+.vh-datapar{width:100px;flex-shrink:0;text-align:center;}
 
 /* LINHA DO VEÍCULO */
 .vrow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;position:relative;}
@@ -84,6 +85,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .vcell-id{width:260px;flex-shrink:0;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;}
 .vcell-tipo{width:110px;flex-shrink:0;}
 .vcell-check{flex:1;align-items:center;transition:background 0.2s,border-color 0.2s;min-width:0;}
+.vcell-datapar{width:100px;flex-shrink:0;align-items:center;text-align:center;padding:6px 8px;}
 .vcell-check.s-ok{background:#25D366;border-color:#1a8a3a;color:#0d5028;}
 .vcell-check.s-atencao{background:#ffff00;border-color:#999900;color:#666600;}
 .vcell-check.s-substituir{background:#ff0000;border-color:#cc0000;color:#440000;}
@@ -1463,8 +1465,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
     <div class="page" id="page-veiculos">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
         <div style="font-size:15px;font-weight:500;color:var(--text);">Gerenciamento de Veículos</div>
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:12px;color:var(--text3);" id="vg-count">—</div>
+          <button onclick="executarImportDatapar()" style="display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:7px;border:1px solid #2a6a2a;background:transparent;font-size:11px;font-weight:600;color:#2a7a2a;cursor:pointer;" title="Atualiza os códigos DATAPAR de todos os veículos usando o mapeamento do arquivo DATAPAR.xlsx">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a2a" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            Importar DATAPAR
+          </button>
           <button class="btn-sm" onclick="window.exportVeiculosExcel()" title="Exportar lista de veículos em Excel">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2m0 0v4m0-4h4m0 0v4m-4-4h4"/></svg>
             Exportar Excel
@@ -1479,6 +1485,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
                 <th>Nº</th><th>Placa</th><th>Tipo</th><th>Bloco</th>
                 <th style="min-width:130px;">Marca</th>
                 <th style="min-width:150px;">Modelo</th>
+                <th style="min-width:110px;">DATAPAR</th>
                 <th></th>
               </tr>
             </thead>
@@ -3422,10 +3429,12 @@ function abrirModalNovoVeiculo() {
   document.getElementById('nv-placa').value  = '';
   document.getElementById('nv-bloco').value  = 'FROTA';
   document.getElementById('nv-tipo').value   = 'BITRUCK';
-  const marcaEl  = document.getElementById('nv-marca');
-  const modeloEl = document.getElementById('nv-modelo');
-  if (marcaEl)  marcaEl.value  = '';
-  if (modeloEl) modeloEl.value = '';
+  const marcaEl   = document.getElementById('nv-marca');
+  const modeloEl  = document.getElementById('nv-modelo');
+  const dataparEl = document.getElementById('nv-datapar');
+  if (marcaEl)   marcaEl.value   = '';
+  if (modeloEl)  modeloEl.value  = '';
+  if (dataparEl) dataparEl.value = '';
   document.getElementById('modal-novo-veiculo-ov').style.display = 'flex';
   setTimeout(() => document.getElementById('nv-nfr').focus(), 100);
 }
@@ -3435,12 +3444,13 @@ function fecharModalNovoVeiculo() {
 }
 
 async function salvarNovoVeiculo() {
-  const nfr   = parseInt(document.getElementById('nv-nfr').value);
-  const placa = document.getElementById('nv-placa').value.trim().toUpperCase();
-  const bloco = document.getElementById('nv-bloco').value;
-  const tipo  = document.getElementById('nv-tipo').value;
-  const marca = (document.getElementById('nv-marca')?.value||'').trim().toUpperCase();
-  const modelo= (document.getElementById('nv-modelo')?.value||'').trim().toUpperCase();
+  const nfr    = parseInt(document.getElementById('nv-nfr').value);
+  const placa  = document.getElementById('nv-placa').value.trim().toUpperCase();
+  const bloco  = document.getElementById('nv-bloco').value;
+  const tipo   = document.getElementById('nv-tipo').value;
+  const marca  = (document.getElementById('nv-marca')?.value||'').trim().toUpperCase();
+  const modelo = (document.getElementById('nv-modelo')?.value||'').trim().toUpperCase();
+  const datapar= (document.getElementById('nv-datapar')?.value||'').trim().toUpperCase();
 
   if (!nfr || nfr < 1)  { alert('Informe um número de frota válido.'); return; }
   if (!placa)            { alert('Informe a placa do veículo.'); return; }
@@ -3456,14 +3466,12 @@ async function salvarNovoVeiculo() {
 
   try {
     // Salvar no Firebase
-    await setDoc(doc(db, 'veiculos', placa), {
-      nfr, placa, tipo, bloco, marca, modelo,
-      ativo: true,
-      criadoEm: new Date().toISOString()
-    });
+    const docData = { nfr, placa, tipo, bloco, marca, modelo, ativo: true, criadoEm: new Date().toISOString() };
+    if (datapar) docData.datapar = datapar;
+    await setDoc(doc(db, 'veiculos', placa), docData);
 
     // Adicionar em memória e re-renderizar sem recarregar tudo
-    const novoV = { nfr, placa, tipo, bloco, marca, modelo, criadoEm: new Date().toISOString() };
+    const novoV = { nfr, placa, tipo, bloco, marca, modelo, datapar: datapar||'', criadoEm: new Date().toISOString() };
     if (bloco === 'FROTA') FROTA.push(novoV);
     else TERCEIRO.push(novoV);
     TODOS.push(novoV);
@@ -3495,6 +3503,7 @@ function gerarVrow(v) {
   const nfr   = String(v.nfr).padStart(2,'0');
   const tipo  = v.tipo;
   const marcaModelo = [v.marca, v.modelo].filter(Boolean).join(' ');
+  const datapar = v.datapar || '';
   return `<div class="vrow" data-placa="${placa}" data-tipo="${tipo}" onclick="abrirModal('${placa}')">
     <div class="vcell vcell-tipo" id="vcell-tipo-${placa}" style="align-items:center;text-align:center;" onclick="event.stopPropagation();abrirModalJustificativa('${placa}')">
       <div class="vcell-tipo-inner"><div class="v-tipo">${tipo}</div></div>
@@ -3681,6 +3690,117 @@ window.confirmarInativar   = confirmarInativar;
 window.abrirModalNovoVeiculo = abrirModalNovoVeiculo;
 window.fecharModalNovoVeiculo = fecharModalNovoVeiculo;
 window.salvarNovoVeiculo = salvarNovoVeiculo;
+
+// ── IMPORTAÇÃO DATAPAR via XLSX ──
+// Input de arquivo oculto — reutilizado a cada clique
+(function() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.xlsx,.xls';
+  inp.style.display = 'none';
+  inp.id = '_datapar-file-input';
+  document.body.appendChild(inp);
+})();
+
+function executarImportDatapar() {
+  // Garantir que SheetJS está carregado
+  if (typeof XLSX === 'undefined') {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = () => _abrirSeletorDatapar();
+    s.onerror = () => alert('Não foi possível carregar a biblioteca de leitura de Excel. Verifique sua conexão.');
+    document.head.appendChild(s);
+  } else {
+    _abrirSeletorDatapar();
+  }
+}
+
+function _abrirSeletorDatapar() {
+  const inp = document.getElementById('_datapar-file-input');
+  // Limpar listener anterior
+  inp.onchange = null;
+  inp.value = '';
+  inp.onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('Lendo planilha...');
+    try {
+      const map = await _lerDataparDoXlsx(file);
+      const total = Object.keys(map).length;
+      if (!total) { alert('Nenhum par Placa → DATAPAR encontrado na planilha. Verifique as colunas.'); return; }
+      await _gravarDataparNoFirebase(map);
+    } catch(e) {
+      console.error('[DATAPAR]', e);
+      alert('Erro ao processar planilha: ' + (e?.message || e));
+    }
+  };
+  inp.click();
+}
+
+function _lerDataparDoXlsx(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const wb   = XLSX.read(e.target.result, { type: 'array' });
+        const ws   = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        const map  = {};
+        // Detectar colunas automaticamente (case-insensitive, ignora espaços)
+        const normalize = s => String(s).trim().toUpperCase().replace(/\s+/g,'');
+        rows.forEach(row => {
+          const keys  = Object.keys(row);
+          // Buscar chave que contenha "PLACA"
+          const kPlaca   = keys.find(k => normalize(k).includes('PLACA'));
+          // Buscar chave que contenha "DATAPAR"
+          const kDatapar = keys.find(k => normalize(k).includes('DATAPAR'));
+          if (!kPlaca || !kDatapar) return;
+          const placa   = String(row[kPlaca]).trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+          const datapar = String(row[kDatapar]).trim().toUpperCase();
+          if (placa && datapar && placa !== '' && datapar !== '') {
+            map[placa] = datapar;
+          }
+        });
+        resolve(map);
+      } catch(err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function _gravarDataparNoFirebase(map) {
+  showToast('Importando para o Firebase...');
+  const entradas = Object.entries(map);
+  // writeBatch aceita no máximo 500 ops — dividir se necessário
+  let count = 0;
+  let erros  = 0;
+  const CHUNK = 400;
+  for (let i = 0; i < entradas.length; i += CHUNK) {
+    const fatia = entradas.slice(i, i + CHUNK);
+    const batch = writeBatch(db);
+    for (const [placa, datapar] of fatia) {
+      // setDoc com merge:true cria se não existir, atualiza se existir
+      batch.set(doc(db, 'veiculos', placa), { datapar: String(datapar) }, { merge: true });
+      count++;
+    }
+    await batch.commit();
+  }
+
+  // Atualizar em memória e no DOM
+  for (const v of TODOS) {
+    if (map[v.placa]) {
+      v.datapar = String(map[v.placa]);
+      const inp = document.getElementById('vg-datapar-' + v.placa);
+      if (inp) inp.value = v.datapar;
+    }
+  }
+
+  showToast(`DATAPAR importado: ${count} veículos atualizados!`);
+  console.log('[DATAPAR] Importação concluída:', count, 'atualizados,', erros, 'erros.');
+}
+
+window.executarImportDatapar = executarImportDatapar;
 
 // ── RESUMO DO DIA ──
 function abrirResumoDia() {
@@ -4910,7 +5030,7 @@ async function carregarGerenciamentoVeiculos() {
   const tbody = document.getElementById('vg-tbody');
   const count = document.getElementById('vg-count');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">Carregando...</td></tr>';
   try {
     // Buscar TODOS os veículos sem filtro — evita perder cadastros sem campo 'ativo'
     const snap = await getDocs(collection(db,'veiculos'));
@@ -4920,7 +5040,7 @@ async function carregarGerenciamentoVeiculos() {
       .sort((a,b) => (a.nfr||0)-(b.nfr||0));
     if (count) count.textContent = veics.length + ' veículos';
     if (!veics.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px;">Nenhum veículo encontrado.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px;">Nenhum veículo encontrado.</td></tr>';
       return;
     }
     tbody.innerHTML = veics.map(v => {
@@ -4932,6 +5052,7 @@ async function carregarGerenciamentoVeiculos() {
         <td><span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:${v.bloco==='FROTA'?'#E6F1FB':'#FAEEDA'};color:${v.bloco==='FROTA'?'#0C447C':'#633806'};">${v.bloco||'—'}</span></td>
         <td><input class="vg-inp" id="vg-marca-${v.placa}" value="${v.marca||''}" placeholder="Marca" oninput="this.value=this.value.toUpperCase()"></td>
         <td><input class="vg-inp" id="vg-modelo-${v.placa}" value="${v.modelo||''}" placeholder="Modelo" oninput="this.value=this.value.toUpperCase()"></td>
+        <td><input class="vg-inp" id="vg-datapar-${v.placa}" value="${v.datapar||''}" placeholder="—" oninput="this.value=this.value.toUpperCase()" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.8px;width:90px;"></td>
         <td><button class="vg-save-btn" onclick="salvarVeiculoEdicao('${v.placa}')">Salvar</button></td>
       </tr>`;
     }).join('');
@@ -4942,10 +5063,16 @@ async function carregarGerenciamentoVeiculos() {
 }
 
 async function salvarVeiculoEdicao(placa) {
-  const marca  = document.getElementById('vg-marca-' + placa)?.value.trim().toUpperCase() || '';
-  const modelo = document.getElementById('vg-modelo-' + placa)?.value.trim().toUpperCase() || '';
+  const marca   = document.getElementById('vg-marca-' + placa)?.value.trim().toUpperCase() || '';
+  const modelo  = document.getElementById('vg-modelo-' + placa)?.value.trim().toUpperCase() || '';
+  const datapar = document.getElementById('vg-datapar-' + placa)?.value.trim().toUpperCase() || '';
   try {
-    await setDoc(doc(db,'veiculos', placa), { marca, modelo }, { merge: true });
+    const upd = { marca, modelo };
+    if (datapar) upd.datapar = datapar;
+    await setDoc(doc(db,'veiculos', placa), upd, { merge: true });
+    // Atualizar em memória
+    const v = TODOS.find(x => x.placa === placa);
+    if (v) { v.marca = marca; v.modelo = modelo; if (datapar) v.datapar = datapar; }
     showToast(placa + ' — dados atualizados!');
   } catch(e) {
     alert('Erro ao salvar: ' + (e?.message||e));
@@ -8111,6 +8238,11 @@ window.excluirRegistroPrev       = excluirRegistroPrev;
           <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">Modelo</label>
           <input type="text" id="nv-modelo" placeholder="Ex: FH 460, R 450..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:inherit;">
         </div>
+      </div>
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding-bottom:4px;border-bottom:.5px solid var(--border);margin-top:2px;">RP / Sistema Interno</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);">DATAPAR <span style="text-transform:none;font-weight:400;opacity:.7;">(código RP interno)</span></label>
+        <input type="text" id="nv-datapar" placeholder="Ex: 7000, 3041, DWS3948..." oninput="this.value=this.value.toUpperCase()" style="padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;font-weight:600;max-width:220px;">
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border);">
