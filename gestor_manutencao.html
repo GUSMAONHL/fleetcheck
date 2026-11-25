@@ -1467,9 +1467,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
         <div style="font-size:15px;font-weight:500;color:var(--text);">Gerenciamento de Veículos</div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:12px;color:var(--text3);" id="vg-count">—</div>
-          <button onclick="executarImportDatapar()" style="display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:7px;border:1px solid #2a6a2a;background:transparent;font-size:11px;font-weight:600;color:#2a7a2a;cursor:pointer;" title="Atualiza os códigos DATAPAR de todos os veículos usando o mapeamento do arquivo DATAPAR.xlsx">
+          <button onclick="executarImportDatapar()" style="display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:7px;border:1px solid #2a6a2a;background:transparent;font-size:11px;font-weight:600;color:#2a7a2a;cursor:pointer;" title="Atualiza os códigos DATAPAR dos veículos já cadastrados usando planilha XLSX">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a2a" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
             Importar DATAPAR
+          </button>
+          <button onclick="limparFantasmasDatapar()" style="display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:7px;border:1px solid #8a2a2a;background:transparent;font-size:11px;font-weight:600;color:#8a2a2a;cursor:pointer;" title="Excluir registros incompletos criados por importação incorreta">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a2a2a" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Limpar Registros
           </button>
           <button class="btn-sm" onclick="window.exportVeiculosExcel()" title="Exportar lista de veículos em Excel">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2m0 0v4m0-4h4m0 0v4m-4-4h4"/></svg>
@@ -1482,10 +1486,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
           <table class="vg-tbl">
             <thead>
               <tr>
-                <th>Nº</th><th>Placa</th><th>Tipo</th><th>Bloco</th>
+                <th>Nº</th><th>Placa</th><th style="min-width:100px;">DATAPAR</th><th>Tipo</th><th>Bloco</th>
                 <th style="min-width:130px;">Marca</th>
                 <th style="min-width:150px;">Modelo</th>
-                <th style="min-width:110px;">DATAPAR</th>
                 <th></th>
               </tr>
             </thead>
@@ -2780,13 +2783,16 @@ async function carregarVeiculosFirebase() {
         nfr:      v.nfr      || 0,
         placa:    v.placa    || '',
         tipo:     v.tipo     || '',
-        bloco:    v.bloco    || 'FROTA',
+        bloco:    v.bloco    || '',
         marca:    v.marca    || '',
         modelo:   v.modelo   || '',
-        criadoEm: v.criadoEm || null
+        datapar:  v.datapar  || '',
+        criadoEm: v.criadoEm || null,
+        _semBloco: !v.bloco   // marca fantasmas: vieram do Firestore sem bloco real
       };
       if (novoV.bloco === 'FROTA') FROTA.push(novoV);
-      else TERCEIRO.push(novoV);
+      else if (novoV.bloco === 'TERCEIRO') TERCEIRO.push(novoV);
+      // sem bloco = fantasma, entra só em TODOS mas não nas listas operacionais
       TODOS.push(novoV);
       _veiculosNovosFirebase.push(novoV);
     });
@@ -3771,17 +3777,27 @@ function _lerDataparDoXlsx(file) {
 
 async function _gravarDataparNoFirebase(map) {
   showToast('Importando para o Firebase...');
-  const entradas = Object.entries(map);
-  // writeBatch aceita no máximo 500 ops — dividir se necessário
+
+  // ── SEGURANÇA: só atualizar veículos reais (com bloco e tipo preenchidos) ──
+  // Nunca atualizar fantasmas nem criar documentos novos
+  const placasReais     = new Set(TODOS.filter(v => v.bloco && v.tipo).map(v => v.placa));
+  const placasConhecidas = placasReais;
+  const entradasValidas  = Object.entries(map).filter(([placa]) => placasConhecidas.has(placa));
+  const ignoradas        = Object.keys(map).length - entradasValidas.length;
+
+  if (!entradasValidas.length) {
+    alert('Nenhuma placa da planilha corresponde a um veículo cadastrado no sistema.');
+    return;
+  }
+
   let count = 0;
-  let erros  = 0;
   const CHUNK = 400;
-  for (let i = 0; i < entradas.length; i += CHUNK) {
-    const fatia = entradas.slice(i, i + CHUNK);
+  for (let i = 0; i < entradasValidas.length; i += CHUNK) {
+    const fatia = entradasValidas.slice(i, i + CHUNK);
     const batch = writeBatch(db);
     for (const [placa, datapar] of fatia) {
-      // setDoc com merge:true cria se não existir, atualiza se existir
-      batch.set(doc(db, 'veiculos', placa), { datapar: String(datapar) }, { merge: true });
+      // updateDoc via batch — só atualiza, nunca cria documento novo
+      batch.update(doc(db, 'veiculos', placa), { datapar: String(datapar) });
       count++;
     }
     await batch.commit();
@@ -3796,9 +3812,63 @@ async function _gravarDataparNoFirebase(map) {
     }
   }
 
-  showToast(`DATAPAR importado: ${count} veículos atualizados!`);
-  console.log('[DATAPAR] Importação concluída:', count, 'atualizados,', erros, 'erros.');
+  let msg = `DATAPAR importado: ${count} veículos atualizados!`;
+  if (ignoradas > 0) msg += ` (${ignoradas} placas da planilha não encontradas no sistema foram ignoradas)`;
+  showToast(`DATAPAR: ${count} atualizados!`);
+  if (ignoradas > 0) console.warn('[DATAPAR] Placas ignoradas (não cadastradas):', Object.keys(map).filter(p => !placasConhecidas.has(p)));
+  console.log('[DATAPAR] Importação concluída:', count, 'atualizados,', ignoradas, 'ignorados.');
 }
+
+// ── LIMPEZA: excluir veículos-fantasma criados por importações anteriores ──
+// Busca direto no Firestore — documentos sem "tipo" ou sem "bloco" são fantasmas
+async function limparFantasmasDatapar() {
+  showToast('Verificando Firestore...');
+  try {
+    const snap = await getDocs(collection(db, 'veiculos'));
+    const fantasmas = [];
+    snap.forEach(d => {
+      const v = d.data();
+      const temTipo  = v.tipo  && String(v.tipo).trim()  !== '';
+      const temBloco = v.bloco && String(v.bloco).trim() !== '';
+      if (!temTipo || !temBloco) {
+        fantasmas.push({ docId: d.id, dados: v });
+      }
+    });
+
+    if (!fantasmas.length) {
+      showToast('Nenhum registro incompleto encontrado.');
+      return;
+    }
+
+    const lista = fantasmas.map(f => f.docId).join('\n');
+    const confirmado = confirm(
+      `Encontrados ${fantasmas.length} registro(s) sem Tipo/Bloco (criados por importação incorreta):\n\n${lista}\n\nDeseja EXCLUIR esses registros?`
+    );
+    if (!confirmado) return;
+
+    showToast('Excluindo...');
+    const CHUNK = 400;
+    for (let i = 0; i < fantasmas.length; i += CHUNK) {
+      const batch = writeBatch(db);
+      for (const f of fantasmas.slice(i, i + CHUNK)) {
+        batch.delete(doc(db, 'veiculos', f.docId));
+      }
+      await batch.commit();
+    }
+
+    // Remover da memória local
+    const idsExcluidos = new Set(fantasmas.map(f => f.docId));
+    const limpar = arr => { for (let i = arr.length - 1; i >= 0; i--) { if (idsExcluidos.has(arr[i].placa)) arr.splice(i, 1); } };
+    limpar(TODOS); limpar(FROTA); limpar(TERCEIRO);
+
+    showToast(`${fantasmas.length} registro(s) excluído(s)!`);
+    if (typeof carregarGerenciamentoVeiculos === 'function') carregarGerenciamentoVeiculos();
+  } catch(e) {
+    console.error('[LIMPEZA]', e);
+    alert('Erro ao limpar: ' + (e?.message || e));
+  }
+}
+window.limparFantasmasDatapar = limparFantasmasDatapar;
 
 window.executarImportDatapar = executarImportDatapar;
 
@@ -5048,11 +5118,11 @@ async function carregarGerenciamentoVeiculos() {
       return `<tr>
         <td style="font-family:Arial,sans-serif;font-weight:500;">${nfr}</td>
         <td style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;">${v.placa||'—'}</td>
+        <td><input class="vg-inp" id="vg-datapar-${v.placa}" value="${v.datapar||''}" placeholder="—" oninput="this.value=this.value.toUpperCase()" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.8px;width:90px;"></td>
         <td style="color:var(--text2);">${v.tipo||'—'}</td>
         <td><span style="display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;background:${v.bloco==='FROTA'?'#E6F1FB':'#FAEEDA'};color:${v.bloco==='FROTA'?'#0C447C':'#633806'};">${v.bloco||'—'}</span></td>
         <td><input class="vg-inp" id="vg-marca-${v.placa}" value="${v.marca||''}" placeholder="Marca" oninput="this.value=this.value.toUpperCase()"></td>
         <td><input class="vg-inp" id="vg-modelo-${v.placa}" value="${v.modelo||''}" placeholder="Modelo" oninput="this.value=this.value.toUpperCase()"></td>
-        <td><input class="vg-inp" id="vg-datapar-${v.placa}" value="${v.datapar||''}" placeholder="—" oninput="this.value=this.value.toUpperCase()" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.8px;width:90px;"></td>
         <td><button class="vg-save-btn" onclick="salvarVeiculoEdicao('${v.placa}')">Salvar</button></td>
       </tr>`;
     }).join('');
