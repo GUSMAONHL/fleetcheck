@@ -510,6 +510,10 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Motoristas</span>
     </button>
+    <button class="nav-item" title="KM Rodado por Veículo" onclick="showPage('kmrota')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h2l1-4h12l1 4h2"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M5 13l1.5-6h11L19 13"/></svg>
+      <span>KM Rodado</span>
+    </button>
   </nav>
 
   <div class="filtros-acao-global">
@@ -702,6 +706,18 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 
       <div class="topbar-filtros-painel" id="topbar-filtros-programacao">
         <input type="date" id="prog-data-input" class="filter-input" onchange="_onProgDataChange(this.value)">
+      </div>
+      <div class="topbar-filtros-painel" id="topbar-filtros-kmrota">
+        <select id="kmr-periodo" class="filter-input" onchange="renderKmRota()" title="Período">
+          <option value="3">Últimos 3 meses</option>
+          <option value="6" selected>Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
+          <option value="ano">Ano atual</option>
+          <option value="custom">Escolher meses…</option>
+        </select>
+        <select id="kmr-mes-ini" class="filter-input" style="display:none;" onchange="renderKmRota()" title="Do mês"></select>
+        <select id="kmr-mes-fim" class="filter-input" style="display:none;" onchange="renderKmRota()" title="Até o mês"></select>
+        <input type="text" id="kmr-busca" class="filter-input" placeholder="Buscar placa..." oninput="_kmrRenderTabela()" style="width:140px;">
       </div>
       <div class="topbar-filtros-painel" id="topbar-filtros-motoristas">
         <input type="date" id="mot-data-ini" class="filter-input" onchange="renderGestaoMotoristas()" title="De">
@@ -1103,6 +1119,15 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
     </div>
 
     <!-- PAGE: GESTÃO DE MOTORISTAS -->
+    <div class="page" id="page-kmrota">
+      <div id="kmr-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;"></div>
+      <div class="table-card" style="margin-bottom:16px;">
+        <div class="table-header"><div class="table-title">KM rodado por placa — mês a mês</div><div style="display:flex;align-items:center;gap:12px;"><div id="kmr-contagem" style="font-size:13px;color:var(--text3);"></div><button onclick="exportarKmRota()" title="Exportar Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div>
+        <div style="overflow-x:auto;"><table id="kmr-tabela"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <div id="kmr-aviso" style="font-size:12px;color:var(--text3);padding:8px 14px;"></div>
+      </div>
+    </div>
+
     <div class="page" id="page-motoristas">
       <div id="mot-kpis"></div>
       <div id="mot-ranks" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px;margin-bottom:16px;"></div>
@@ -1335,6 +1360,16 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
 </div>
 
 <!-- FORM CADASTRO/EDIÇÃO DE MINA -->
+<div id="kmr-sem-dmt-modal" onclick="if(event.target===this)fecharKmrSemDmt()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:12px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:980px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div><div style="font-size:16px;font-weight:700;">⚠ Viagens sem DMT cadastrado</div><div id="kmr-sem-dmt-sub" style="font-size:12px;color:var(--text3);margin-top:1px;"></div></div>
+      <button onclick="fecharKmrSemDmt()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:8px;cursor:pointer;padding:4px 10px;font-size:13px;">✕</button>
+    </div>
+    <div id="kmr-sem-dmt-corpo" style="padding:12px 18px;flex:1;min-height:0;overflow:auto;"></div>
+  </div>
+</div>
+
 <div id="mina-form-overlay" onclick="if(event.target===this) fecharFormMina()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;padding:2vh 2vw;">
   <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
     <div style="padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -2262,7 +2297,7 @@ window.fecharPainelForce = function fecharPainelForce() {
 // ══════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════
-const pageTitles = { dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico', volumeestratificado: 'Volume Estratificado', ofensores: 'Ofensores — Impacto de Volume', motoristas: 'Gestão de Motoristas' };
+const pageTitles = { kmrota: 'KM Rodado por Veículo (DMT)', dashboard: 'Dashboard', checklists: 'Checklists Enviados', frotas: 'Frota de Veículos', desempenho: 'Desempenho KM — Motoristas', produtividade: 'Aderência/Disponibilidade de Veículos', volume: 'Volume Transportado', minas: 'Cadastro de Minas', programacao: 'Programação Diária de Volume', gestao: 'Gestão do Dia', veiculos: 'Cadastro de Veículos', volumeanalitico: 'Volume Analítico', volumeestratificado: 'Volume Estratificado', ofensores: 'Ofensores — Impacto de Volume', motoristas: 'Gestão de Motoristas' };
 
 // Ícone genérico (sem marca) de Cavalo Mecânico — só a unidade tratora, sem carreta, pra
 // diferenciar visualmente do Caminhão (que usa o emoji 🚚, com carroceria).
@@ -2400,6 +2435,7 @@ window.showPage = function showPage(id) {
   if (id === 'programacao') setTimeout(() => window.renderProgramacao(), 0);
   if (id === 'gestao') setTimeout(() => window.renderGestaoDia(), 0);
   if (id === 'motoristas') setTimeout(() => window.renderGestaoMotoristas(), 0);
+  if (id === 'kmrota') setTimeout(() => window.renderKmRota(), 0);
 }
 
 // ══════════════════════════════════════
@@ -6732,6 +6768,7 @@ window.salvarMina = async function salvarMina() {
     fecharFormMina();
     await _carregarMinas();
     _renderMinasTabela();
+    const pk = document.getElementById('page-kmrota'); if (pk && pk.classList.contains('active')) renderKmRota();
   } catch (err) {
     console.error('Erro ao salvar mina:', err);
     showToast('✖ Erro ao salvar mina: ' + err.message);
@@ -10235,8 +10272,10 @@ async function _motCarregarVolumeDia(iso) {
 }
 
 // Indicadores de ranking: valor por motorista, formatação e como ler (maior = melhor em todos).
+const MOT_PESO_LIMITE = 20.5; // peso líquido de referência por viagem (t)
 const _MOT_INDICADORES = [
   { chave: 'vol',  titulo: 'Peso carregado',            un: '',   casas: 2, pareto: true,  desc: 'Volume transportado no período (caminhões)' },
+  { chave: 'exc',  titulo: 'Peso médio — acima de 20,5 t líquidas', un: 't', casas: 1, soPositivos: true, desc: 'Toneladas que passaram de 20,5 t líquidas por viagem (soma do excesso de cada viagem). Clique no motorista para ver as viagens' },
   { chave: 'kml',  titulo: 'Consumo — média km/L',      un: 'km/L', casas: 2, desc: 'KM rodado ÷ litros abastecidos' },
   { chave: 'lpt',  titulo: 'Diesel por tonelada — L/t', un: 'L/t', casas: 2, inverso: true, menorMelhor: true, desc: 'Litros de diesel ÷ toneladas carregadas (menor = melhor: menos diesel, mais peso)' },
   { chave: 'ad',   titulo: 'Aderência',                 un: '%',   sufixo: '%', casas: 1, desc: 'Viagens realizadas ÷ programadas (caminhões e cavalos)' },
@@ -10257,7 +10296,7 @@ function _motGraficoRank(ind) {
   const card = (corpo) => `<div class="table-card" style="padding:16px 18px;">
     <div style="font-size:15px;font-weight:700;">${ind.titulo}</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">${ind.desc}</div>${corpo}</div>`;
-  if (lista.length === 0) return card(`<div style="padding:24px 0;text-align:center;color:var(--text3);font-size:13px;">${ind.soPositivos && todos.length > 0 ? 'Nenhuma perda por esse ofensor no período. 👍' : 'Sem dados no período.'}</div>`);
+  if (lista.length === 0) return card(`<div style="padding:24px 0;text-align:center;color:var(--text3);font-size:13px;">${ind.soPositivos && todos.length > 0 ? (ind.chave === 'exc' ? 'Nenhuma viagem passou de 20,5 t líquidas no período.' : 'Nenhuma perda por esse ofensor no período. 👍') : 'Sem dados no período.'}</div>`);
 
   const max = Math.max(...lista.map(m => m[ind.chave]), 0) || 1;
   const soma = lista.reduce((s,m) => s + m[ind.chave], 0);
@@ -10275,13 +10314,13 @@ function _motGraficoRank(ind) {
     const acumPct = soma > 0 ? acum / soma * 100 : 0;
     const acima = ind.inverso ? v <= media : v >= media;
     const larg = Math.max(1.5, (v / max) * 100);
-    const extra = ind.pareto ? `<span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Participação acumulada">${_motFmt(acumPct, 0)}%</span>` : '';
-    const dica = `${m.nome}\n${ind.titulo}: ${_motFmt(v, ind.casas)} ${ind.un}${ind.chave === 'manut' ? '\n' + m.manutVg + ' viagem(ns) perdida(s) · volume ' + _motFmt(m.manutVol) : ''}${ind.chave === 'lpt' ? '\n' + _motFmt(m.litrosPeso, 1) + ' L para ' + _motFmt(m.volPeso) + ' t carregadas' : ''}\nMédia da equipe: ${_motFmt(media, ind.casas)} ${ind.un}${ind.pareto ? '\nAcumulado: ' + _motFmt(acumPct, 1) + '%' : ''}`;
+    const extra = ind.chave === 'exc' ? `<span style="width:78px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Peso médio por viagem">PM ${_motFmt(m.pm)}</span>` : ind.pareto ? `<span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Participação acumulada">${_motFmt(acumPct, 0)}%</span>` : '';
+    const dica = `${m.nome}\n${ind.titulo}: ${_motFmt(v, ind.casas)} ${ind.un}${ind.chave === 'manut' ? '\n' + m.manutVg + ' viagem(ns) perdida(s) · volume ' + _motFmt(m.manutVol) : ''}${ind.chave === 'exc' ? '\nPeso médio ' + _motFmt(m.pm) + ' t · ' + m.acima + ' de ' + m.nTrips + ' viagem(ns) acima de 20,5 t' : ''}${ind.chave === 'lpt' ? '\n' + _motFmt(m.litrosPeso, 1) + ' L para ' + _motFmt(m.volPeso) + ' t carregadas' : ''}\nMédia da equipe: ${_motFmt(media, ind.casas)} ${ind.un}${ind.pareto ? '\nAcumulado: ' + _motFmt(acumPct, 1) + '%' : ''}`;
     const corte80 = ind.pareto && acumPct >= 80 && (acumPct - v / soma * 100) < 80
       ? '<div style="font-size:10px;color:var(--text3);text-align:right;margin:2px 0;border-top:1px dashed var(--border2);">— 80% do volume até aqui —</div>' : '';
     return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;" title="${_motEsc(dica)}">
         <span style="width:22px;text-align:right;font-size:12px;color:var(--text3);flex-shrink:0;">${i+1}</span>
-        <span onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(m.nome)}" style="width:150px;flex-shrink:0;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${_motEsc(_nomeESobrenome(m.nome) || m.nome)}</span>
+        <span onclick="${ind.chave === 'exc' ? 'abrirViagensPesoModal' : 'abrirMotoristaModal'}(this.dataset.nome)" data-nome="${_motEsc(m.nome)}" style="width:150px;flex-shrink:0;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${_motEsc(_nomeESobrenome(m.nome) || m.nome)}</span>
         <div style="flex:1;position:relative;height:18px;">
           <div style="position:absolute;left:0;top:2px;height:14px;width:${larg}%;background:${acima ? '#388bfd' : 'rgba(56,139,253,0.40)'};border-radius:0 4px 4px 0;"></div>
           <div style="position:absolute;left:${pctMedia}%;top:-2px;bottom:-2px;border-left:2px dashed var(--text2);opacity:0.7;"></div>
@@ -10349,6 +10388,235 @@ window.abrirVeiculoMotoristasModal = function abrirVeiculoMotoristasModal(placa)
   document.getElementById('mot-modal').style.display = 'flex';
 };
 
+// Lista as viagens do motorista no período, destacando o que passou de 20,5 t líquidas
+window.abrirViagensPesoModal = function abrirViagensPesoModal(nome) {
+  const m = _motResumo.find(x => x.nome === nome);
+  if (!m) return;
+  const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
+  document.getElementById('mot-modal-titulo').textContent = `Viagens — ${nome}`;
+  document.getElementById('mot-modal-sub').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · ${m.nTrips} viagem(ns) · peso médio ${m.pm === null ? '—' : _motFmt(m.pm)} t`;
+  const tile = (rot, val, cor) => `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex:1;min-width:140px;"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;">${rot}</div><div style="font-size:22px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;">${val}</div></div>`;
+  const tiles = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">`
+    + tile('Peso médio', (m.pm === null ? '—' : _motFmt(m.pm)) + ' t', '#388bfd')
+    + tile('Viagens', m.nTrips, 'var(--text)')
+    + tile(`Acima de ${String(MOT_PESO_LIMITE).replace('.', ',')} t`, `${m.acima} <span style="font-size:13px;color:var(--text3);">(${m.nTrips > 0 ? _motFmt(m.acima / m.nTrips * 100, 0) : 0}%)</span>`, '#f0883e')
+    + tile('Excesso total', _motFmt(m.exc, 1) + ' t', '#f85149') + `</div>`;
+  const cols = [{h:'DATA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'PESO (t)',al:'right'},{h:'ACIMA DE 20,5 (t)',al:'right'}];
+  const ord = m.trips.slice().sort((a,b) => b.dia.localeCompare(a.dia) || b.peso - a.peso);
+  const rows = ord.map(t => { const ex = Math.max(0, t.peso - MOT_PESO_LIMITE);
+    return { cel: [_motDataCel(t.dia), _motVeicCel(t), _motEsc(t.rota || '—'), _motFmt(t.peso) + (t.est ? ' *' : ''), ex > 0 ? '+' + _motFmt(ex) : '—'],
+      est: [,,, ex > 0 ? 'font-weight:700;color:#f0883e;' : '', ex > 0 ? 'font-weight:700;color:#f85149;' : 'color:var(--text3);'] }; });
+  const temEst = ord.some(t => t.est);
+  document.getElementById('mot-modal-corpo').innerHTML = tiles + _motTabelaCompacta(cols, rows)
+    + (temEst ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">* dia sem importação de volume: peso estimado pelo peso médio da programação.</div>' : '');
+  document.getElementById('mot-modal-caixa').style.maxWidth = '1000px';
+  document.getElementById('mot-modal').style.display = 'flex';
+};
+
+
+// ══════════════════════════════════════
+// KM RODADO POR VEÍCULO (pelo DMT cadastrado em cada mina)
+// KM da viagem = DMT da mina de origem (já é ida e volta). KM do mês = Σ viagens × DMT.
+// Meses seguem o período de operação cadastrado nas Metas (ex.: Novembro = 29/10 a 27/11).
+// ══════════════════════════════════════
+const _kmrDiaCache = {};        // 'YYYY-MM-DD' -> viagens[] | null
+let _kmrDados = { meses: [], placas: [] };
+let _kmrToken = 0;
+
+function _kmrChaveOD(orig, dest) { return _progNormalizarOD(orig) + '|||' + _progNormalizarOD(dest); }
+
+async function _kmrCarregarDia(iso) {
+  if (iso in _kmrDiaCache) return _kmrDiaCache[iso];
+  try {
+    const snap = await getDoc(doc(db, 'volume_dias', iso));
+    _kmrDiaCache[iso] = (snap.exists() && Array.isArray(snap.data().viagens)) ? snap.data().viagens : null;
+  } catch (err) { _kmrDiaCache[iso] = null; }
+  return _kmrDiaCache[iso];
+}
+
+window.renderKmRota = async function renderKmRota() {
+  const corpo = document.querySelector('#kmr-tabela tbody');
+  if (!corpo) return;
+  const token = ++_kmrToken;
+  corpo.innerHTML = '<tr><td style="text-align:center;padding:30px;color:var(--text3);">Carregando...</td></tr>';
+  try {
+    await _volCarregarPeriodos();
+    if (!_minasCarregado) await _carregarMinas();
+    const diasBR = await _obterDiasVolumeReal();
+    // dia -> mês de operação
+    const porMes = {};
+    diasBR.forEach(d => { const m = _volMesDoDia(d); (porMes[m] = porMes[m] || []).push(d); });
+    const hoje = new Date();
+    const mesAtual = _volMesDoDia(String(hoje.getDate()).padStart(2,'0') + '/' + String(hoje.getMonth()+1).padStart(2,'0') + '/' + hoje.getFullYear());
+    const todosMeses = Array.from(new Set([...Object.keys(porMes), mesAtual])).sort().reverse();   // do mais novo pro mais antigo
+
+    // seletores "Escolher meses"
+    const selPer = document.getElementById('kmr-periodo').value;
+    const sIni = document.getElementById('kmr-mes-ini'), sFim = document.getElementById('kmr-mes-fim');
+    const optM = todosMeses.map(m => `<option value="${m}">${_mesParaLabel(m)}</option>`).join('');
+    if (sIni.options.length !== todosMeses.length) { sIni.innerHTML = optM; sFim.innerHTML = optM; sFim.value = todosMeses[0]; sIni.value = todosMeses[Math.min(5, todosMeses.length - 1)]; }
+    sIni.style.display = sFim.style.display = selPer === 'custom' ? '' : 'none';
+
+    let meses;
+    if (selPer === 'custom') { const a = sIni.value, b = sFim.value; const lo = a < b ? a : b, hi = a < b ? b : a; meses = todosMeses.filter(m => m >= lo && m <= hi); }
+    else if (selPer === 'ano') meses = todosMeses.filter(m => m.slice(0,4) === mesAtual.slice(0,4));
+    else meses = todosMeses.filter(m => m <= mesAtual).slice(0, Number(selPer));
+    meses = meses.filter(m => m <= mesAtual || (porMes[m] || []).length);
+
+    // DMT por origem|destino (e por origem, como reserva)
+    const dmtOD = {}, dmtOrig = {};
+    _minasCadastro.forEach(m => {
+      const d = m.dmt == null ? null : Number(m.dmt);
+      if (d == null || isNaN(d)) return;
+      dmtOD[_kmrChaveOD(m.origem, m.destino)] = d;
+      const o = _progNormalizarOD(m.origem);
+      if (!(o in dmtOrig)) dmtOrig[o] = d;
+    });
+
+    // carrega as viagens dos dias dos meses mostrados
+    const dias = [];
+    meses.forEach(m => (porMes[m] || []).forEach(d => dias.push({ mes: m, iso: _volDiaParaChave(d) })));
+    const viagensDia = await Promise.all(dias.map(x => _kmrCarregarDia(x.iso)));
+    if (token !== _kmrToken) return;
+
+    const placas = {};          // placa -> { placa, tipo, meses: { mes: { km, vg, semDmt } } }
+    const semDmtPorMina = {}, semViagens = [];
+    dias.forEach((x, i) => {
+      (viagensDia[i] || []).forEach(v => {
+        const placa = (v.placa || '').toString().trim().toUpperCase();
+        if (!placa) return;
+        const o = placa in placas ? placas[placa] : (placas[placa] = { placa, tipo: '', meses: {} });
+        if (!o.tipo && v.tipo2) o.tipo = v.tipo2.toString().toUpperCase();
+        const c = o.meses[x.mes] || (o.meses[x.mes] = { km: 0, vg: 0, semDmt: 0 });
+        c.vg++;
+        const dmt = dmtOD[_kmrChaveOD(v.origem, v.destino)] ?? dmtOrig[_progNormalizarOD(v.origem)];
+        if (dmt == null) { c.semDmt++; const k = _progNormalizarOD(v.origem) || '(sem origem)'; semDmtPorMina[k] = (semDmtPorMina[k] || 0) + 1; semViagens.push({ iso: x.iso, placa, origem: _progNormalizarOD(v.origem), destino: _progNormalizarOD(v.destino), peso: Number(v.peso) || 0 }); }
+        else c.km += dmt;
+      });
+    });
+    _kmrDados = { meses, placas: Object.values(placas), semDmtPorMina, semViagens };
+    if (document.getElementById('kmr-sem-dmt-modal').style.display === 'flex') _kmrRenderModalSemDmt();
+    _kmrRenderTabela();
+  } catch (err) {
+    console.error('Erro KM rodado:', err);
+    corpo.innerHTML = '<tr><td style="text-align:center;padding:30px;color:#f85149;">Erro ao carregar os dados.</td></tr>';
+  }
+};
+
+function _kmrRenderTabela() {
+  const { meses, placas, semDmtPorMina } = _kmrDados;
+  const thead = document.querySelector('#kmr-tabela thead'), tbody = document.querySelector('#kmr-tabela tbody'), tfoot = document.querySelector('#kmr-tabela tfoot');
+  if (!thead) return;
+  const busca = (document.getElementById('kmr-busca').value || '').trim().toUpperCase();
+  const f0 = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  const tot = (p) => meses.reduce((s, m) => s + ((p.meses[m] || {}).km || 0), 0);
+  const lista = placas.filter(p => tot(p) > 0 || meses.some(m => (p.meses[m] || {}).vg))
+    .filter(p => !busca || p.placa.includes(busca)).sort((a, b) => tot(b) - tot(a) || a.placa.localeCompare(b.placa));
+
+  thead.innerHTML = '<tr><th style="text-align:left;">PLACA</th>' + meses.map(m => `<th style="text-align:right;">${_mesParaLabel(m).toUpperCase()}</th>`).join('') + '<th style="text-align:right;">TOTAL</th></tr>';
+  tbody.innerHTML = lista.length === 0
+    ? `<tr><td colspan="${meses.length + 2}" style="text-align:center;padding:30px;color:var(--text3);">Nenhum veículo com viagens no período.</td></tr>`
+    : lista.map(p => `<tr><td style="font-weight:600;">${_motEsc(p.placa)}${p.tipo ? ` <span style="font-size:9.5px;font-weight:700;padding:0 4px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${_motEsc(p.tipo)}</span>` : ''}</td>`
+      + meses.map(m => { const c = p.meses[m]; if (!c || !c.vg) return '<td style="text-align:right;color:var(--text3);">—</td>';
+          return `<td style="text-align:right;font-family:'DM Mono',monospace;" title="${c.vg} viagem(ns)${c.semDmt ? ' · ' + c.semDmt + ' sem DMT cadastrado' : ''}">${c.km > 0 ? f0(c.km) : '—'}${c.semDmt ? ' <span style="color:#d29922;" title="Há viagens sem DMT cadastrado">⚠</span>' : ''}</td>`; }).join('')
+      + `<td style="text-align:right;font-family:'DM Mono',monospace;font-weight:700;">${f0(tot(p))}</td></tr>`).join('');
+
+  const totMes = meses.map(m => lista.reduce((s, p) => s + ((p.meses[m] || {}).km || 0), 0));
+  const totGeral = totMes.reduce((s, v) => s + v, 0);
+  const est = 'font-weight:700;background:var(--bg3);border-top:2px solid var(--border);';
+  tfoot.innerHTML = `<tr><td style="${est}">TOTAL DA FROTA</td>${totMes.map(v => `<td style="text-align:right;font-family:'DM Mono',monospace;${est}">${f0(v)}</td>`).join('')}<td style="text-align:right;font-family:'DM Mono',monospace;${est}">${f0(totGeral)}</td></tr>`;
+
+  const vgTotal = lista.reduce((s, p) => s + meses.reduce((a, m) => a + ((p.meses[m] || {}).vg || 0), 0), 0);
+  const kpi = (rot, val, cor) => `<div class="table-card" style="padding:14px 18px;"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${rot}</div><div style="font-size:24px;font-weight:700;color:${cor};font-family:'DM Mono',monospace;margin-top:4px;">${val}</div></div>`;
+  const kpiSem = (rot, n, sub) => `<div class="table-card" ${n > 0 ? 'onclick="abrirKmrSemDmt()" title="Clique para ver as viagens e cadastrar o DMT" style="padding:14px 18px;cursor:pointer;border-left:4px solid #d29922;"' : 'style="padding:14px 18px;border-left:4px solid #2ea043;"'}><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${n > 0 ? '⚠ ' : '✔ '}${rot}</div><div style="font-size:24px;font-weight:700;color:${n > 0 ? '#d29922' : '#2ea043'};font-family:'DM Mono',monospace;margin-top:4px;">${n.toLocaleString('pt-BR')}<span style="font-size:12px;font-weight:400;color:var(--text3);">${n > 0 ? sub : ' · tudo com DMT'}</span></div></div>`;
+  document.getElementById('kmr-kpis').innerHTML = kpi('KM rodado no período', f0(totGeral) + ' km', '#388bfd') + kpi('Veículos', lista.length, 'var(--text)') + kpi('Viagens', f0(vgTotal), '#2ea043')
+    + kpi('KM médio por veículo', lista.length ? f0(totGeral / lista.length) + ' km' : '—', '#d29922')
+    + kpiSem('Viagens sem DMT', _kmrDados.semViagens.length, vgTotal > 0 ? ` · ${(_kmrDados.semViagens.length / vgTotal * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% das viagens` : '')
+    + kpiSem('Rotas sem DMT', _kmrGruposSemDmt().length, ' · origem → destino a cadastrar');
+  document.getElementById('kmr-contagem').textContent = `${lista.length} veículo(s) · ${meses.length} mês(es)`;
+  const sem = Object.entries(semDmtPorMina || {}).sort((a, b) => b[1] - a[1]);
+  document.getElementById('kmr-aviso').innerHTML = (sem.length
+    ? `<a href="#" onclick="abrirKmrSemDmt();return false;" style="color:#d29922;text-decoration:underline;font-weight:600;">⚠ Viagens sem DMT cadastrado (não entram no KM): ${sem.map(([k, v]) => `${_motEsc(k)} (${v})`).join(' · ')} — clique para ver e cadastrar</a>. `
+    : '') + 'KM = viagens realizadas × DMT da mina (ida e volta). Meses seguem o período de operação das Metas.';
+}
+
+// ── Viagens sem DMT: lista por rota, com cadastro direto do DMT ──
+let _kmrGrupos = [];
+function _kmrGruposSemDmt() {
+  const g = {};
+  (_kmrDados.semViagens || []).forEach(v => {
+    const k = v.origem + '|||' + v.destino;
+    const o = g[k] || (g[k] = { origem: v.origem, destino: v.destino, viagens: [], placas: new Set(), peso: 0 });
+    o.viagens.push(v); o.placas.add(v.placa); o.peso += v.peso;
+  });
+  _kmrGrupos = Object.values(g).sort((a, b) => b.viagens.length - a.viagens.length);
+  return _kmrGrupos;
+}
+window.abrirKmrSemDmt = function abrirKmrSemDmt() { _kmrRenderModalSemDmt(); document.getElementById('kmr-sem-dmt-modal').style.display = 'flex'; };
+window.fecharKmrSemDmt = function fecharKmrSemDmt() { document.getElementById('kmr-sem-dmt-modal').style.display = 'none'; };
+window._kmrToggleViagens = function _kmrToggleViagens(i) { const el = document.getElementById('kmr-vg-' + i); if (el) el.style.display = el.style.display === 'none' ? '' : 'none'; };
+function _kmrMinaDoGrupo(g) {
+  const por = _minasCadastro.filter(m => _progNormalizarOD(m.origem) === g.origem);
+  return por.find(m => _progNormalizarOD(m.destino) === g.destino) || por[0] || null;
+}
+function _kmrRenderModalSemDmt() {
+  const grupos = _kmrGruposSemDmt();
+  const f0 = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  document.getElementById('kmr-sem-dmt-sub').textContent = `${(_kmrDados.semViagens || []).length} viagem(ns) em ${grupos.length} rota(s) — informe o DMT (km ida e volta) para entrarem no KM rodado`;
+  const corpo = document.getElementById('kmr-sem-dmt-corpo');
+  if (grupos.length === 0) { corpo.innerHTML = '<div style="padding:30px;text-align:center;color:#2ea043;">✔ Todas as viagens do período têm DMT cadastrado.</div>'; return; }
+  corpo.innerHTML = grupos.map((g, i) => {
+    const mina = g.origem ? _kmrMinaDoGrupo(g) : null;
+    const acao = !g.origem ? '<span style="font-size:12px;color:var(--text3);">viagens sem origem informada na importação</span>'
+      : mina ? `<input type="number" step="0.1" min="0" id="kmr-dmt-in-${i}" placeholder="DMT km" class="filter-input" style="width:100px;"><button onclick="_kmrSalvarDmt(${i})" style="background:#2ea043;border:none;color:#fff;border-radius:8px;cursor:pointer;padding:6px 12px;font-size:13px;font-weight:600;">Salvar DMT</button>`
+      : `<button onclick="_kmrCadastrarMina(${i})" style="background:none;border:1px solid #388bfd;color:#388bfd;border-radius:8px;cursor:pointer;padding:6px 12px;font-size:13px;font-weight:600;">Cadastrar mina</button>`;
+    const ord = g.viagens.slice().sort((a, b) => b.iso.localeCompare(a.iso));
+    const lin = ord.slice(0, 300).map(v => `<tr><td>${v.iso.slice(8)}/${v.iso.slice(5,7)}/${v.iso.slice(0,4)}</td><td>${_motEsc(v.placa)}</td><td style="text-align:right;">${v.peso ? v.peso.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' t' : '—'}</td></tr>`).join('');
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;"><div style="font-weight:700;">${_motEsc(g.origem || '(sem origem)')} → ${_motEsc(g.destino || '—')}</div>
+          <div style="font-size:12px;color:var(--text3);">${g.viagens.length} viagem(ns) · ${g.placas.size} veículo(s) · ${f0(g.peso)} t · ${mina ? 'mina já cadastrada, falta o DMT' : 'mina não cadastrada'}</div></div>
+        <button onclick="_kmrToggleViagens(${i})" style="background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;cursor:pointer;padding:5px 10px;font-size:12px;">ver viagens</button>
+        ${acao}</div>
+      <div id="kmr-vg-${i}" style="display:none;margin-top:10px;max-height:240px;overflow:auto;"><table style="width:100%;font-size:12.5px;"><thead><tr><th>DATA</th><th>VEÍCULO</th><th style="text-align:right;">PESO</th></tr></thead><tbody>${lin}</tbody></table>${ord.length > 300 ? `<div style="font-size:11px;color:var(--text3);">mostrando 300 de ${ord.length}</div>` : ''}</div></div>`;
+  }).join('');
+}
+window._kmrSalvarDmt = async function _kmrSalvarDmt(i) {
+  const g = _kmrGrupos[i]; if (!g) return;
+  const v = document.getElementById('kmr-dmt-in-' + i).value;
+  const dmt = parseFloat(v);
+  if (v === '' || isNaN(dmt) || dmt <= 0) { showToast('✖ Informe um DMT válido (km).'); return; }
+  const mina = _kmrMinaDoGrupo(g);
+  if (!mina) { showToast('✖ Mina não encontrada no cadastro.'); return; }
+  try {
+    await setDoc(doc(db, 'minas_cadastro', mina.id), { dmt }, { merge: true });
+    showToast(`✔ DMT de ${g.origem} salvo: ${dmt.toLocaleString('pt-BR')} km.`);
+    await _carregarMinas();
+    await renderKmRota();
+  } catch (err) { console.error('Erro ao salvar DMT:', err); showToast('✖ Erro ao salvar: ' + err.message); }
+};
+window._kmrCadastrarMina = function _kmrCadastrarMina(i) {
+  const g = _kmrGrupos[i]; if (!g) return;
+  fecharKmrSemDmt();
+  abrirFormMina(null);
+  document.getElementById('mina-form-origem').value = g.origem;
+  const sel = document.getElementById('mina-form-destino');
+  if (Array.from(sel.options).some(o => o.value === g.destino)) sel.value = g.destino;
+};
+
+window.exportarKmRota = function exportarKmRota() {
+  const { meses, placas } = _kmrDados;
+  if (!placas.length) { showToast('✖ Nada pra exportar.'); return; }
+  const dados = placas.map(p => { const l = { 'Placa': p.placa, 'Tipo': p.tipo }; let t = 0;
+    meses.forEach(m => { const km = (p.meses[m] || {}).km || 0; l[_mesParaLabel(m)] = Math.round(km * 10) / 10; t += km; });
+    l['Total'] = Math.round(t * 10) / 10; return l; }).sort((a, b) => b['Total'] - a['Total']);
+  const ws = XLSX.utils.json_to_sheet(dados);
+  ws['!cols'] = Object.keys(dados[0]).map(k => ({ wch: Math.max(12, k.length + 2) }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'KM Rodado');
+  XLSX.writeFile(wb, 'km_rodado_por_placa.xlsx');
+  showToast('✔ Tabela exportada.');
+};
+
 window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar) {
   const iniEl = document.getElementById('mot-data-ini'), fimEl = document.getElementById('mot-data-fim');
   if (!iniEl.value || !fimEl.value) {
@@ -10380,12 +10648,14 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         const a = atribs.find(x => x.placa === placa) || null;
         const prog = a ? (Number(a.viagens)||0) : 0;
         const manual = a ? _gestaoRealizacoesPersistidas(a).filter(Boolean).length : 0;
-        let real = manual, vol = 0, fonte = 'marcação';
+        let real = manual, vol = 0, fonte = 'marcação', trips = [];
         if (volViagens) {
           const doVeic = volViagens.filter(v => (v.placa||'').toString().trim().toUpperCase() === placa.toString().trim().toUpperCase());
           real = doVeic.length; vol = doVeic.reduce((s,v) => s + (Number(v.peso)||0), 0); fonte = 'base';
+          trips = doVeic.map(v => ({ peso: Number(v.peso)||0, rota: v.origem && v.destino ? `${v.origem} → ${v.destino}` : '', est: false }));
         } else if (a) {
           vol = manual * (Number(a.pesoMedio)||0);
+          trips = Array.from({ length: manual }, () => ({ peso: Number(a.pesoMedio)||0, rota: '', est: true })); // sem base: usa o peso médio da programação (estimado)
         }
         const ehCavalo = !!a && _progEhCavalo(a.tipo2);
         // Impacto de Manutenção: viagens programadas que ficaram sem realizar com ofensor MANUTENÇÃO
@@ -10397,8 +10667,8 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
         const abOk = !ehCavalo && ab && ab.kmInicial != null && ab.kmFinal != null && ab.litros != null && Number(ab.litros) > 0 && Number(ab.kmFinal) >= Number(ab.kmInicial);
         const km = abOk ? Number(ab.kmFinal) - Number(ab.kmInicial) : 0;
         const litros = abOk ? Number(ab.litros) : 0;
-        if (ehCavalo) vol = 0;
-        linhas.push({
+        if (ehCavalo) { vol = 0; trips = []; }
+        linhas.push({ trips,
           dia, nome, placa, ehCavalo, fr: a ? (a.fr||'') : '', rota: a && a.origem && a.destino ? `${a.origem} → ${a.destino}` : '—',
           prog, real, vol, status: a ? (a.status||'') : '', fonte, km, litros, temAbast: !!abOk, manutVg, manutVol,
           tipo: a ? (a.tipo2||'') : '', ofensor: a && a.justificativa ? (a.justificativa.ofensor||'') : '', tipoOf: a && a.justificativa ? (a.justificativa.tipoOfensor||'') : ''
@@ -10420,13 +10690,19 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
 
     const por = {};
     linhas.forEach(l => {
-      const g = por[l.nome] || (por[l.nome] = { progCam: 0, realCam: 0, progCav: 0, realCav: 0, nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0, litrosPeso: 0, volPeso: 0, porDia: {} });
+      const g = por[l.nome] || (por[l.nome] = { progCam: 0, realCam: 0, progCav: 0, realCav: 0, nome: l.nome, dias: new Set(), placas: new Set(), prog: 0, real: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, manutVg: 0, manutVol: 0, litrosPeso: 0, volPeso: 0, porDia: {}, nTrips: 0, exc: 0, acima: 0, trips: [] });
       if (l.ehCavalo) { g.progCav += l.prog; g.realCav += l.real; } else { g.progCam += l.prog; g.realCam += l.real; }
       g.dias.add(l.dia); g.placas.add(l.placa); g.prog += l.prog; g.real += l.real; g.vol += l.vol;
       if (l.status === 'fora') g.fora++;
       g.manutVg += l.manutVg; g.manutVol += l.manutVol; g.kmAbast += l.km; g.litros += l.litros;
       // Diesel por tonelada: só caminhão, só em dia com abastecimento completo e peso carregado
       if (!l.ehCavalo && l.temAbast && l.vol > 0) { g.litrosPeso += l.litros; g.volPeso += l.vol; }
+      (l.trips || []).forEach(t => {
+        if (!(t.peso > 0)) return;
+        g.nTrips++; const ex = Math.max(0, t.peso - MOT_PESO_LIMITE);
+        if (ex > 0) { g.exc += ex; g.acima++; }
+        g.trips.push({ dia: l.dia, placa: l.placa, fr: l.fr, tipo: l.tipo, rota: t.rota || l.rota, peso: t.peso, est: t.est });
+      });
       const pd = g.porDia[l.dia] || (g.porDia[l.dia] = { prog: 0, real: 0 }); pd.prog += l.prog; pd.real += l.real;
     });
     _motResumo = Object.values(por).map(g => ({
@@ -10438,6 +10714,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
       progCam: g.progCam, realCam: g.realCam, progCav: g.progCav, realCav: g.realCav,
       adCam: g.progCam > 0 ? g.realCam / g.progCam * 100 : null, adCav: g.progCav > 0 ? g.realCav / g.progCav * 100 : null,
       litrosPeso: g.litrosPeso, volPeso: g.volPeso, lpt: g.volPeso > 0 ? g.litrosPeso / g.volPeso : null,
+      pm: g.nTrips > 0 ? g.trips.reduce((s,t) => s + t.peso, 0) / g.nTrips : null, exc: g.exc, acima: g.acima, nTrips: g.nTrips, trips: g.trips,
       diasOp: _motDiasOp.length,
       dias100: Object.values(g.porDia).filter(d => d.prog > 0 && d.real >= d.prog).length,
       manutVg: g.manutVg, manutVol: g.manutVol,
@@ -10468,14 +10745,14 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
     document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('') + _motGraficoVeiculos();
 
     const tbl = document.getElementById('mot-tabela');
-    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th title="Dias de operação no período filtrado">D. OP.</th><th title="Dias em que o motorista foi escalado em algum veículo">D. ESC.</th><th title="Dias em que atingiu 100% de aderência">D. 100%</th><th title="Veículos conduzidos">VEÍC.</th><th title="Viagens programadas">VG PR.</th><th title="Viagens realizadas">VG RE.</th><th title="Aderência">AD%</th><th title="Volume (t)">VOL.</th><th title="Consumo km/L">KM/L</th><th title="Litros por tonelada carregada (menor = melhor)">L/t</th><th title="KM rodado">KM</th><th title="Perda por manutenção">MANUT%</th><th title="Dias fora de operação">FORA</th></tr>';
+    tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th title="Dias de operação no período filtrado">D. OP.</th><th title="Dias em que o motorista foi escalado em algum veículo">D. ESC.</th><th title="Dias em que atingiu 100% de aderência">D. 100%</th><th title="Veículos conduzidos">VEÍC.</th><th title="Viagens programadas">VG PR.</th><th title="Viagens realizadas">VG RE.</th><th title="Aderência">AD%</th><th title="Volume (t)">VOL.</th><th title="Peso médio por viagem (t)">PM</th><th title="Consumo km/L">KM/L</th><th title="Litros por tonelada carregada (menor = melhor)">L/t</th><th title="KM rodado">KM</th><th title="Perda por manutenção">MANUT%</th><th title="Dias fora de operação">FORA</th></tr>';
     tbl.querySelector('tbody').innerHTML = _motResumo.length === 0
-      ? '<tr><td colspan="14" style="text-align:center;padding:30px;color:var(--text3);">Nenhum motorista escalado na Gestão do Dia nesse período.</td></tr>'
+      ? '<tr><td colspan="15" style="text-align:center;padding:30px;color:var(--text3);">Nenhum motorista escalado na Gestão do Dia nesse período.</td></tr>'
       : _motResumo.map(m => `<tr style="cursor:pointer;" onclick="abrirMotoristaModal(this.dataset.nome)" data-nome="${_motEsc(m.nome)}">
             <td style="font-weight:600;" title="${_motEsc(m.nome)}">${_motEsc(m.nome.trim().split(/\s+/).slice(0,2).join(' '))}</td><td style="text-align:center;">${m.diasOp}</td><td style="text-align:center;">${m.dias}</td><td style="text-align:center;font-weight:700;color:${m.dias100 > 0 ? '#2ea043' : 'var(--text3)'};">${m.dias100}</td><td style="text-align:center;">${m.veiculos}</td>
             <td style="text-align:center;">${m.prog}</td><td style="text-align:center;">${m.real}</td>
             <td style="text-align:center;font-weight:700;color:${_motCorAd(m.ad)};">${m.ad === null ? '—' : _motFmt(m.ad, 1) + '%'}</td>
-            <td style="text-align:center;font-family:'DM Mono',monospace;">${_motFmt(m.vol)}</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace;">${_motFmt(m.vol)}</td><td style="text-align:center;font-family:'DM Mono',monospace;" title="${m.pm === null ? '' : m.acima + ' de ' + m.nTrips + ' viagens acima de 20,5 t'}">${m.pm === null ? '—' : _motFmt(m.pm)}</td>
             <td style="text-align:center;">${m.kml === null ? '—' : _motFmt(m.kml)}</td><td style="text-align:center;">${m.lpt === null ? '—' : _motFmt(m.lpt)}</td><td style="text-align:center;">${m.km === null ? '—' : _motFmt(m.km, 0)}</td>
             <td style="text-align:center;">${m.manut === null ? '—' : _motFmt(m.manut, 1) + '%'}</td><td style="text-align:center;">${m.fora}</td></tr>`).join('');
     _tornarTabelaOrdenavel(tbl);
@@ -10730,6 +11007,7 @@ window.exportarMotoristasConsolidado = function exportarMotoristasConsolidado() 
     'Viagens Realizadas': m.real,
     'Aderência %': n(m.ad),
     'Volume': m.vol,
+    'Peso Médio (t)': m.pm === null ? '' : Math.round(m.pm * 100) / 100,
     'KM/L': n(m.kml),
     'L/t': n(m.lpt),
     'KM Rodado': n(m.km),
@@ -10737,7 +11015,7 @@ window.exportarMotoristasConsolidado = function exportarMotoristasConsolidado() 
     'Dias Fora de Operação': m.fora
   }));
   const ws = XLSX.utils.json_to_sheet(dados);
-  ws['!cols'] = [{wch:34},{wch:16},{wch:14},{wch:24},{wch:10},{wch:18},{wch:18},{wch:12},{wch:12},{wch:8},{wch:8},{wch:12},{wch:14},{wch:20}];
+  ws['!cols'] = [{wch:34},{wch:16},{wch:14},{wch:24},{wch:10},{wch:18},{wch:18},{wch:12},{wch:12},{wch:14},{wch:8},{wch:8},{wch:12},{wch:14},{wch:20}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Consolidado');
   const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
