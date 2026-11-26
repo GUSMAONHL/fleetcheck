@@ -4670,11 +4670,12 @@ async function carregarSobrev() {
       }));
 
       pares.forEach(({ d, snapProg, snapVol }) => {
-        if (!snapProg.exists()) return;
+        if (!snapProg.exists() && !snapVol.exists()) return;
         const dtBR = toBR(d);
         const iso  = toISO(d);
 
-        const atribuicoes = snapProg.data().atribuicoes || [];
+        const atribuicoes = snapProg.exists() ? (snapProg.data().atribuicoes || []) : [];
+        const justificativas = snapProg.exists() ? (snapProg.data().justificativas || {}) : {};
 
         // Volume real por placa (do volume_dias)
         const volumeRealPorPlaca = {};
@@ -4685,11 +4686,11 @@ async function carregarSobrev() {
           });
         }
 
+        // 1. Processar atribuições normais
         atribuicoes.forEach(a => {
           const placa = a.placa;
           if (!placa || aderMap[placa] === undefined) return;
 
-          // Verificar se veículo estava ativo neste dia
           const fc = frotaMap[placa];
           if (fc) {
             if (fc.dataInicio && iso < fc.dataInicio) return;
@@ -4699,11 +4700,33 @@ async function carregarSobrev() {
           const prog = Number(a.viagens) || 0;
           if (prog === 0) return;
 
-          // Realizações: array de booleanos
           const realizacoes = Array.isArray(a.realizacoes) ? a.realizacoes : [];
           const realiz = realizacoes.filter(Boolean).length;
           const pct = Math.round((realiz / prog) * 100);
           aderMap[placa][dtBR] = pct;
+        });
+
+        // 2. Capturar dias de manutenção/ofensor via justificativas
+        // (placas que estavam paradas e não aparecem em atribuicoes)
+        Object.entries(justificativas).forEach(([placa, j]) => {
+          if (aderMap[placa] === undefined) return;
+          if (aderMap[placa][dtBR] !== undefined) return; // já foi preenchido acima
+          const fc = frotaMap[placa];
+          if (fc) {
+            if (fc.dataInicio && iso < fc.dataInicio) return;
+            if (fc.dataInativacao && iso >= fc.dataInativacao) return;
+          }
+          // Registrar como 0% — veículo tinha justificativa mas sem programação/viagem
+          aderMap[placa][dtBR] = 0;
+        });
+
+        // 3. Capturar também justificativas dentro de cada atribuição
+        atribuicoes.forEach(a => {
+          const placa = a.placa;
+          if (!placa || aderMap[placa] === undefined) return;
+          if (aderMap[placa][dtBR] !== undefined) return; // já processado
+          if (!a.justificativa) return;
+          aderMap[placa][dtBR] = 0;
         });
       });
     }
@@ -4837,11 +4860,25 @@ async function abrirSobrevModal(placa) {
         if (sv.exists()) (sv.data().viagens||[]).forEach(vj=>{ if(vj.placa===placa) vol+=Number(vj.peso)||0; });
         const prog   = atrib ? (Number(atrib.viagens)||0) : 0;
         const realiz = atrib && Array.isArray(atrib.realizacoes) ? atrib.realizacoes.filter(Boolean).length : 0;
-        if (prog===0 && vol===0) return;
-        const adr = prog>0 ? Math.round((realiz/prog)*100) : 100;
+
+        // Extrair ofensor/justificativa
+        // Estrutura real: atrib.justificativa = { ofensor, tipoOfensor, responsavel }
+        // justM[placa] = { motivo, observacao, viagensPerdidas }
         let ofensor = '';
-        if (atrib?.justificativa) ofensor=[atrib.justificativa.ofensor,atrib.justificativa.justificativa].filter(Boolean).join(' · ');
-        else { const j=justM[placa]; if(j) ofensor=[j.motivo,j.justificativa].filter(Boolean).join(' · '); }
+        if (atrib?.justificativa) {
+          const jv = atrib.justificativa;
+          ofensor = [jv.ofensor, jv.tipoOfensor].filter(Boolean).join(' · ');
+        }
+        if (!ofensor) {
+          const j = justM[placa];
+          if (j) ofensor = [j.motivo, j.observacao].filter(Boolean).join(' · ');
+        }
+
+        // Incluir dia SE: há programação, há volume, OU há justificativa/ofensor registrado
+        // (captura dias de manutenção, motorista faltou etc. que não têm viagens programadas)
+        if (prog===0 && vol===0 && !ofensor) return;
+
+        const adr = prog>0 ? Math.round((realiz/prog)*100) : (vol>0 ? 100 : 0);
         liveMap[iso] = { data:toBR(d), aderencia:adr, ofensor, viagens:realiz };
       }));
     }
