@@ -172,8 +172,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .main { margin-left: 64px; min-height: 100vh; display: flex; flex-direction: column; }
 
 .mot-tab { width:100%; border-collapse:collapse; }
-.mot-tab thead th { padding:4px 10px; font-size:10.5px; letter-spacing:0.3px; }
-.mot-tab td { padding:3px 10px; font-size:12px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.mot-tab { table-layout:auto; }
+.mot-tab thead th { padding:6px 10px; font-size:11px; letter-spacing:0.3px; text-align:center !important; white-space:nowrap; vertical-align:middle; }
+.mot-tab td { padding:5px 10px; font-size:12.5px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center !important; vertical-align:middle; }
 .mot-tab tbody tr:hover { background:var(--bg3); }
 /* ── TOPBAR ── */
 .topbar {
@@ -259,12 +260,20 @@ body.pdf-exporting .page.active select { visibility: hidden !important; }
 table { width: 100%; border-collapse: collapse; }
 thead th { padding: 10px 20px; text-align: left; font-size:14px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
 tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
-#mot-tabela { table-layout:auto; width:100%; }
+#mot-tabela, #mot-tabela-vei { table-layout:auto; width:100%; }
+#mot-tabela-vei thead th { padding:8px 6px; font-size:11px; letter-spacing:0.2px; text-align:center; white-space:nowrap; }
+#mot-tabela-vei thead th:first-child { text-align:left; padding-left:12px; }
+#mot-tabela-vei tbody td, #mot-tabela-vei tfoot td { padding:8px 6px; font-size:13px; white-space:nowrap; text-align:center; }
+#mot-tabela-vei tbody td:first-child, #mot-tabela-vei tfoot td:first-child { padding-left:12px; text-align:left; }
 #mot-tabela thead th { padding:8px 6px; font-size:11px; letter-spacing:0.2px; text-align:center; white-space:nowrap; }
 #mot-tabela thead th:first-child { text-align:left; padding-left:12px; }
 #mot-tabela tbody td { padding:8px 6px; font-size:13px; white-space:nowrap; }
 #mot-tabela tbody td:first-child { padding-left:12px; }
 tbody tr:last-child { border-bottom: none; }
+/* Padrão único de tabelas: títulos e valores sempre centralizados, em todas as telas e popups */
+table th, table td, .viagens-table thead th, .viagens-table thead th:last-child, .viagens-table tbody td, .mot-tab th, .mot-tab td { text-align:center !important; vertical-align:middle; }
+table th { white-space:nowrap; }
+table td { font-variant-numeric:tabular-nums; }
 tbody tr:hover { background: var(--bg3); }
 tbody td { padding: 13px 20px; font-size:16px; color: var(--text2); }
 tbody td.text-primary { color: var(--text); font-weight: 500; }
@@ -1132,8 +1141,11 @@ tbody td.text-primary { color: var(--text); font-weight: 500; }
       <div id="mot-kpis"></div>
       <div id="mot-ranks" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px;margin-bottom:16px;"></div>
       <div class="table-card" style="margin-bottom:16px;">
-        <div class="table-header"><div class="table-title">Consolidado por motorista</div><div style="display:flex;align-items:center;gap:12px;"><div id="mot-contagem" style="font-size:13px;color:var(--text3);"></div><button onclick="exportarMotoristasConsolidado()" title="Exportar esta tabela em Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div>
-        <div><table id="mot-tabela"><thead></thead><tbody></tbody></table></div>
+        <div class="table-header"><div style="display:flex;gap:6px;">
+          <button id="mot-aba-btn-mot" onclick="_motSetAbaConsol('mot')" style="padding:7px 14px;border:1px solid #388bfd;border-radius:8px;background:rgba(56,139,253,0.15);color:var(--text);cursor:pointer;font-weight:700;font-size:14px;">Consolidado por motorista</button>
+          <button id="mot-aba-btn-vei" onclick="_motSetAbaConsol('vei')" style="padding:7px 14px;border:1px solid var(--border2);border-radius:8px;background:none;color:var(--text3);cursor:pointer;font-weight:700;font-size:14px;">Consolidado por veículo</button></div><div style="display:flex;align-items:center;gap:12px;"><div id="mot-contagem" style="font-size:13px;color:var(--text3);"></div><button onclick="exportarConsolidadoAtivo()" title="Exportar a tabela em Excel" style="background:none;border:1px solid #2ea043;color:#2ea043;border-radius:8px;cursor:pointer;padding:5px 12px;font-size:13px;font-weight:600;">📊 Exportar Excel</button></div></div>
+        <div id="mot-wrap-mot"><table id="mot-tabela"><thead></thead><tbody></tbody></table></div>
+        <div id="mot-wrap-vei" style="display:none;"><table id="mot-tabela-vei"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
       </div>
     </div>
 
@@ -10290,11 +10302,24 @@ function _motRank(chave) {
 
 // Gráfico de barras horizontais ordenado (rank), com linha da média da equipe — padrão de gestão
 // da qualidade. Barras acima da média no tom forte, abaixo no tom claro; valor no fim da barra.
+// Ordem de exibição de cada card de rank: 'melhor' (padrão: melhor primeiro) | 'pior' | 'nome'
+const _motRankOrdem = {};
+window._motRankOrdenar = function _motRankOrdenar(chave, ordem) { _motRankOrdem[chave] = ordem; _motRenderRanks(); };
+function _motRenderRanks() { document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('') + _motGraficoVeiculos(); }
+
 function _motGraficoRank(ind) {
   const todos = _motRank(ind.chave);
-  const lista = ind.soPositivos ? todos.filter(m => m[ind.chave] > 0) : todos;
+  const ordem = _motRankOrdem[ind.chave] || 'melhor';
+  const usaPareto = !!ind.pareto && ordem === 'melhor';   // % acumulado só faz sentido com o melhor primeiro
+  const lista0 = ind.soPositivos ? todos.filter(m => m[ind.chave] > 0) : todos;
+  const posReal = new Map(lista0.map((m, i) => [m.nome, i + 1]));   // posição no rank real, mesmo quando a exibição é reordenada
+  const lista = ordem === 'pior' ? lista0.slice().reverse() : ordem === 'nome' ? lista0.slice().sort((a, b) => a.nome.localeCompare(b.nome)) : lista0;
+  const seletor = `<select onchange="_motRankOrdenar('${ind.chave}', this.value)" title="Ordenar este rank" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border2);border-radius:8px;padding:3px 6px;font-size:12px;cursor:pointer;flex-shrink:0;">
+      <option value="melhor"${ordem === 'melhor' ? ' selected' : ''}>↓ Melhor primeiro</option>
+      <option value="pior"${ordem === 'pior' ? ' selected' : ''}>↑ Pior primeiro</option>
+      <option value="nome"${ordem === 'nome' ? ' selected' : ''}>A–Z Motorista</option></select>`;
   const card = (corpo) => `<div class="table-card" style="padding:16px 18px;">
-    <div style="font-size:15px;font-weight:700;">${ind.titulo}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div style="font-size:15px;font-weight:700;">${ind.titulo}</div>${seletor}</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">${ind.desc}</div>${corpo}</div>`;
   if (lista.length === 0) return card(`<div style="padding:24px 0;text-align:center;color:var(--text3);font-size:13px;">${ind.soPositivos && todos.length > 0 ? (ind.chave === 'exc' ? 'Nenhuma viagem passou de 20,5 t líquidas no período.' : 'Nenhuma perda por esse ofensor no período. 👍') : 'Sem dados no período.'}</div>`);
 
@@ -10314,12 +10339,12 @@ function _motGraficoRank(ind) {
     const acumPct = soma > 0 ? acum / soma * 100 : 0;
     const acima = ind.inverso ? v <= media : v >= media;
     const larg = Math.max(1.5, (v / max) * 100);
-    const extra = ind.chave === 'exc' ? `<span style="width:78px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Peso médio por viagem">PM ${_motFmt(m.pm)}</span>` : ind.pareto ? `<span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Participação acumulada">${_motFmt(acumPct, 0)}%</span>` : '';
+    const extra = ind.chave === 'exc' ? `<span style="width:78px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Peso médio por viagem">PM ${_motFmt(m.pm)}</span>` : usaPareto ? `<span style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;" title="Participação acumulada">${_motFmt(acumPct, 0)}%</span>` : '';
     const dica = `${m.nome}\n${ind.titulo}: ${_motFmt(v, ind.casas)} ${ind.un}${ind.chave === 'manut' ? '\n' + m.manutVg + ' viagem(ns) perdida(s) · volume ' + _motFmt(m.manutVol) : ''}${ind.chave === 'exc' ? '\nPeso médio ' + _motFmt(m.pm) + ' t · ' + m.acima + ' de ' + m.nTrips + ' viagem(ns) acima de 20,5 t' : ''}${ind.chave === 'lpt' ? '\n' + _motFmt(m.litrosPeso, 1) + ' L para ' + _motFmt(m.volPeso) + ' t carregadas' : ''}\nMédia da equipe: ${_motFmt(media, ind.casas)} ${ind.un}${ind.pareto ? '\nAcumulado: ' + _motFmt(acumPct, 1) + '%' : ''}`;
-    const corte80 = ind.pareto && acumPct >= 80 && (acumPct - v / soma * 100) < 80
+    const corte80 = usaPareto && acumPct >= 80 && (acumPct - v / soma * 100) < 80
       ? '<div style="font-size:10px;color:var(--text3);text-align:right;margin:2px 0;border-top:1px dashed var(--border2);">— 80% do volume até aqui —</div>' : '';
     return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;" title="${_motEsc(dica)}">
-        <span style="width:22px;text-align:right;font-size:12px;color:var(--text3);flex-shrink:0;">${i+1}</span>
+        <span style="width:22px;text-align:right;font-size:12px;color:var(--text3);flex-shrink:0;">${posReal.get(m.nome)}</span>
         <span onclick="${ind.chave === 'exc' ? 'abrirViagensPesoModal' : 'abrirMotoristaModal'}(this.dataset.nome)" data-nome="${_motEsc(m.nome)}" style="width:150px;flex-shrink:0;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${_motEsc(_nomeESobrenome(m.nome) || m.nome)}</span>
         <div style="flex:1;position:relative;height:18px;">
           <div style="position:absolute;left:0;top:2px;height:14px;width:${larg}%;background:${acima ? '#388bfd' : 'rgba(56,139,253,0.40)'};border-radius:0 4px 4px 0;"></div>
@@ -10332,7 +10357,7 @@ function _motGraficoRank(ind) {
       <span><span style="display:inline-block;width:10px;height:10px;background:#388bfd;border-radius:2px;"></span> ${ind.inverso ? 'melhor que a média' : 'acima da média'}</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:rgba(56,139,253,0.40);border-radius:2px;"></span> ${ind.inverso ? 'pior que a média' : 'abaixo da média'}</span>
       <span>┆ média da equipe: <b style="color:var(--text2);">${_motFmt(media, ind.casas)} ${ind.un}</b></span>
-      ${ind.pareto ? '<span>coluna à direita: % acumulado</span>' : ''}
+      ${usaPareto ? '<span>coluna à direita: % acumulado</span>' : ''}
       <span style="margin-left:auto;">${lista.length} motorista(s)${ind.soPositivos && todos.length > lista.length ? ' · ' + (todos.length - lista.length) + ' sem perda' : ''}</span></div>`;
   return card(`<div style="max-height:360px;overflow-y:auto;padding-right:4px;">${linhas}</div>${legenda}`);
 }
@@ -10373,7 +10398,7 @@ window.abrirVeiculoMotoristasModal = function abrirVeiculoMotoristasModal(placa)
   const perdas = dosVeic.filter(l => l.manutVg > 0).sort((a,b) => a.dia.localeCompare(b.dia));
   const soma = (chaveFn) => { const o = {}; perdas.forEach(l => { const k = chaveFn(l); o[k] = (o[k] || 0) + l.manutVg; }); return Object.entries(o).map(([nome, v]) => ({ nome, v })); };
   const gcard = (tit, sub, corpo) => `<div style="border:1px solid var(--border2);border-radius:10px;padding:8px 12px;background:var(--bg3);min-width:0;">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${tit} <span style="font-weight:400;color:var(--text3);text-transform:none;">${sub}</span></div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${tit} <span style="font-weight:400;color:var(--text3);text-transform:none;font-size:12px;">${sub}</span></div>
       <div style="margin-top:6px;">${corpo}</div></div>`;
   const pizzas = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;">
     ${gcard('Motoristas', '· viagens perdidas por manutenção', _motPizza(soma(l => l.nome), true, 'viagens'))}
@@ -10401,15 +10426,17 @@ window.abrirViagensPesoModal = function abrirViagensPesoModal(nome) {
     + tile('Viagens', m.nTrips, 'var(--text)')
     + tile(`Acima de ${String(MOT_PESO_LIMITE).replace('.', ',')} t`, `${m.acima} <span style="font-size:13px;color:var(--text3);">(${m.nTrips > 0 ? _motFmt(m.acima / m.nTrips * 100, 0) : 0}%)</span>`, '#f0883e')
     + tile('Excesso total', _motFmt(m.exc, 1) + ' t', '#f85149') + `</div>`;
-  const cols = [{h:'DATA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'PESO (t)',al:'right'},{h:'ACIMA DE 20,5 (t)',al:'right'}];
+  const cols = [{h:'DATA'},{h:'VEÍCULO'},{h:'ROTA'},{h:'PESO (t)',al:'right'},{h:'ACIMA DE 20,5 (t)',al:'center'}];
   const ord = m.trips.slice().sort((a,b) => b.dia.localeCompare(a.dia) || b.peso - a.peso);
   const rows = ord.map(t => { const ex = Math.max(0, t.peso - MOT_PESO_LIMITE);
     return { cel: [_motDataCel(t.dia), _motVeicCel(t), _motEsc(t.rota || '—'), _motFmt(t.peso) + (t.est ? ' *' : ''), ex > 0 ? '+' + _motFmt(ex) : '—'],
       est: [,,, ex > 0 ? 'font-weight:700;color:#f0883e;' : '', ex > 0 ? 'font-weight:700;color:#f85149;' : 'color:var(--text3);'] }; });
   const temEst = ord.some(t => t.est);
-  document.getElementById('mot-modal-corpo').innerHTML = tiles + _motTabelaCompacta(cols, rows)
+  const lim = String(MOT_PESO_LIMITE).replace('.', ',');
+  const expl = `<div style="font-size:12.5px;color:var(--text3);margin-bottom:12px;line-height:1.45;">Cada viagem carregada acima de <b style="color:var(--text2);">${lim} t líquidas</b> conta como viagem acima do limite. O <b style="color:var(--text2);">excesso</b> é a soma do que passou de ${lim} t em cada viagem (ex.: 21,6 t → +1,1 t). Viagens abaixo do limite não compensam as acima. O <b style="color:var(--text2);">peso médio</b> é o peso total ÷ viagens realizadas.</div>`;
+  document.getElementById('mot-modal-corpo').innerHTML = tiles + expl + _motTabelaCompacta(cols, rows)
     + (temEst ? '<div style="font-size:11px;color:var(--text3);margin-top:6px;">* dia sem importação de volume: peso estimado pelo peso médio da programação.</div>' : '');
-  document.getElementById('mot-modal-caixa').style.maxWidth = '1000px';
+  document.getElementById('mot-modal-caixa').style.maxWidth = '900px';
   document.getElementById('mot-modal').style.display = 'flex';
 };
 
@@ -10617,6 +10644,72 @@ window.exportarKmRota = function exportarKmRota() {
   showToast('✔ Tabela exportada.');
 };
 
+// ── Consolidado por veículo (aba ao lado do consolidado por motorista) ──
+let _motAbaConsol = 'mot';
+let _motResumoVeic = [];
+window._motSetAbaConsol = function _motSetAbaConsol(aba) {
+  _motAbaConsol = aba;
+  document.getElementById('mot-wrap-mot').style.display = aba === 'mot' ? '' : 'none';
+  document.getElementById('mot-wrap-vei').style.display = aba === 'vei' ? '' : 'none';
+  [['mot', 'mot-aba-btn-mot'], ['vei', 'mot-aba-btn-vei']].forEach(([a, id]) => {
+    const b = document.getElementById(id), on = a === aba;
+    b.style.background = on ? 'rgba(56,139,253,0.15)' : 'none'; b.style.color = on ? 'var(--text)' : 'var(--text3)'; b.style.borderColor = on ? '#388bfd' : 'var(--border2)';
+  });
+};
+function _motRenderTabelaVeiculos() {
+  const por = {};
+  _motLinhas.forEach(l => {
+    const g = por[l.placa] || (por[l.placa] = { placa: l.placa, fr: l.fr, tipo: l.tipo, ehCavalo: l.ehCavalo, motoristas: new Set(), dias: new Set(), prog: 0, real: 0, progCam: 0, vol: 0, fora: 0, kmAbast: 0, litros: 0, litrosPeso: 0, volPeso: 0, manutVg: 0, nTrips: 0, somaTrips: 0, abastDias: new Set() });
+    g.motoristas.add(l.nome); g.dias.add(l.dia); g.prog += l.prog; g.real += l.real; g.vol += l.vol;
+    if (!l.ehCavalo) g.progCam += l.prog;
+    if (l.status === 'fora') g.fora++;
+    g.manutVg += l.manutVg;
+    // abastecimento é do veículo no dia: não conta duas vezes se dois motoristas dividiram o veículo
+    if (l.temAbast && !g.abastDias.has(l.dia)) {
+      g.abastDias.add(l.dia); g.kmAbast += l.km; g.litros += l.litros;
+      if (!l.ehCavalo && l.vol > 0) { g.litrosPeso += l.litros; g.volPeso += l.vol; }
+    }
+    (l.trips || []).forEach(t => { if (t.peso > 0) { g.nTrips++; g.somaTrips += t.peso; } });
+  });
+  _motResumoVeic = Object.values(por).map(g => ({
+    placa: g.placa, fr: g.fr, tipo: g.tipo, ehCavalo: g.ehCavalo, motoristas: g.motoristas.size, dias: g.dias.size, prog: g.prog, real: g.real, vol: g.vol, fora: g.fora,
+    ad: g.prog > 0 ? g.real / g.prog * 100 : null,
+    pm: g.nTrips > 0 ? g.somaTrips / g.nTrips : null,
+    kml: g.litros > 0 ? g.kmAbast / g.litros : null,
+    lpt: g.volPeso > 0 ? g.litrosPeso / g.volPeso : null,
+    km: g.litros > 0 ? g.kmAbast : null,
+    manut: g.progCam > 0 ? g.manutVg / g.progCam * 100 : null
+  })).sort((a, b) => b.vol - a.vol || a.placa.localeCompare(b.placa));
+  const tbl = document.getElementById('mot-tabela-vei');
+  if (!tbl) return;
+  const th = [['PLACA', 'Veículo'], ['TIPO', 'Tipo do veículo'], ['MOT.', 'Motoristas que conduziram'], ['DIAS', 'Dias em operação'], ['VG PR.', 'Viagens programadas'], ['VG RE.', 'Viagens realizadas'], ['AD%', 'Aderência'], ['VOL.', 'Volume carregado (t)'], ['PM', 'Peso médio por viagem (t)'], ['KM/L', 'Consumo km/L'], ['L/t', 'Litros por tonelada (menor = melhor)'], ['KM', 'KM rodado (abastecimentos)'], ['MANUT%', 'Perda por manutenção'], ['FORA', 'Dias fora de operação']];
+  tbl.querySelector('thead').innerHTML = '<tr>' + th.map(t => `<th title="${t[1]}">${t[0]}</th>`).join('') + '</tr>';
+  const f = (v, c) => v === null || v === undefined ? '—' : _motFmt(v, c);
+  tbl.querySelector('tbody').innerHTML = _motResumoVeic.length === 0
+    ? '<tr><td colspan="14" style="text-align:center;padding:30px;color:var(--text3);">Nenhum veículo escalado nesse período.</td></tr>'
+    : _motResumoVeic.map(v => `<tr><td style="font-weight:600;">${v.fr ? _motEsc(v.fr) + ' · ' : ''}${_motEsc(v.placa)}</td><td>${v.tipo ? `<span style="font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${_motEsc(String(v.tipo).toUpperCase())}</span>` : '—'}</td>
+      <td>${v.motoristas}</td><td>${v.dias}</td><td>${v.prog}</td><td>${v.real}</td>
+      <td style="font-weight:700;color:${v.ad === null ? 'var(--text3)' : _motCorAd(v.ad)};">${v.ad === null ? '—' : _motFmt(v.ad, 1) + '%'}</td>
+      <td style="font-family:'DM Mono',monospace;">${v.ehCavalo ? '—' : _motFmt(v.vol)}</td><td style="font-family:'DM Mono',monospace;">${f(v.pm)}</td><td>${f(v.kml)}</td><td>${f(v.lpt)}</td>
+      <td style="font-family:'DM Mono',monospace;">${v.km === null ? '—' : _motFmt(v.km, 0)}</td><td>${v.manut === null ? '—' : _motFmt(v.manut, 1) + '%'}</td><td>${v.fora}</td></tr>`).join('');
+  const tot = _motResumoVeic.reduce((a, v) => ({ prog: a.prog + v.prog, real: a.real + v.real, vol: a.vol + (v.ehCavalo ? 0 : v.vol) }), { prog: 0, real: 0, vol: 0 });
+  const est = 'font-weight:700;background:var(--bg3);border-top:2px solid var(--border);';
+  tbl.querySelector('tfoot').innerHTML = _motResumoVeic.length === 0 ? '' : `<tr><td style="${est}">TOTAL (${_motResumoVeic.length} veículos)</td><td style="${est}"></td><td style="${est}"></td><td style="${est}"></td><td style="${est}">${tot.prog}</td><td style="${est}">${tot.real}</td><td style="${est}color:${tot.prog > 0 ? _motCorAd(tot.real / tot.prog * 100) : 'var(--text3)'};">${tot.prog > 0 ? _motFmt(tot.real / tot.prog * 100, 1) + '%' : '—'}</td><td style="${est}">${_motFmt(tot.vol)}</td><td style="${est}" colspan="6"></td></tr>`;
+  _tornarTabelaOrdenavel(tbl);
+}
+window.exportarConsolidadoAtivo = function exportarConsolidadoAtivo() {
+  if (_motAbaConsol === 'mot') return exportarMotoristasConsolidado();
+  if (!_motResumoVeic.length) { showToast('✖ Nada pra exportar nesse período.'); return; }
+  const n = (v, c = 2) => v === null || v === undefined ? '' : Math.round(v * Math.pow(10, c)) / Math.pow(10, c);
+  const dados = _motResumoVeic.map(v => ({ 'Frota': v.fr || '', 'Placa': v.placa, 'Tipo': v.tipo ? String(v.tipo).toUpperCase() : '', 'Motoristas': v.motoristas, 'Dias': v.dias, 'Viagens Programadas': v.prog, 'Viagens Realizadas': v.real, 'Aderência %': n(v.ad, 1), 'Volume (t)': v.ehCavalo ? '' : n(v.vol), 'Peso Médio (t)': n(v.pm), 'KM/L': n(v.kml), 'L/t': n(v.lpt), 'KM Rodado': n(v.km, 0), 'Manutenção %': n(v.manut, 1), 'Dias Fora de Operação': v.fora }));
+  const ws = XLSX.utils.json_to_sheet(dados);
+  ws['!cols'] = Object.keys(dados[0]).map(k => ({ wch: Math.max(10, k.length + 2) }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Consolidado veículo');
+  const ini = document.getElementById('mot-data-ini').value, fim = document.getElementById('mot-data-fim').value;
+  XLSX.writeFile(wb, `consolidado_veiculos_${ini}_a_${fim}.xlsx`);
+  showToast('✔ Tabela exportada.');
+};
+
 window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar) {
   const iniEl = document.getElementById('mot-data-ini'), fimEl = document.getElementById('mot-data-fim');
   if (!iniEl.value || !fimEl.value) {
@@ -10742,7 +10835,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
       ${card('Volume', _motFmt(totVol), '#d29922')}
     </div>`;
     document.getElementById('mot-contagem').textContent = `${_motDataBR(ini)} a ${_motDataBR(fim)} · aderência geral ${totProg > 0 ? _motFmt((totReal/totProg)*100) + '%' : '—'}`;
-    document.getElementById('mot-ranks').innerHTML = _MOT_INDICADORES.map(_motGraficoRank).join('') + _motGraficoVeiculos();
+    _motRenderRanks();
 
     const tbl = document.getElementById('mot-tabela');
     tbl.querySelector('thead').innerHTML = '<tr><th>MOTORISTA</th><th title="Dias de operação no período filtrado">D. OP.</th><th title="Dias em que o motorista foi escalado em algum veículo">D. ESC.</th><th title="Dias em que atingiu 100% de aderência">D. 100%</th><th title="Veículos conduzidos">VEÍC.</th><th title="Viagens programadas">VG PR.</th><th title="Viagens realizadas">VG RE.</th><th title="Aderência">AD%</th><th title="Volume (t)">VOL.</th><th title="Peso médio por viagem (t)">PM</th><th title="Consumo km/L">KM/L</th><th title="Litros por tonelada carregada (menor = melhor)">L/t</th><th title="KM rodado">KM</th><th title="Perda por manutenção">MANUT%</th><th title="Dias fora de operação">FORA</th></tr>';
@@ -10756,6 +10849,7 @@ window.renderGestaoMotoristas = async function renderGestaoMotoristas(recarregar
             <td style="text-align:center;">${m.kml === null ? '—' : _motFmt(m.kml)}</td><td style="text-align:center;">${m.lpt === null ? '—' : _motFmt(m.lpt)}</td><td style="text-align:center;">${m.km === null ? '—' : _motFmt(m.km, 0)}</td>
             <td style="text-align:center;">${m.manut === null ? '—' : _motFmt(m.manut, 1) + '%'}</td><td style="text-align:center;">${m.fora}</td></tr>`).join('');
     _tornarTabelaOrdenavel(tbl);
+    _motRenderTabelaVeiculos();
   } catch (err) {
     console.error('Erro ao carregar Gestão de Motoristas:', err);
     kpis.innerHTML = '<div style="text-align:center;padding:30px;color:#f85149;">Erro ao carregar os dados.</div>';
@@ -10804,7 +10898,7 @@ function _motTabelaCompacta(cols, rows) {
   if (rows.length === 0) return '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">Sem dias com esse indicador no período.</div>';
   const mk = (rs) => `<div style="flex:1;min-width:0;"><table class="mot-tab"><thead><tr>${cols.map(c => `<th style="text-align:${c.al || 'left'};">${c.h}</th>`).join('')}</tr></thead><tbody>${
     rs.map(r => `<tr${r.title ? ` title="${_motEsc(r.title)}"` : ''}>${r.cel.map((c, i) => `<td style="text-align:${cols[i].al || 'left'};${(r.est && r.est[i]) || ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  const n = rows.length > 60 ? 2 : 1;
+  const n = rows.length > 60 && cols.length <= 4 ? 2 : 1;
   const por = Math.ceil(rows.length / n);
   return `<div style="display:flex;gap:14px;align-items:flex-start;">${Array.from({ length: n }, (_, i) => mk(rows.slice(i * por, (i + 1) * por))).join('')}</div>`;
 }
@@ -10884,11 +10978,11 @@ function _motModalRender() {
   const posRank = (chave) => { const lista = _motRank(chave); const pos = lista.findIndex(x => x.nome === nome); return pos >= 0 ? `#${pos + 1} de ${lista.length}` : 'sem dados'; };
   const card = (chave, titulo, valor, cor, sub, graf, rank, tinge) => `<div onclick="abrirDetalheMotorista('${chave}')" title="Clique para ver o detalhamento por dia" style="cursor:pointer;min-width:0;border:2px solid ${tinge ? cor : 'var(--border2)'};border-radius:10px;padding:8px 12px 6px;background:${tinge ? (cor === '#2ea043' ? 'rgba(46,160,67,0.10)' : cor === '#d29922' ? 'rgba(210,153,34,0.10)' : cor === '#f85149' ? 'rgba(248,81,73,0.10)' : 'var(--bg3)') : 'var(--bg3)'};">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${titulo} <span style="color:var(--text3);font-weight:400;text-transform:none;">🔍</span></span>
-        <span style="font-size:10.5px;color:var(--text3);">${rank}</span></div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin:2px 0 4px;">
-        <span style="font-size:24px;font-weight:700;font-family:'DM Mono',monospace;color:${cor};line-height:1.1;">${valor}</span>
-        <span style="font-size:10.5px;color:var(--text3);">${sub}</span></div>
+        <span style="font-size:12.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.4px;">${titulo} <span style="color:var(--text3);font-weight:400;text-transform:none;">🔍</span></span>
+        <span style="font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;">${rank}</span></div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 4px;">
+        <span style="font-size:24px;font-weight:700;font-family:'DM Mono',monospace;color:${cor};line-height:1.1;flex-shrink:0;">${valor}</span>
+        <span style="font-size:13px;line-height:1.25;color:var(--text3);">${sub}</span></div>
       ${graf}</div>`;
   const cards = [
     card('ad', 'Aderência', m.ad === null ? '—' : _motFmt(m.ad, 1) + '%', _motCorAd(m.ad),
@@ -10917,8 +11011,8 @@ function _motModalRender() {
   const pmLinhas = Object.keys(pmTipo).filter(t => pmTipo[t][nome]).sort().map(t => {
     const lista = Object.entries(pmTipo[t]).map(([n, g]) => ({ n, v: g.vol / g.real })).sort((a,b) => b.v - a.v);
     const pos = lista.findIndex(x => x.n === nome), meu = pmTipo[t][nome];
-    return `<div style="display:flex;align-items:center;gap:8px;font-size:11px;" title="Peso total ÷ viagens realizadas, entre os motoristas que conduziram ${t}">
-      <span style="font-size:9.5px;font-weight:700;padding:0 4px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${t}</span>
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;" title="Peso total ÷ viagens realizadas, entre os motoristas que conduziram ${t}">
+      <span style="font-size:10.5px;font-weight:700;padding:0 4px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);">${t}</span>
       <span style="color:var(--text3);">peso médio</span><b style="font-family:'DM Mono',monospace;">${_motFmt(meu.vol / meu.real)}</b>
       <span style="margin-left:auto;color:var(--text2);">rank <b>#${pos + 1}</b> de ${lista.length}</span></div>`;
   }).join('');
